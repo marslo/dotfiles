@@ -1,0 +1,12 @@
+# password K2leZEjH/LC2M
+# scrollback 99999
+term screen-256color
+defscrollback 99999
+
+# log on
+# deflog on
+# logfile flush 2
+
+hardcopydir /tmp/screen_hardcopy
+
+# bind ^b eval "hardcopy /tmp/screendump" "exec urlview /tmp/screendump"

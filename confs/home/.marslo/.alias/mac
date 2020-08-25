@@ -1,0 +1,35 @@
+#!/bin/bash
+# =============================================================================
+#   FileName: mac
+#     Author: marslo.jiao@gmail.com
+#    Created: 2017-10-30 19:07:45
+# LastChange: 2019-09-19 15:48:14
+# =============================================================================
+
+# shellcheck disable=SC2139
+RTDOMAIN='pww.artifactory.cdi.philips.com'
+
+alias sxcode92='sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer/'
+alias sxcode833='sudo xcode-select -switch /Applications/Xcode8.3.3.app/Contents/Developer/'
+alias cdwda='cd /usr/local/lib/node_modules/appium/node_modules/appium-xcuitest-driver/WebDriverAgent'
+alias removeDS='find . -name .DS_Store -print0 | xargs -0 git rm -f --ignore-unmatch'
+
+# Start/stop indexing on all volumes.
+alias spotlight_off='sudo mdutil -a -i off'
+alias spotlight_on='sudo mdutil -a -i on'
+
+alias date="gdate"
+alias alfredreindex="/Applications/Alfred\\ 3.app/Contents/Frameworks/Alfred\\ Framework.framework/Versions/A/Resources/reindex.sh"
+alias chrome="/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --disable-gpu"
+
+alias dockerlogin="docker login --username marslo ${RTDOMAIN}"
+# alias dockerstop="sudo killall Docker"
+alias dockerstop="osascript -e 'tell app \"Dock\" to quit'"
+alias dockerstart="open --hide --background -a Docker"
+alias dockerrestart="sudo killall Docker && sleep 5 && open --hide --background -a Docker"
+
+alias startproxy="bash -x '/Applications/Aventail Connect.app/Contents/MacOS/bin/startct.sh'"
+alias restartsshd="sudo launchctl stop com.openssh.ssh-agent; sudo launchctl start com.openssh.ssh-agent;"
+alias sshrestart="sudo launchctl stop com.openssh.ssh-agent; sudo launchctl start com.openssh.ssh-agent;"
+
+alias bs="brew search"

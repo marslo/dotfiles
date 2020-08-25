@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# For git diff
+# Inspired from http://stackoverflow.com/questions/8259851/using-git-diff-how-can-i-get-added-and-modified-lines-numbers
+function diff-lines() {
+  local path=
+  local line=
+  while read -r; do
+    esc=$'\033'
+    if [[ $REPLY =~ ---\ (a/)?.* ]]; then
+      continue
+    elif [[ $REPLY =~ \+\+\+\ (b/)?([^[:blank:]$esc]+).* ]]; then
+      path=${BASH_REMATCH[2]}
+    elif [[ $REPLY =~ @@\ -[0-9]+(,[0-9]+)?\ \+([0-9]+)(,[0-9]+)?\ @@.* ]]; then
+      line=${BASH_REMATCH[2]}
+    elif [[ $REPLY =~ ^($esc\[[0-9;]+m)*([\ +-]) ]]; then
+      echo "$path:$line:$REPLY"
+      if [[ ${BASH_REMATCH[2]} != - ]]; then
+        ((line++))
+      fi
+    fi
+  done
+}
+
+
+# author: Duane Johnson
+# email: duane.johnson@gmail.com
+# date: 2008 Jun 12
+# license: MIT
+# Modified by Marslo
+# Email: marslo.vida@gmail.com
+# date: 2013-10-15 17:54:58
+
+# Based on discussion at http://kerneltrap.org/mailarchive/git/2007/11/12/406496
+# For get git infor
+function gitinfo() {
+  pushd . >/dev/null
+
+  # Find base of git directory
+  while [ ! -d .git ] && [ ! "$(pwd)" = "/" ]; do cd ..; done
+
+  # Show various information about this git directory
+  if [ -d .git ]; then
+    echo "== Remote URL: "
+    git remote -v
+    echo
+
+    echo "== Remote Branches: "
+    git branch -r
+    echo
+
+    echo "== Local Branches:"
+    git branch
+    echo
+
+    echo "== Configuration (.git/config)"
+    cat .git/config
+    echo
+
+    echo "== Most Recent Commit"
+    git plog --max-count=3
+    echo
+
+    echo "Type 'git plog', 'git plogs' and 'git log' for more commits, or 'git show' for full commit details."
+  else
+    echo "Not a git repository."
+  fi
+  popd >/dev/null
+}
+
+function gbl()
+{
+  git for-each-ref --sort=-committerdate --format='%(committerdate) %(authorname) %(refname)' refs/remotes/origin/ | ${GREP} -e ".$*" | head -n 10;
+}
+

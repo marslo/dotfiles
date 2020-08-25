@@ -1,0 +1,40 @@
+# vim: set expandtab sw=4 tabstop=4:
+
+#
+# Base configuration
+#
+# Syntax: set <option> = <value>
+set show-rev-graph        = yes
+set show-date             = relative
+set show-line-numbers     = yes
+set show-id               = yes
+set line-number-interval  = 1
+set author-width          = 8
+set line-graphics         = ascii
+
+# Misc
+set read-git-colors       = yes
+set ignore-case           = yes
+set split-view-height     = 67%
+set vertical-split        = horizontal
+set editor-line-number    = no
+
+#
+# Key configuration
+#
+# Syntax: bind <keymap> <key> <request>
+bind generic g move-first-line
+bind generic G move-last-line
+
+#
+# Color scheme: marslo.tigrc
+#
+source /home/marslo/.tig/marslo.tigrc
+
+# LINE(PALETTE_0, "", COLOR_MAGENTA, COLOR_DEFAULT, 0), \
+  # LINE(PALETTE_1, "", COLOR_YELLOW, COLOR_DEFAULT, 0), \
+  # LINE(PALETTE_2, "", COLOR_CYAN, COLOR_DEFAULT, 0), \
+  # LINE(PALETTE_3, "", COLOR_GREEN, COLOR_DEFAULT, 0), \
+  # LINE(PALETTE_4, "", COLOR_DEFAULT, COLOR_DEFAULT, 0), \
+  # LINE(PALETTE_5, "", COLOR_WHITE, COLOR_DEFAULT, 0), \
+  # LINE(PALETTE_6, "", COLOR_RED, )

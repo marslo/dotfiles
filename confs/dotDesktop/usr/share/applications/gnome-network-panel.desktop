@@ -1,0 +1,18 @@
+[Desktop Entry]
+Name=Network
+Comment=Network settings
+Exec=gnome-control-center network
+Icon=network-workgroup
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=GNOME;GTK;Settings;HardwareSettings;X-GNOME-Settings-Panel;
+OnlyShowIn=GNOME;Unity;
+X-GNOME-Bugzilla-Bugzilla=GNOME
+X-GNOME-Bugzilla-Product=gnome-control-center
+X-GNOME-Bugzilla-Component=network
+X-GNOME-Bugzilla-Version=3.6.3
+X-GNOME-Settings-Panel=network
+# Translators: those are keywords for the network control-center panel
+Keywords=Network;Wireless;IP;LAN;Proxy;
+X-Ubuntu-Gettext-Domain=gnome-control-center-2.0

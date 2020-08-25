@@ -1,0 +1,18 @@
+[Desktop Entry]
+Name=Wacom Tablet
+Comment=Set your Wacom tablet preferences
+Exec=gnome-control-center wacom
+Icon=input-tablet
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=GNOME;GTK;Settings;HardwareSettings;X-GNOME-Settings-Panel;
+OnlyShowIn=GNOME;Unity;
+X-GNOME-Bugzilla-Bugzilla=GNOME
+X-GNOME-Bugzilla-Product=gnome-control-center
+X-GNOME-Bugzilla-Component=wacom
+X-GNOME-Bugzilla-Version=3.6.3
+X-GNOME-Settings-Panel=wacom
+# Translators: those are keywords for the wacom tablet control-center panel
+Keywords=Tablet;Wacom;Stylus;Eraser;Mouse;
+X-Ubuntu-Gettext-Domain=gnome-control-center-2.0

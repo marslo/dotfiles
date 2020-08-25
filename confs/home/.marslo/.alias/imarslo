@@ -1,0 +1,51 @@
+#!/bin/bash
+# shellcheck disable=SC2139,SC2034
+# =============================================================================
+#   FileName: imarslo
+#     Author: marslo.jiao@gmail.com
+#    Created: 2017-10-30 19:07:45
+# LastChange: 2019-09-19 15:49:10
+# =============================================================================
+
+MYWORKSPACE="/Users/marslo/mywork"
+
+alias tmax='tmux at -t marslo'
+alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
+alias polipo='polipo -c $HOME/.marslo/polipo/config >/dev/null 2>&1 &'
+alias myaws="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.marslo/Marslo/Tools/Softwares/sshkey/marslo-aws.pem ec2-user@ec2-54-193-78-97.us-west-1.compute.amazonaws.com"
+alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_env/ubuntu/backups/ss/sslocal-config.json  -d start --log=/Users/marslo/.marslo/log/sslocal.log'
+# alias polipo='polipo -c $HOME/.marslo/polipo/config daemonise=true >/dev/null 2>&1 &'
+alias sshmarslo="ssh marslo@118.193.233.78"
+
+alias cdm="cd ~/.marslo"
+alias desk="cd ~/Desktop"
+
+alias mw="cd ${MYWORKSPACE}"
+alias jo="cd ${MYWORKSPACE}/job/"
+alias jc="cd ${MYWORKSPACE}/job/code/"
+alias fw="cd ${MYWORKSPACE}/job/code/fw"
+alias wk="cd ${MYWORKSPACE}/job/code/fw/wukong"
+alias wke="cd ${MYWORKSPACE}/job/code/fw/wukong/HalExerciser"
+alias vg="cd ${MYWORKSPACE}/job/code/fw/vega"
+alias ds="cd ${MYWORKSPACE}/job/code/devops"
+alias dj="cd ${MYWORKSPACE}/job/code/devops/jenkins"
+alias ej="cd ${MYWORKSPACE}/job/code/devops/ejenkins"
+alias dos="cd ${MYWORKSPACE}/job/devops"
+alias cdr="cd ${MYWORKSPACE}/tools/remoteaccess/rsa/jenkins@fwdevops"
+
+alias st="cd ${MYWORKSPACE}/study"
+alias sg="cd ${MYWORKSPACE}/study/mystudy/groovy"
+alias sp="cd ${MYWORKSPACE}/study/mystudy/python"
+alias sk="cd ${MYWORKSPACE}/study/mystudy/kubernetes"
+alias cdjf="cd ${MYWORKSPACE}/study/mystudy/jenkinsfil"
+alias cdku="cd ${MYWORKSPACE}/study/mystudy/kubernetes"
+
+alias dvp="cd ${MYWORKSPACE}/study/code/devops"
+alias cdj="cd ${MYWORKSPACE}/study/code/devops-jenkinsfile"
+alias cdba="cd ${MYWORKSPACE}/study/code/backups"
+alias cdmac="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/mac"
+alias mbp="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/belloMarslo/"
+
+alias to="cd ${MYWORKSPACE}/tools/"
+alias gi="cd ${MYWORKSPACE}/tools/git/marslo/"
+alias myt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"

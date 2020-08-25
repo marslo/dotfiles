@@ -1,0 +1,18 @@
+[Desktop Entry]
+Name=Text Entry
+Comment=Change your keyboard or input method settings
+Exec=gnome-control-center region
+Icon=preferences-desktop-keyboard-shortcuts
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=GNOME;GTK;Settings;DesktopSettings;X-GNOME-Settings-Panel;X-GNOME-PersonalSettings
+OnlyShowIn=Unity;
+X-GNOME-Bugzilla-Bugzilla=GNOME
+X-GNOME-Bugzilla-Product=gnome-control-center
+X-GNOME-Bugzilla-Component=region
+X-GNOME-Bugzilla-Version=3.6.3
+X-GNOME-Settings-Panel=region
+# Translators: those are keywords for the region control-center panel
+Keywords=Language;Layout;Keyboard;Input Method;Text Entry;
+X-Ubuntu-Gettext-Domain=gnome-control-center-2.0

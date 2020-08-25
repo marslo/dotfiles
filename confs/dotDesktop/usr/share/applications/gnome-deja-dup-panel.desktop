@@ -1,0 +1,30 @@
+[Desktop Entry]
+Version=1.0
+X-Ubuntu-Gettext-Domain=deja-dup
+
+Name=Backup
+Comment=Change your backup settings
+
+Icon=deja-dup
+TryExec=gnome-control-center
+Exec=gnome-control-center deja-dup
+
+StartupNotify=true
+
+Type=Application
+Categories=Settings;Archiving;GNOME;GTK;X-GNOME-SystemSettings;X-GNOME-Settings-Panel;
+X-GNOME-Settings-Panel=deja-dup
+
+OnlyShowIn=GNOME;Unity;
+
+# Translators: Add whatever keywords you want in your language, separated by semicolons
+# These keywords are used when searching for applications in dashes, etc.
+Keywords=déjà;deja;dup;
+
+X-AppInstall-Ignore=true
+
+Actions=BackUpNow;
+
+[Desktop Action BackUpNow]
+Name=Back Up Now
+Exec=deja-dup --backup

@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=Amazon
+Type=Application
+Icon=amazon-store
+Exec=unity-webapps-runner --amazon --app-id=ubuntu-amazon-default

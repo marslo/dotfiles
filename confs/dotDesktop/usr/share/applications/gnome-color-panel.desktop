@@ -1,0 +1,18 @@
+[Desktop Entry]
+Name=Color
+Comment=Color management settings
+Exec=gnome-control-center color
+Icon=preferences-color
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=GNOME;GTK;Settings;X-GNOME-Settings-Panel;HardwareSettings
+OnlyShowIn=GNOME;Unity;
+X-GNOME-Bugzilla-Bugzilla=GNOME
+X-GNOME-Bugzilla-Product=gnome-control-center
+X-GNOME-Bugzilla-Component=color
+X-GNOME-Bugzilla-Version=3.6.3
+X-GNOME-Settings-Panel=color
+# Translators: those are keywords for the color control-center panel
+Keywords=Color;ICC;Profile;Calibrate;Printer;Display;
+X-Ubuntu-Gettext-Domain=gnome-control-center-2.0

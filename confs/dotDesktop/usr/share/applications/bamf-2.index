@@ -1,0 +1,138 @@
+indicator-multiload.desktop	indicator-multiload			false
+gnome-screen-panel.desktop	gnome-control-center screen		GNOME;Unity;	false
+software-properties-gtk.desktop	software-properties-gtk			false
+totem.desktop	totem %U			false
+ibus-setup.desktop	ibus-setup			false
+guake.desktop	guake			false
+apport-gtk.desktop	/usr/share/apport/apport-gtk -c %f			true
+gnome-background-panel.desktop	gnome-control-center background		GNOME;	false
+gcalctool.desktop	gnome-calculator			false
+gconf-editor.desktop	gconf-editor			false
+session-properties.desktop	gnome-session-properties		GNOME;Unity;	false
+orca.desktop	orca --replace			false
+bluetooth-wizard.desktop	bluetooth-wizard			true
+gnome-color-panel.desktop	gnome-control-center color		GNOME;Unity;	false
+evince-previewer.desktop	evince-previewer %U			true
+brasero.desktop	brasero %U			false
+UbuntuOneMusiconeubuntucom.desktop	unity-webapps-runner --homepage="https://one.ubuntu.com/music-store/" --app-id=UbuntuOneMusiconeubuntucom			false
+debian-uxterm.desktop	uxterm			false
+gnome-font-viewer.desktop	gnome-font-viewer %u			false
+gnome-deja-dup-panel.desktop	gnome-control-center deja-dup		GNOME;Unity;	false
+guake-prefs.desktop	guake-prefs			false
+im-config.desktop	im-config			false
+empathy.desktop	empathy			false
+gkbd-keyboard-display.desktop	gkbd-keyboard-display		GNOME;	true
+xdiagnose.desktop	pkexec xdiagnose			false
+google-chrome.desktop	/usr/bin/google-chrome-stable %U			false
+baobab.desktop	baobab			false
+gnome-system-monitor-kde.desktop	gnome-system-monitor		KDE;	false
+gnomine.desktop	gnome-mines			false
+bcompare.desktop	bcompare			false
+ccsm.desktop	ccsm			false
+openjdk-7-java.desktop	cautious-launcher %f /usr/bin/java -jar			true
+gnome-info-panel.desktop	gnome-control-center info		GNOME;Unity;	false
+nautilus-classic.desktop	nautilus --no-default-window --force-desktop		GNOME;	true
+update-manager.desktop	/usr/bin/update-manager			false
+simple-scan.desktop	simple-scan			false
+debian-xterm.desktop	xterm			false
+firefox.desktop	firefox %u			false
+update-accounts.desktop	/usr/lib/i386-linux-gnu/update-accounts			true
+bluetooth-sendto.desktop	bluetooth-sendto			true
+libreoffice-writer.desktop	libreoffice --writer %U	libreoffice-writer		false
+rhythmbox.desktop	rhythmbox %U			false
+deja-dup-preferences.desktop	deja-dup-preferences			false
+gnome-sound-nua-panel.desktop	gnome-control-center sound-nua		Unity;	false
+vlc.desktop	/usr/bin/vlc %U			false
+shotwell-viewer.desktop	shotwell %f			true
+gnome-unity-appearance-panel.desktop	gnome-control-center unity-appearance		Unity;	false
+gnome-user-accounts-panel.desktop	gnome-control-center user-accounts		GNOME;Unity;	false
+gnome-power-statistics.desktop	gnome-power-statistics		GNOME;Unity;	false
+libreoffice-draw.desktop	libreoffice --draw %U	libreoffice-draw		false
+libreoffice-calc.desktop	libreoffice --calc %U	libreoffice-calc		false
+gnome-disk-image-mounter.desktop	gnome-disk-image-mounter %U			true
+system-config-printer.desktop	system-config-printer			false
+gnome-printers-panel.desktop	gnome-control-center printers		GNOME;	false
+gnome-bluetooth-panel.desktop	gnome-control-center bluetooth		GNOME;Unity;	false
+gnome-system-monitor.desktop	gnome-system-monitor			false
+ubuntu-software-center.desktop	/usr/bin/software-center %u			false
+nm-applet.desktop	nm-applet			true
+gnome-datetime-panel.desktop	gnome-control-center datetime		GNOME;	false
+ubuntu-amazon-default.desktop	unity-webapps-runner --amazon --app-id=ubuntu-amazon-default			false
+gnome-credentials-panel.desktop	gnome-control-center credentials			false
+gnome-terminal.desktop	gnome-terminal		GNOME;Unity;	false
+gnome-sound-panel.desktop	gnome-control-center sound		GNOME;	false
+nautilus-connect-server.desktop	nautilus-connect-server			true
+deja-dup.desktop	deja-dup --backup			true
+gvim.desktop	gvim -f %F			false
+ubuntu-tweak.desktop	ubuntu-tweak			false
+gnome-control-center.desktop	gnome-control-center --overview		GNOME;Unity;	false
+flash-player-properties.desktop	flash-player-properties			false
+eog.desktop	eog %U			false
+gucharmap.desktop	gucharmap			false
+evince.desktop	evince %U			false
+remmina.desktop	remmina			false
+nautilus-folder-handler.desktop	nautilus %U		GNOME;Unity;	true
+brasero-nautilus.desktop	nautilus --no-default-window --no-desktop burn:///		GNOME;	true
+unity-region-panel.desktop	gnome-control-center region		Unity;	false
+software-properties-gnome.desktop	software-properties-gtk		GNOME;	false
+language-selector.desktop	/usr/bin/gnome-language-selector			false
+mount-archive.desktop	/usr/lib/gvfs/gvfsd-archive file=%u			true
+file-roller.desktop	file-roller %U			false
+gnome-mouse-panel.desktop	gnome-control-center mouse		GNOME;Unity;	false
+onboard-settings.desktop	onboard-settings			false
+rhythmbox-device.desktop	rhythmbox-client --select-source %U			true
+openjdk-7-policytool.desktop	/usr/bin/policytool			false
+gnome-disks.desktop	gnome-disks			false
+libreoffice-math.desktop	libreoffice --math %U	libreoffice-math		true
+gnome-online-accounts-panel.desktop	gnome-control-center online-accounts		GNOME;	false
+gnome-region-panel.desktop	gnome-control-center region		GNOME;	false
+nautilus-autorun-software.desktop	nautilus-autorun-software %u			true
+ubuntuone-installer.desktop	ubuntuone-control-panel-qt			false
+signon-ui-browser-process.desktop	/usr/lib/i386-linux-gnu/signon-ui/browser-process			true
+gnome-display-panel.desktop	gnome-control-center display		GNOME;Unity;	false
+credentials-preferences.desktop	credentials-preferences			false
+gcr-viewer.desktop	/usr/bin/gcr-viewer			true
+gnome-activity-log-manager-panel.desktop	gnome-control-center activity-log-manager		Unity;	false
+gnome-universal-access-panel.desktop	gnome-control-center universal-access		GNOME;Unity;	false
+thunderbird.desktop	thunderbird %u			false
+sol.desktop	/usr/games/sol			false
+bum.desktop	su-to-root -X -c bum			false
+mahjongg.desktop	gnome-mahjongg			false
+gcr-prompter.desktop	/usr/lib/gcr/gcr-prompter			true
+nautilus.desktop	nautilus --new-window %U		GNOME;Unity;	false
+gksu.desktop	gksu /usr/bin/x-terminal-emulator			true
+gnome-network-panel.desktop	gnome-control-center network		GNOME;Unity;	false
+yelp.desktop	yelp %u		GNOME;Unity;	false
+gnome-keyboard-panel.desktop	gnome-control-center keyboard		GNOME;Unity;	false
+gnome-indicator-datetime-panel.desktop	gnome-control-center indicator-datetime		Unity;	false
+launchy.desktop	launchy %u			false
+checkbox-qt.desktop	/usr/bin/checkbox-qt			false
+transmission-gtk.desktop	transmission-gtk %U			false
+gnome-system-log.desktop	gnome-system-log-pkexec			false
+python3.3.desktop	/usr/bin/python3.3			true
+gnome-power-panel.desktop	gnome-control-center power		GNOME;Unity;	false
+gnome-screenshot.desktop	gnome-screenshot --interactive			false
+display.im6.desktop	/usr/bin/display.im6 %f			false
+gedit.desktop	gedit %U			false
+shotwell.desktop	shotwell %U			false
+onboard.desktop	onboard			false
+python2.7.desktop	/usr/bin/python2.7			true
+ubuntuone-control-panel-qt-gnome.desktop	ubuntuone-control-panel-qt		GNOME;	false
+hplj1020.desktop	/usr/share/foo2zjs/hplj10xx_gui.tcl			true
+usb-creator-gtk.desktop	usb-creator-gtk			false
+gnome-wacom-panel.desktop	gnome-control-center wacom		GNOME;Unity;	false
+vino-preferences.desktop	vino-preferences		GNOME;Unity;	false
+nm-connection-editor.desktop	nm-connection-editor			false
+landscape-client-settings.desktop	landscape-client-ui-install		GNOME;Unity;	false
+compiz.desktop	compiz			true
+libreoffice-xsltfilter.desktop	libreoffice %U			true
+sublime_text.desktop	/opt/sublime_text/sublime_text %F			false
+gnome-sudoku.desktop	gnome-sudoku			false
+libreoffice-impress.desktop	libreoffice --impress %U	libreoffice-impress		false
+apturl.desktop	apturl %u			true
+nautilus-home.desktop	nautilus --new-window %U		GNOME;Unity;	true
+seahorse.desktop	/usr/bin/seahorse			false
+gnome-user-share-properties.desktop	gnome-file-share-properties		GNOME;Unity;	false
+activity-log-manager.desktop	activity-log-manager			false
+libreoffice-startcenter.desktop	libreoffice %U	libreoffice-startcenter		false
+gnome-contacts.desktop	gnome-contacts		GNOME;Unity;	false
