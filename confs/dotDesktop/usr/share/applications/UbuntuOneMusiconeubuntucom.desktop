@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Ubuntu One Music
+Type=Application
+Icon=ubuntuone-music
+Exec=unity-webapps-runner --homepage="https://one.ubuntu.com/music-store/" --app-id=UbuntuOneMusiconeubuntucom
+

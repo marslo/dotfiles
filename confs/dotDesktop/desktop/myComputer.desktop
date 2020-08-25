@@ -1,0 +1,8 @@
+[Desktop Entry]
+X-SuSE-translate=true
+Encoding=UTF-8
+Icon=mycomp
+Name=My Computer
+Type=Link
+URL=sysinfo:/
+OnlyShowIn=KDE;

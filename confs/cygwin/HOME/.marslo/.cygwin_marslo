@@ -1,0 +1,122 @@
+#!/bin/bash
+#
+# alias gvim="$HOME/../../Marslo/MyProgramFiles/Vim/vim74/gvim.exe $(cygpath -d $@)"
+# alias gvim="$HOME/../../Marslo/MyProgramFiles/Vim/vim80/gvim.exe $@"
+alias vim="vim -u $HOME/.cygwin/.vimrc"
+alias vimdiff="vimdiff -u $HOME/.cygwin/.vimrc"
+alias buildvim="make -f Make_cyg.mak PYTHON=/cygdrive/c/Marslo/MyProgramFiles/Python27 DYNAMIC_PYTHON=yes PYTHON_VER=27 PYTHON3=/cygdrive/c/Marslo/MyProgramFiles/Python34 DYNAMIC_PYTHON3=yes PYTHON3_VER=34 FEATURES=huge IME=yes GIME=yes MBYTE=yes CSCOPE=yes USERNAME=Marslo.Jiao USERDOMAIN=China GUI=yes"
+alias dp='cygpath -d $PWD'
+
+alias up="cd $HOME"
+alias jo="cd $HOME/../../Marslo/Job"
+alias jco="cd $HOME/../../Marslo/Job/Code"
+alias fpp="cd $HOME/../../Marslo/Job/Code/FPP"
+alias sco="cd $HOME/../../Marslo/Study/Code/marslo"
+alias onf="cd $HOME/../../Marslo/Job/Code/tool-config"
+alias tl="cd $HOME/../../Marslo/Tools"
+alias gi="cd $HOME/../../Marslo/Tools/Git/repo_marslo"
+alias so="cd $HOME/../../Marslo/Study/Code"
+alias dl="cd $HOME/../../Marslo/Tools/Download"
+alias sf="cd $HOME/../../Marslo/Tools/Software"
+alias desk="cd $HOME/Desktop"
+alias proj="cd $HOME/../../Marslo/MyProgramFiles"
+
+alias gitinfo='source $HOME/.gitinfo'
+alias exp='explorer.exe .'
+alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
+
+# Dangerous operation needs confirm
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# alias ssh='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $HOME/../../Marslo/Tools/Software/System/RemoteConnection/AuthorizedKeys/Marslo\@Appliance'
+# alias scp='scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/../../Marslo/Tools/Software/System/RemoteConnection/AuthorizedKeys/Marslo\@Appliance'
+alias ssh='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $HOME/../../Marslo/Tools/Software/System/RemoteConnection/AuthorizedKeys/marslo\@devops/marslo\@devops'
+alias scp='scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $HOME/../../Marslo/Tools/Software/System/RemoteConnection/AuthorizedKeys/marslo\@devops/marslo\@devops'
+
+# Operation of files and directory
+alias cx='chmod u+x'
+alias c='clear'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias d='cd -'
+alias dc='cd $1'
+alias -- +='pushd .'
+alias -- ++='pushd +1'
+alias -- +++='pushd +2'
+alias -- -='popd'
+alias -- --='pushd -0'
+alias -- ---='pushd -1'
+alias dv='dirs -v'
+alias :q='exit'
+alias :x='exit'
+alias :qa='exit'
+
+# Show colorful
+alias grep='grep -i --color=auto'
+alias egrep='egrep -i --color=auto'
+alias h='history | grep $@'
+
+alias ls='ls -NF --color=always'
+alias l='ls -lthrNF --color=always'
+alias la='ls -althrNF --color=always'
+alias l.='ls -d .* --color=always' 
+alias ld='\ls -Nald --color=always */'
+
+alias lvim="vim -c \"normal '0\""
+alias lgvim="gvim -c \"normal '0\""
+
+alias c='clear'
+alias ff=firefox
+alias ud.='du -h --max-depth=1 --exclude='\./\.*''
+alias ud='du -h --max-depth=1'
+alias df='df -kTh'
+alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
+alias shutdown='sudo shutdown -h now'
+alias reboot='sudo shutdown -r now'
+alias chrome='/cygdrive/c/Program Files (x86)/Google/Chrome/Application/chrome.exe'
+
+export GIT_SSH="$HOME/../../Marslo/Tools/Software/System/RemoteConnection/git_ssh.sh"
+
+# Color configure in ls
+export LS_COLORS='no=00:fi=00:di=01;31:ln=01;36:pi=40;33:so=01;35:bd=40;33;01:cd=40;33;01:or=01;05;37;41:mi=01;05;37;41:ex=01;32:*.cmd=01;32:*.exe=01;32:*.com=01;32:*.btm=01;32:*.bat=01;32:*.sh=01;32:*.csh=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.bz=01;31:*.tz=01;31:*.rpm=01;31:*.cpio=01;31:*.jpg=01;35:*.gif=01;35:*.bmp=01;35:*.xbm=01;35:*.xpm=01;35:*.png=01;35:*.tif=01;35:'
+
+# The color of man page
+export LESS_TERMCAP_mb=$(printf "\e[1;31m")         # begin blinding
+export LESS_TERMCAP_md=$(printf "\e[1;31m")         # begin bold
+export LESS_TERMCAP_me=$(printf "\e[0m")            # end mode
+export LESS_TERMCAP_se=$(printf "\e[0m")            # end stadout-mode
+export LESS_TERMCAP_so=$(printf "\e[1;44;33m")      # begin stadout-mode - info box
+export LESS_TERMCAP_ue=$(printf "\e[0m")            # end underline
+export LESS_TERMCAP_us=$(printf "\e[1;32m")         # begin underline
+export LESS="-eirMX"
+
+# The setting about history
+export HISTCONTROL=erasedups
+export HISTCONTROL=ignoredups
+export HISTTIMEFORMAT='%F %T '
+
+# ┌─ (USERNAME@HOSTNAME PATH) ->
+# └─ $
+ULMARK='\[\033(0\]l\[\033(B\]'
+DMARK='\[\033(0\]m\[\033(B\]'
+LMARK='\[\033(0\]q\[\033(B\]'
+DBLACK='\[\033[30;1m\]'
+DRED='\[\033[31;1m\]'
+SDBLACK='\[\033[1\;30m\]'
+SDRED='\[\033[1\;31m\]'
+COLRESET='\[\033[1m\]'
+COLNONE='\[\033[0m\]'
+
+export PS1="\n${DBLACK}┌─ (\u@\h ${COLRESET} ${DRED}\w${COLRESET}${DBLACK}) ->${COLRESET}\n${DBLACK}└─ ${COLRESET}\`if [ \$? = 0 ]; then echo ${SDBLACK}\\$ ${COLRESET}; else echo ${SDRED}\\$ ${COLRESET}; fi\`${COLNONE}"
+export PS2="${DBLACK} -> ${COLRESET}${COLNONE}"
+export TEMP="$HOME/AppData/Local/Temp"
+
+# export http_proxy=http://165.225.96.34:10015
+# export https_proxy=http://165.225.96.34:10015
+export http_proxy=http://42.99.164.34:10015
+export https_proxy=http://42.99.164.34:10015
+# 161.85.30.130: blackduck
+export no_proxy=localhost,127.0.0.1,pwww.*.mysite.phcompany.com,130.*.*.*,161.*.*.*,pwww.artifactory.mysite.phcompany.com,130.147.219.19,healthyliving.cn-132.lan.phcompany.com,*.cn-132.lan.phcompany.com,130.147.183.165,pwww.sonar.mysite.phcompany.com,130.147.219.20,pwww.gitlab.mysite.phcompany.com,130.147.219.15,pwww.slave01.mysite.phcompany.com,130.147.219.24,pwww.confluence.mysite.phcompany.com,130.147.219.18,pwww.jira.mysite.phcompany.com,130.147.219.16,161.85.30.130

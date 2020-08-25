@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Keyboard Input Methods
+Comment=Adjust methods for keyboard input.
+Exec=ibus-setup
+Icon=ibus-setup
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Settings;
+NotShowIn=GNOME;Unity;
+X-Desktop-File-Install-Version=0.21
+X-Ubuntu-Gettext-Domain=ibus10

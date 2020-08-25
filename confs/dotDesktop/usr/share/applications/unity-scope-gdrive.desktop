@@ -1,0 +1,9 @@
+[Desktop Entry]
+Categories=Office;
+Exec=
+GenericName=unity-scope-gdrive
+Icon=unity-scope-gdrive
+Name=Google Drive scope for Unity
+NoDisplay=true
+Terminal=false
+Type=Application

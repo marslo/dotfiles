@@ -1,0 +1,1 @@
+REG ADD "HKCU\Environment" /v HOME /t REG_EXPAND_SZ /d ^%USERPROFILE^%

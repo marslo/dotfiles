@@ -1,0 +1,6 @@
+#!/bin/bash
+
+sudo /usr/local/bin/sslocal -c /Users/marslo/.marslo/ss/sswayne.json \
+                       -d start \
+                       --pid-file=/Users/marslo/.marslo/ss/sswayne.pid \
+                       --log-file=/Users/marslo/.marslo/ss/sswayne.log

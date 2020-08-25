@@ -1,0 +1,18 @@
+[Desktop Entry]
+Name=Online Accounts
+Comment=Manage online accounts
+Exec=gnome-control-center online-accounts
+Icon=goa-panel
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=GNOME;GTK;Settings;DesktopSettings;X-GNOME-Settings-Panel;X-GNOME-PersonalSettings;
+OnlyShowIn=GNOME;
+X-GNOME-Bugzilla-Bugzilla=GNOME
+X-GNOME-Bugzilla-Product=gnome-control-center
+X-GNOME-Bugzilla-Component=Online Accounts
+X-GNOME-Bugzilla-Version=3.6.3
+X-GNOME-Settings-Panel=online-accounts
+# Translators: those are keywords for the online-accounts control-center panel
+Keywords=Google;Facebook;Twitter;Yahoo;Web;Online;Chat;Calendar;Mail;Contact;
+X-Ubuntu-Gettext-Domain=gnome-control-center-2.0

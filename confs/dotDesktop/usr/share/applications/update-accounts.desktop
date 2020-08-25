@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Account update tool
+Exec=/usr/lib/i386-linux-gnu/update-accounts
+NoDisplay=true
+Type=Application
+X-Ubuntu-Gettext-Domain=credentials-control-center

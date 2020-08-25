@@ -1,0 +1,17 @@
+[Desktop Entry]
+Name=Font Viewer
+Comment=View fonts on your system
+Keywords=fonts;fontface;
+Icon=preferences-desktop-font
+Exec=gnome-font-viewer %u
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=GTK;GNOME;Utility;
+MimeType=application/x-font-ttf;application/x-font-pcf;application/x-font-type1;application/x-font-otf;
+X-GNOME-Bugzilla-Bugzilla=GNOME
+X-GNOME-Bugzilla-Product=gnome-font-viewer
+X-GNOME-Bugzilla-Component=general
+X-GNOME-Bugzilla-OtherBinaries=gnome-thumbnail-font
+X-GNOME-Bugzilla-Version=3.8.0
+X-Ubuntu-Gettext-Domain=gnome-font-viewer

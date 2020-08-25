@@ -1,0 +1,20 @@
+[Desktop Entry]
+Name=Details
+Comment=System Information
+Exec=gnome-control-center info
+Icon=applications-system
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=GNOME;GTK;Settings;X-GNOME-SystemSettings;X-GNOME-Settings-Panel;
+OnlyShowIn=GNOME;Unity;
+X-GNOME-Bugzilla-Bugzilla=GNOME
+X-GNOME-Bugzilla-Product=gnome-control-center
+X-GNOME-Bugzilla-Component=info
+X-GNOME-Bugzilla-Version=3.6.3
+X-GNOME-Settings-Panel=info
+# Translators: those are keywords for the System Information panel
+# "Preferred Applications" is the old name for the preference, so make
+# sure that you use the same "translation" for those keywords
+Keywords=device;system;information;memory;processor;version;default;application;fallback;preferred;cd;dvd;usb;audio;video;disc;removable;media;autorun;
+X-Ubuntu-Gettext-Domain=gnome-control-center-2.0

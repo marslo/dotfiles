@@ -1,0 +1,14 @@
+
+[Desktop Entry]
+X-SuSE-translate=true
+Type=Application
+Exec=konsole 
+Icon=utilities-terminal
+X-DocPath=konsole/index.html
+Terminal=false
+X-KDE-StartupNotify=true
+Name=Konsole
+GenericName=Terminal
+X-DBUS-StartupType=Unique
+X-KDE-AuthorizeAction=shell_access
+Categories=Qt;KDE;System;TerminalEmulator;

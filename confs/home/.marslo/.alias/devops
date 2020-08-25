@@ -1,0 +1,31 @@
+#!/bin/bash
+# shellcheck disable=SC2139,SC2034
+# =============================================================================
+#   FileName: devops
+#     Author: marslo.jiao@gmail.com
+#    Created: 2017-10-30 19:07:45
+# LastChange: 2020-06-08 21:24:29
+# =============================================================================
+
+RTDOMAIN='pww.artifactory.cdi.philips.com'
+
+# alias pip="pip --trusted-hosts ${RTDOMAIN}"
+# export GIT_TRACE=1
+# export GIT_TRACE_PERFORMANCE=1
+export GIT_PS1_SHOWDIRTYSTATE=true
+export GIT_PS1_SHOWUNTRACKEDFILES=true
+
+alias en7dump='tcpdump -nni en7 -p'
+alias startjack='jackd -d coreaudio &'
+# alias mocp="mocp -v 50"
+# alias npmuninstallall="npm uninstall `ls -1 node_modules | tr '/\n' ' '`; npm prune"
+
+alias gradle="gradle --full-stacktrace"
+alias gradler="gradle --full-stacktrace --refresh-dependencies"
+alias gcl="gradle --full-stacktrace clean"
+
+M2_HOME="/opt/apache-maven-3.6.1"
+MAVEN_OPTS="-Xms256m -Xmx512m"
+M2="${M2_HOME}/bin"
+PATH=$PATH:$M2
+export M2_HOME M2 MAVEN_OPTS PATH

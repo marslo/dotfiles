@@ -1,0 +1,14 @@
+#!/bin/bash
+
+ssHome="${HOME}/.marslo/ss"
+ssjson="${ssHome}/ssmarslo.json"
+sspid="${ssHome}/ssmarslo.pid"
+sslog="${ssHome}/ssmarslo.log"
+
+[ ! -f "${sspid}" ] && touch "${sspid}"
+[ ! -f "${sslog}" ] && touch "${sslog}"
+
+sudo /usr/local/bin/sslocal -c ${ssjson}   \
+                       --pid-file=${sspid} \
+                       --log-file=${sslog} \
+                       -d start

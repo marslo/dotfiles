@@ -1,0 +1,331 @@
+[user]
+  name        = marslo
+  email       = marslo.jiao@gmail.com
+[push]
+  default     = matching
+# [remote "origin"]
+  # fetch       = +refs/heads/*:refs/remotes/origin/*
+[diff]
+  rename      = copy
+  submodule   = log
+	wsErrorHighlight = all
+# Inspired from tpope: https://github.com/tpope/tpope/blob/master/.gitconfig
+[diff "ruby"]
+  funcname    = \"^ */(/(def/) .*/)\"
+[diff "image"]
+  textconv    = identify
+[diff "bin"]
+    textconv = hexdump -v -C
+[color]
+  ui          = true
+  log         = always
+  status      = always
+  add         = always
+  push        = always
+  pull        = always
+  diff        = always
+  branch      = always
+  interactive = auto
+[color "branch"]
+  current     = green bold
+  local       = yellow
+  remote      = red
+[color "status"]
+  added       = yellow
+  changed     = red bold
+  untracked   = magenta normal dim
+[color "diff"]
+  meta        = blue bold
+  frag        = magenta
+  old         = red bold
+  new         = green bold
+  # whitespace  = red reverse
+  whitespace  = yellow reverse
+  commit      = cyan
+[color "status"]
+    updated   = green
+[core]
+  editor            = vim
+  # pager           = cat
+  # pager           = less -r
+  # pager             = less
+  pager             = diff-highlight | less $LESS -F -x1,5 -X
+  whitespace        = fix,-indent-with-non-tab,trailing-space,cr-at-eol,tab-in-indent
+  # whitespace      = cr-at-eol
+  autocrlf          = input
+  precomposeUnicode = true
+	ignorecase = false
+	excludesfile      = /Users/marslo/.gitignore_global
+  eol               = lf
+  # eol             = --show-origin
+  safecrlf          = warn
+  attributesfile    = /Users/marslo/.gitattributes
+[pager]
+  branch = false
+  # Set the default diff like diff-lines
+  # diff        = diff-lines | less
+
+[alias]
+  aa          = add --all
+  st          = status
+  pl          = pull --rebase
+  ci          = commit -m
+  ca          = commit -am
+  cam         = commit --allow-empty -am
+  caa         = "!f(){ git add --all && git commit --amend --no-edit --allow-empty; }; f"
+  cia         = commit --amend --allow-empty
+  cin         = commit --amend --no-edit --allow-empty
+  caj         = commit --author "marslo <marslo.jiao@gmail.com>" -m
+  co          = checkout
+  br          = branch
+  bra         = branch -a
+  cl          = clean -dfx
+  cn          = clone
+  sb          = show-branch
+  cb          = rev-parse --abbrev-ref HEAD
+  wc          = whatchanged
+  gca         = gc --aggressive
+  fa          = fetch --all --force
+  ma          = merge --all --progress
+  psa         = push origin --all
+  pst         = push origin --tag
+  fpush       = push origin --force
+
+  fd          = diff --name-status
+  in          = info --no-config
+  wd          = diff --color-words -U0
+  ld          = !bash -c '. ~/.marslo/.gitrc && git diff -U0 \"$@\" | diff-lines' -
+  # ld          = !bash -l -c 'git diff -U0 "$@" | diff-lines' -
+  ldiff       = diff -U0
+
+  ign         = ls-files -o -i --exclude-standard
+  ls-effort   = !git log --pretty=format: --name-only | sort | uniq -c | sort -rg
+  tagcommit   = rev-list -1
+  stag        = tag --sort=-creatordate --format='%(creatordate:short)%09%(refname:strip=2)'
+  plog        = !git --no-pager log --color --graph --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative --max-count=3
+  plogs       = log --color --graph --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative
+  fplog       = log --color --graph --pretty=tformat:'%Cred%H%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative
+  flog        = log -p --graph --color --graph
+
+  # Showing all branches and their relationshps
+  tre         = log --color --graph --pretty=oneline --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --decorate --abbrev-commit --all
+  clog        = log --color --graph --all --decorate --simplify-by-decoration --oneline
+  pshow       = show -s --pretty='tformat:%Cred%h%Creset %Cgreen(%s)%Creset'
+
+  rlog        = "!bash -c 'while read branch; do \n\
+                   git fetch --all --force; \n\
+                   git plog remotes/origin/$branch; \n\
+                 done < <(git rev-parse --abbrev-ref HEAD) '"
+
+  rlogs       = "!bash -c 'while read branch; do \n\
+                   git fetch --all --force; \n\
+                   git plogs remotes/origin/$branch; \n\
+                 done < <(git rev-parse --abbrev-ref HEAD) '"
+
+  cap         = "!bash -c 'while read branch; do \n\
+                   git add --all .; \n\
+                   git commit -am \"${0}\"; \n\
+                   git push origin $branch; \n\
+                 done < <(git rev-parse --abbrev-ref HEAD) '"
+
+  cfmp        = "!bash -c 'while read branch; do \n\
+                   git add --all .; \n\
+                   git commit -aqm \"${0}\"; \n\
+                   git fetch --all --force; \n\
+                   git merge --all --progress remotes/origin/$branch; \n\
+                   git push origin $branch; \n\
+                 done < <(git rev-parse --abbrev-ref HEAD) '"
+
+  rbr         = "!f(){ git branch -ra | grep $1; }; f"
+  diffremote  = "!bash -c 'while read branch; do \n\
+                   git fetch origin $branch; \n\
+                   git ld $branch remotes/origin/$branch; \n\
+                 done < <(git rev-parse --abbrev-ref HEAD) '"
+
+  diffname    = git diff --name-only
+  diffbranch  = log --left-right --graph --cherry-pick --oneline
+
+  # info      = !bash -l -c 'gitinfo'
+  # info        = !bash -c '. ~/.marslo/.marslorc && gitinfo'
+  last        = cat-file commit HEAD
+  task        = grep -EI \"TODO|FIXME\"
+  # curbranch = "!bash -c 'git branch | grep \* | sed "s/\* \(.*\)/ (\1)/"'"
+  dreview     = review development
+  refreview   = push origin HEAD:refs/for/refs/meta/config
+  # Merge GitHub pull request on top of the current branch or,
+  # if a branch name is specified, on top of the specified branch.
+  mpr         = "!f() { \
+                          declare currentBranch=\"$(git symbolic-ref --short HEAD)\"; \
+                          declare branch=\"${2:-$currentBranch}\"; \
+                          if [ $(printf \"%s\" \"$1\" | grep '^[0-9]\\+$' > /dev/null; printf $?) -eq 0 ]; then \
+                              git fetch origin refs/pull/$1/head:pr/$1 && \
+                              git checkout -B $branch && \
+                              git rebase $branch pr/$1 && \
+                              git checkout -B $branch && \
+                              git merge pr/$1 && \
+                              git branch -D pr/$1 && \
+                              git commit --amend -m \"$(git log -1 --pretty=%B)\n\nClose #$1\"; \
+                          fi \
+                      }; f"
+  # info        = "!f() { \
+                   # git info --no-config | more \
+                 # }; f"
+  init-repo   = "!f() { \
+                    declare help=\"\"\"\
+                      USAGE: git init-repo <REMOTE_URL> [DEFAULT_BRANCH] [LOCAL_DIR] \n\
+                      OPT: \n\
+                            REMOTE_URL : mandatory \n\
+                        DEFAULT_BRANCH : optinal. default is 'master' \n\
+                             LOCAL_DIR : optional. default is current directory: '\"$(pwd)\"' \n\
+                    \"\"\"; \
+                    declare remoteURL=\"$1\"; \
+                    declare defaultBr='master'; \
+                    declare localDir='.'; \
+                    [ 2 -eq $# ] && defaultBr=\"$2\"; \
+                    [ 3 -eq $# ] && localDir=\"$3\"; \
+                    if [ 0 -eq $# ]; then \
+                      echo \"${help}\"; \
+                    else \
+                      [ -d ${localDir} ] || mkdir -p ${localDir}; \
+                      cd ${localDir} ; \
+                      git init && \
+                      git remote add origin ${remoteURL} && \
+                      git fetch --all --force --quiet && \
+                      git checkout -b ${defaultBr}; \
+                    fi \
+                  }; f"
+
+  mh          = "!f(){ \
+                    declare help=\"\"\"\
+                      marslo specific git alias \n\
+                      EXPLATIOIN: \n\
+                           ca = git commit -am \n\
+                          cam = git commit --allow-empty -am \n\
+                          caa = git add --all && git commit --amend --no-edit --allow-empty \n\
+                          cia = git commit --amend --allow-empty \n\
+                          cin = commit --amend --no-edit --allow-empty \n\
+                           mp = git caa & git push --force -u <current-brancha> \n\
+                           mw = git caa & git review <current-branch> \n\
+                    \"\"\"; \
+                    echo \"${help}\"; \
+                  }; f"
+  sub         = submodule
+  subpull     = !git pull && git submodule sync --recursive && git submodule update --init --recursive
+  subupdate   = submodule update --remote --merge
+  prev        = !git push origin HEAD:refs/for/$1
+  pdraft      = !git push origin HEAD:refs/drafts/$1
+  ghook       = !bash -c 'scp -p -P 29418 vgitcentral.mycomp.com:hooks/commit-msg $(git rev-parse --git-dir)/hooks/'
+  showupstream = "!bash -c 'while read branch; do \n\
+                    upstream=$(git rev-parse --abbrev-ref $branch@{upstream} 2>/dev/null); \n\
+                    if [[ $? == 0 ]]; then \n\
+                      echo \"$branch tracks $upstream\"; \n\
+                    else \n\
+                      echo \"$branch has no upstream configured\"; \n\
+                    fi; \n\
+                  done < <(git for-each-ref --format=\"%(refname:short)\" refs/heads/*) '"
+  ua          = "!bash -c 'while read branch; do \n\
+                   git fetch --all --force; \n\
+                   git rebase -v refs/remotes/origin/${branch}; \n\
+                   git merge --all --progress refs/remotes/origin/${branch}; \n\
+                   git remote prune origin; \n\
+                   if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \n\
+                     git submodule sync --recursive; \n\
+                     git submodule update --init --recursive \n\
+                   fi \n\
+                 done < <(git rev-parse --abbrev-ref HEAD) '"
+  mp          = "!bash -c 'while read branch; do \n\
+                    git add --all $(git rev-parse --show-toplevel) \n\
+                    git commit --amend --no-edit \n\
+                    git push -u --force origin ${branch} \n\
+                 done < <(git rev-parse --abbrev-ref HEAD) '"
+  mw          = "!bash -c 'while read branch; do \n\
+                    git review ${branch} \n\
+                 done < <(git rev-parse --abbrev-ref HEAD) '"
+  revset      = "!bash -c 'ix=0; for ih in $(git rev-list --reverse HEAD); do \n\
+                  TCMD=\"git notes --ref linrev\"; \n\
+                  TCMD=\"$TCMD add $ih -m \\\"(r\\$((++ix)))\\\"\"; \n\
+                  eval \"$TCMD\"; \n\
+                done; \n\
+                echo \"Linear revision notes are set.\" '"
+  revunset    = "!bash -c 'ix=0; for ih in $(git rev-list --reverse HEAD); do \n\
+                  TCMD=\"git notes --ref linrev\"; \n\
+                  TCMD=\"$TCMD remove $ih\"; \n\
+                  eval \"$TCMD 2>/dev/null\"; \n\
+                done; \n\
+                echo \"Linear revision notes are unset.\" '"
+  revlog          = log --max-count=3 --color --graph --notes=linrev --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %C(blue)<%an>%Creset %N' --abbrev-commit --date=relative
+  show-rev-number = !bash -c 'git rev-list --reverse HEAD | nl | awk \"{ if(\\$1 == "$0") { print \\$2 }}\"'
+  show-rev        = "!f(){ git rev-list --count $1; }; f"
+
+  show-remote-rev = "! bash -c 'git ls-remote --heads $(git config --get remote.origin.url) | \n\
+                                grep \"refs/heads/$0\" | \n\
+                                cut -f 1'"
+
+  githubprofile   = config user.email \"marslo.jiao@gmail.com\"
+  ls              = log --stat --pretty                                                                                                    = short --graph
+  subst = submodule foreach \"git status\"
+  first = rev-list --max-parents=0 HEAD
+  make-patch = "!bash -c \"git format-patch HEAD~1; git reset HEAD~1\""
+
+[gui]
+  fontdiff    = -family Consolas -size 11 -weight normal -slant roman -underline 0 -overstrike 0
+[pretty]
+    custom = "%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
+    #                     │        │            │            │             └─ author name
+    #                     │        │            │            └─ message
+    #                     │        │            └─ date (relative)
+    #                     │        └─ decorations (branch, heads or tags)
+    #                     └─ hash (abbreviated)
+[status]
+  submoduleSummary = true
+[fetch]
+  prune = true
+[branch]
+  autosetuprebase = always
+[rerere]
+  enabled = true
+[difftool "sourcetree"]
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path = 
+[mergetool "sourcetree"]
+	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
+[commit]
+	template = /Users/marslo/.stCommitMsg
+[gitreview]
+  username = marslo
+  remote = origin
+
+[url "ssh://marslo@vgitcentral.marvell.com:29418/"]
+  insteadOf = ssh://srv-ssd-fw-devops@vgitcentral.marvell.com:29418/
+[url "https://github.com/"]
+  insteadOf = git@github.com:
+
+# [credential]
+  # helper = wincred
+
+# [http]
+#   proxy = http://127.0.0.1:1087
+#   sslBackend = openssl
+# [https]
+#   proxy = http://127.0.0.1:1087
+# [url "https://marslo@vgitcentral.mycomp.com/a/"]
+  # insteadOf = ssh://marslo@vgitcentral.mycomp.com:29418/
+# [url "ssh://marslo@vgitcentral.mycomp.com:29418/"]
+  # insteadOf = https://marslo@vgitcentral.mycomp.com/a/
+# [url "git@github.com:"]
+  # insteadOf   = https://github.com/
+  # proxy = http://127.0.0.1:1087
+# [http "https://chromium.googlesource.com"]
+  # sslVerify = false
+  # proxy = http://127.0.0.1:1087
+# [http "git@github.com:"]
+  # sslVerify = false
+  # proxy = http://127.0.0.1:1087
+# [filter "lfs"]
+  # clean = git-lfs clean -- %f
+  # smudge = git-lfs smudge -- %f
+  # process = git-lfs filter-process
+  # required = true
+[advice]
+	detachedHead = false

@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1072,SC2154
+
+# =============================================================================
+#   FileName: docker
+#     Author: marslo.jiao@gmail.com
+#    Created: 2017-10-30 19:07:45
+# LastChange: 2020-06-08 22:24:34
+# =============================================================================
+
+
+alias d='docker'
+alias dkill='docker kill $(docker ps -a -q)'
+alias dcleanc='docker rm $(docker ps -a -q)'
+alias dcleani='docker rmi $(docker images -q -f dangling=true)'
+alias dcleanall='dockercleanc || true && dockercleani'
+alias dcleanfull='docker system prune -a -f'
+alias dclr='docker system prune -a -f'
+
+alias dll='docker ps -l -q'
+alias dls='docker ps -l -a'
+alias dex='docker exec -i -t'
+alias di='docker images'
+
+alias drm='docker rm'
+alias drmi='docker rmi'
+
+alias drun='docker run -it -rm'
+alias dexe='docker exec -i -t'
+alias drit='docker run -i -t -P'
+alias drdp='docker run -d -P'
+alias drp='dockcer run --privileged -i -t'
+alias droot='dockcer run --privileged -i -t -u 0'
+alias drps='dockcer run --privileged -v /var/run/docker.sock:/var/run/docker.sock -i -t'
+alias dip="docker inspect --format '{{ .NetworkSettings.IPAddress }}'"
+
+alias dv='docker volume'
+alias dvi='docker volume inspect'
+
+
+# bash completion for docker
+while read -r _i; do
+  complete -F _complete_alias "${_i}"
+done < <(echo 'd')
+
+while read -r _i; do
+  complete -F _complete_alias "${_i}"
+done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/.alias/docker")

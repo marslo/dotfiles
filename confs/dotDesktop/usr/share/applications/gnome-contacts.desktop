@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Contacts
+Keywords=friends;address book;
+Icon=x-office-address-book
+Exec=gnome-contacts
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=GNOME;GTK;Utility;
+OnlyShowIn=GNOME;Unity;
+X-Ubuntu-Gettext-Domain=gnome-contacts

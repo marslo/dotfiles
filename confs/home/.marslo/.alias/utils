@@ -1,0 +1,111 @@
+#!/bin/bash
+# =============================================================================
+#   FileName: utils
+#     Author: marslo.jiao@gmail.com
+#    Created: 2017-10-30 19:07:45
+# LastChange: 2019-09-19 15:49:40
+# =============================================================================
+
+alias rm='rm -i'
+alias cp='cp -i'
+alias cpa='cp --parents'
+# alias mv='mv -i'
+
+# Operation of files and directory
+alias cx='chmod u+x'
+alias cw='chmod u+w'
+alias c='clear'
+alias totalclear='clear;printf %b "\033[3J"'
+
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias dc='cd'
+alias sl='ls'
+
+alias :q='exit'
+alias :x='exit'
+
+alias -- +='pushd .'
+alias -- ++='pushd +1'
+alias -- +++='pushd +2'
+alias -- -='popd'
+alias -- --='pushd -0'
+alias -- ---='pushd -1'
+alias dv='dirs -v'
+
+# Show colorful
+alias grep='grep -i --color=always'
+alias lgrep='grep -i -n --color=always'
+alias egrep='egrep -i -n --color=always'
+alias egp='egrep -v "(#|^$)"'
+alias h='history | grep -i --color=always'
+alias his='history'
+alias more='more -r'
+alias diff='diff --color=auto'
+alias fdiff="diff --old-group-format=$'\\e[0;31m%<\\e[0m' --new-group-format=$'\\e[0;31m%>\\e[0m' --unchanged-group-format=$'\\e[0;32m%=\\e[0m'"
+
+alias ld='\ls -ald --color=always */'
+alias ls='ls --color=always'
+alias l='\ls -lthr --color=always'
+alias la='ls -Althr --color=always'
+alias l.='ls -d .* --color=always'
+alias LS='find -mount -maxdepth 1 -printf "%.5m %10M %#9u:%-9g %#5U:%-5G %TF_%TR %CF_%CR %AF_%AR %#15s [%Y] %p\n" 2>/dev/null'
+alias o='open .'
+
+alias lvim="vim -c \"normal '0\""
+alias lgvim="gvim -c \"normal '0\""
+# alias tig="tig 2> /dev/null"
+
+alias c='clear'
+alias ff=firefox
+alias ud='du -h --max-depth=1 --exclude="\./\.*"'
+alias ud.='du -h --max-depth=1'
+alias udf='du -skh'
+alias uds='du --block-size=MiB --max-depth=1 --exclude="\./\.*" | sort -nr'
+alias uds.='du --block-size=MiB --max-depth=1 | sort -nr'
+alias df='df -kTh'
+alias which='alias | which -a --tty-only --read-alias --show-dot --show-tilde'
+# alias which='alias | /usr/bin/which -a'
+alias ping='/sbin/ping --apple-time -v'
+alias sping='/sbin/ping -c1 -t1 -W0'
+alias gerrit='ssh -p 29418 vgitcentral.marvell.com gerrit'
+
+alias chown='sudo chown'
+alias chmod='sudo chmod'
+alias service='sudo service'
+alias systemctl='sudo systemctl'
+# alias updatedb='sudo updatedb'
+alias locate='sudo locate'
+alias ports='sudo netstat -tunplea | grep'
+alias reboot='sudo shutdown -r now'
+# alias howold="sudo tune2fs -l $(df -h / |(read; awk '{print $1; exit}')) | grep -i created"
+alias dropcache='sudo echo 3 > /proc/sys/vm/drop_caches'
+alias lgout='read ans; kill -HUP $PPID'
+alias showpath='echo -e ${PATH//:/\\n}'
+alias cmount='mount | column -t'
+alias dstat='dstat -cdgilmnprsy'
+alias ta='tmux at -t '
+alias tls='tmux ls'
+
+alias wget='wget --no-cookies --no-check-certificate'
+alias clear-dns-cache='sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
+alias myip='curl ip.appspot.com'
+alias lsock='sudo /usr/sbin/lsof -i -P'             # lsock:        Display open sockets
+alias lsockU='sudo /usr/sbin/lsof -nP | grep UDP'   # lsockU:       Display only open UDP sockets
+alias lsockT='sudo /usr/sbin/lsof -nP | grep TCP'   # lsockT:       Display only open TCP sockets
+alias openPorts='sudo lsof -i | grep LISTEN'        # openPorts:    All listening connections
+alias allowedports='sudo /sbin/iptables -L -n'
+alias flushdns="sudo /etc/init.d/nscd restart"
+
+alias scp='scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '
+alias sshrsa='ssh -i ~/mywork/tools/remoteaccess/rsa/marslo@devops/marslo@devops'
+alias rsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '"
+alias sudorsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' --rsync-path='sudo rsync'"
+# alias ssh="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "
+
+alias imbusy='cat /dev/urandom | hexdump -C | grep "ca fe"'
+
+alias weekno='date +"%V"'
+alias daysleft='echo "There are $(($(date +%j -d"Dec 31, $(date +%Y)")-$(date +%j))) left in year $(date +%Y)."'
+alias weather='curl -x http://127.0.0.1:1087 wttr.in/chengdu'
