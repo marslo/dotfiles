@@ -449,7 +449,7 @@ function gradleClean(){
   popd > /dev/null
 }
 
-function gitFetch() {
+function gf() {
   GITDIR=${1%%/}
   GITBRANCH=$2
   ISStashed=false
@@ -476,7 +476,7 @@ function gitFetch() {
     if [ "${currentBr}" != "${GITBRANCH}" ]; then
       if [ -n "${modified}" ]; then
         echo -e "$(c R)GIT STASH: ${GITDIR} : ${currentBr} !!$(c)"
-        git stash save "auto-stashed by gitFetch command"
+        git stash save "auto-stashed by gf command"
         ISStashed=true
       fi
       echo -e "$(c Y)~~> ${GITBRANCH}$(c)"
@@ -493,7 +493,7 @@ function gitFetch() {
           git checkout "${defaultBr}"
         elif [ "${currentBr}" = "${pruneBr}" ] && [ -n "${modified}" ]; then
           echo -e "$(c R)current branch ${currentBr} has been removed in remote, but there's modified files in local. exit$(c)"
-          return 1 2>/dev/null
+          # return 1 2>/dev/null
           # exit 1
         fi
 
@@ -506,14 +506,21 @@ function gitFetch() {
       done
     fi
 
-    # git fetchall on ${GITBRANCH}
-    git fetch origin --prune
-    git fetch --all --force
+    # git gfall on ${GITBRANCH}
+    if [[ "$GITBRANCH" == 'meta/config' ]]; then
+      git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config
+      # git pull origin refs/meta/config
+      # git merge ${GITBRANCH}
+    else
+      git fetch origin --prune
+      git fetch --all --force
+    fi
     git rebase -v --all refs/remotes/origin/${GITBRANCH}
     if (test -d "$(git rev-parse --git-path rebase-merge)" || test -d "$(git rev-parse --git-path rebase-apply)" ); then
       echo -e "$(c Y) ${GITBRANCH} rebase failed due to un-resolve the conflicts$(c)"
     fi
     git merge --all --progress refs/remotes/origin/${GITBRANCH}
+    git update-ref -d refs/${GITBRANCH}
     git remote prune origin
 
     if git --no-pager config --file "$(git rev-parse --show-toplevel)/.gitmodules" --get-regexp url; then
@@ -540,23 +547,23 @@ function fetchdir()
   [ 2 -eq $# ] && br="$2"
   for i in $(${LS} -1d "${myDir%%/}"/); do
     [ -z "${br}" ] && br=$(git -C ${i} rev-parse --abbrev-ref HEAD)
-    gitFetch "${i}" "${br}"
+    gf "${i}" "${br}"
   done
 }
 
-function fetchall()
+function gfall()
 {
   if [ 1 -eq $# ]; then
     dir="$1"
   elif git rev-parse --git-dir > /dev/null 2>&1; then
     dir=$(dirname "$(git rev-parse --git-dir)")
   else
-    dir=$(dirname $(find . -type d -name '.git') | uniq)
+    dir=$(dirname $(find . -type d -not -path 'archive' -name '.git') | uniq)
   fi
 
   for d in ${dir}; do
     br=$(git -C ${d} rev-parse --abbrev-ref HEAD)
-    gitFetch "${d}" "${br}"
+    gf "${d}" "${br}"
   done
 }
 
