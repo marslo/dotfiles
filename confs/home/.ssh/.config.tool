@@ -1,11 +1,2 @@
-Host           130.147.180.86
-  User marslo.jiao@philips.com
-	Hostname        130.147.180.86
-	IdentityFile    /home/appadmin/.ssh/id_rsa
-	IdentitiesOnly yes
-
-Host           pww.gitlab.cdi.philips.com
-  User scm.di.pins@philips.com
-	Hostname        161.91.26.140
-	IdentityFile    /home/appadmin/.ssh/id_rsa
-	IdentitiesOnly yes
+VimCrypt~03!ì‡:óÕáUÆÑ8Â6Î`nIG£otM)Ÿø”ğÈ×ó€úÔ·=ò¯0š³t}[„¨À(MÜ”Ï0ÆFóv10Eæò˜úol¡™ÿ%İıÎäw{ÔÆîÿÜV
+Èİ«I…Œ¦?0 /è^©P0"¸ÑLŒ£Õ€ºÖì@¢2U6æMrĞ±Â)‰‚ c¨½­%aœ·Äï{0’òZmÃ`Æ		6ïhÕÔá‚)l'Ò =Œ´utt«¿t9ó#–ÂŠ™%¯‰üÂ´ö•ùuZÊ’×Z½R	!îö™ì4Îù¸I8D÷é™¬ùœ·Ú?¨<ÇÄíö2¨ë§‹œ]Z’0³&\ì“"îv;Î“µëêOZÊ­š…}±û‡yşªÙYGKˆÎÿ½r ­`Ã®¼ÃuE’.¬S3şÌßÈŸˆ’£:NGA ZÉ·ë¥Ë#N;u(+ÓZ–…P¸L
