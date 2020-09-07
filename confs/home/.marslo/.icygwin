@@ -3,27 +3,19 @@
 # alias gvim="$HOME/../../Marslo/MyProgramFiles/Vim/vim74/gvim.exe $(cygpath -d $@)"
 # alias gvim="$HOME/../../Marslo/MyProgramFiles/Vim/vim80/gvim.exe $@"
 alias vim="vim -u $HOME/.cygwin/.vimrc"
+alias gvim="$HOME/../../marslo/myprogramfiles/Vim/vim82/gvim.exe -u $HOME/.cygwin/.vimrc"
 alias vimdiff="vimdiff -u $HOME/.cygwin/.vimrc"
 alias buildvim="make -f Make_cyg.mak PYTHON=/cygdrive/c/Marslo/MyProgramFiles/Python27 DYNAMIC_PYTHON=yes PYTHON_VER=27 PYTHON3=/cygdrive/c/Marslo/MyProgramFiles/Python34 DYNAMIC_PYTHON3=yes PYTHON3_VER=34 FEATURES=huge IME=yes GIME=yes MBYTE=yes CSCOPE=yes USERNAME=Marslo.Jiao USERDOMAIN=China GUI=yes"
 alias dp='cygpath -d $PWD'
 
 alias up="cd $HOME"
-alias jo="cd $HOME/../../Marslo/Job"
-alias jco="cd $HOME/../../Marslo/Job/Code"
-alias pco="cd $HOME/../../Marslo/Job/Code/mysiteP"
-alias fpp="cd $HOME/../../Marslo/Job/Code/FPP"
-alias sco="cd $HOME/../../Marslo/Study/Code/marslo"
-alias onf="cd $HOME/../../Marslo/Job/Code/tool-config"
-alias tl="cd $HOME/../../Marslo/Tools"
-alias gi="cd $HOME/../../Marslo/Tools/Git/repo_marslo"
-alias so="cd $HOME/../../Marslo/Study/Code"
-alias dl="cd $HOME/../../Marslo/Tools/Download"
-alias sf="cd $HOME/../../Marslo/Tools/Software"
+alias jo="cd $HOME/../../marslo/job/code"
 alias desk="cd $HOME/Desktop"
-alias proj="cd $HOME/../../Marslo/MyProgramFiles"
+alias proj="cd $HOME/../../marslo/programfiles"
 
 alias gitinfo='source $HOME/.gitinfo'
 alias exp='explorer.exe .'
+alias open='explorer.exe'
 alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
 
 # Dangerous operation needs confirm
@@ -75,9 +67,7 @@ alias ud.='du -h --max-depth=1 --exclude='\./\.*''
 alias ud='du -h --max-depth=1'
 alias df='df -kTh'
 alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
-alias shutdown='sudo shutdown -h now'
-alias reboot='sudo shutdown -r now'
-alias chrome='/cygdrive/c/Program Files (x86)/Google/Chrome/Application/chrome.exe'
+alias chrome="$HOME/../../Program Files/Google/Chrome/Application/chrome.exe"
 
 # export GIT_SSH="$HOME/../../Marslo/Tools/Software/System/RemoteConnection/git_ssh.sh"
 export GIT_TRACE=2
@@ -164,17 +154,19 @@ COLIFDEFAULT="${ifSDBLACK}"
 COLRESET='\[\033[1m\]'
 COLNONE='\[\033[0m\]'
 
-source ~/../../Marslo/MyProgramFiles/Git/mingw64/share/git/completion/git-prompt.sh
+# source ~/../../Marslo/MyProgramFiles/Git/mingw64/share/git/completion/git-prompt.sh
+source "$HOME/../../marslo/myprogramfiles/Git/mingw64/share/git/completion/git-prompt.sh"
 
+PS1="\\n${COLRESET}${COLDEFAULT}┌─ (\\u@\\h${COLRESET} "
 PS1="\\n${COLDEFAULT}┌─ (\\u@\\h${COLRESET} "
 PS1+="${SLRED}\\w${COLRESET}${COLDEFAULT}) "
-PS1+="\$(__git_ps1 '- (%s) ')${COLRESET}"
+PS1+="`__git_ps1 '- ( %s ) '` ${COLRESET}"
 PS1+="${COLDEFAULT}->${COLRESET}"
 PS1+="\\n${COLDEFAULT}└─ ${COLRESET}"
-PS1+="\`if [ \$? = 0 ]; then echo ${COLIFDEFAULT}\\$; else echo ${ifSLRED} \\$; fi\` ${COLRESET}"
+PS1+="\`if [ \$? = 0 ]; then echo ${COLIFDEFAULT}\\$; else echo ${ifSLRED}\\$; fi\` ${COLRESET}"
 PS1+="${COLNONE}"
-export PS1
 
+export PS1
 export PS2="${COLDEFAULT} |-> ${COLRESET}${COLNONE}"
 export TEMP="$HOME/AppData/Local/Temp"
 
