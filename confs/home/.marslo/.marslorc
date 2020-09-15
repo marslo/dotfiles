@@ -449,6 +449,7 @@ function gradleClean(){
   popd > /dev/null
 }
 
+# git fetch
 function gf() {
   GITDIR=${1%%/}
   GITBRANCH=$2
@@ -541,7 +542,8 @@ function gf() {
   popd > /dev/null
 }
 
-function fetchdir()
+# git fetch dir
+function gfdir()
 {
   myDir="$1"
   [ 2 -eq $# ] && br="$2"
@@ -551,6 +553,7 @@ function fetchdir()
   done
 }
 
+# git fetch all (dir)
 function gfall()
 {
   if [ 1 -eq $# ]; then
@@ -562,7 +565,12 @@ function gfall()
   fi
 
   for d in ${dir}; do
-    br=$(git -C ${d} rev-parse --abbrev-ref HEAD)
+    if [ 2 -eq $# ]; then
+      br="$2"
+    else
+      br=$(git -C ${d} rev-parse --abbrev-ref HEAD)
+    fi
+
     gf "${d}" "${br}"
   done
 }

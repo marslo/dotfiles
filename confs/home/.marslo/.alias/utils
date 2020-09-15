@@ -89,6 +89,7 @@ alias ta='tmux at -t '
 alias tls='tmux ls'
 
 alias wget='wget --no-cookies --no-check-certificate'
+alias curl='curl --netrc-file ~/.marslo/.pw'
 alias clear-dns-cache='sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
 alias myip='curl ip.appspot.com'
 alias lsock='sudo /usr/sbin/lsof -i -P'             # lsock:        Display open sockets

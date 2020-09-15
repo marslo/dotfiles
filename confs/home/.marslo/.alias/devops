@@ -4,7 +4,7 @@
 #   FileName: devops
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2020-06-08 21:24:29
+# LastChange: 2020-07-21 19:15:36
 # =============================================================================
 
 RTDOMAIN='pww.artifactory.cdi.philips.com'
@@ -23,6 +23,9 @@ alias startjack='jackd -d coreaudio &'
 alias gradle="gradle --full-stacktrace"
 alias gradler="gradle --full-stacktrace --refresh-dependencies"
 alias gcl="gradle --full-stacktrace clean"
+
+# groovy
+alias groovydock="groovydoc -classpath /opt/groovy/lib"
 
 M2_HOME="/opt/apache-maven-3.6.1"
 MAVEN_OPTS="-Xms256m -Xmx512m"

@@ -17,8 +17,9 @@ alias dcleanall='dockercleanc || true && dockercleani'
 alias dcleanfull='docker system prune -a -f'
 alias dclr='docker system prune -a -f'
 
-alias dll='docker ps -l -q'
-alias dls='docker ps -l -a'
+alias dls='docker ps -l -q'
+alias dps='docker ps -l -a'
+alias dpa='docker ps -a'
 alias dex='docker exec -i -t'
 alias di='docker images'
 
