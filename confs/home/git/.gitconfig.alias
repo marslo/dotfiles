@@ -3,7 +3,7 @@
   st          = status
   pl          = pull --rebase
   ci          = commit -m
-  ca          = commit -am
+  ca          = "!f() { git add --all $(git rev-parse --show-toplevel); git commit -am \"$1\" ; }; f"
   cae         = commit --allow-empty -am
   caa         = "!f(){ git add --all && git commit --amend --no-edit --allow-empty; }; f"
   cia         = commit --amend --allow-empty
@@ -27,6 +27,10 @@
   # cap         = "!f() { git add --all .; git commit -am \"${1}\"; git push; }; f"
   # fma         = "!f() { git fetch --all --force; git merge --all --progress; git remote prune origin; }; f"
 
+  # rebase & squash
+  sq          = ! "f() { TARGET=$1 && GIT_EDITOR=\"sed -i -e '2,$TARGET s/^pick /s /;/# This is the 2nd commit message:/,$ {d}'\" git rebase -i HEAD~$TARGET; }; f"
+  # sq          = !"f() { NL=$1; GIT_EDITOR=\"sed -i '2,$NL s/^pick/squash/;/# This is the 2nd commit message:/,$ {d}'\"; git rebase -i HEAD~$NL; }; f"
+
   fd          = diff --name-status
   in          = info --no-config
   wd          = diff --color-words -U0
@@ -42,6 +46,7 @@
   plogs       = log --color --graph --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative
   fplog       = log --color --graph --pretty=tformat:'%Cred%H%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative
   flog        = log -p --graph --color --graph
+  dlog        = log --color --stat --abbrev-commit --date=relative --graph --submodule --format='%C(red)%h%Creset %C(yellow)(%ad)%Creset %s %C(blue)<%an>%Creset'
 
   # Showing all branches and their relationshps
   tre         = log --color --graph --pretty=oneline --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --decorate --abbrev-commit --all
