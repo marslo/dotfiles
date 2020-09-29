@@ -1,7 +1,7 @@
 [alias]
   aa          = add --all
   st          = status
-  pl          = pull --rebase
+  plr         = pull --rebase
   ci          = commit -m
   ca          = "!f() { git add --all $(git rev-parse --show-toplevel); git commit -am \"$1\" ; }; f"
   cae         = commit --allow-empty -am
@@ -42,9 +42,9 @@
   ls-effort   = !git log --pretty=format: --name-only | sort | uniq -c | sort -rg
   tagcommit   = rev-list -1
   stag        = tag --sort=-creatordate --format='%(creatordate:short)%09%(refname:strip=2)'
-  plog        = !git --no-pager log --color --graph --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative --max-count=3
-  plogs       = log --color --graph --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative
-  fplog       = log --color --graph --pretty=tformat:'%Cred%H%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative
+  pl          = !git --no-pager log --color --graph --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative --max-count=3
+  pls         = log --color --graph --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative
+  fpl         = log --color --graph --pretty=tformat:'%Cred%H%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative
   flog        = log -p --graph --color --graph
   dlog        = log --color --stat --abbrev-commit --date=relative --graph --submodule --format='%C(red)%h%Creset %C(yellow)(%ad)%Creset %s %C(blue)<%an>%Creset'
 
@@ -243,4 +243,3 @@
   subst = submodule foreach \"git status\"
   first = rev-list --max-parents=0 HEAD
   make-patch = "!bash -c \"git format-patch HEAD~1; git reset HEAD~1\""
-
