@@ -73,7 +73,6 @@ GREP="/usr/local/opt/grep/libexec/gnubin/grep"
 # For public server (use common account)
 function bello()
 {
-
   # For Public account server
   source "${iRCHOME}/.imac"
   # set -o vi
@@ -244,8 +243,8 @@ function mg() {
 
     if [ -n "${kw}" ]; then
       # or using + instead of ; details: https://unix.stackexchange.com/a/43743/29178
-      cmd="""find "${p}" -type f -not -path "*git/*" -exec ${GREP} ${opt} "${kw}" {} ;"""
-      find "${p}" -type f -not -path "*git/*" -exec ${GREP} ${opt} "${kw}" {} \; \
+      cmd="""find "${p}" -type f -not -path "*git/*" -not -path "*node_modules/*" -exec ${GREP} ${opt} "${kw}" {} ;"""
+      find "${p}" -type f -not -path "*git/*" -not -path "*node_modules/*" -exec ${GREP} ${opt} "${kw}" {} \; \
         || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
     else
       echo -e "${usage}"
@@ -465,6 +464,7 @@ function gf() {
     [ -n "${untracked}" ] && echo -e "$(c M)UNTRACKED FILES in ${currentBr}: $(echo ${untracked} | paste -sd ' ' -)$(c)"
     if (test -d "$(git rev-parse --git-path rebase-merge)" || test -d "$(git rev-parse --git-path rebase-apply)" ); then
       echo -e "$(c R)The current repo is in the rebase procedss. exit.$(c)"
+      popd > /dev/null
       return 1 2>/dev/null
       exit 1
     fi
@@ -720,15 +720,66 @@ function 256color() {
   done | column -c 80 -s ' '; echo -e "\e[m"
 }
 
+function rtsearch() {
+  usage="""USAGE:
+  \n\t$(c sY)\$ rtsearch [repo] [condition] [name|info]$(c)
+  \nExample:
+  \n\tsearch sub-folder detail info in integration repo 10 days ago:
+  \t$(c G)\$ rtsearch integration 10days$(c)
+  \n\tsearch sub-folder name ONLY in integration repo 10 days ago:
+  \t$(c G)\$ rtsearch integration 10days name$(c)
+  \n\tsearch 1234(build number) in maven(reponame) build info:
+  \t$(c G)\$ rtsearch maven 1234 info$(c)
+  """
+
+  if [ 2 -gt $# ]; then
+    echo -e "${usage}"
+  else
+    rtUrl='https://my.artifactory.com/artifactory'
+    curlOpt="-s -g --netrc-file $HOME/.marslo/.netrc"
+
+    repo="my-$1-local"
+    builds="my - $1"
+    condition="$2"
+    show=false
+    extra=''
+    [ 3 -eq $# ] && show=$3
+    [ name = ${show} ] && extra='| jq --raw-output .results[].name?'
+
+    echo """
+              repo : ${repo}
+            builds : ${builds}
+         condition : ${condition}
+              show : ${show}
+    """
+
+    if [ info = ${show} ]; then
+      curl ${curlOpt} \
+           -X GET "${rtUrl}/api/build/${builds}/${condition}"
+    else
+      curl ${curlOpt} \
+           -H "Content-Type: text/plain" \
+           -X POST ${rtUrl}/api/search/aql \
+           -d """items.find ({ \
+                   \"repo\": \"wukong-$1-local\", \
+                   \"type\" : \"folder\" , \
+                   \"depth\" : \"1\", \
+                   \"created\" : { \"\$before\" : \"$2\" } \
+                })
+              """ \
+           ${extra}
+    fi
+  fi
+}
+
+
 function rtclean() {
   usage="""USAGE:
-  \n\t\$ rtclean [repo] [build-id]
+  \n\t$(c sY)\$ rtclean [repo] [build-id]$(c)
   \nExample:
-  \n\t\$ rtclean integration 1234
+  \n\t$(c G)\$ rtclean integration 1234$(c)
   """
-     user='marslo'
-   passwd='mypasswd'
-    rtUrl='https://my.artifactory.com/artifactory'
+  rtUrl='https://my.artifactory.com/artifactory'
 
   if [ 2 -ne $# ]; then
     echo -e "${usage}"
@@ -736,19 +787,20 @@ function rtclean() {
        repo="repo-$1-local"
       build="repo - $1"
     buildId="$2"
-    curlOpt="-s -g -u${user}:${passwd}"
+    curlOpt="-s -g --netrc-file $HOME/.marslo/.netrc"
 
-    if curl -X GET ${curlOpt} "${rtUrl}/api/repositories" | jq .[].key | grep "${repo}" > /dev/null 2>&1; then
+    if /usr/bin/curl ${curlOpt} -X GET "${rtUrl}/api/repositories" | jq .[].key | grep "${repo}" > /dev/null 2>&1; then
       echo """
             repo : ${repo}
            build : ${build}
         build id : ${buildId}
       """
-      curl -X DELETE ${curlOpt} "${rtUrl}/${repo}/${buildId}"
-      curl -X DELETE ${curlOpt} "${rtUrl}/api/build/${build}?buildNumbers=${buildId}&artifacts=1"
+      /usr/bin/curl ${curlOpt} -X DELETE "${rtUrl}/${repo}/${buildId}"
+      /usr/bin/curl ${curlOpt} -X DELETE "${rtUrl}/api/build/${build}?buildNumbers=${buildId}&artifacts=1"
       # curl -X DELETE ${curlOpt} "${rtUrl}/api/trash/clean/${repo}/${buildId}"
       # curl -X DELETE ${curlOpt} "${rtUrl}/api/trash/clean/artifactory-build-info"
     else
+      echo "$2 repo cannot be found"
       echo -e "${usage}"
     fi
   fi
@@ -776,7 +828,7 @@ hmdays() {
 cpick() {
   if test tabset; then
     rgb=$(tabset -p | sed -nr "s:.*rgb\(([^)]+)\).*$:\1:p")
-    hexc=$(for c in $(echo "${rgb}" | sed -re 's:,::g'); do printf '%02x' "$c"; done)
+    hexc=$(for c in $(echo "${rgb}" | sed -re 's:,: :g'); do printf '%02x' "$c"; done)
     echo -e """\t$rgb ~~> $hexc"""
   fi
 }
