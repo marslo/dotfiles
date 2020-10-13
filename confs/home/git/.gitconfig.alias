@@ -1,7 +1,7 @@
 [alias]
   aa          = add --all
   st          = status
-  plr         = pull --rebase
+  pl          = pull --rebase
   ci          = commit -m
   ca          = "!f() { git add --all $(git rev-parse --show-toplevel); git commit -am \"$1\" ; }; f"
   cae         = commit --allow-empty -am
@@ -15,6 +15,7 @@
   cl          = clean -dfx
   cn          = clone
   sb          = show-branch
+  cp          = cherry-pick
   cb          = rev-parse --abbrev-ref HEAD
   wc          = whatchanged
   gca         = gc --aggressive
@@ -45,8 +46,8 @@
   pl          = !git --no-pager log --color --graph --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative --max-count=3
   pls         = log --color --graph --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative
   fpl         = log --color --graph --pretty=tformat:'%Cred%H%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative
-  flog        = log -p --graph --color --graph
-  dlog        = log --color --stat --abbrev-commit --date=relative --graph --submodule --format='%C(red)%h%Creset %C(yellow)(%ad)%Creset %s %C(blue)<%an>%Creset'
+  fl          = log -p --graph --color --graph
+  dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format='%C(red)%h%Creset %C(yellow)(%ad)%Creset %s %C(blue)<%an>%Creset'
 
   # Showing all branches and their relationshps
   tre         = log --color --graph --pretty=oneline --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --decorate --abbrev-commit --all
@@ -87,11 +88,12 @@
   diffbranch  = log --left-right --graph --cherry-pick --oneline
 
   # info      = !bash -l -c 'gitinfo'
-  # info        = !bash -c '. ~/.marslo/.marslorc && gitinfo'
+  # info      = !bash -c '. ~/.marslo/.marslorc && gitinfo'
   last        = cat-file commit HEAD
   task        = grep -EI \"TODO|FIXME\"
   # curbranch = "!bash -c 'git branch | grep \* | sed "s/\* \(.*\)/ (\1)/"'"
   dreview     = review development
+
   # Merge GitHub pull request on top of the current branch or,
   # if a branch name is specified, on top of the specified branch.
   mpr         = "!f() { \
@@ -134,6 +136,7 @@
                       git checkout -b ${defaultBr}; \
                     fi \
                   }; f"
+
   # [m]eta/[c]onfig checkout
   mc          = "!f() { \
                     if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then \
@@ -143,6 +146,7 @@
                       echo \"current directory isn't inside the git working tree\" ; \
                     fi \
                   }; f"
+
   # [m]arslo [h]elp
   mh          = "!f(){ \
                     declare help=\"\"\"\
