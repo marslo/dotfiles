@@ -202,6 +202,7 @@ function mg() {
   \nOPT:
   \n\t$(c B)i$(c) : ignore case
   \t$(c B)f$(c) : find file name only
+  \t$(c B)m$(c) : find markdown only
   \t$(c B)a <num>$(c) : print <num> lines of trailing context after matching lines
   \t$(c B)b <num>$(c) : print <num> lines of leading context before matching lines
   \t$(c B)c <num>$(c) : print <num> lines of output context
@@ -210,6 +211,7 @@ function mg() {
   kw=''
   p='.'
   opt='-n -H -E --color=always'
+  name=''
 
   if [ 0 -eq $# ]; then
     echo -e "${usage}"
@@ -222,6 +224,11 @@ function mg() {
         ;;
       [fF] )
         opt="${opt} -l"
+        [ 2 -le $# ] && kw="$2"
+        [ 3 -eq $# ] && p="$3"
+        ;;
+      [mM] )
+        name='-iname *.md'
         [ 2 -le $# ] && kw="$2"
         [ 3 -eq $# ] && p="$3"
         ;;
