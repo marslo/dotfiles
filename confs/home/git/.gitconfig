@@ -58,7 +58,6 @@
 	ignorecase        = false
 	excludesfile      = /Users/marslo/.gitignore_global
 	eol               = lf
-  # eol             = --show-origin
   safecrlf          = warn
   attributesfile    = /Users/marslo/.gitattributes
 	fileMode          = true
@@ -97,7 +96,8 @@
   username = marslo
   remote = origin
 [include]
-  path = ~/.gitconfig.alias
+  path = ~/.marslo/.git.alias
+
 [url "ssh://marslo@vgitcentral.marvell.com:29418/"]
   insteadOf = ssh://srv-ssd-fw-devops@vgitcentral.marvell.com:29418/
 [url "https://github.com/"]
