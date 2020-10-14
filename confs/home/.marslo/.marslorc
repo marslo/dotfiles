@@ -246,8 +246,8 @@ function mg() {
     if [ -n "${kw}" ]; then
       # or using + instead of ; details: https://unix.stackexchange.com/a/43743/29178
       # shellcheck disable=SC2027,SC2125
-      cmd="""find "${p}" -type f -not -path "*git/*" -not -path "*node_modules/*" -exec ${GREP} ${opt} "${kw}" {} ;"""
-      find "${p}" -type f -not -path "*git/*" -not -path "*node_modules/*" -exec ${GREP} ${opt} "${kw}" {} \; \
+      cmd="""find "${p}" -type f ${name} -not -path "*git/*" -not -path "*node_modules/*" -exec ${GREP} ${opt} "${kw}" {} ;"""
+      find "${p}" -type f ${name} -not -path "*git/*" -not -path "*node_modules/*" -exec ${GREP} ${opt} "${kw}" {} \; \
         || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
     else
       echo -e "${usage}"
@@ -847,6 +847,23 @@ cpick() {
 
 ibtoc() {
   find ~/mywork/tools/git/marslo/mbook/docs \
+       -iname '*.md' \
+       -not -path '**/SUMMARY.md' \
+       -exec doctoc --github --maxlevel 3 {} \;
+}
+
+gtoc() {
+  top=$(git rev-parse --show-toplevel)
+
+  if [ 1 -eq $# ]; then
+    case $1 in
+      [mM] )
+        top="${top}/docs"
+        ;;
+    esac
+  fi
+
+  find ${top} \
        -iname '*.md' \
        -not -path '**/SUMMARY.md' \
        -exec doctoc --github --maxlevel 3 {} \;
