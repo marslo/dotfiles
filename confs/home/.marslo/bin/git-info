@@ -29,7 +29,7 @@ get_config() {
 
 most_recent_commit() {
   # git log --max-count=1 --pretty=short
-  git plog --max-count=3
+  git pl --max-count=3
 }
 
 local_branches() {
