@@ -11,10 +11,36 @@ RT_URL='https://my.artifactory.com/artifactory'
 RT_PROJECT='project-1'
 CURL_OPT="-s -g --netrc-file $HOME/.marslo/.netrc"
 
+function rtclean() {
+  usage="""$(c sM)rtclean$(c) - artifactory clean - clean artifacts in Artifactory via repo and build info
+  \nSYNOPSIS
+  \n\t$(c sY)\$ rtclean [bi] [vwi] [repo] [build-id]$(c)
+  \nEXAMPLE
+  \n\t$(c G)\$ rtclean integration 1234$(c)
+  """
+  if [ 2 -gt $# ]; then
+    echo -e "${usage}"
+  else
+    case $1 in
+      bi )
+        # shellcheck disable=SC2046
+        rtbdi $(echo "${@: -$(( $#-1 ))}" | cut -d' ' -f1-)
+        ;;
+      * )
+        # shellcheck disable=SC2046
+        rtdel $(echo "$@" | cut -d' ' -f1-)
+        ;;
+    esac
+  fi
+}
+
 function rtsearch() {
   usage="""$(c sM)rtsearch$(c) - artifactory search - search artifacts and(or) build info in Artifactory via repo and condition
   \nSYNOPSIS
-  \n\t$(c sY)\$ rtsearch [wv] [repo] [condition] [name|info]$(c)
+  \n\t$(c sY)\$ rtsearch [bi] [wvi] [repo] [condition] [name|info]$(c)
+  \nOPTIONS
+  \n\t$(c Y)bi$(c)
+  \n\t  search via property
   \nEXAMPLE
   \n\tsearch sub-folder detail info in integration repo 10 days ago:
   \t$(c G)\$ rtsearch integration 10days$(c)
@@ -22,6 +48,79 @@ function rtsearch() {
   \t$(c G)\$ rtsearch integration 10days name$(c)
   \n\tsearch 1234(build number) in maven(reponame) build info:
   \t$(c G)\$ rtsearch maven 1234 info$(c)
+  \n\tsearch artifacts built from Jenkins job '*marslo/sandbox*'
+  \t$(c G)\$ rtsearch build.url '*marslo*sandbox*'$(c)
+  """
+
+  if [ 2 -gt $# ]; then
+    echo -e "${usage}"
+  else
+    case $1 in
+      bi )
+        # shellcheck disable=SC2046
+        rtsp $(echo "${@: -$(( $#-1 ))}" | cut -d' ' -f1-)
+        ;;
+      * )
+        # shellcheck disable=SC2046
+        rtsc $(echo "$@" | cut -d' ' -f1-)
+        ;;
+    esac
+  fi
+}
+
+function rtsp() {
+  usage="""$(c sM)rtsp$(c) - artifactory search with properties - search artifacts via properites
+  \nSYNOPSIS
+  \n\t$(c sY)\$ rtsp [wvi] [property name] [property value]$(c)
+  \nEXAMPLE
+  \n\tsearch artifacts built from Jenkins job '*marslo*sandbox*'
+  \t$(c G)\$ rtsp build.url '*marslo*sandbox*'$(c)
+  """
+  rtProj="${RT_PROJECT}"
+  repo=''
+
+  if [ 2 -gt $# ]; then
+    echo -e "${usage}"
+  else
+    case $1 in
+      [wW] | [vV] | [iI] )
+        [ 3 -gt $# ] && echo -e "${usage}"
+        p=$( echo "$1" | tr '[:upper:]' '[:lower:]' )
+        [ 'w' == "${p}" ] && rtProj='project-1'
+        [ 'v' == "${p}" ] && rtProj='project-2'
+        [ 'i' == "${p}" ] && rtProj='project-3'
+        pName="$2"
+        pValue="$3"
+        [ 4 -ne $# ] && repo="&repos=${rtProj}-$4-local"
+        ;;
+      * )
+        pName="$1"
+        pValue="$2"
+        [ 3 -ne $# ] && repo="&repos=${rtProj}-$3-local"
+        ;;
+    esac
+
+    curl -sg \
+         -X GET \
+         "${RT_URL}/api/search/prop?${pName}=${pValue}${repo}" \
+         | jq --raw-output .results[].uri \
+         | sed -re 's:(^.*-local/[^/]+/).*$:\1:' \
+         | uniq
+  fi
+
+}
+
+function rtsc() {
+  usage="""$(c sM)rtsc$(c) - artifactory search with conditional - search artifacts and(or) build info in Artifactory via repo and condition
+  \nSYNOPSIS
+  \n\t$(c sY)\$ rtsc [wv] [repo] [condition] [name|info]$(c)
+  \nEXAMPLE
+  \n\tsearch sub-folder detail info in integration repo 10 days ago:
+  \t$(c G)\$ rtsc integration 10days$(c)
+  \n\tsearch sub-folder name ONLY in integration repo 10 days ago:
+  \t$(c G)\$ rtsc integration 10days name$(c)
+  \n\tsearch 1234(build number) in maven(reponame) build info:
+  \t$(c G)\$ rtsc maven 1234 info$(c)
   """
   rtProj="${RT_PROJECT}"
   show=false
@@ -77,29 +176,6 @@ function rtsearch() {
   fi
 }
 
-function rtclean() {
-  usage="""$(c sM)rtclean$(c) - artifactory clean - clean artifacts in Artifactory via repo and build info
-  \nSYNOPSIS
-  \n\t$(c sY)\$ rtclean [bdi] [vwi] [repo] [build-id]$(c)
-  \nEXAMPLE
-  \n\t$(c G)\$ rtclean integration 1234$(c)
-  """
-  if [ 2 -gt $# ]; then
-    echo -e "${usage}"
-  else
-    case $1 in
-      bdi )
-        # shellcheck disable=SC2046
-        rtbdi $(echo "${@: -$(( $#-1 ))}" | cut -d' ' -f1-)
-        ;;
-      * )
-        # shellcheck disable=SC2046
-        rtdel $(echo "$@" | cut -d' ' -f1-)
-        ;;
-    esac
-  fi
-}
-
 function rtdel() {
   usage="""$(c sM)rtdel$(c) - artifactory clean - clean artifacts in Artifactory via repo and build info
   \nSYNOPSIS
@@ -114,11 +190,11 @@ function rtdel() {
   else
     case $1 in
       [wW] | [vV] | [iI] )
+        [ 3 -ne $# ] && echo -e "${usage}"
         p=$( echo "$1" | tr '[:upper:]' '[:lower:]' )
         [ 'w' == "${p}" ] && rtProj='project-1'
         [ 'v' == "${p}" ] && rtProj='project-2'
         [ 'i' == "${p}" ] && rtProj='project-3'
-        [ 3 -ne $# ] && echo -e "${usage}"
         rtName="$2"
         buildID="$3"
         ;;

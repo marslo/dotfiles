@@ -12,12 +12,13 @@ MYWORKSPACE="/Users/marslo/mywork"
 alias tmax='tmux at -t marslo'
 alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
 alias polipo='polipo -c $HOME/.marslo/polipo/config >/dev/null 2>&1 &'
-alias myaws="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.marslo/Marslo/Tools/Softwares/sshkey/marslo-aws.pem ec2-user@ec2-54-193-78-97.us-west-1.compute.amazonaws.com"
+alias myaws='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.marslo/Marslo/Tools/Softwares/sshkey/marslo-aws.pem ec2-user@ec2-54-193-78-97.us-west-1.compute.amazonaws.com'
 alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_env/ubuntu/backups/ss/sslocal-config.json  -d start --log=/Users/marslo/.marslo/log/sslocal.log'
 # alias polipo='polipo -c $HOME/.marslo/polipo/config daemonise=true >/dev/null 2>&1 &'
-alias sshmarslo="ssh marslo@118.193.233.78"
+alias sshmarslo='ssh marslo@118.193.233.78'
+alias nd='npm run deploy'
 
-alias cdm="cd ~/.marslo"
+alias irc="cd ~/.marslo"
 alias desk="cd ~/Desktop"
 
 alias mw="cd ${MYWORKSPACE}"
@@ -45,12 +46,14 @@ alias sk="cd ${MYWORKSPACE}/study/mystudy/kubernetes"
 alias cdjf="cd ${MYWORKSPACE}/study/mystudy/jenkinsfil"
 alias cdku="cd ${MYWORKSPACE}/study/mystudy/kubernetes"
 
-alias dvp="cd ${MYWORKSPACE}/study/code/devops"
-alias cdj="cd ${MYWORKSPACE}/study/code/devops-jenkinsfile"
+alias mco="cd ${MYWORKSPACE}/study/mycode"
+alias cdj="cd ${MYWORKSPACE}/study/mycode/devops"
 alias cdba="cd ${MYWORKSPACE}/study/code/backups"
 alias cdmac="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/mac"
 alias msp="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/belloMarslo/"
 
 alias to="cd ${MYWORKSPACE}/tools/"
 alias gi="cd ${MYWORKSPACE}/tools/git/marslo/"
-alias myt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"
+alias ib="cd ${MYWORKSPACE}/tools/git/marslo/ibook/docs"
+alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs"
+alias mt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"

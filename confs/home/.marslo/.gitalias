@@ -166,7 +166,7 @@
   subpull     = !git pull && git submodule sync --recursive && git submodule update --init --recursive
   subupdate   = submodule update --remote --merge
   pdraft      = !git push origin HEAD:refs/drafts/$1
-  ghook       = !bash -c 'scp -p -P 29418 vgitcentral.mycompany.com:hooks/commit-msg $(git rev-parse --git-dir)/hooks/'
+  ghook       = !bash -c 'scp -p -P 29418 gerrit.company.com:hooks/commit-msg $(git rev-parse --git-dir)/hooks/'
   showupstream = "!bash -c 'while read branch; do \n\
                     upstream=$(git rev-parse --abbrev-ref $branch@{upstream} 2>/dev/null); \n\
                     if [[ $? == 0 ]]; then \n\
