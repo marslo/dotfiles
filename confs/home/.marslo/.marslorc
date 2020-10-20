@@ -193,9 +193,9 @@ function pydict() {
 # marslo grep
 function mg() {
   usage="""mg - marslo grep - combined find and grep to quick find keywords
-  \nUSAGE:
+  \nSYNOPSIS
   \n\t$(c sY)\$ mg [OPT] [NUM] KEYWORD [<PATHA>]$(c)
-  \nExample:
+  \nEXAMPLE
   \n\t$(c G)\$ mg 'hello'
   \t\$ mg i 'hello' ~/.marslo
   \t\$ mg ic 3 'hello' ~/.marslo$(c)
@@ -207,7 +207,6 @@ function mg() {
   \t$(c B)b <num>$(c) : print <num> lines of leading context before matching lines
   \t$(c B)c <num>$(c) : print <num> lines of output context
   """
-
   kw=''
   p='.'
   opt='-n -H -E --color=always'
@@ -218,7 +217,7 @@ function mg() {
   else
     case $1 in
       [wW] | [iI] )
-        opt="${opt} -$(echo $1 | tr '[:upper:]' '[:lower:]')"
+        opt="${opt} -$( echo $1 | tr '[:upper:]' '[:lower:]' )"
         [ 2 -le $# ] && kw="$2"
         [ 3 -eq $# ] && p="$3"
         ;;
@@ -239,7 +238,7 @@ function mg() {
         ;;
       [aA] | [bB] | [cC] | [iI][aA] | [iI][bB] | [iI][cC] | [aA][iI] | [bB][iI] | [cC][iI] )
         # line = -A $2 | -B $2 | -C $2
-        line="-$(echo $1 | awk -F'[iI]' '{print $1,$2}' | sed -e 's/^[[:space:]]*//' | tr '[:lower:]' '[:upper:]') $2"
+        line="-$( echo $1 | awk -F'[iI]' '{print $1,$2}' | sed -e 's/^[[:space:]]*//' | tr '[:lower:]' '[:upper:]' ) $2"
         opt="${opt} -i ${line}"
         [ 3 -le $# ] && kw="$3"
         [ 4 -eq $# ] && p="$4"
@@ -254,7 +253,7 @@ function mg() {
       # or using + instead of ; details: https://unix.stackexchange.com/a/43743/29178
       # shellcheck disable=SC2027,SC2125
       cmd="""find "${p}" -type f ${name} -not -path "*git/*" -not -path "*node_modules/*" -exec ${GREP} ${opt} "${kw}" {} ;"""
-      find "${p}" -type f ${name} -not -path "*git/*" -not -path "*node_modules/*" -exec ${GREP} ${opt} "${kw}" {} \; \
+      find "${p}" -type f ${name} \( -not -path "*git/*" -not -path "*node_modules/*" \) -exec ${GREP} ${opt} "${kw}" {} \; \
         || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
     else
       echo -e "${usage}"
@@ -264,9 +263,9 @@ function mg() {
 
 # find file
 ff() {
-  usage="""USAGE:
+  usage="""SYNOPSIS
   \n\t$(c sY)\$ ff <FILENAME> [<PATH>]$(c)
-  \nExample:
+  \nEXAMPLE
   \n\t$(c G)\$ ff myfile.txt
   \t\$ ff myfile.txt ~/.marslo$(c)
   """
@@ -283,9 +282,9 @@ ff() {
 # marslo sed
 function ms() {
   usage="""msed - marslo sed - sed all key words in the path
-  \n$(c s)USAGE:$(c)
+  \n$(c s)SYNOPSIS$(c)
   \n\t$(c sY)\$ msed [OPT] <ORIGIN_STRING> <NEW_STRING> [PATH]$(c)
-  \nExample:
+  \nEXAMPLE
   \n\t$(c G)\$ msed mystr MY_STR
   \t$(c G)\$ msed re '^.*\(.*\).*$' 'MY_STR'
   \t\$ msed mystr MY_STR ~/.marslo$(c)
@@ -355,9 +354,9 @@ function ccker()
 function rcsync()
 {
   SITE="Jira Confluence Jenkins Gitlab Artifactory Sonar Slave"
-  HNAME=$(hostname | tr '[:upper:]' '[:lower:]')
+  HNAME=$( hostname | tr '[:upper:]' '[:lower:]' )
   for i in $SITE; do
-    CURNAME=$(echo "$i" | tr '[:upper:]' '[:lower:]')
+    CURNAME=$( echo "$i" | tr '[:upper:]' '[:lower:]' )
     if [ "$HNAME" != "$CURNAME" ]; then
       echo ------------------- "$i" ---------------------;
       pushd "$PWD"
@@ -573,7 +572,7 @@ function gfall()
     dir=$(dirname "$(git rev-parse --git-dir)")
   else
     # shellcheck disable=SC2046
-    dir=$(dirname $(find . -type d -not -path 'archive' -name '.git') | uniq)
+    dir=$(dirname $(find . -type d \( -not -path "*archive/*" -not -path "*archives/*" \) -name '.git') | uniq)
   fi
 
   for d in ${dir}; do
@@ -740,9 +739,10 @@ function 256color() {
 }
 
 function rtsearch() {
-  usage="""USAGE:
-  \n\t$(c sY)\$ rtsearch [repo] [condition] [name|info]$(c)
-  \nExample:
+  usage="""$(c sM)rtsearch$(c) - artifactory search - search artifacts and(or) build info in Artifactory via repo and condition
+  \nSYNOPSIS
+  \n\t$(c sY)\$ rtsearch [wv] [repo] [condition] [name|info]$(c)
+  \nEXAMPLE
   \n\tsearch sub-folder detail info in integration repo 10 days ago:
   \t$(c G)\$ rtsearch integration 10days$(c)
   \n\tsearch sub-folder name ONLY in integration repo 10 days ago:
@@ -750,19 +750,33 @@ function rtsearch() {
   \n\tsearch 1234(build number) in maven(reponame) build info:
   \t$(c G)\$ rtsearch maven 1234 info$(c)
   """
+  curlOpt="-s -g --netrc-file $HOME/.marslo/.netrc"
+  rtProj="${RT_PROJECT}"
+  show=false
+  extra=''
 
   if [ 2 -gt $# ]; then
     echo -e "${usage}"
   else
-    rtUrl='https://my.artifactory.com/artifactory'
-    curlOpt="-s -g --netrc-file $HOME/.marslo/.netrc"
+    case $1 in
+      [wW] | [vV] | [iI] )
+        p=$( echo "$1" | tr '[:upper:]' '[:lower:]' )
+        [ 'w' == "${p}" ] && rtProj='wukong'
+        [ 'v' == "${p}" ] && rtProj='vega'
+        [ 'i' == "${p}" ] && rtProj='vail'
+        rtName="$2"
+        condition="$3"
+        [ 4 -eq $# ] && show=$4
+        ;;
+      * )
+        rtName="$1"
+        condition="$2"
+        [ 3 -eq $# ] && show=$3
+        ;;
+    esac
 
-    repo="my-$1-local"
-    builds="my - $1"
-    condition="$2"
-    show=false
-    extra=''
-    [ 3 -eq $# ] && show=$3
+    repo="${rtProj}-${rtName}-local"
+    builds="${rtProj}- ${rtName}"
     [ name = ${show} ] && extra='| jq --raw-output .results[].name?'
 
     echo """
@@ -774,13 +788,13 @@ function rtsearch() {
 
     if [ info = ${show} ]; then
       curl ${curlOpt} \
-           -X GET "${rtUrl}/api/build/${builds}/${condition}"
+           -X GET "${RT_URL}/api/build/${builds}/${condition}"
     else
       curl ${curlOpt} \
            -H "Content-Type: text/plain" \
-           -X POST ${rtUrl}/api/search/aql \
+           -X POST ${RT_URL}/api/search/aql \
            -d """items.find ({ \
-                   \"repo\": \"wukong-$1-local\", \
+                   \"repo\": \"${rtProj}-${rtName}-local\", \
                    \"type\" : \"folder\" , \
                    \"depth\" : \"1\", \
                    \"created\" : { \"\$before\" : \"$2\" } \
@@ -791,35 +805,151 @@ function rtsearch() {
   fi
 }
 
-
-function rtclean() {
-  usage="""USAGE:
-  \n\t$(c sY)\$ rtclean [repo] [build-id]$(c)
-  \nExample:
-  \n\t$(c G)\$ rtclean integration 1234$(c)
+function rtbdi() {
+  usage="""$(c sM)rtbdi$(c) - artifactory build discard - clean artifacts in Artifactory via build info
+  \nSYNOPSIS
+  \n\t$(c sY)\$ rtbdi [wvl] [repo] [build-id [build-id [build-id]]]
+  \nEXAMPLE
+  \n\t$(c G)\$ rtbdi
   """
-  rtUrl='https://my.artifactory.com/artifactory'
+  curlOpt="-s -g --netrc-file $HOME/.marslo/.netrc"
+  rtProj="${RT_PROJECT}"
 
-  if [ 2 -ne $# ]; then
+  if [ 2 -gt $# ]; then
     echo -e "${usage}"
   else
-       repo="repo-$1-local"
-      build="repo - $1"
-    buildId="$2"
-    curlOpt="-s -g --netrc-file $HOME/.marslo/.netrc"
+    case $1 in
+      [wW] | [vV] | [iI] )
+        p=$( echo "$1" | tr '[:upper:]' '[:lower:]' )
+        [ 'w' == "${p}" ] && rtProj='wukong'
+        [ 'v' == "${p}" ] && rtProj='vega'
+        [ 'i' == "${p}" ] && rtProj='vail'
+        rtName="$2"
+        # [using ${@: -x} for zsh or dash](https://stackoverflow.com/questions/1853946/getting-the-last-argument-passed-to-a-shell-script#comment77482131_1853946)
+        buildID="${*: -$(( $#-2 ))}"
+        ;;
+      * )
+        rtName="$1"
+        buildID="${*: -$(( $#-1 ))}"
+        ;;
+    esac
 
-    if /usr/bin/curl ${curlOpt} -X GET "${rtUrl}/api/repositories" | jq .[].key | grep "${repo}" > /dev/null 2>&1; then
+    buildName="${rtProj} - ${rtName}"
+    bid=$(curl -sg -X GET "${RT_URL}/api/build/${buildName}" | jq --raw-output .buildsNumbers[].uri)
+    for _i in ${buildID}; do
+      if echo "${bid}" | grep -E "/${_i}" >/dev/null; then
+        info="""
+             project : ${rtProj}
+           repo name : ${rtName}
+          build name : ${buildName}
+            build id : ${_i}
+        """
+        echo -e "$(c Y)${info}$(c)"
+        curl -sIg \
+             -X DELETE \
+             "${RT_URL}/api/build/${buildName}?buildNumbers=${_i}&artifacts=1"
+      else
+        echo -e "$(c Y)${_i} in \"${buildName}\" cannot be found. you many want try search via props.$(c)"
+      fi
+    done
+  fi
+}
+
+function rtclean() {
+  usage="""$(c sM)rtclean$(c) - artifactory clean - clean artifacts in Artifactory via repo and build info
+  \nSYNOPSIS
+  \n\t$(c sY)\$ rtclean [bdi] [vwi] [repo] [build-id]$(c)
+  \nEXAMPLE
+  \n\t$(c G)\$ rtclean integration 1234$(c)
+  """
+  curlOpt="-s -g --netrc-file $HOME/.marslo/.netrc"
+  rtProj="${RT_PROJECT}"
+
+  if [ 2 -gt $# ]; then
+    echo -e "${usage}"
+  else
+    case $1 in
+      [wW] | [vV] | [iI] )
+        p=$( echo "$1" | tr '[:upper:]' '[:lower:]' )
+        [ 'w' == "${p}" ] && rtProj='wukong'
+        [ 'v' == "${p}" ] && rtProj='vega'
+        [ 'i' == "${p}" ] && rtProj='vail'
+        [ 3 -ne $# ] && echo -e "${usage}"
+        rtName="$2"
+        buildID="$3"
+        ;;
+      bdi )
+        rtbdi "${*: -$(( $#-1 ))}"
+        ;;
+      * )
+        rtName="$1"
+        buildID="$2"
+        ;;
+    esac
+
+    repo="${rtProj}-${rtName}-local"
+    build="${rtProj}- ${rtName}"
+    if /usr/bin/curl ${curlOpt} -X GET "${RT_URL}/api/repositories" | jq .[].key | grep "${repo}" > /dev/null 2>&1; then
       echo """
             repo : ${repo}
            build : ${build}
-        build id : ${buildId}
+        build id : ${buildID}
       """
-      /usr/bin/curl ${curlOpt} -X DELETE "${rtUrl}/${repo}/${buildId}"
-      /usr/bin/curl ${curlOpt} -X DELETE "${rtUrl}/api/build/${build}?buildNumbers=${buildId}&artifacts=1"
-      # curl -X DELETE ${curlOpt} "${rtUrl}/api/trash/clean/${repo}/${buildId}"
-      # curl -X DELETE ${curlOpt} "${rtUrl}/api/trash/clean/artifactory-build-info"
+      /usr/bin/curl ${curlOpt} -X DELETE "${RT_URL}/${repo}/${buildID}"
+      /usr/bin/curl ${curlOpt} -X DELETE "${RT_URL}/api/build/${build}?buildNumbers=${buildID}&artifacts=1"
+      # curl -X DELETE ${curlOpt} "${RT_URL}/api/trash/clean/${repo}/${buildID}"
+      # curl -X DELETE ${curlOpt} "${RT_URL}/api/trash/clean/artifactory-build-info"
     else
-      echo "$2 repo cannot be found"
+      echo "${rtName} repo cannot be found for ${rtProj}"
+      echo -e "${usage}"
+    fi
+  fi
+}
+
+
+function rtdel() {
+  usage="""$(c sM)rtdel$(c) - artifactory clean - clean artifacts in Artifactory via repo and build info
+  \nSYNOPSIS
+  \n\t$(c sY)\$ rtdel [bdi] [vwi] [repo] [build-id]$(c)
+  \nEXAMPLE
+  \n\t$(c G)\$ rtdel integration 1234$(c)
+  """
+  curlOpt="-s -g --netrc-file $HOME/.marslo/.netrc"
+  rtProj="${RT_PROJECT}"
+
+  if [ 2 -gt $# ]; then
+    echo -e "${usage}"
+  else
+    case $1 in
+      [wW] | [vV] | [iI] )
+        p=$( echo "$1" | tr '[:upper:]' '[:lower:]' )
+        [ 'w' == "${p}" ] && rtProj='wukong'
+        [ 'v' == "${p}" ] && rtProj='vega'
+        [ 'i' == "${p}" ] && rtProj='vail'
+        [ 3 -ne $# ] && echo -e "${usage}"
+        rtName="$2"
+        buildID="$3"
+        ;;
+      * )
+        rtName="$1"
+        buildID="$2"
+        ;;
+    esac
+
+    repo="${rtProj}-${rtName}-local"
+    build="${rtProj}- ${rtName}"
+    if /usr/bin/curl ${curlOpt} -X GET "${RT_URL}/api/repositories" | jq .[].key | grep "${repo}" > /dev/null 2>&1; then
+      echo """
+            repo : ${repo}
+           build : ${build}
+        build id : ${buildID}
+      """
+      /usr/bin/curl ${curlOpt} -X DELETE "${RT_URL}/${repo}/${buildID}"
+      /usr/bin/curl ${curlOpt} -X DELETE "${RT_URL}/api/build/${build}?buildNumbers=${buildID}&artifacts=1"
+      # curl -X DELETE ${curlOpt} "${RT_URL}/api/trash/clean/${repo}/${buildID}"
+      # curl -X DELETE ${curlOpt} "${RT_URL}/api/trash/clean/artifactory-build-info"
+    else
+      echo "${rtName} repo cannot be found for ${rtProj}"
       echo -e "${usage}"
     fi
   fi
@@ -827,9 +957,9 @@ function rtclean() {
 
 # how may days == ddiff YYYY-MM-DD now
 hmdays() {
-  usage="""USAGE:
+  usage="""SYNOPSIS
   \n\t\$ hmdays YYYY-MM-DD
-  \nExample:
+  \nEXAMPLE
   \n\t\$ hmdays 1987-03-08
   """
 
