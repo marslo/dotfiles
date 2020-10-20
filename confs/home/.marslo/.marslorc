@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC1090,SC2045,SC2035,SC2236,SC2164,SC2086,SC1078,SC1079,SC2034
+# shellcheck disable=SC2034,SC1090
 # =============================================================================
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
