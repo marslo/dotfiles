@@ -72,7 +72,7 @@ alias df='df -kTh'
 alias which='alias | which -a --tty-only --read-alias --show-dot --show-tilde'
 # alias which='alias | /usr/bin/which -a'
 alias ping='/sbin/ping --apple-time -v'
-alias gerrit='ssh -p 29418 vgitcentral.marvell.com gerrit'
+alias gerrit='ssh -p 29418 vgitcentral.mycompany.com gerrit'
 
 alias chown='sudo chown'
 alias chmod='sudo chmod'
