@@ -24,19 +24,24 @@
   psa         = push origin --all
   pst         = push origin --tag
   fpush       = push origin --force
+  root        = rev-parse --show-toplevel
   # cfmp        = "!func(){ git add --all . && git commit -aqm \"$1\" && git fetch --all && git merge --all && git push; }; func"
   # cap         = "!f() { git add --all .; git commit -am \"${1}\"; git push; }; f"
   # fma         = "!f() { git fetch --all --force; git merge --all --progress; git remote prune origin; }; f"
 
   # rebase & squash
   sq          = ! "f() { TARGET=$1 && GIT_EDITOR=\"sed -i -e '2,$TARGET s/^pick /s /;/# This is the 2nd commit message:/,$ {d}'\" git rebase -i HEAD~$TARGET; }; f"
-  # sq          = !"f() { NL=$1; GIT_EDITOR=\"sed -i '2,$NL s/^pick/squash/;/# This is the 2nd commit message:/,$ {d}'\"; git rebase -i HEAD~$NL; }; f"
+  # sq        = !"f() { NL=$1; GIT_EDITOR=\"sed -i '2,$NL s/^pick/squash/;/# This is the 2nd commit message:/,$ {d}'\"; git rebase -i HEAD~$NL; }; f"
 
+  # [d]iff with [p]revious branch
+  pd          = diff ..@{-1}
+  # [d]iff [f]ile name only
   fd          = diff --name-status
   in          = info --no-config
+  # [d]iff via colorful [w]ords
   wd          = diff --color-words -U0
   ld          = !bash -c '. ~/.marslo/.gitrc && git diff -U0 \"$@\" | diff-lines' -
-  # ld          = !bash -l -c 'git diff -U0 "$@" | diff-lines' -
+  # ld        = !bash -l -c 'git diff -U0 "$@" | diff-lines' -
   ldiff       = diff -U0
 
   ign         = ls-files -o -i --exclude-standard
