@@ -190,6 +190,13 @@
                      git submodule update --init --recursive \n\
                    fi \n\
                  done < <(git rev-parse --abbrev-ref HEAD) '"
+
+  # [r]eset --h[a]rd
+  ra          = "!bash -c 'while read branch; do \n\
+                   echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
+                   git reset --hard origin/${branch} \n\
+                 done < <(git rev-parse --abbrev-ref HEAD)' "
+
   # [m]arslo force [p]ush
   mp          = "!bash -c 'while read branch; do \n\
                     echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
@@ -201,6 +208,7 @@
                       git push -u --force origin ${branch} \n\
                     fi \n\
                  done < <(git rev-parse --abbrev-ref HEAD) '"
+
   # [m]arslo revie[w]
   mw          = "!bash -c 'while read branch; do \n\
                     echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
@@ -222,6 +230,7 @@
                       git reset --hard origin/${branch} \n\
                     fi \n\
                  done < <(git rev-parse --abbrev-ref HEAD) '"
+
   revset      = "!bash -c 'ix=0; for ih in $(git rev-list --reverse HEAD); do \n\
                   TCMD=\"git notes --ref linrev\"; \n\
                   TCMD=\"$TCMD add $ih -m \\\"(r\\$((++ix)))\\\"\"; \n\

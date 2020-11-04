@@ -58,7 +58,7 @@ alias lgvim="gvim -c \"normal '0\""
 # alias tig="tig 2> /dev/null"
 
 alias c='clear'
-alias ff=firefox
+alias ffx='firefox'
 alias ud='du -h --max-depth=1 --exclude="\./\.*"'
 alias ud.='du -h --max-depth=1'
 alias udf='du -skh'
