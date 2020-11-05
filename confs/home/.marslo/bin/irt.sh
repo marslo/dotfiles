@@ -49,7 +49,7 @@ function rtsearch() {
   \n\tsearch 1234(build number) in maven(reponame) build info:
   \t$(c G)\$ rtsearch maven 1234 info$(c)
   \n\tsearch artifacts built from Jenkins job '*marslo/sandbox*'
-  \t$(c G)\$ rtsearch build.url '*marslo*sandbox*'$(c)
+  \t$(c G)\$ rtsearch bi build.url '*marslo*sandbox*'$(c)
   """
 
   if [ 2 -gt $# ]; then
@@ -71,13 +71,18 @@ function rtsearch() {
 function rtsp() {
   usage="""$(c sM)rtsp$(c) - artifactory search with properties - search artifacts via properites
   \nSYNOPSIS
-  \n\t$(c sY)\$ rtsp [wvi] [property name] [property value]$(c)
+  \n\t$(c sY)\$ rtsp [wvi] [property name] [property value] [repo]$(c)
   \nEXAMPLE
-  \n\tsearch artifacts built from Jenkins job '*marslo*sandbox*'
+  \n\tsearch all artifacts built from Jenkins job '*marslo*sandbox*'
   \t$(c G)\$ rtsp build.url '*marslo*sandbox*'$(c)
+  \n\tsearch artifacts built from Jenkins job '*marslo*sandbox*' for project-2
+  \t$(c G)\$ rtsp v build.url '*marslo*sandbox*'$(c)
+  \n\tsearch artifacts built from Jenkins job '*marslo*sandbox*' for project-1 and precommit stage
+  \t$(c G)\$ rtsp w build.url '*marslo*sandbox* precommit'$(c)
   """
-  rtProj="${RT_PROJECT}"
+  rtProj=''
   repo=''
+  defaultRepos="project-1-precommit,$(echo project-2-{precommit,release,release-candidate} | tr ' ' ','),$(echo project-3-{precommit,postcommit,nightly,pre-release,post-release,integration} | tr ' ' ',')"
 
   if [ 2 -gt $# ]; then
     echo -e "${usage}"
@@ -91,15 +96,22 @@ function rtsp() {
         [ 'i' == "${p}" ] && rtProj='project-3'
         pName="$2"
         pValue="$3"
-        [ 4 -ne $# ] && repo="&repos=${rtProj}-$4-local"
+        [ 3 -eq $# ] && repo="&repos=$(echo ${rtProj}-{precommit,postcommit,nightly,pre-release,post-release,nightly,integration,release,release-candidate} | tr ' ', ',')"
+        [ 4 -eq $# ] && repo="&repos=${rtProj}-$4"
+        [ 5 -lt $# ] && echo -e "${usage}"
         ;;
       * )
         pName="$1"
         pValue="$2"
-        [ 3 -ne $# ] && repo="&repos=${rtProj}-$3-local"
+        [ 2 -eq $# ] && repo="&repos="                            # `repo=''` means search to all repos
+        # [ 2 -eq $# ] && repo="&repos=${defaultRepos}"
+        [ 3 -eq $# ] && repo="&repos=$(echo {project-1,project-2,project-3}-$3 | tr ' ', ',')"
         ;;
     esac
 
+    echo -e """Artifactory search via Properties '${pName}=${pValue}':
+      $(c Y)~~> api url: "${RT_URL}/api/search/prop?${pName}=${pValue}${repo}"$(c)
+    """
     curl -sg \
          -X GET \
          "${RT_URL}/api/search/prop?${pName}=${pValue}${repo}" \
@@ -113,7 +125,7 @@ function rtsp() {
 function rtsc() {
   usage="""$(c sM)rtsc$(c) - artifactory search with conditional - search artifacts and(or) build info in Artifactory via repo and condition
   \nSYNOPSIS
-  \n\t$(c sY)\$ rtsc [wv] [repo] [condition] [name|info]$(c)
+  \n\t$(c sY)\$ rtsc [wvi] [repo] [condition] [name|info]$(c)
   \nEXAMPLE
   \n\tsearch sub-folder detail info in integration repo 10 days ago:
   \t$(c G)\$ rtsc integration 10days$(c)
@@ -147,28 +159,34 @@ function rtsc() {
     esac
 
     repo="${rtProj}-${rtName}-local"
-    builds="${rtProj}- ${rtName}"
+    builds="${rtProj} - ${rtName}"
     [ 'name' = "${show}" ] && extra='| jq --raw-output .results[].name?'
 
-    echo """
+    echo -e """ Artifactory search via Conditions:
+      $(c Y)
               repo : ${repo}
             builds : ${builds}
          condition : ${condition}
               show : ${show}
+               api : $( [ 'info' == "${show}" ] \
+                        && echo "${RT_URL}/api/build/${builds}/${condition}" \
+                        || echo "${RT_URL}/api/search/aql" \
+               )
+      $(c)
     """
 
     if [ 'info' = "${show}" ]; then
-      curl "${CURL_OPT}" \
+      curl ${CURL_OPT} \
            -X GET "${RT_URL}/api/build/${builds}/${condition}"
     else
-      curl "${CURL_OPT}" \
+      curl ${CURL_OPT} \
            -H "Content-Type: text/plain" \
            -X POST ${RT_URL}/api/search/aql \
            -d """items.find ({ \
                    \"repo\": \"${rtProj}-${rtName}-local\", \
                    \"type\" : \"folder\" , \
                    \"depth\" : \"1\", \
-                   \"created\" : { \"\$before\" : \"$2\" } \
+                   \"created\" : { \"\$before\" : \"$condition\" } \
                 })
               """ \
            "${extra}"

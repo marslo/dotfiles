@@ -12,7 +12,7 @@
 function mg() {
   usage="""mg - marslo grep - combined find and grep to quick find keywords
   \nSYNOPSIS
-  \n\t$(c sY)\$ mg [OPT] [NUM] KEYWORD [<PATHA>]$(c)
+  \t$(c sY)\$ mg [i] [f] [m] [w] [a <num>] [b <num>] [c <num>] KEYWORD [<PATHA>]$(c)
   \nEXAMPLE
   \n\t$(c G)\$ mg 'hello'
   \t\$ mg i 'hello' ~/.marslo
@@ -21,13 +21,14 @@ function mg() {
   \n\t$(c B)i$(c) : ignore case
   \t$(c B)f$(c) : find file name only
   \t$(c B)m$(c) : find markdown only
+  \t$(c B)w$(c) : match word only
   \t$(c B)a <num>$(c) : print <num> lines of trailing context after matching lines
   \t$(c B)b <num>$(c) : print <num> lines of leading context before matching lines
   \t$(c B)c <num>$(c) : print <num> lines of output context
   """
   kw=''
   p='.'
-  opt='-n -H -E --color=always'
+  opt='--color=always -n -H -E'
   name=''
 
   if [ 0 -eq $# ]; then
@@ -54,6 +55,21 @@ function mg() {
         [ 2 -le $# ] && kw="$2"
         [ 3 -eq $# ] && p="$3"
         ;;
+      [iI][wW] | [wW][iI] )
+        opt="${opt} -i -w"
+        [ 2 -le $# ] && kw="$2"
+        [ 3 -eq $# ] && p="$3"
+        ;;
+      [fF][wW] | [wW][fF] )
+        opt="${opt} -l -w"
+        [ 2 -le $# ] && kw="$2"
+        [ 3 -eq $# ] && p="$3"
+        ;;
+      [iI][fF][wW] | [iI][wW][fF] | [fF][iI][wW] | [fF][wW][iI] | [wW][iI][fF] | [wW][fF][iI] )
+        opt="${opt} -i -w -l"
+        [ 2 -le $# ] && kw="$2"
+        [ 3 -eq $# ] && p="$3"
+        ;;
       [aA] | [bB] | [cC] | [iI][aA] | [iI][bB] | [iI][cC] | [aA][iI] | [bB][iI] | [cC][iI] )
         # line = -A $2 | -B $2 | -C $2
         line="-$( echo $1 | awk -F'[iI]' '{print $1,$2}' | sed -e 's/^[[:space:]]*//' | tr '[:lower:]' '[:upper:]' ) $2"
@@ -70,7 +86,7 @@ function mg() {
     if [ -n "${kw}" ]; then
       # or using + instead of ; details: https://unix.stackexchange.com/a/43743/29178
       # shellcheck disable=SC2027,SC2125
-      cmd="""find "${p}" -type f ${name} -not -path "*git/*" -not -path "*node_modules/*" -exec ${GREP} ${opt} "${kw}" {} ;"""
+      cmd="""find "${p}" -type f ${name} -not -path \"*git/*\" -not -path \"*node_modules/*\" -exec ${GREP} ${opt} "${kw}" {} \\;"""
       find "${p}" -type f ${name} \( -not -path "*git/*" -not -path "*node_modules/*" \) -exec ${GREP} ${opt} "${kw}" {} \; \
         || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
     else
