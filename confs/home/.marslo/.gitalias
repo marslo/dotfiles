@@ -261,3 +261,16 @@
   subst = submodule foreach \"git status\"
   first = rev-list --max-parents=0 HEAD
   make-patch = "!bash -c \"git format-patch HEAD~1; git reset HEAD~1\""
+  aliases         = !git config --get-regexp ^alias\\. | sed -e s/^alias.// -e s/\\ /\\ $(printf \"\\043\")--\\>\\ / | column -t -s $(printf \"\\043\")
+  # deprecated
+  show-cmd        = "!f() { \
+                              sep="㊣" ;\
+                              name=${1:-alias};\
+                              echo "$name"; \
+                              git config --get-regexp ^$name\\..*$2+ | \
+                              cut -c 1-40 | \
+                              sed -e s/^$name.// \
+                              -e s/\\ /\\ $(printf $sep)--\\>\\ / | \
+                              column -t -s $(printf $sep) | \
+                          }; f \
+                    "

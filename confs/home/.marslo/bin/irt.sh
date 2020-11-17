@@ -89,7 +89,6 @@ function rtsp() {
   else
     case $1 in
       [wW] | [vV] | [iI] )
-        [ 3 -gt $# ] && echo -e "${usage}"
         p=$( echo "$1" | tr '[:upper:]' '[:lower:]' )
         [ 'w' == "${p}" ] && rtProj='project-1'
         [ 'v' == "${p}" ] && rtProj='project-2'
@@ -99,7 +98,12 @@ function rtsp() {
         [ 3 -eq $# ] && repo="&repos=$(echo ${rtProj}-{precommit,postcommit,nightly,pre-release,post-release,nightly,integration,release,release-candidate} | tr ' ', ',')"
         [ 4 -eq $# ] && repo="&repos=${rtProj}-$4"
         [ 5 -lt $# ] && echo -e "${usage}"
-        ;;
+        ;)
+        pName="$2"
+        pValue="$3"
+        [ 3 -eq $# ] && repo="&repos=$(echo {project-1,project-2}-{release-candidate,release} | tr ' ', ',')"
+        sedstr='^.*api/storage/([^/]+-local/([^/]+/){2}).*$'
+        ;
       * )
         pName="$1"
         pValue="$2"
@@ -112,14 +116,14 @@ function rtsp() {
     echo -e """Artifactory search via Properties '${pName}=${pValue}':
       $(c Y)~~> api url: "${RT_URL}/api/search/prop?${pName}=${pValue}${repo}"$(c)
     """
+
     curl -sg \
          -X GET \
          "${RT_URL}/api/search/prop?${pName}=${pValue}${repo}" \
          | jq --raw-output .results[].uri \
-         | sed -re 's:(^.*-local/[^/]+/).*$:\1:' \
+         | sed -re "s:${sedstr}:\1:" \
          | uniq
   fi
-
 }
 
 function rtsc() {
