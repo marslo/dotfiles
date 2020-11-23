@@ -4,15 +4,26 @@ set show-all-if-ambiguous on
 set show-all-if-unmodified on
 set mark-symlinked-directories on
 set print-completions-horizontally on
-TAB: menu-complete
+# set show-mode-in-prompt on
+# TAB: menu-complete
 # set colored-completion-prefix on
 # set colored-stats on
 
+# https://unix.stackexchange.com/a/409866/29178
+set keymap emacs
+"\ee": vi-editing-mode
+
 set keymap vi-insert
-set editing-mode vi
+"\e": vi-movement-mode
+# "jk": vi-movement-mode
+# "kj": vi-movement-mode
+
+# set editing-mode vi
 
 # Command Mode
 set keymap vi-command
+"\ee": emacs-editing-mode
+
 v: ""
 Control-a: beginning-of-line
 Control-b: backward-char
@@ -28,24 +39,21 @@ set keymap vi-insert
 
 "\C-k": kill-line
 "\C-u": unix-line-discard
-
 "\C-p": previous-history
 "\C-n": next-history
 "\C-a": beginning-of-line
 "\C-e": end-of-line
 "\C-f": forward-char
 "\C-b": backward-char
+"\C-l": clear-screen
+"\C-d": delete-char
+"\C-h": backward-delete-char
+"\C-w": unix-word-rubout
 
 "\et": transpose-words
 "\ef": forward-word
 "\eb": backward-word
 "\ed": kill-word
-"\C-w": unix-word-rubout
-
-"\C-d": delete-char
-"\C-h": backward-delete-char
-
 "\e.":yank-last-arg
 "\e_": yank-last-arg
-
 "\C-_": undo
