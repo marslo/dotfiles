@@ -196,4 +196,12 @@ function pset(){
   echo -e "$(c sG)proxy has been all set as $myproxy.$(c)"
 }
 
+function color() {
+  # https://unix.stackexchange.com/a/269085/29178
+  for c; do
+      printf '\e[48;5;%dm%03d' $c $c
+  done
+  printf '\e[0m \n'
+}
+
 # vim: ts=2 sts=2 sw=2 et ft=Groovy

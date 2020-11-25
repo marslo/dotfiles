@@ -128,7 +128,7 @@
                     declare remoteURL=\"$1\"; \
                     declare defaultBr='master'; \
                     declare localDir='.'; \
-                    [ 2 -eq $# ] && defaultBr=\"$2\"; \
+                    [ 2 -lt $# ] && defaultBr=\"$2\"; \
                     [ 3 -eq $# ] && localDir=\"$3\"; \
                     if [ 0 -eq $# ]; then \
                       echo \"${help}\"; \
