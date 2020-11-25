@@ -16,7 +16,7 @@ function msh {
   command ssh  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$@"
 }
 
-function color {
+function tabcolor {
   case $1 in
     green)
       echo -e "\\033]6;1;bg;red;brightness;57\\a"
