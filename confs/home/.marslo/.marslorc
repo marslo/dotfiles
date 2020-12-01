@@ -14,6 +14,8 @@ bashComp2="$(brew --prefix)/etc/profile.d/bash_completion.sh"
 rtComp="/Users/marslo/.jfrog/jfrog_bash_completion"
 gitComp="$(brew --prefix)/etc/bash_completion.d/git-prompt.sh"
 maccliComp='/usr/local/bin/mac-cli/completion/bash_completion'
+dockerComp="$(brew --prefix)/etc/bash_completion.d/docker"
+dockerComposeComp="$(brew --prefix)/etc/bash_completion.d/docker-compose"
 # bashComp2=$(pkg-config --variable=completionsdir bash-completion)
 
 if command -v brew > /dev/null; then
@@ -24,6 +26,8 @@ if command -v brew > /dev/null; then
   [ -f "${rtComp}" ] && source "${rtComp}"
   [ -f "${gitComp}" ] && source "${gitComp}"
   [ -f "${maccliComp}" ] && source "${maccliComp}"
+  [ -f "${dockerComp}" ] && source "${dockerComp}"
+  [ -f "${dockerComposeComp}" ] && source "${dockerComposeComp}"
   # if [ -d "${GROOVY_HOME}/bin" ]; then
     # find ${GROOVY_HOME}/bin -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
   # fi
@@ -39,6 +43,7 @@ source "${iRCHOME}/.gitrc"
 shopt -s cdspell
 shopt -s cmdhist
 shopt -s histappend
+shopt -s extdebug
 
 # Disable ctrl+s lock putty
 # stty -echo
