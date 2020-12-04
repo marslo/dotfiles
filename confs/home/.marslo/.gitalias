@@ -25,9 +25,9 @@
   pst         = push origin --tag
   fpush       = push origin --force
   root        = rev-parse --show-toplevel
-  # cfmp        = "!func(){ git add --all . && git commit -aqm \"$1\" && git fetch --all && git merge --all && git push; }; func"
-  # cap         = "!f() { git add --all .; git commit -am \"${1}\"; git push; }; f"
-  # fma         = "!f() { git fetch --all --force; git merge --all --progress; git remote prune origin; }; f"
+  # cfmp      = "!func(){ git add --all . && git commit -aqm \"$1\" && git fetch --all && git merge --all && git push; }; func"
+  # cap       = "!f() { git add --all .; git commit -am \"${1}\"; git push; }; f"
+  # fma       = "!f() { git fetch --all --force; git merge --all --progress; git remote prune origin; }; f"
 
   # rebase & squash
   sq          = ! "f() { TARGET=$1 && GIT_EDITOR=\"sed -i -e '2,$TARGET s/^pick /s /;/# This is the 2nd commit message:/,$ {d}'\" git rebase -i HEAD~$TARGET; }; f"
@@ -233,6 +233,11 @@
                     else \n\
                       git fetch --all --force \n\
                       git reset --hard origin/${branch} \n\
+                      if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \n\
+                        git submodule foreach --recursive git clean -dffx \n\
+                        git submodule foreach --recursive git reset --hard \n\
+                        git submodule update -f --init --recursive \n\
+                      fi \n\
                     fi \n\
                  done < <(git rev-parse --abbrev-ref HEAD) '"
 
@@ -258,10 +263,11 @@
 
   ghprofile       = "! bash -c 'git config user.email \"marslo.jiao@gmail.com\"; git config user.name \"marslo\"'"
   ls              = log --stat --pretty                                                                                                    = short --graph
-  subst = submodule foreach \"git status\"
-  first = rev-list --max-parents=0 HEAD
-  make-patch = "!bash -c \"git format-patch HEAD~1; git reset HEAD~1\""
+  subst           = submodule foreach \"git status\"
+  first           = rev-list --max-parents=0 HEAD
+  make-patch      = "!bash -c \"git format-patch HEAD~1; git reset HEAD~1\""
   aliases         = !git config --get-regexp ^alias\\. | sed -e s/^alias.// -e s/\\ /\\ $(printf \"\\043\")--\\>\\ / | column -t -s $(printf \"\\043\")
+
   # deprecated
   show-cmd        = "!f() { \
                               sep="㊣" ;\
