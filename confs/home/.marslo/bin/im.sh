@@ -204,4 +204,64 @@ function color() {
   printf '\e[0m \n'
 }
 
+function run() {
+  usage="""run - shortcut to run particular commands
+  \nSYNOPSIS
+  \t$(c sY)\$ run <command>$(c)
+  \nEXAMPLE
+  \n\t$(c G)\$ run jenkins
+  \nOPT:
+  \n\t$(c B)jenkins$(c) : start jenkins service via docker
+  """
+ 
+  if [ 0 -eq $# ]; then
+    echo -e "${usage}"
+  else
+    case $1 in
+      jenkins )
+        startJenkins
+        ;;
+      * )
+        echo -e "${usage}"
+        ;;
+    esac
+  fi
+}
+
+function startJenkins() {
+  docker run \
+         --name jenkins \
+         --detach   \
+         --rm \
+         --network jenkins \
+         --env DOCKER_HOST=tcp://docker:2376   \
+         --env DOCKER_CERT_PATH=/certs/client \
+         --env DOCKER_TLS_VERIFY=1   \
+         --publish 80:8080 \
+         --publish 50000:50000   \
+         --env JAVA_OPTS=" \
+                -DsessionTimeout=1440 \
+                -DsessionEviction=43200 \
+                -Djava.awt.headless=true \
+                -Djenkins.ui.refresh=true \
+                -Divy.message.logger.level=4 \
+                -Dhudson.Main.development=true \
+                -Duser.timezone='Asia/Chongqing' \
+                -Djenkins.install.runSetupWizard=true \
+                -Dhudson.security.ArtifactsPermission=true \
+                -Dpermissive-script-security.enabled=true  \
+                -Djenkins.slaves.NioChannelSelector.disabled=true \
+                -Dhudson.security.LDAPSecurityRealm.groupSearch=true \
+                -Djenkins.slaves.JnlpSlaveAgentProtocol3.enabled=false \
+                -Djenkins.security.ClassFilterImpl.SUPPRESS_WHITELIST=true \
+                -Dhudson.model.ParametersAction.keepUndefinedParameters=true \
+                -Dcom.cloudbees.workflow.rest.external.ChangeSetExt.resolveCommitAuthors=true \
+                -Dhudson.plugins.active_directory.ActiveDirectorySecurityRealm.forceLdaps=false \
+                -Dhudson.model.DirectoryBrowserSupport.CSP=\"sandbox allow-same-origin allow-scripts; default-src 'self'; script-src * 'unsafe-eval'; img-src *; style-src * 'unsafe-inline'; font-src *;\" \
+              " \
+         --env JNLP_PROTOCOL_OPTS="-Dorg.jenkinsci.remoting.engine.JnlpProtocol3.disabled=false" \
+         --volume /opt/JENKINS_HOME:/var/jenkins_home \
+         jenkins/jenkins:latest
+}
+
 # vim: ts=2 sts=2 sw=2 et ft=Groovy
