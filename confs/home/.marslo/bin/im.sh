@@ -209,22 +209,56 @@ function run() {
   \nSYNOPSIS
   \t$(c sY)\$ run <command>$(c)
   \nEXAMPLE
-  \n\t$(c G)\$ run jenkins
+  \n\t$(c G)\$ run jenkins$(c)
   \nOPT:
   \n\t$(c B)jenkins$(c) : start jenkins service via docker
   """
- 
+
   if [ 0 -eq $# ]; then
     echo -e "${usage}"
   else
     case $1 in
       jenkins )
+        startDocker
         startJenkins
+        ;;
+      docker )
+        startDocker
         ;;
       * )
         echo -e "${usage}"
         ;;
     esac
+  fi
+}
+
+function startDocker() {
+  if [ -z "$(ps aux | grep '/Applications/Docker.app/Contents/MacOS/Docker' | grep -v grep)" ]; then
+    echo -e "$(c sY)~~> start Docker.app...$(c)"
+    open -g -a Docker.app || exit
+
+    i=0
+    while ! docker system info &>/dev/null; do
+      (( i++ == 0 )) && printf $(c sY)%-6s$(c) '    waiting for Docker to finish starting up...' || printf $(c sY)%s$(c) '.'
+      sleep 1
+    done
+    (( i )) && printf '\n'
+    echo -e "$(c sY)~~> Docker is ready...$(c)"
+  else
+    echo -e "$(c sG)~~> Docker is running, no need start docker process...$(c)"
+  fi
+}
+
+function stopDocker() {
+  if [ ! -z "$(ps aux | grep '/Applications/Docker.app/Contents/MacOS/Docker' | grep -v grep)" ]; then
+    echo -e "$(c sM)~~> Quitting Docker.app...$(c)"
+    osascript - << EOF || exit
+    tell application "Docker"
+      if it is running then quit it
+    end tell
+EOF
+  else
+    echo -e "$(c sB)~~> no need quit Docker.app since docker process isn't running...$(c)"
   fi
 }
 
@@ -239,6 +273,8 @@ function startJenkins() {
          --env DOCKER_TLS_VERIFY=1   \
          --publish 80:8080 \
          --publish 50000:50000   \
+         --env JENKINS_ADMIN_ID=admin \
+         --env JENKINS_ADMIN_PW=admin \
          --env JAVA_OPTS=" \
                 -DsessionTimeout=1440 \
                 -DsessionEviction=43200 \
@@ -248,20 +284,24 @@ function startJenkins() {
                 -Dhudson.Main.development=true \
                 -Duser.timezone='Asia/Chongqing' \
                 -Djenkins.install.runSetupWizard=true \
-                -Dhudson.security.ArtifactsPermission=true \
                 -Dpermissive-script-security.enabled=true  \
                 -Djenkins.slaves.NioChannelSelector.disabled=true \
-                -Dhudson.security.LDAPSecurityRealm.groupSearch=true \
                 -Djenkins.slaves.JnlpSlaveAgentProtocol3.enabled=false \
-                -Djenkins.security.ClassFilterImpl.SUPPRESS_WHITELIST=true \
                 -Dhudson.model.ParametersAction.keepUndefinedParameters=true \
+                -Djenkins.security.ClassFilterImpl.SUPPRESS_WHITELIST=true \
+                -Dhudson.security.ArtifactsPermission=true \
+                -Dhudson.security.LDAPSecurityRealm.groupSearch=true \
+                -Dhudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID=true \
                 -Dcom.cloudbees.workflow.rest.external.ChangeSetExt.resolveCommitAuthors=true \
                 -Dhudson.plugins.active_directory.ActiveDirectorySecurityRealm.forceLdaps=false \
                 -Dhudson.model.DirectoryBrowserSupport.CSP=\"sandbox allow-same-origin allow-scripts; default-src 'self'; script-src * 'unsafe-eval'; img-src *; style-src * 'unsafe-inline'; font-src *;\" \
               " \
          --env JNLP_PROTOCOL_OPTS="-Dorg.jenkinsci.remoting.engine.JnlpProtocol3.disabled=false" \
          --volume /opt/JENKINS_HOME:/var/jenkins_home \
+         --volume /var/run/docker.sock:/var/run/docker.sock \
          jenkins/jenkins:latest
+
+# -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true \
 }
 
 # vim: ts=2 sts=2 sw=2 et ft=Groovy
