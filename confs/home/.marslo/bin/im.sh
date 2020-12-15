@@ -209,9 +209,9 @@ function run() {
   \nSYNOPSIS
   \t$(c sY)\$ run <command>$(c)
   \nEXAMPLE
-  \n\t$(c G)\$ run jenkins$(c)
+  \t$(c G)\$ run jenkins$(c)
   \nOPT:
-  \n\t$(c B)jenkins$(c) : start jenkins service via docker
+  \t$(c B)jenkins$(c) : start jenkins service via docker
   """
 
   if [ 0 -eq $# ]; then
@@ -232,31 +232,62 @@ function run() {
   fi
 }
 
+function stop() {
+  usage="""stop - shortcut to stop particular commands
+  \nSYNOPSIS
+  \t$(c sY)\$ stop <command>$(c)
+  \nEXAMPLE
+  \t$(c G)\$ stop jenkins$(c)
+  \nOPT:
+  \t$(c B)docker$(c)  : stop docker daemon
+  \t$(c B)jenkins$(c) : stop jenkins service
+  """
+
+  if [ 0 -eq $# ]; then
+    echo -e "${usage}"
+  else
+    case $1 in
+      jenkins )
+        docker stop jenkins
+        echo -e "$(c sM)~~> stop jenkins service..$(c)"
+        ;;
+      docker )
+        stopDocker
+        ;;
+      * )
+        echo -e "${usage}"
+        ;;
+    esac
+  fi
+}
+
 function startDocker() {
   if [ -z "$(ps aux | grep '/Applications/Docker.app/Contents/MacOS/Docker' | grep -v grep)" ]; then
     echo -e "$(c sY)~~> start Docker.app...$(c)"
     open -g -a Docker.app || exit
 
     i=0
+    open -g -a Docker.app &&
     while ! docker system info &>/dev/null; do
       (( i++ == 0 )) && printf $(c sY)%-6s$(c) '    waiting for Docker to finish starting up...' || printf $(c sY)%s$(c) '.'
       sleep 1
     done
     (( i )) && printf '\n'
-    echo -e "$(c sY)~~> Docker is ready...$(c)"
+    echo -e "$(c sY)~~> docker is ready...$(c)"
   else
-    echo -e "$(c sG)~~> Docker is running, no need start docker process...$(c)"
+    echo -e "$(c sG)~~> docker is running, no need start docker process...$(c)"
   fi
 }
 
 function stopDocker() {
   if [ ! -z "$(ps aux | grep '/Applications/Docker.app/Contents/MacOS/Docker' | grep -v grep)" ]; then
-    echo -e "$(c sM)~~> Quitting Docker.app...$(c)"
+    echo -e "$(c sM)~~> quitting Docker.app...$(c)"
     osascript - << EOF || exit
     tell application "Docker"
       if it is running then quit it
     end tell
 EOF
+  # or osascript -e 'quit app "Docker.app"' (https://forums.docker.com/t/restart-docker-from-command-line/9420/7)
   else
     echo -e "$(c sB)~~> no need quit Docker.app since docker process isn't running...$(c)"
   fi
