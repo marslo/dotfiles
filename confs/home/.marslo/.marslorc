@@ -16,6 +16,8 @@ gitComp="$(brew --prefix)/etc/bash_completion.d/git-prompt.sh"
 maccliComp='/usr/local/bin/mac-cli/completion/bash_completion'
 dockerComp="$(brew --prefix)/etc/bash_completion.d/docker"
 dockerComposeComp="$(brew --prefix)/etc/bash_completion.d/docker-compose"
+groovyHome='/opt/groovy-3.0.7'
+# groovyHome="$(brew --prefix groovy)"
 # bashComp2=$(pkg-config --variable=completionsdir bash-completion)
 
 if command -v brew > /dev/null; then
@@ -28,22 +30,22 @@ if command -v brew > /dev/null; then
   [ -f "${maccliComp}" ] && source "${maccliComp}"
   [ -f "${dockerComp}" ] && source "${dockerComp}"
   [ -f "${dockerComposeComp}" ] && source "${dockerComposeComp}"
-  # if [ -d "${GROOVY_HOME}/bin" ]; then
-    # find ${GROOVY_HOME}/bin -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
-  # fi
+  [ -d "${groovyHome}/bin"  ] && source <(cat "${groovyHome}"/bin/*_completion)
+  # find "${groovyHome}/bin" -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
 fi
 
 source "${iRCHOME}/others/bash_completion.sh"
-source "${iRCHOME}/.imac"
-source "${iRCHOME}/.env"
-source "${iRCHOME}/.gitrc"
+source <(cat "${iRCHOME}/.imac" \
+             "${iRCHOME}/.env" \
+             "${iRCHOME}/.gitrc"
+        )
 # eval "$(rbenv init -)"
 
 # source $HOME/.tmux-session
 shopt -s cdspell
 shopt -s cmdhist
 shopt -s histappend
-shopt -s extdebug
+# shopt -s extdebug
 
 # Disable ctrl+s lock putty
 # stty -echo
@@ -70,10 +72,24 @@ test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shel
 # for linux
 # LS="/bin/ls"
 # GREP="/bin/grep"
-
 # for MacOS
-LS="/usr/local/opt/coreutils/libexec/gnubin/ls"
-GREP="/usr/local/opt/grep/libexec/gnubin/grep"
+if test -f "/usr/local/opt/coreutils/libexec/gnubin/ls"; then
+  LS="/usr/local/opt/coreutils/libexec/gnubin/ls"
+elif test -f "/usr/bin/ls"; then
+  LS="/usr/bin/ls"
+else
+  LS="$(\which -a ls | head)"
+fi
+
+if test -f "/usr/local/opt/grep/libexec/gnubin/grep"; then
+  GREP="/usr/local/opt/grep/libexec/gnubin/grep"
+elif test -f "/usr/bin/grep"; then
+  GREP="/usr/bin/grep"
+elif test -f "/bin/grep"; then
+  GREP="/bin/grep"
+else
+  GREP="$(\which -a grep | head)"
+fi
 
 # For public server (use common account)
 function bello()
@@ -113,9 +129,10 @@ c() {
 }
 
 # my functions
-source "${iRCHOME}/bin/ifunc.sh"
-source "${iRCHOME}/bin/ii.sh"
-source "${iRCHOME}/bin/ig.sh"
-source "${iRCHOME}/bin/irt.sh"
-source "${iRCHOME}/bin/im.sh"
+source <( cat "${iRCHOME}/bin/ifunc.sh" \
+              "${iRCHOME}/bin/ii.sh" \
+              "${iRCHOME}/bin/ig.sh" \
+              "${iRCHOME}/bin/irt.sh" \
+              "${iRCHOME}/bin/im.sh"
+        )
 # source "${iRCHOME}/bin/idisable"
