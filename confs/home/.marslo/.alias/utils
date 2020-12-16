@@ -3,10 +3,11 @@
 #   FileName: utils
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2019-09-19 15:49:40
+# LastChange: 2020-12-16 20:32:47
 # =============================================================================
 
-alias rm='rm -i'
+# alias rm='rm -i'
+alias rm='trash'
 alias cp='cp -i'
 alias cpa='cp --parents'
 # alias mv='mv -i'
