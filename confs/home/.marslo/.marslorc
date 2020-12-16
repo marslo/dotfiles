@@ -4,40 +4,49 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2020-10-20 21:50:33
+# LastChange : 2020-12-16 19:26:40
 # =============================================================================
 
 export iRCHOME='/Users/marslo/.marslo'
-
-bashComp="$(brew --prefix)/etc/bash_completion.d"
-bashComp2="$(brew --prefix)/etc/profile.d/bash_completion.sh"
-rtComp="/Users/marslo/.jfrog/jfrog_bash_completion"
-gitComp="$(brew --prefix)/etc/bash_completion.d/git-prompt.sh"
-maccliComp='/usr/local/bin/mac-cli/completion/bash_completion'
-dockerComp="$(brew --prefix)/etc/bash_completion.d/docker"
-dockerComposeComp="$(brew --prefix)/etc/bash_completion.d/docker-compose"
 groovyHome='/opt/groovy-3.0.7'
-# groovyHome="$(brew --prefix groovy)"
-# bashComp2=$(pkg-config --variable=completionsdir bash-completion)
+
+BREW_PREFIX="$(brew --prefix)"
+BASH_COMP_DIR="${BREW_PREFIX}/etc/bash_completion.d"
+bashComp="${BREW_PREFIX}/opt/bash-completion/etc/bash_completion"
+bashComp2="${BREW_PREFIX}/opt/bash-completion@2/etc/profile.d/bash_completion.sh"
+rtComp="/Users/marslo/.jfrog/jfrog_bash_completion"
+gitCompDir="${BREW_PREFIX}/opt/git/etc/bash_completion.d"
+maccliComp='/usr/local/bin/mac-cli/completion/bash_completion'
+# bashCompDirDir2=$(pkg-config --variable=completionsdir bash-completion)
 
 if command -v brew > /dev/null; then
-  # bash-completion
-  [ -f "${bashComp}" ] && export BASH_COMPLETION_COMPAT_DIR="${bashComp}" && source "${bashComp}"
-  # bash-completion@2
-  [ -f "${bashComp2}" ] && source "${bashComp2}";
-  [ -f "${rtComp}" ] && source "${rtComp}"
-  [ -f "${gitComp}" ] && source "${gitComp}"
-  [ -f "${maccliComp}" ] && source "${maccliComp}"
-  [ -f "${dockerComp}" ] && source "${dockerComp}"
-  [ -f "${dockerComposeComp}" ] && source "${dockerComposeComp}"
-  [ -d "${groovyHome}/bin"  ] && source <(cat "${groovyHome}"/bin/*_completion)
+  if test -d "${BASH_COMP_DIR}"; then
+    export BASH_COMPLETION_COMPAT_DIR="${BASH_COMP_DIR}"
+    [[ -r "${BREW_PREFIX}/etc/profile.d/bash_completion.sh" ]] && source "${BREW_PREFIX}/etc/profile.d/bash_completion.sh"
+    test -f "${bashComp}" && source "${bashComp}"
+    source <( cat "${BASH_COMP_DIR}"/brew \
+                  "${BASH_COMP_DIR}"/tmux \
+                  "${BASH_COMP_DIR}"/tig-completion.bash \
+            )
+    ls "${BASH_COMP_DIR}"/*git* >/dev/null 2>&1; [ 0 -eq $? ] && source "${BASH_COMP_DIR}"/*git*
+    ls "${BASH_COMP_DIR}"/*docker* >/dev/null 2>&1; [ 0 -eq $? ] && source "${BASH_COMP_DIR}"/*docker*
+  fi
+
+  # [ -f "${bashComp2}" ]     && source "${bashComp2}";
+  # for complete_alias (https://raw.githubusercontent.com/cykerway/complete-alias/master/complete_alias)
+  # [ -f "${bashComp2}" ] && source <(cat "${bashComp2}")
+  [ -f "${rtComp}" ]          && source "${rtComp}"
+  [ -f "${maccliComp}" ]      && source "${maccliComp}"
+  [ -d "${groovyHome}/bin" ]  && source <( cat "${groovyHome}"/bin/*_completion )
+  command -v kubectl > /dev/null && source <( kubectl completion bash )
+  command -v npm > /dev/null && source <( npm completion )
   # find "${groovyHome}/bin" -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
 fi
 
-source "${iRCHOME}/others/bash_completion.sh"
-source <(cat "${iRCHOME}/.imac" \
-             "${iRCHOME}/.env" \
-             "${iRCHOME}/.gitrc"
+source <(cat "${iRCHOME}"/others/.bash_completion.sh \
+             "${iRCHOME}"/.imac \
+             "${iRCHOME}"/.env  \
+             "${iRCHOME}"/.gitrc
         )
 # eval "$(rbenv init -)"
 
@@ -66,27 +75,24 @@ export TERM='xterm-color'
 
 # iTerm2 shell integration
 test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
+test -f /usr/local/bin/screenfetch && /usr/local/bin/screenfetch
 
-[ -f /usr/local/bin/screenfetch ] && /usr/local/bin/screenfetch
-
-# for linux
-# LS="/bin/ls"
-# GREP="/bin/grep"
-# for MacOS
-if test -f "/usr/local/opt/coreutils/libexec/gnubin/ls"; then
-  LS="/usr/local/opt/coreutils/libexec/gnubin/ls"
-elif test -f "/usr/bin/ls"; then
-  LS="/usr/bin/ls"
+if test -f '/usr/local/opt/coreutils/libexec/gnubin/ls'; then
+  LS='/usr/local/opt/coreutils/libexec/gnubin/ls'
+elif test -f '/usr/bin/ls'; then
+  LS='/usr/bin/ls'
+elif test -f '/bin/ls'; then
+  LS='/bin/ls'
 else
   LS="$(\which -a ls | head)"
 fi
 
-if test -f "/usr/local/opt/grep/libexec/gnubin/grep"; then
-  GREP="/usr/local/opt/grep/libexec/gnubin/grep"
-elif test -f "/usr/bin/grep"; then
-  GREP="/usr/bin/grep"
-elif test -f "/bin/grep"; then
-  GREP="/bin/grep"
+if test -f '/usr/local/opt/grep/libexec/gnubin/grep'; then
+  GREP='/usr/local/opt/grep/libexec/gnubin/grep'
+elif test -f '/usr/bin/grep'; then
+  GREP='/usr/bin/grep'
+elif test -f '/bin/grep'; then
+  GREP='/bin/grep'
 else
   GREP="$(\which -a grep | head)"
 fi

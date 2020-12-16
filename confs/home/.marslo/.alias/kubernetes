@@ -45,5 +45,6 @@ alias kcn='kubectl config set-context --current --namespace "$(kln | fzf -e | se
 
 # for kubernetes
 while read -r _i; do
-  complete -F _complete_alias "${_i}"
+  # complete -F _complete_alias "${_i}"
+  complete -F __start_kubectl "${_i}"
 done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/.alias/kubernetes")
