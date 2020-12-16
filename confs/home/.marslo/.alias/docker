@@ -41,9 +41,11 @@ alias dvi='docker volume inspect'
 
 # bash completion for docker
 while read -r _i; do
-  complete -F _complete_alias "${_i}"
+  # complete -F _complete_alias "${_i}"
+  complete -F _docker "${_i}"
 done < <(echo 'd')
 
 while read -r _i; do
-  complete -F _complete_alias "${_i}"
+  # complete -F _complete_alias "${_i}"
+  complete -F _docker "${_i}"
 done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/.alias/docker")
