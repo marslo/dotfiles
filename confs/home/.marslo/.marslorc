@@ -10,26 +10,27 @@
 export iRCHOME='/Users/marslo/.marslo'
 groovyHome='/opt/groovy-3.0.7'
 
-BREW_PREFIX="$(brew --prefix)"
-BASH_COMP_DIR="${BREW_PREFIX}/etc/bash_completion.d"
-bashComp="${BREW_PREFIX}/opt/bash-completion/etc/bash_completion"
-bashComp2="${BREW_PREFIX}/opt/bash-completion@2/etc/profile.d/bash_completion.sh"
+HOMEBREW_PREFIX="$(brew --prefix)"
+BASH_COMP_DIR="${HOMEBREW_PREFIX}/etc/bash_completion.d"
+bashComp="${HOMEBREW_PREFIX}/opt/bash-completion/etc/bash_completion"
+bashComp2="${HOMEBREW_PREFIX}/opt/bash-completion@2/etc/profile.d/bash_completion.sh"
 rtComp="/Users/marslo/.jfrog/jfrog_bash_completion"
-gitCompDir="${BREW_PREFIX}/opt/git/etc/bash_completion.d"
+gitCompDir="${HOMEBREW_PREFIX}/opt/git/etc/bash_completion.d"
 maccliComp='/usr/local/bin/mac-cli/completion/bash_completion'
+vboxComp="${iRCHOME}/others/VBoxManage-completion.bash"
 # bashCompDirDir2=$(pkg-config --variable=completionsdir bash-completion)
 
 if command -v brew > /dev/null; then
   if test -d "${BASH_COMP_DIR}"; then
     export BASH_COMPLETION_COMPAT_DIR="${BASH_COMP_DIR}"
-    [[ -r "${BREW_PREFIX}/etc/profile.d/bash_completion.sh" ]] && source "${BREW_PREFIX}/etc/profile.d/bash_completion.sh"
-    test -f "${bashComp}" && source "${bashComp}"
+    [[ -r "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh" ]] && source "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"
+    [[ -f "${bashComp}" ]] && source "${bashComp}"
     source <( cat "${BASH_COMP_DIR}"/brew \
                   "${BASH_COMP_DIR}"/tmux \
                   "${BASH_COMP_DIR}"/tig-completion.bash \
             )
-    ls "${BASH_COMP_DIR}"/*git* >/dev/null 2>&1; [ 0 -eq $? ] && source "${BASH_COMP_DIR}"/*git*
-    ls "${BASH_COMP_DIR}"/*docker* >/dev/null 2>&1; [ 0 -eq $? ] && source "${BASH_COMP_DIR}"/*docker*
+    ls "${BASH_COMP_DIR}"/*git* >/dev/null 2>&1; [ $? -eq 0 ] && source "${BASH_COMP_DIR}"/*git*
+    ls "${BASH_COMP_DIR}"/*docker* >/dev/null 2>&1; [ $? -eq 0 ] && source "${BASH_COMP_DIR}"/*docker*
   fi
 
   # [ -f "${bashComp2}" ]     && source "${bashComp2}";
@@ -38,6 +39,7 @@ if command -v brew > /dev/null; then
   [ -f "${rtComp}" ]          && source "${rtComp}"
   [ -f "${maccliComp}" ]      && source "${maccliComp}"
   [ -d "${groovyHome}/bin" ]  && source <( cat "${groovyHome}"/bin/*_completion )
+  [ -f "${vboxComp}" ]        && source "${vboxComp}"
   command -v kubectl > /dev/null && source <( kubectl completion bash )
   command -v npm > /dev/null && source <( npm completion )
   # find "${groovyHome}/bin" -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
