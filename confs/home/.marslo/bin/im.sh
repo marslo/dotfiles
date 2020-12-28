@@ -264,7 +264,6 @@ function stop() {
 function startDocker() {
   if [ -z "$(ps aux | grep '/Applications/Docker.app/Contents/MacOS/Docker' | grep -v grep)" ]; then
     echo -e "$(c sY)~~> start Docker.app...$(c)"
-    open -g -a Docker.app || exit
 
     i=0
     open -g -a Docker.app &&
@@ -335,4 +334,9 @@ function startJenkins() {
 # -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true \
 }
 
-# vim: ts=2 sts=2 sw=2 et ft=Groovy
+# https://serverfault.com/a/906310/129815
+ssl_expiry () {
+  echo | openssl s_client -connect "${1}":443 2> /dev/null | openssl x509 -noout -enddate
+}
+
+# vim: ts=2 sts=2 sw=2 et ft=sh

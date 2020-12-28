@@ -20,7 +20,10 @@ alias spotlight_on='sudo mdutil -a -i on'
 
 alias date="gdate"
 alias alfredreindex="/Applications/Alfred\\ 3.app/Contents/Frameworks/Alfred\\ Framework.framework/Versions/A/Resources/reindex.sh"
-alias chrome="/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --disable-gpu"
+alias alfredreindex='/Applications/Alfred 4.app/Contents/Frameworks/Alfred Framework.framework/Versions/Current/Resources/reindex.sh'
+
+# alias chrome="/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --disable-gpu"
+alias chrome="/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary  --disable-gpu"
 
 alias dockerlogin="docker login --username marslo ${RTDOMAIN}"
 # alias dockerstop="sudo killall Docker"
@@ -29,7 +32,8 @@ alias dockerstart="open --hide --background -a Docker"
 alias dockerrestart="sudo killall Docker && sleep 5 && open --hide --background -a Docker"
 
 alias startproxy="bash -x '/Applications/Aventail Connect.app/Contents/MacOS/bin/startct.sh'"
-alias restartsshd="sudo launchctl stop com.openssh.ssh-agent; sudo launchctl start com.openssh.ssh-agent;"
-alias sshrestart="sudo launchctl stop com.openssh.ssh-agent; sudo launchctl start com.openssh.ssh-agent;"
+alias restartsshd='sudo launchctl stop com.openssh.ssh-agent; sudo launchctl start com.openssh.ssh-agent;'
+alias sshrestart='sudo launchctl stop com.openssh.ssh-agent; sudo launchctl start com.openssh.ssh-agent;'
 
-alias bs="brew search"
+alias bs='brew search'
+alias bi='brew install'

@@ -4,7 +4,7 @@
 #     FileName : irt.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2012
-#   LastChange : 2020-10-20 21:53:33
+#   LastChange : 2020-11-05 20:03:52
 # =============================================================================
 
 RT_URL='https://my.artifactory.com/artifactory'
@@ -82,7 +82,8 @@ function rtsp() {
   """
   rtProj=''
   repo=''
-  defaultRepos="project-1-precommit,$(echo project-2-{precommit,release,release-candidate} | tr ' ' ','),$(echo project-3-{precommit,postcommit,nightly,pre-release,post-release,integration} | tr ' ' ',')"
+  sedstr='^.*api/storage/([^/]+-local/([^/]+/){1}).*$'
+  defaultRepos="vega-precommit,$(echo vail-{precommit,release,release-candidate} | tr ' ' ','),$(echo wukong-{precommit,postcommit,nightly,pre-release,post-release,integration} | tr ' ' ',')"
 
   if [ 2 -gt $# ]; then
     echo -e "${usage}"
@@ -98,12 +99,13 @@ function rtsp() {
         [ 3 -eq $# ] && repo="&repos=$(echo ${rtProj}-{precommit,postcommit,nightly,pre-release,post-release,nightly,integration,release,release-candidate} | tr ' ', ',')"
         [ 4 -eq $# ] && repo="&repos=${rtProj}-$4"
         [ 5 -lt $# ] && echo -e "${usage}"
-        ;)
+        ;;
+      r )
         pName="$2"
         pValue="$3"
         [ 3 -eq $# ] && repo="&repos=$(echo {project-1,project-2}-{release-candidate,release} | tr ' ', ',')"
         sedstr='^.*api/storage/([^/]+-local/([^/]+/){2}).*$'
-        ;
+        ;;
       * )
         pName="$1"
         pValue="$2"
@@ -119,7 +121,7 @@ function rtsp() {
 
     curl -sg \
          -X GET \
-         "${RT_URL}/api/search/prop?${pName}=${pValue}${repo}" \
+         "${RT_URL}"/api/search/prop?"${pName}"="${pValue}${repo}" \
          | jq --raw-output .results[].uri \
          | sed -re "s:${sedstr}:\1:" \
          | uniq
@@ -227,17 +229,17 @@ function rtdel() {
     esac
 
     repo="${rtProj}-${rtName}-local"
-    build="${rtProj}- ${rtName}"
-    if /usr/bin/curl "${CURL_OPT}" -X GET "${RT_URL}/api/repositories" | jq .[].key | grep "${repo}" > /dev/null 2>&1; then
+    build="${rtProj} - ${rtName}"
+    if /usr/bin/curl ${CURL_OPT} -X GET "${RT_URL}/api/repositories" | jq .[].key | grep "${repo}" > /dev/null 2>&1; then
       echo """
             repo : ${repo}
            build : ${build}
         build id : ${buildID}
       """
-      /usr/bin/curl "${CURL_OPT}" -X DELETE "${RT_URL}/${repo}/${buildID}"
-      /usr/bin/curl "${CURL_OPT}" -X DELETE "${RT_URL}/api/build/${build}?buildNumbers=${buildID}&artifacts=1"
-      # curl -X DELETE "${CURL_OPT}" "${RT_URL}/api/trash/clean/${repo}/${buildID}"
-      # curl -X DELETE "${CURL_OPT}" "${RT_URL}/api/trash/clean/artifactory-build-info"
+      /usr/bin/curl ${CURL_OPT} -X DELETE "${RT_URL}/${repo}/${buildID}"
+      /usr/bin/curl ${CURL_OPT} -X DELETE "${RT_URL}/api/build/${build}?buildNumbers=${buildID}&artifacts=1"
+      # curl -X DELETE ${CURL_OPT} "${RT_URL}/api/trash/clean/${repo}/${buildID}"
+      # curl -X DELETE ${CURL_OPT} "${RT_URL}/api/trash/clean/artifactory-build-info"
     else
       echo "${rtName} repo cannot be found for ${rtProj}"
       echo -e "${usage}"
@@ -250,7 +252,8 @@ function rtbdi() {
   \nSYNOPSIS
   \n\t$(c sY)\$ rtbdi [wvl] [repo] [build-id [build-id [build-id]]]
   \nEXAMPLE
-  \n\t$(c G)\$ rtbdi
+  \n\tremove both build info and artifacts in vail precommit #520
+  \n\t$(c G)\$ rtbdi i precommit 520$(c)
   """
   rtProj="${RT_PROJECT}"
 
@@ -294,4 +297,4 @@ function rtbdi() {
   fi
 }
 
-# vim: ts=2 sts=2 sw=2 et ft=Groovy
+# vim: ts=2 sts=2 sw=2 et ft=sh

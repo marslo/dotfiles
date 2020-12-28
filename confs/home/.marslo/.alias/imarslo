@@ -7,7 +7,7 @@
 # LastChange: 2019-09-19 15:49:10
 # =============================================================================
 
-MYWORKSPACE="/Users/marslo/mywork"
+MYWORKSPACE="/Users/marslo/iMarslo"
 
 alias tmax='tmux at -t marslo'
 alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
