@@ -1054,7 +1054,7 @@ detectdistro () {
 					elif [ -f /etc/sabayon-edition ]; then distro="Sabayon"
 					fi
 				else
-					if [[ -x /usr/bin/sw_vers ]] && /usr/bin/sw_vers | grep -i 'Mac OS X' >/dev/null; then
+					if [[ -x /usr/bin/sw_vers ]] && /usr/bin/sw_vers | grep -E '\s*[mM]ac\s*OS\s*X?' >/dev/null; then
 						distro="Mac OS X"
 					elif [[ -f /var/run/dmesg.boot ]]; then
 						distro=$(awk 'BEGIN {

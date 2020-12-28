@@ -165,7 +165,7 @@ function zh() {
 function 256color() {
   for i in {0..255}; do
     echo -e "\e[38;05;${i}m█${i}";
-  done | column -c 80 -s ' '; echo -e "\e[m"
+  done | column -c 180 -s ' '; echo -e "\e[m"
 }
 
 # how may days == ddiff YYYY-MM-DD now
@@ -214,4 +214,4 @@ function cleanview(){
   rm -rf ~/.vim/view/*
 }
 
-# vim: ts=2 sts=2 sw=2 et ft=Groovy
+# vim: ts=2 sts=2 sw=2 et ft=sh

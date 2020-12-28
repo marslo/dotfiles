@@ -75,4 +75,4 @@ function envUpdate() {
   done
 }
 
-# vim: ts=2 sts=2 sw=2 et ft=Groovy
+# vim: ts=2 sts=2 sw=2 et ft=sh
