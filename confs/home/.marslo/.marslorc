@@ -22,7 +22,7 @@ vboxComp="${iRCHOME}/others/VBoxManage-completion.bash"
 
 if command -v brew > /dev/null; then
   if test -d "${BASH_COMP_DIR}"; then
-    export BASH_COMPLETION_COMPAT_DIR="${BASH_COMP_DIR}"
+    # export BASH_COMPLETION_COMPAT_DIR="${BASH_COMP_DIR}"
     [[ -r "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh" ]] && source "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"
     [[ -f "${bashComp}" ]] && source "${bashComp}"
     source <( cat "${BASH_COMP_DIR}"/brew \

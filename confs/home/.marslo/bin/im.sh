@@ -329,7 +329,7 @@ function startJenkins() {
          --env JNLP_PROTOCOL_OPTS="-Dorg.jenkinsci.remoting.engine.JnlpProtocol3.disabled=false" \
          --volume /opt/JENKINS_HOME:/var/jenkins_home \
          --volume /var/run/docker.sock:/var/run/docker.sock \
-         jenkins/jenkins:latest
+         jenkins/jenkins:2.274
 
 # -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true \
 }
