@@ -188,7 +188,7 @@ hmdays() {
 }
 
 ibtoc() {
-  find ~/mywork/tools/git/marslo/mbook/docs \
+  find "${MYWORKSPACE}/tools/git/marslo/mbook/docs" \
        -iname '*.md' \
        -not -path '**/SUMMARY.md' \
        -exec doctoc --github --maxlevel 3 {} \;

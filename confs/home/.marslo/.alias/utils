@@ -101,7 +101,7 @@ alias allowedports='sudo /sbin/iptables -L -n'
 alias flushdns="sudo /etc/init.d/nscd restart"
 
 alias scp='scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '
-alias sshrsa='ssh -i ~/mywork/tools/remoteaccess/rsa/marslo@devops/marslo@devops'
+alias sshrsa="ssh -i ${MYWORKSPACE}/tools/remoteaccess/rsa/marslo@devops/marslo@devops"
 alias rsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '"
 alias sudorsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' --rsync-path='sudo rsync'"
 # alias ssh="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "
