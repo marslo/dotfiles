@@ -1,6 +1,7 @@
 [alias]
   aa          = add --all
   st          = status
+  rb          = rebase
   pl          = pull --rebase
   ci          = commit -m
   ca          = "!f() { git add --all $(git rev-parse --show-toplevel); git commit -am \"$1\" ; }; f"
@@ -181,9 +182,11 @@
                     fi; \n\
                   done < <(git for-each-ref --format=\"%(refname:short)\" refs/heads/*) '"
   # [u]pdate [a]ll
+  # git fetch --prune origin 'refs/tags/*:refs/tags/*' '+refs/heads/*:refs/remotes/origin/*'
   ua          = "!bash -c 'while read branch; do \n\
                    echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
                    git fetch --all --force; \n\
+                   git fetch --prune --prune-tags --force origin; \n\
                    if [ 'meta/config' == \"${branch}\" ]; then \n\
                      git fetch origin --force refs/${branch}:refs/remotes/origin/${branch} \n\
                    fi \n\
