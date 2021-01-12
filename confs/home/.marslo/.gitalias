@@ -4,10 +4,9 @@
   rb          = rebase
   pl          = pull --rebase
   ci          = commit -m
-  ca          = "!f() { git add --all $(git rev-parse --show-toplevel); git commit -am \"$1\" ; }; f"
   cae         = commit --allow-empty -am
   caa         = "!f(){ git add --all && git commit --amend --no-edit --allow-empty; }; f"
-  cia         = commit --amend --allow-empty
+  # cia       = commit --amend --allow-empty
   cin         = commit --amend --no-edit --allow-empty
   caj         = commit --author "marslo <marslo.jiao@gmail.com>" -m
   co          = checkout
@@ -161,7 +160,7 @@
                          ca = git commit -am \n\
                         cae = git commit --allow-empty -am \n\
                         caa = git add --all && git commit --amend --no-edit --allow-empty \n\
-                        cia = git commit --amend --allow-empty \n\
+                        cia = git commit --amend --allow-empty [-m <comments>] \n\
                         cin = commit --amend --no-edit --allow-empty \n\
                          mp = git caa & git push --force -u <current-brancha> \n\
                          mw = git caa & git review <current-branch> \n\
@@ -181,6 +180,22 @@
                       echo \"$branch has no upstream configured\"; \n\
                     fi; \n\
                   done < <(git for-each-ref --format=\"%(refname:short)\" refs/heads/*) '"
+  # [c]ommit -[a]m
+  ca          = "!f() { \
+                        git add --all $(git rev-parse --show-toplevel) ; \
+                        git commit -am \"$1\" ; \
+                      }; f \
+                "
+  # [c]omm[i]t --[a]mend
+  cia         = "!f(){ \
+                       OPT='commit --amend --allow-empty' ; \
+                       if [ 0 -eq $# ]; then \
+                         git ${OPT} ; \
+                       else \
+                         git ${OPT} -m \"$*\" ; \
+                       fi; \
+                     }; f \
+                "
   # [u]pdate [a]ll
   # git fetch --prune origin 'refs/tags/*:refs/tags/*' '+refs/heads/*:refs/remotes/origin/*'
   ua          = "!bash -c 'while read branch; do \n\
@@ -263,7 +278,6 @@
   show-remote-rev = "! bash -c 'git ls-remote --heads $(git config --get remote.origin.url) | \n\
                                 grep \"refs/heads/$0\" | \n\
                                 cut -f 1'"
-
   ghprofile       = "! bash -c 'git config user.email \"marslo.jiao@gmail.com\"; git config user.name \"marslo\"'"
   ls              = log --stat --pretty                                                                                                    = short --graph
   subst           = submodule foreach \"git status\"
