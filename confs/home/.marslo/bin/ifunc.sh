@@ -4,10 +4,10 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2020-10-20 22:32:22
+#  LastChange : 2021-01-15 22:00:55
 # =============================================================================
 
-function mkcd()
+function take()
 {
   mkdir -p "$1" && cd "$1" || return
 }
