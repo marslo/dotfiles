@@ -58,6 +58,9 @@
   tre         = log --color --graph --pretty=oneline --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --decorate --abbrev-commit --all
   clog        = log --color --graph --all --decorate --simplify-by-decoration --oneline
   pshow       = show -s --pretty='tformat:%Cred%h%Creset %Cgreen(%s)%Creset'
+  del         = "!bash -c 'git branch -D \"$0\"; \n\
+                           git push origin --delete \"$0\" \n\
+                          '"
 
   rlog        = "!bash -c 'while read branch; do \n\
                    git fetch --all --force; \n\
@@ -85,9 +88,10 @@
 
   rbr         = "!f(){ git branch -ra | grep $1; }; f"
   diffremote  = "!bash -c 'while read branch; do \n\
-                   git fetch origin $branch; \n\
-                   git ld $branch remotes/origin/$branch; \n\
-                 done < <(git rev-parse --abbrev-ref HEAD) '"
+                             git fetch origin $branch; \n\
+                             git ld $branch remotes/origin/$branch; \n\
+                           done < <(git rev-parse --abbrev-ref HEAD) \n\
+                          '"
 
   diffname    = git diff --name-only
   diffbranch  = log --left-right --graph --cherry-pick --oneline
@@ -180,12 +184,14 @@
                       echo \"$branch has no upstream configured\"; \n\
                     fi; \n\
                   done < <(git for-each-ref --format=\"%(refname:short)\" refs/heads/*) '"
+
   # [c]ommit -[a]m
   ca          = "!f() { \
                         git add --all $(git rev-parse --show-toplevel) ; \
                         git commit -am \"$1\" ; \
                       }; f \
                 "
+
   # [c]omm[i]t --[a]mend
   cia         = "!f(){ \
                        OPT='commit --amend --allow-empty' ; \
@@ -196,6 +202,20 @@
                        fi; \
                      }; f \
                 "
+
+  # [a]dd [f]etch [r]eference
+  afr         = "!f(){ \
+                       if [ 0 -eq $# ]; then \
+                         git config --add remote.origin.fetch \"+refs/heads/*:refs/remotes/origin/*\"; \
+                       elif [ 1 -eq $# ]; then \
+                         git config --add remote.origin.fetch \"+refs/heads/${0}:refs/remotes/origin/${0}\"; \
+                       else \
+                         echo \"\\033[1;31mERROR: Invalid parameters!\\033[0m\"; \
+                         echo \"\\033[1;32mUSAGE\\033[0m:\n\t$ git afr <branch>\"; \
+                       fi; \
+                     }; f \
+                "
+
   # [u]pdate [a]ll
   # git fetch --prune origin 'refs/tags/*:refs/tags/*' '+refs/heads/*:refs/remotes/origin/*'
   ua          = "!bash -c 'while read branch; do \n\
@@ -284,6 +304,7 @@
   first           = rev-list --max-parents=0 HEAD
   make-patch      = "!bash -c \"git format-patch HEAD~1; git reset HEAD~1\""
   aliases         = !git config --get-regexp ^alias\\. | sed -e s/^alias.// -e s/\\ /\\ $(printf \"\\043\")--\\>\\ / | column -t -s $(printf \"\\043\")
+  add-fetch       = "!sh -c 'git config --add remote.$0.fetch \"+refs/heads/$1:refs/remotes/$0/$1\"'"
 
   # deprecated
   show-cmd        = "!f() { \
@@ -297,3 +318,5 @@
                               column -t -s $(printf $sep) | \
                           }; f \
                     "
+
+# vim: ts=2 sts=2 sw=2 et ft=gitconfig
