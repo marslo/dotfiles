@@ -5,8 +5,8 @@
   pl          = pull --rebase
   ci          = commit -m
   cae         = commit --allow-empty -am
+  # [c]ommit [a]dd [a]all
   caa         = "!f(){ git add --all && git commit --amend --no-edit --allow-empty; }; f"
-  # cia       = commit --amend --allow-empty
   cin         = commit --amend --no-edit --allow-empty
   caj         = commit --author "marslo <marslo.jiao@gmail.com>" -m
   co          = checkout
@@ -29,7 +29,7 @@
   # cap       = "!f() { git add --all .; git commit -am \"${1}\"; git push; }; f"
   # fma       = "!f() { git fetch --all --force; git merge --all --progress; git remote prune origin; }; f"
 
-  # rebase & squash
+  # [r]ebase & s[q]uash
   sq          = ! "f() { TARGET=$1 && GIT_EDITOR=\"sed -i -e '2,$TARGET s/^pick /s /;/# This is the 2nd commit message:/,$ {d}'\" git rebase -i HEAD~$TARGET; }; f"
   # sq        = !"f() { NL=$1; GIT_EDITOR=\"sed -i '2,$NL s/^pick/squash/;/# This is the 2nd commit message:/,$ {d}'\"; git rebase -i HEAD~$NL; }; f"
 
@@ -106,90 +106,93 @@
   # Merge GitHub pull request on top of the current branch or,
   # if a branch name is specified, on top of the specified branch.
   mpr         = "!f() { \
-                          declare currentBranch=\"$(git symbolic-ref --short HEAD)\"; \
-                          declare branch=\"${2:-$currentBranch}\"; \
-                          if [ $(printf \"%s\" \"$1\" | grep '^[0-9]\\+$' > /dev/null; printf $?) -eq 0 ]; then \
-                              git fetch origin refs/pull/$1/head:pr/$1 && \
-                              git checkout -B $branch && \
-                              git rebase $branch pr/$1 && \
-                              git checkout -B $branch && \
-                              git merge pr/$1 && \
-                              git branch -D pr/$1 && \
-                              git commit --amend -m \"$(git log -1 --pretty=%B)\n\nClose #$1\"; \
-                          fi \
-                      }; f"
-  # info        = "!f() { \
-                   # git info --no-config | more \
-                 # }; f"
+                        declare currentBranch=\"$(git symbolic-ref --short HEAD)\"; \
+                        declare branch=\"${2:-$currentBranch}\"; \
+                        if [ $(printf \"%s\" \"$1\" | grep '^[0-9]\\+$' > /dev/null; printf $?) -eq 0 ]; then \
+                            git fetch origin refs/pull/$1/head:pr/$1 && \
+                            git checkout -B $branch && \
+                            git rebase $branch pr/$1 && \
+                            git checkout -B $branch && \
+                            git merge pr/$1 && \
+                            git branch -D pr/$1 && \
+                            git commit --amend -m \"$(git log -1 --pretty=%B)\n\nClose #$1\"; \
+                        fi \
+                      }; f \
+                "
+  # info        = "!f() { git info --no-config | more }; f"
   init-repo   = "!f() { \
-                    declare help=\"\"\"\
-                      USAGE: git init-repo <REMOTE_URL> [DEFAULT_BRANCH] [LOCAL_DIR] \n\
-                      OPT: \n\
-                            REMOTE_URL : mandatory \n\
-                        DEFAULT_BRANCH : optinal. default is 'master' \n\
-                             LOCAL_DIR : optional. default is current directory: '\"$(pwd)\"' \n\
-                    \"\"\"; \
-                    declare remoteURL=\"$1\"; \
-                    declare defaultBr='master'; \
-                    declare localDir='.'; \
-                    [ 2 -lt $# ] && defaultBr=\"$2\"; \
-                    [ 3 -eq $# ] && localDir=\"$3\"; \
-                    if [ 0 -eq $# ]; then \
-                      echo \"${help}\"; \
-                    else \
-                      [ -d ${localDir} ] || mkdir -p ${localDir}; \
-                      cd ${localDir} ; \
-                      git init && \
-                      git remote add origin ${remoteURL} && \
-                      git fetch --all --force --quiet && \
-                      git checkout -b ${defaultBr}; \
-                    fi \
-                  }; f"
+                        declare help=\"\"\"\
+                          USAGE: git init-repo <REMOTE_URL> [DEFAULT_BRANCH] [LOCAL_DIR] \n\n\
+                          OPT: \n\
+                                REMOTE_URL : mandatory \n\
+                            DEFAULT_BRANCH : optinal. default is 'master' \n\
+                                 LOCAL_DIR : optional. default is current directory: '\"$(pwd)\"' \n\
+                        \"\"\"; \
+                        declare remoteURL=\"$1\"; \
+                        declare defaultBr='master'; \
+                        declare localDir='.'; \
+                        [ 2 -lt $# ] && defaultBr=\"$2\"; \
+                        [ 3 -eq $# ] && localDir=\"$3\"; \
+                        if [ 0 -eq $# ]; then \
+                          echo \"${help}\"; \
+                        else \
+                          [ -d ${localDir} ] || mkdir -p ${localDir}; \
+                          cd ${localDir} ; \
+                          git init && \
+                          git remote add origin ${remoteURL} && \
+                          git fetch --all --force --quiet && \
+                          git checkout -b ${defaultBr}; \
+                        fi \
+                      }; f \
+                "
 
   # [m]eta/[c]onfig checkout
   mc          = "!f() { \
-                    if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then \
-                      git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config; \
-                      git checkout meta/config; \
-                    else \
-                      echo \"current directory isn't inside the git working tree\" ; \
-                    fi \
-                  }; f"
+                        if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then \
+                          git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config; \
+                          git checkout meta/config; \
+                        else \
+                          echo \"current directory isn't inside the git working tree\" ; \
+                        fi \
+                      }; f \
+                "
 
   # [m]arslo [h]elp
   mh          = "!f(){ \
-                    declare help=\"\"\"\
-                      marslo specific git alias \n\
-                      EXPLATIOIN: \n\
-                         ca = git commit -am \n\
-                        cae = git commit --allow-empty -am \n\
-                        caa = git add --all && git commit --amend --no-edit --allow-empty \n\
-                        cia = git commit --amend --allow-empty [-m <comments>] \n\
-                        cin = commit --amend --no-edit --allow-empty \n\
-                         mp = git caa & git push --force -u <current-brancha> \n\
-                         mw = git caa & git review <current-branch> \n\
-                    \"\"\"; \
-                    echo \"${help}\"; \
-                  }; f"
+                       declare help=\"\"\"\
+                         marslo specific git alias \n\n\
+                         EXPLATIOIN: \n\
+                            ca = git commit -am \n\
+                           cae = git commit --allow-empty -am \n\
+                           caa = git add --all && git commit --amend --no-edit --allow-empty \n\
+                           cia = git commit --amend --allow-empty [-m <comments>] \n\
+                           cin = commit --amend --no-edit --allow-empty \n\
+                            mp = git caa & git push --force -u <current-brancha> \n\
+                            mw = git caa & git review <current-branch> \n\
+                            ro = git fetch all & git reset --hard origin/<current-branch> \n\
+                       \"\"\"; \
+                       echo \"${help}\"; \
+                     }; f\
+                "
   sub         = submodule
   subpull     = !git pull && git submodule sync --recursive && git submodule update --init --recursive
   subupdate   = submodule update --remote --merge
   pdraft      = !git push origin HEAD:refs/drafts/$1
   ghook       = !bash -c 'scp -p -P 29418 gerrit.company.com:hooks/commit-msg $(git rev-parse --git-dir)/hooks/'
   showupstream = "!bash -c 'while read branch; do \n\
-                    upstream=$(git rev-parse --abbrev-ref $branch@{upstream} 2>/dev/null); \n\
+                    upstream=$(git rev-parse --abbrev-ref ${branch}@{upstream} 2>/dev/null); \n\
                     if [[ $? == 0 ]]; then \n\
-                      echo \"$branch tracks $upstream\"; \n\
+                      echo \"${branch} tracks ${upstream}\"; \n\
                     else \n\
-                      echo \"$branch has no upstream configured\"; \n\
+                      echo \"${branch} has no upstream configured\"; \n\
                     fi; \n\
                   done < <(git for-each-ref --format=\"%(refname:short)\" refs/heads/*) '"
 
   # [c]ommit -[a]m
-  ca          = "!f() { \
-                        git add --all $(git rev-parse --show-toplevel) ; \
-                        git commit -am \"$1\" ; \
-                      }; f \
+  ca          = "!f(){ \
+                       git add --all $(git rev-parse --show-toplevel) ; \
+                       git commit -am \"$1\" ; \
+                     }; f \
                 "
 
   # [c]omm[i]t --[a]mend
@@ -203,15 +206,37 @@
                      }; f \
                 "
 
-  # [a]dd [f]etch [r]eference
-  afr         = "!f(){ \
+  add-refs    = "!f(){ \
+                       declare help=\"\"\" \
+                         USAGE: \n\
+                           git add-refs [REMOTE] [BRANCH] \n\n\
+                         EXMAPLE: \n\
+                           add +refs/heads/*:+refs/remotes/origin/* : \n\
+                             $ git add-refs \n\
+                           add +refs/heads/<branch>:+refs/remotes/origin/<branch> : \n\
+                             $ git add-refs <branch> \n\
+                           add +refs/heads/<branch>:+refs/remotes/<new-origin>/<branch> : \n\
+                             $ git add-refs <branch> <new-origin> \n\
+                       \"\"\"; \
                        if [ 0 -eq $# ]; then \
-                         git config --add remote.origin.fetch \"+refs/heads/*:refs/remotes/origin/*\"; \
+                         rn='remote.origin.fetch'; \
+                         sp='+refs/heads/*:refs/remotes/origin/*'; \
                        elif [ 1 -eq $# ]; then \
-                         git config --add remote.origin.fetch \"+refs/heads/${0}:refs/remotes/origin/${0}\"; \
+                         rn='remote.origin.fetch'; \
+                         sp='+refs/heads/'\"${1}\":'refs/remotes/origin/'\"${1}\"; \
+                       elif [ 2 -eq $# ]; then \
+                         rn='remote.'\"$2\"'.fetch'; \
+                         sp='+refs/heads/'\"$1\":'refs/remotes/'\"$2\"/\"$1\"; \
                        else \
-                         echo \"\\033[1;31mERROR: Invalid parameters!\\033[0m\"; \
-                         echo \"\\033[1;32mUSAGE\\033[0m:\n\t$ git afr <branch>\"; \
+                         echo \"${help}\"; \
+                         exit 1; \
+                       fi; \
+                       matches=0; \
+                       for s in $(git config --get-all ${rn}); do [[ \"${s}\" = \"${sp}\" ]] && matches=1; done; \
+                       if [ '1' -eq \"${matches}\" ]; then \
+                         echo \"${sp} already exists in ${rn}.\"; \
+                       else \
+                         git config --add \"${rn}\" \"${sp}\"; \
                        fi; \
                      }; f \
                 "
@@ -292,13 +317,19 @@
                 done; \n\
                 echo \"Linear revision notes are unset.\" '"
   revlog          = log --max-count=3 --color --graph --notes=linrev --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %C(blue)<%an>%Creset %N' --abbrev-commit --date=relative
-  show-rev-number = !bash -c 'git rev-list --reverse HEAD | nl | awk \"{ if(\\$1 == "$0") { print \\$2 }}\"'
+  show-rev-number = "!bash -c 'git rev-list --reverse HEAD | \n\
+                               nl | \n\
+                               awk \"{ if(\\$1 == "$0") { print \\$2 }}\" \n\
+                              '"
   show-rev        = "!f(){ git rev-list --count $1; }; f"
 
   show-remote-rev = "! bash -c 'git ls-remote --heads $(git config --get remote.origin.url) | \n\
                                 grep \"refs/heads/$0\" | \n\
-                                cut -f 1'"
-  ghprofile       = "! bash -c 'git config user.email \"marslo.jiao@gmail.com\"; git config user.name \"marslo\"'"
+                                cut -f 1 \n\
+                               '"
+  ghprofile       = "! bash -c 'git config user.email \"marslo.jiao@gmail.com\"; \n\
+                                git config user.name \"marslo\" \n\
+                               '"
   ls              = log --stat --pretty                                                                                                    = short --graph
   subst           = submodule foreach \"git status\"
   first           = rev-list --max-parents=0 HEAD
