@@ -46,7 +46,7 @@ function mg() {
         [ 3 -eq $# ] && p="$3"
         ;;
       [mM] )
-        name='-iname *.md'
+        name="-iname '*.md'"
         [ 2 -le $# ] && kw="$2"
         [ 3 -eq $# ] && p="$3"
         ;;
@@ -87,7 +87,7 @@ function mg() {
       # or using + instead of ; details: https://unix.stackexchange.com/a/43743/29178
       # shellcheck disable=SC2027,SC2125
       cmd="""find "${p}" -type f ${name} -not -path \"*git/*\" -not -path \"*node_modules/*\" -exec ${GREP} ${opt} "${kw}" {} \\;"""
-      find "${p}" -type f ${name} \( -not -path "*git/*" -not -path "*node_modules/*" \) -exec ${GREP} ${opt} "${kw}" {} \; \
+      find "${p}" -type f ${name} -not -path \"*git/*\" -not -path \"*node_modules/*\" -exec ${GREP} ${opt} "${kw}" {} \; \
         || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
     else
       echo -e "${usage}"
