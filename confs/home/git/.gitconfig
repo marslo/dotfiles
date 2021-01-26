@@ -134,3 +134,9 @@
 [advice]
 	detachedHead        = false
 	objectNameWarning   = false
+[pull]
+	rebase              = true
+[rebase]
+	autoStash           = true
+[init]
+	defaultBranch = marslo
