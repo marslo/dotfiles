@@ -309,22 +309,39 @@
                     fi \n\
                  done < <(git rev-parse --abbrev-ref HEAD) '"
 
+  # [c]heck [o]out
+  co          = "!f() { \
+                        git checkout \"$*\" ; \
+                        if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \
+                          git submodule update --init ; \
+                        fi; \
+                      }; f \
+                "
+
   # [r]eset to [o]riginal
-  ro          = "!bash -c 'while read branch; do \n\
-                    echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
-                    if [ 'meta/config' == \"${branch}\" ]; then \n\
-                      git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config \n\
-                      git reset --hard remotes/origin/${branch} \n\
-                    else \n\
-                      git fetch --all --force \n\
-                      git reset --hard origin/${branch} \n\
-                      if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \n\
-                        git submodule foreach --recursive git clean -dffx \n\
-                        git submodule foreach --recursive git reset --hard \n\
-                        git submodule update -f --init --recursive \n\
-                      fi \n\
-                    fi \n\
-                 done < <(git rev-parse --abbrev-ref HEAD) '"
+  ro          = "!f() { \
+                        if [ 0 -eq $# ]; then \
+                          branch=$(git rev-parse --abbrev-ref HEAD)   ; \
+                          echo \"\\033[1;33m~~> ${branch}\\033[0m\"   ; \
+                          if [ 'meta/config' == \"${branch}\" ]; then \
+                            git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \
+                            git reset --hard remotes/origin/${branch} ; \
+                          else \
+                            git fetch --all --force           ; \
+                            git reset --hard origin/${branch} ; \
+                          fi ; \
+                        else \
+                          echo \"\\033[1;33m~~> \"$*\"\\033[0m\" ; \
+                          git fetch --all --force                ; \
+                          git reset --hard origin/\"$*\"         ; \
+                        fi ; \
+                        if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \
+                          git submodule foreach --recursive git clean -dffx  ; \
+                          git submodule foreach --recursive git reset --hard ; \
+                          git submodule update -f --init --recursive         ; \
+                        fi ; \
+                      }; f \
+                "
 
   # sort local/remote branch via committerdate (DESC)
   # git for-each-ref --sort=-committerdate ${refs} --format='%(HEAD)%(color:yellow)%(refname:short)|%(color:bold green)%(committerdate:relative)|%(color:blue)%(subject)|%(color:magenta)%(authorname)%(color:reset)' --color=always | column -ts'|'; \
