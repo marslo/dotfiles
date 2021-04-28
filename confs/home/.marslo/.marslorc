@@ -35,14 +35,15 @@ if command -v brew > /dev/null; then
     ls "${BASH_COMP_DIR}"/*docker* >/dev/null 2>&1; [ $? -eq 0 ] && source "${BASH_COMP_DIR}"/*docker*
   fi
 
-  # [ -f "${bashComp2}" ]     && source "${bashComp2}";
+  # [ -f "${bashComp2}" ]         && source "${bashComp2}";
   # for complete_alias (https://raw.githubusercontent.com/cykerway/complete-alias/master/complete_alias)
-  # [ -f "${bashComp2}" ] && source <(cat "${bashComp2}")
+  # [ -f "${bashComp2}" ]         && source <(cat "${bashComp2}")
+  # workaround: https://github.com/mobile-shell/mosh/issues/675#issuecomment-156457108
+  # [ -f "${additionalComp}" ]    && source "${additionalComp}"
   [ -f "${rtComp}" ]              && source "${rtComp}"
   [ -f "${maccliComp}" ]          && source "${maccliComp}"
   [ -d "${groovyHome}/bin" ]      && source <( cat "${groovyHome}"/bin/*_completion )
   [ -f "${vboxComp}" ]            && source "${vboxComp}"
-  [ -f "${additionalComp}" ]      && source "${additionalComp}"
   command -v kubectl > /dev/null  && source <( kubectl completion bash )
   command -v npm > /dev/null && source <( npm completion )
   # find "${groovyHome}/bin" -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
