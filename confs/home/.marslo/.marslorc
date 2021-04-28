@@ -12,8 +12,10 @@ groovyHome='/opt/groovy-3.0.7'
 
 HOMEBREW_PREFIX="$(brew --prefix)"
 BASH_COMP_DIR="${HOMEBREW_PREFIX}/etc/bash_completion.d"
-bashComp="${HOMEBREW_PREFIX}/opt/bash-completion/etc/bash_completion"
+# bashComp="${HOMEBREW_PREFIX}/opt/bash-completion/etc/bash_completion"
+bashComp="${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"        # for bash_completion 1.3
 bashComp2="${HOMEBREW_PREFIX}/opt/bash-completion@2/etc/profile.d/bash_completion.sh"
+additionalComp="${iRCHOME}/bin/bash_completion_init_completion"
 rtComp="/Users/marslo/.jfrog/jfrog_bash_completion"
 gitCompDir="${HOMEBREW_PREFIX}/opt/git/etc/bash_completion.d"
 maccliComp='/usr/local/bin/mac-cli/completion/bash_completion'
@@ -36,11 +38,12 @@ if command -v brew > /dev/null; then
   # [ -f "${bashComp2}" ]     && source "${bashComp2}";
   # for complete_alias (https://raw.githubusercontent.com/cykerway/complete-alias/master/complete_alias)
   # [ -f "${bashComp2}" ] && source <(cat "${bashComp2}")
-  [ -f "${rtComp}" ]          && source "${rtComp}"
-  [ -f "${maccliComp}" ]      && source "${maccliComp}"
-  [ -d "${groovyHome}/bin" ]  && source <( cat "${groovyHome}"/bin/*_completion )
-  [ -f "${vboxComp}" ]        && source "${vboxComp}"
-  command -v kubectl > /dev/null && source <( kubectl completion bash )
+  [ -f "${rtComp}" ]              && source "${rtComp}"
+  [ -f "${maccliComp}" ]          && source "${maccliComp}"
+  [ -d "${groovyHome}/bin" ]      && source <( cat "${groovyHome}"/bin/*_completion )
+  [ -f "${vboxComp}" ]            && source "${vboxComp}"
+  [ -f "${additionalComp}" ]      && source "${additionalComp}"
+  command -v kubectl > /dev/null  && source <( kubectl completion bash )
   command -v npm > /dev/null && source <( npm completion )
   # find "${groovyHome}/bin" -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
 fi
