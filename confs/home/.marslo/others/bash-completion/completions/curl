@@ -4,8 +4,18 @@
 # credit belongs to https://github.com/mobile-shell/mosh/issues/675#issuecomment-156457108
 _init_completion()
 {
+    if declare -F _init_completions >/dev/null 2>&1; then
+        _init_completion -s || return
+    else
+        __curl_init_completion || return
+    fi
+}
+
+# get clue from https://github.com/kubernetes/kubernetes/pull/13570/files#diff-a3e7206bfad582143a70ae9eca530298c2461b5e5c583db62981c09e38fc40b3L1187
+__curl_init_completion()
+{
     COMPREPLY=()
-    _get_comp_words_by_ref cur prev words cword
+    _get_comp_words_by_ref "$@" cur prev words cword
 }
 
 _curl()
