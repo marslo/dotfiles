@@ -8,90 +8,97 @@
 #         Desc : for artifactory
 # =============================================================================
 
+function exitOnError() {
+  echo -e "$1"
+}
+
+function contains() {
+  string=$1
+  sub=$2
+  for _s in $(echo "${sub}" | fold -w1); do
+    [[ ! "${string}" =~ ${_s} ]] && return 1
+  done
+  return 0
+}
+
 # marslo grep
 function mg() {
   usage="""mg - marslo grep - combined find and grep to quick find keywords
   \nSYNOPSIS
-  \t$(c sY)\$ mg [i] [f] [m] [w] [a <num>] [b <num>] [c <num>] KEYWORD [<PATHA>]$(c)
+  \t$(c sY)\$ mg [i|I] [f|F] [m|M] [w|W]
+  \t     [a|A <num>] [b|B <num>] [c|C <num>]
+  \t     [e|E <suffix>]
+  \t     KEYWORD [<PATHA>]$(c)
   \nEXAMPLE
   \n\t$(c G)\$ mg 'hello'
   \t\$ mg i 'hello' ~/.marslo
-  \t\$ mg ic 3 'hello' ~/.marslo$(c)
+  \t\$ mg iC 3 'hello' ~/.marslo$(c)
   \nOPT:
   \n\t$(c B)i$(c) : ignore case
   \t$(c B)f$(c) : find file name only
   \t$(c B)m$(c) : find markdown only
   \t$(c B)w$(c) : match word only
-  \t$(c B)a <num>$(c) : print <num> lines of trailing context after matching lines
-  \t$(c B)b <num>$(c) : print <num> lines of leading context before matching lines
-  \t$(c B)c <num>$(c) : print <num> lines of output context
+  \t$(c B)a|A <num>$(c)    : print <num> lines of trailing context after matching lines
+  \t$(c B)b|B <num>$(c)    : print <num> lines of leading context before matching lines
+  \t$(c B)c|C <num>$(c)    : print <num> lines of output context
+  \t$(c B)e|E <suffix>$(c) : [e]xclude <suffix> (filetype)
   """
-  kw=''
-  p='.'
-  opt='--color=always -n -H -E'
+
+  keyword=''
+  path='.'
+  grepOpt='--color=always -n -H -E'
   name=''
+  param=$( tr '[:upper:]' '[:lower:]' <<< "$1" )
 
-  if [ 0 -eq $# ]; then
+  if [ 0 -eq $# ] ; then
     echo -e "${usage}"
+    break
+  elif [ 1 -eq $# ]; then
+    keyword="$1"
+  elif [ 2 -eq $# ] && [[ "$2" =~ '/' || "$2" =~ '.' ]]; then
+    keyword="$1"
+    path="$2"
   else
-    case $1 in
-      [wW] | [iI] )
-        opt="${opt} -$( echo $1 | tr '[:upper:]' '[:lower:]' )"
-        [ 2 -le $# ] && kw="$2"
-        [ 3 -eq $# ] && p="$3"
-        ;;
-      [fF] )
-        opt="${opt} -l"
-        [ 2 -le $# ] && kw="$2"
-        [ 3 -eq $# ] && p="$3"
-        ;;
-      [mM] )
-        name="-iname '*.md'"
-        [ 2 -le $# ] && kw="$2"
-        [ 3 -eq $# ] && p="$3"
-        ;;
-      [iI][fF] | [fF][iI] )
-        opt="${opt} -i -l"
-        [ 2 -le $# ] && kw="$2"
-        [ 3 -eq $# ] && p="$3"
-        ;;
-      [iI][wW] | [wW][iI] )
-        opt="${opt} -i -w"
-        [ 2 -le $# ] && kw="$2"
-        [ 3 -eq $# ] && p="$3"
-        ;;
-      [fF][wW] | [wW][fF] )
-        opt="${opt} -l -w"
-        [ 2 -le $# ] && kw="$2"
-        [ 3 -eq $# ] && p="$3"
-        ;;
-      [iI][fF][wW] | [iI][wW][fF] | [fF][iI][wW] | [fF][wW][iI] | [wW][iI][fF] | [wW][fF][iI] )
-        opt="${opt} -i -w -l"
-        [ 2 -le $# ] && kw="$2"
-        [ 3 -eq $# ] && p="$3"
-        ;;
-      [aA] | [bB] | [cC] | [iI][aA] | [iI][bB] | [iI][cC] | [aA][iI] | [bB][iI] | [cC][iI] )
-        # line = -A $2 | -B $2 | -C $2
-        line="-$( echo $1 | awk -F'[iI]' '{print $1,$2}' | sed -e 's/^[[:space:]]*//' | tr '[:lower:]' '[:upper:]' ) $2"
-        opt="${opt} -i ${line}"
-        [ 3 -le $# ] && kw="$3"
-        [ 4 -eq $# ] && p="$4"
-        ;;
-      * )
-        kw="$1"
-        [ 2 -le $# ] && p="$2"
-        ;;
-    esac
-
-    if [ -n "${kw}" ]; then
-      # or using + instead of ; details: https://unix.stackexchange.com/a/43743/29178
-      # shellcheck disable=SC2027,SC2125
-      cmd="""find "${p}" -type f ${name} -not -path \"*git/*\" -not -path \"*node_modules/*\" -exec ${GREP} ${opt} "${kw}" {} \\;"""
-      find "${p}" -type f ${name} -not -path \"*git/*\" -not -path \"*node_modules/*\" -exec ${GREP} ${opt} "${kw}" {} \; \
-        || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
-    else
-      echo -e "${usage}"
+    [[ "${param}" =~ 'i' ]] && grepOpt+=' -i'            && params='threeMost'
+    [[ "${param}" =~ 'w' ]] && grepOpt+=' -w'            && params='threeMost'
+    [[ "${param}" =~ 'f' ]] && grepOpt+=' -l'            && params='threeMost'
+    [[ "$1" =~ 'a' ]]       && grepOpt+=" -i -A $2"      && params='fourMost'
+    [[ "$1" =~ 'b' ]]       && grepOpt+=" -i -B $2"      && params='fourMost'
+    [[ "$1" =~ 'c' ]]       && grepOpt+=" -i -C $2"      && params='fourMost'
+    [[ "$1" =~ 'A' ]]       && grepOpt+=" -A $2"         && params='fourMost'
+    [[ "$1" =~ 'B' ]]       && grepOpt+=" -B $2"         && params='fourMost'
+    [[ "$1" =~ 'C' ]]       && grepOpt+=" -C $2"         && params='fourMost'
+    [[ "${param}" =~ 'm' ]] && name='-iname *.md'        && params='fourMost'
+    [[ "${param}" =~ 'e' ]] && name='-not -iname *.'"$2" && params='fourMost'
+    if [ 'threeMost' == "${params}" ]; then
+      [ 2 -le $# ] && keyword="$2"
+      [ 3 -eq $# ] && path="$3"
+    elif [ 'fourMost' == "${params}" ]; then
+      [ 3 -le $# ] && keyword="$3"
+      [ 4 -eq $# ] && path="$4"
     fi
+  fi
+
+  if [ -n "${keyword}" ]; then
+    # or using + instead of ; details: https://unix.stackexchange.com/a/43743/29178
+    # shellcheck disable=SC2027,SC2125
+    cmd=" find \"${path}\""
+    cmd+=" -type f"
+    cmd+=" ${name}"
+    cmd+=" -not -path '*git/*'"
+    cmd+=" -not -path '*node_modules/*'"
+    cmd+=" -exec ${GREP} ${grepOpt} '${keyword}' {} \;"
+
+    find "${path}" \
+         -type f \
+         $(echo "${name}") \
+         -not -path '*git/*' \
+         -not -path '*node_modules/*' \
+         -exec ${GREP} ${grepOpt} "${keyword}" {} \; ||
+      echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
+
+  else
+    echo -e "${usage}"
   fi
 }
 
@@ -107,9 +114,9 @@ function ff() {
   if [ 0 -eq $# ]; then
     echo -e "${usage}"
   else
-    p='.'
-    [ 2 -eq $# ] && p="$2"
-    find "${p}" -type f -not -path "\'*git/*\'" -iname "*${1}*"
+    path='.'
+    [ 2 -eq $# ] && path="$2"
+    find "${path}" -type f -not -path "\'*git/*\'" -iname "*${1}*"
   fi
 }
 
@@ -127,7 +134,7 @@ function ms() {
   \t$(c B)e$(c) : add the script to the commands to be executed
   """
 
-  p='.'
+  path='.'
   sw=''     # source word
   tw=''     # target word
   opt='-i'
@@ -137,23 +144,23 @@ function ms() {
       [rR] )
         opt="${opt} -r"
         [ 3 -le $# ] && sw="$2" && tw="$3"
-        [ 4 -eq $# ] && p="$4"
+        [ 4 -eq $# ] && path="$4"
         ;;
       [rR][eE] | [eE][rR] )
         opt="${opt} -r -e"
         [ 3 -le $# ] && sw="$2" && tw="$3"
-        [ 4 -eq $# ] && p="$4"
+        [ 4 -eq $# ] && path="$4"
         ;;
       * )
         [ 2 -le $# ] && sw="$1" && tw="$2"
-        [ 3 -le $# ] && p="$3"
+        [ 3 -le $# ] && path="$3"
         ;;
     esac
   fi
 
   if [ -n "${sw}" ] && [ -n "${tw}" ]; then
     # shellcheck disable=SC2125,SC2027
-    cmd="""find "${p}" -type f -not -path "*git/*" -exec sed ${opt} "s:${sw}:${tw}:g" {} ;"""
+    cmd="""find "${path}" -type f -not -path "*git/*" -exec sed ${opt} "s:${sw}:${tw}:g" {} ;"""
     ${cmd} \
       || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
   else
@@ -263,7 +270,7 @@ function stop() {
 
 function startDocker() {
   if [ -z "$(ps aux | grep '/Applications/Docker.app/Contents/MacOS/Docker' | grep -v grep)" ]; then
-    echo -e "$(c sY)~~> start Docker.app...$(c)"
+    echo -e "$(c sY)~~> start Docker.app ...$(c)"
 
     i=0
     open -g -a Docker.app &&
@@ -274,7 +281,7 @@ function startDocker() {
     (( i )) && printf '\n'
     echo -e "$(c sY)~~> docker is ready...$(c)"
   else
-    echo -e "$(c sG)~~> docker is running, no need start docker process...$(c)"
+    echo -e "$(c sG)~~> docker is running, no need start docker process ...$(c)"
   fi
 }
 
@@ -306,6 +313,9 @@ function startJenkins() {
          --env JENKINS_ADMIN_ID=admin \
          --env JENKINS_ADMIN_PW=admin \
          --env JAVA_OPTS=" \
+                -XX:+UseG1GC \
+                -Xms8G  \
+                -Xmx16G \
                 -DsessionTimeout=1440 \
                 -DsessionEviction=43200 \
                 -Djava.awt.headless=true \
@@ -329,7 +339,7 @@ function startJenkins() {
          --env JNLP_PROTOCOL_OPTS="-Dorg.jenkinsci.remoting.engine.JnlpProtocol3.disabled=false" \
          --volume /opt/JENKINS_HOME:/var/jenkins_home \
          --volume /var/run/docker.sock:/var/run/docker.sock \
-         jenkins/jenkins:2.274
+         jenkins/jenkins:latest
 
 # -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true \
 }
