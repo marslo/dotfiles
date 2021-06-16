@@ -23,6 +23,7 @@ function contains() {
 
 # marslo grep
 function mg() {
+  set -f
   usage="""mg - marslo grep - combined find and grep to quick find keywords
   \nSYNOPSIS
   \t$(c sY)\$ mg [i|I] [f|F] [m|M] [w|W]
@@ -50,6 +51,9 @@ function mg() {
   name=''
   param=$( tr '[:upper:]' '[:lower:]' <<< "$1" )
 
+  contains 'ifmwabce' "${param}"
+  paramValid=$?
+
   if [ 0 -eq $# ] ; then
     echo -e "${usage}"
     break
@@ -62,13 +66,13 @@ function mg() {
     [[ "${param}" =~ 'i' ]] && grepOpt+=' -i'            && params='threeMost'
     [[ "${param}" =~ 'w' ]] && grepOpt+=' -w'            && params='threeMost'
     [[ "${param}" =~ 'f' ]] && grepOpt+=' -l'            && params='threeMost'
+    [[ "${param}" =~ 'm' ]] && name='-iname *.md'        && params='threeMost'
     [[ "$1" =~ 'a' ]]       && grepOpt+=" -i -A $2"      && params='fourMost'
     [[ "$1" =~ 'b' ]]       && grepOpt+=" -i -B $2"      && params='fourMost'
     [[ "$1" =~ 'c' ]]       && grepOpt+=" -i -C $2"      && params='fourMost'
     [[ "$1" =~ 'A' ]]       && grepOpt+=" -A $2"         && params='fourMost'
     [[ "$1" =~ 'B' ]]       && grepOpt+=" -B $2"         && params='fourMost'
     [[ "$1" =~ 'C' ]]       && grepOpt+=" -C $2"         && params='fourMost'
-    [[ "${param}" =~ 'm' ]] && name='-iname *.md'        && params='fourMost'
     [[ "${param}" =~ 'e' ]] && name='-not -iname *.'"$2" && params='fourMost'
     if [ 'threeMost' == "${params}" ]; then
       [ 2 -le $# ] && keyword="$2"
@@ -82,24 +86,25 @@ function mg() {
   if [ -n "${keyword}" ]; then
     # or using + instead of ; details: https://unix.stackexchange.com/a/43743/29178
     # shellcheck disable=SC2027,SC2125
-    cmd=" find \"${path}\""
+    cmd=" find '${path}'"
     cmd+=" -type f"
     cmd+=" ${name}"
     cmd+=" -not -path '*git/*'"
     cmd+=" -not -path '*node_modules/*'"
     cmd+=" -exec ${GREP} ${grepOpt} '${keyword}' {} \;"
 
-    find "${path}" \
-         -type f \
-         $(echo "${name}") \
-         -not -path '*git/*' \
-         -not -path '*node_modules/*' \
-         -exec ${GREP} ${grepOpt} "${keyword}" {} \; ||
-      echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
+    # find "${path}" \
+         # -type f \
+         # ${name} \
+         # -not -path '*git/*' \
+         # -not -path '*node_modules/*' \
+         # -exec ${GREP} ${grepOpt} "${keyword}" {} \; ||
+    eval "${cmd}" || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
 
   else
     echo -e "${usage}"
   fi
+  set +f
 }
 
 # find file
