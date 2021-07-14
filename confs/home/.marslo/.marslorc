@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=SC2034,SC1090
 # =============================================================================
 #   FileName : .marslorc
@@ -44,6 +44,7 @@ if command -v brew > /dev/null; then
   [ -f "${maccliComp}" ]          && source "${maccliComp}"
   [ -d "${groovyHome}/bin" ]      && source <( cat "${groovyHome}"/bin/*_completion )
   [ -f "${vboxComp}" ]            && source "${vboxComp}"
+  # [ -f "${additionalComp}" ]      && source "${additionalComp}"
   command -v kubectl > /dev/null  && source <( kubectl completion bash )
   command -v npm > /dev/null && source <( npm completion )
   # find "${groovyHome}/bin" -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
