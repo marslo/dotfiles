@@ -142,7 +142,7 @@ function ms() {
   path='.'
   sw=''     # source word
   tw=''     # target word
-  opt='-i'
+  opt=''
 
   if [ 2 -le $# ]; then
     case $1 in
@@ -165,8 +165,8 @@ function ms() {
 
   if [ -n "${sw}" ] && [ -n "${tw}" ]; then
     # shellcheck disable=SC2125,SC2027
-    cmd="""find "${path}" -type f -not -path "*git/*" -exec sed ${opt} "s:${sw}:${tw}:g" {} ;"""
-    ${cmd} \
+    cmd="""find "${path}" -type f -not -path "*git/*" -exec sed ${opt} \"s:${sw}:${tw}:g\" -i {} \;"""
+    eval "${cmd}" \
       || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
   else
     echo -e "${usage}"
