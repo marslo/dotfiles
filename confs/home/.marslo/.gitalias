@@ -277,7 +277,7 @@
                    git remote prune origin; \n\
                    if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \n\
                      git submodule sync --recursive; \n\
-                     git submodule update --init --recursive \n\
+                     git submodule update -f --init --recursive \n\
                    fi \n\
                  done < <(git rev-parse --abbrev-ref HEAD) '"
 
@@ -310,13 +310,13 @@
                  done < <(git rev-parse --abbrev-ref HEAD) '"
 
   # [c]heck [o]out
-  co          = "!f() { \
-                        git checkout \"$*\" ; \
-                        if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \
-                          git submodule update --init ; \
-                        fi; \
-                      }; f \
-                "
+  # co          = "!f() { \
+                        # git checkout $* ; \
+                        # if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \
+                          # git submodule update --init ; \
+                        # fi; \
+                      # }; f \
+                # "
 
   # [r]eset to [o]riginal
   ro          = "!f() { \

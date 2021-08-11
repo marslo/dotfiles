@@ -23,7 +23,7 @@ alias alfredreindex="/Applications/Alfred\\ 3.app/Contents/Frameworks/Alfred\\ F
 alias alfredreindex='/Applications/Alfred 4.app/Contents/Frameworks/Alfred Framework.framework/Versions/Current/Resources/reindex.sh'
 
 # alias chrome="/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --disable-gpu"
-alias chrome="/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary  --disable-gpu"
+alias chrome="'/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary'  --disable-gpu"
 
 alias dockerlogin="docker login --username marslo ${RTDOMAIN}"
 # alias dockerstop="sudo killall Docker"
