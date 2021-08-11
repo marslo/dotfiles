@@ -1,15 +1,14 @@
 [user]
-  name = srv-ssd-fw-devops
-  email = srv-ssd-fw-devops@marvell.com
+  name        = marslo
+  email       = marslo.jiao@gmail.com
 [push]
   default     = matching
-  followTags = true
 # [remote "origin"]
   # fetch       = +refs/heads/*:refs/remotes/origin/*
 [diff]
   rename      = copy
   submodule   = log
-  wsErrorHighlight = all
+	wsErrorHighlight = all
 # Inspired from tpope: https://github.com/tpope/tpope/blob/master/.gitconfig
 [diff "ruby"]
   funcname    = \"^ */(/(def/) .*/)\"
@@ -54,14 +53,14 @@
   whitespace        = fix,-indent-with-non-tab,trailing-space,cr-at-eol,tab-in-indent
   # whitespace      = cr-at-eol
   # autocrlf        = input
-  autocrlf = input
+	autocrlf          = false
   precomposeUnicode = true
-  ignorecase        = false
-  excludesfile      = /Users/marslo/.gitignore_global
-  eol               = lf
+	ignorecase        = false
+	excludesfile      = /Users/marslo/.gitignore_global
+	eol               = lf
   safecrlf          = warn
   attributesfile    = /Users/marslo/.gitattributes
-  fileMode          = true
+	fileMode          = true
 [pager]
   branch            = false
   diff              = diff-highlight | less
@@ -79,40 +78,39 @@
 
 [status]
   submoduleSummary = true
-  # showuntrackedfiles = false
 [fetch]
   prune = true
-  pruneTags = true
 [branch]
   autosetuprebase = always
-  sort = -committerdate
 [rerere]
   enabled = true
 [difftool "sourcetree"]
-  cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-  path =
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path = 
 [mergetool "sourcetree"]
-  cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-  trustExitCode = true
+	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
 [commit]
-  template = /Users/marslo/.stCommitMsg
+	template = /Users/marslo/.stCommitMsg
 [gitreview]
   username = marslo
   remote = origin
 [include]
-  path = ~/.marslo/.gitalias
+  path = ~/.marslo/.git.alias
 
+[url "ssh://marslo@vgitcentral.marvell.com:29418/"]
+  insteadOf = ssh://srv-ssd-fw-devops@vgitcentral.marvell.com:29418/
 [url "https://github.com/"]
   insteadOf = git@github.com:
 
 # [credential]
   # helper = wincred
 
-[http]
-  proxy = http://127.0.0.1:1087
+# [http]
+#   proxy = http://127.0.0.1:1087
 #   sslBackend = openssl
-[https]
-  proxy = http://127.0.0.1:1087
+# [https]
+#   proxy = http://127.0.0.1:1087
 # [http "https://chromium.googlesource.com"]
   # sslVerify = false
   # proxy = http://127.0.0.1:1087
@@ -120,15 +118,25 @@
   # sslVerify = false
   # proxy = http://127.0.0.1:1087
 
+# [url "https://marslo@vgitcentral.mycomp.com/a/"]
+  # insteadOf = ssh://marslo@vgitcentral.mycomp.com:29418/
+# [url "ssh://marslo@vgitcentral.mycomp.com:29418/"]
+  # insteadOf = https://marslo@vgitcentral.mycomp.com/a/
 # [url "git@github.com:"]
   # insteadOf   = https://github.com/
   # proxy = http://127.0.0.1:1087
+
+# [filter "lfs"]
+  # clean = git-lfs clean -- %f
+  # smudge = git-lfs smudge -- %f
+  # process = git-lfs filter-process
+  # required = true
 [advice]
-  detachedHead        = false
-  objectNameWarning   = false
+	detachedHead        = false
+	objectNameWarning   = false
 [pull]
-  rebase              = true
+	rebase              = true
 [rebase]
-  autoStash           = true
+	autoStash           = true
 [init]
-  defaultBranch       = marslo
+	defaultBranch = marslo
