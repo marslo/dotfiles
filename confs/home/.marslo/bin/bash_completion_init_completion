@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# credit belongs to: https://raw.githubusercontent.com/scop/bash-completion/master/bash_completion
+# credit belongs to: https://raw.githubusercontent.com/scop/bash-completion/master/bash_completion (https://github.com/scop/bash-completion/blob/master/bash_completion)
+# and https://salsa.debian.org/debian/bash-completion/blob/master/bash_completion
 
 # Initialize completion and deal with various general things: do file
 # and variable completion where appropriate, and adjust prev, words,
