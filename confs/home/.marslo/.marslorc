@@ -115,7 +115,7 @@ function bello()
 function bye()
 {
   # For Public account server
-  source "${iRCHOME}/.bye_marslo"
+  source "${iRCHOME}/.bye"
   # set -o vi
 }
 
