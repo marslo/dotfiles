@@ -99,11 +99,12 @@ function mg() {
          # -not -path '*git/*' \
          # -not -path '*node_modules/*' \
          # -exec ${GREP} ${grepOpt} "${keyword}" {} \; ||
-    eval "${cmd}" || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
-
+    eval "${cmd}" ||
+         echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
   else
     echo -e "${usage}"
   fi
+
   set +f
 }
 
@@ -166,8 +167,8 @@ function ms() {
   if [ -n "${sw}" ] && [ -n "${tw}" ]; then
     # shellcheck disable=SC2125,SC2027
     cmd="""find "${path}" -type f -not -path "*git/*" -exec sed ${opt} \"s:${sw}:${tw}:g\" -i {} \;"""
-    eval "${cmd}" \
-      || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
+    eval "${cmd}" ||
+         echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
   else
     echo -e "${usage}"
   fi

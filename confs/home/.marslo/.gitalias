@@ -2,7 +2,7 @@
   aa          = add --all
   st          = status
   rb          = rebase
-  pl          = pull --rebase
+  # pl          = pull --rebase
   ci          = commit -m
   cae         = commit --allow-empty -am
   # [c]ommit [a]dd [a]all
@@ -262,6 +262,8 @@
                         fi; \
                       }; f \
                 "
+  # [s]ubmodel [u]pdate
+  su          = "!bash -c 'git submodule sync --recursive && git submodule update -f --init --recursive'"
 
   # [u]pdate [a]ll
   # git fetch --prune origin 'refs/tags/*:refs/tags/*' '+refs/heads/*:refs/remotes/origin/*'
@@ -294,6 +296,8 @@
                     git commit --amend --no-edit \n\
                     if [ 'meta/config' == \"${branch}\" ]; then \n\
                       git push -u --force origin HEAD:refs/meta/config \n\
+                      git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \
+                      git reset --hard remotes/origin/${branch} ; \
                     else \n\
                       git push -u --force origin ${branch} \n\
                     fi \n\
