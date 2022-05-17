@@ -98,8 +98,8 @@
 [include]
   path = ~/.marslo/.git.alias
 
-[url "ssh://marslo@vgitcentral.marvell.com:29418/"]
-  insteadOf = ssh://srv-ssd-fw-devops@vgitcentral.marvell.com:29418/
+[url "ssh://marslo@gerrit.mycompany.com:29418/"]
+  insteadOf = ssh://<account>@gerrit.mycompany.com:29418/
 [url "https://github.com/"]
   insteadOf = git@github.com:
 
