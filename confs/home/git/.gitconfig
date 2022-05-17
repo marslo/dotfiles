@@ -1,6 +1,6 @@
 [user]
-  name = srv-ssd-fw-devops
-  email = srv-ssd-fw-devops@marvell.com
+  name        = marslo
+  email       = marslo.jiao@gmail.com
 [push]
   default     = matching
   followTags = true

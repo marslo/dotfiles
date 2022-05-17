@@ -4,9 +4,11 @@
   rb          = rebase
   # pl          = pull --rebase
   ci          = commit -m
+  # [c]ommit [a]llow [e]mepty
   cae         = commit --allow-empty -am
   # [c]ommit [a]dd [a]all
   caa         = "!f(){ git add --all && git commit --amend --no-edit --allow-empty; }; f"
+  # [c]ommit no-ed[i]t ame[n]d
   cin         = commit --amend --no-edit --allow-empty
   caj         = commit --author "marslo <marslo.jiao@gmail.com>" -m
   co          = checkout
@@ -29,6 +31,10 @@
   # cap       = "!f() { git add --all .; git commit -am \"${1}\"; git push; }; f"
   # fma       = "!f() { git fetch --all --force; git merge --all --progress; git remote prune origin; }; f"
 
+  # credit from https://www.everythingcli.org/git-like-a-pro/
+  # ignored files
+  ign = ls-files -o -i --exclude-standard
+
   # [r]ebase & s[q]uash
   sq          = ! "f() { TARGET=$1 && GIT_EDITOR=\"sed -i -e '2,$TARGET s/^pick /s /;/# This is the 2nd commit message:/,$ {d}'\" git rebase -i HEAD~$TARGET; }; f"
   # sq        = !"f() { NL=$1; GIT_EDITOR=\"sed -i '2,$NL s/^pick/squash/;/# This is the 2nd commit message:/,$ {d}'\"; git rebase -i HEAD~$NL; }; f"
@@ -48,9 +54,13 @@
   ls-effort   = !git log --pretty=format: --name-only | sort | uniq -c | sort -rg
   tagcommit   = rev-list -1
   stag        = tag --sort=-creatordate --format='%(creatordate:short)%09%(refname:strip=2)'
-  pl          = !git --no-pager log --color --graph --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative --max-count=3
-  pls         = log --color --graph --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative
-  fpl         = log --color --graph --pretty=tformat:'%Cred%H%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(blue)<%an>%Creset' --abbrev-commit --date=relative
+  # [p]retty [l]og
+  pl          = !git --no-pager log --color --graph --pretty=tformat:'%C(red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=3
+  # [p]retty [l]og in [p]revious branch
+  plp         = !git --no-pager log --color --graph --pretty=tformat:'%C(red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=5 @{-1}
+  pls         = log --color --graph --pretty=tformat:'%C(red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative
+  # [f]ull [p]retty [l]log
+  fpl         = log --color --graph --pretty=tformat:'%C(red)%H%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative
   fl          = log -p --graph --color --graph
   dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format='%C(red)%h%Creset %C(yellow)(%ad)%Creset %s %C(blue)<%an>%Creset'
 
@@ -58,6 +68,13 @@
   tre         = log --color --graph --pretty=oneline --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --decorate --abbrev-commit --all
   clog        = log --color --graph --all --decorate --simplify-by-decoration --oneline
   pshow       = show -s --pretty='tformat:%Cred%h%Creset %Cgreen(%s)%Creset'
+
+  # [p]retty [t]ag
+  pt          = "!git for-each-ref --sort=-taggerdate refs/tags --format='%(color:red)%(objectname:short)%(color:reset) - %(align:left,38)%(color:bold yellow)[%(objecttype) : %(refname:short)]%(color:reset)%(end) %(subject) %(color:green)(%(if)%(taggerdate)%(then)%(taggerdate:format:%Y-%m-%d %H:%M:%S)%(else)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(end))%(color:reset) %(color:blue)%(if)%(taggername)%(then)<%(taggername)>%(else)<%(committername)>%(end)%(color:reset)' --color --count=10"
+  pts         = "!git for-each-ref --sort=-taggerdate refs/tags --format='%(color:red)%(objectname:short)%(color:reset) - %(color:bold yellow)[%(objecttype) : %(refname:short)]%(color:reset) - %(subject) %(color:green)(%(if)%(taggerdate)%(then)%(taggerdate:format:%Y-%m-%d %H:%M:%S)%(else)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(end))%(color:reset) %(color:blue)%(if)%(taggername)%(then)<%(taggername)>%(else)<%(committername)>%(end)%(color:reset)' --color"
+  # credit from https://www.everythingcli.org/git-like-a-pro-sort-git-tags-by-date/
+  prettyTags  = "!git for-each-ref --sort=-taggerdate --format='[%(tag)]_,,,_%(taggerdate:raw)_,,,_<%(taggername)>_,,,_%(subject)' refs/tags \
+                      | awk 'BEGIN { FS = \"_,,,_\"  } ; { t=strftime(\"%Y-%m-%d  %H:%M\",$2); printf \"%-20s %-18s %-25s %s\\n\", t, $1, $4, $3  }'"
 
   rlog        = "!bash -c 'while read branch; do \n\
                    git fetch --all --force; \n\
@@ -203,27 +220,69 @@
                       }; f \
                 "
 
-  del         = "!f() { \
-                        br=\"$1\"; \
-                        findL=0; \
-                        for branchL in $(git for-each-ref --format='%(refname:short)' refs/heads/); do \
-                          [[ \"${br}\" = \"${branchL}\" ]] && findL=1 && break; \
-                        done; \
-                        if [ 1 = ${findL} ]; then \
-                          git branch -D \"${br}\"; \
-                          echo \"~~> \\033[1;33m${br}\\033[0m removed from local\"; \
-                        else \
-                          echo \"~~> \\033[1;31m${br}\\033[0m cannot be found in local\"; \
+  # `echo` for MacOS; `echo -e` for Linux; \
+  del-tag     = "!f() { \
+                        ECHO='echo'; \
+                        name=\"$1\"; \
+                        update=\"$2\"; \
+                        findTag=0; \
+                        if [ 'u' = ${update} ]; then \
+                          git fetch --tags --prune --prune-tags --quiet; \
                         fi; \
-                        findR=0; \
-                        for branchR in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin/); do \
-                          [[ \"origin/${br}\" = \"${branchR}\" ]] && findR=1 && break; \
+                        for _tag in $( git for-each-ref --format '%(refname:short)' refs/tags); do \
+                          [[ \"${name}\" = \"${_tag}\" ]] && findTag=1 && break; \
                         done; \
-                        if [ 1 = ${findR} ]; then \
-                          echo \"~~> \\033[1;33morigin/${br}\\033[0m removed from remote\"; \
-                          git push origin --delete \"${br}\"; \
+                        if [ 1 = ${findTag} ]; then \
+                          git tag -d \"${name}\"; \
+                          ${ECHO} \"~~> tag : \\033[1;33m${name}\\033[0m removed from local\"; \
+                          git push origin --delete \"${name}\"; \
+                          ${ECHO} \"~~> tag : \\033[1;33morigin/${name}\\033[0m removed from remote\"; \
                         else \
-                          echo \"~~> \\033[1;31morigin/${br}\\033[0m cannot be found in remote.\"; \
+                          ${ECHO} \"~~> \\033[1;31m${name}\\033[0m cannot be found in local\"; \
+                        fi; \
+                      }; f \
+                "
+
+  # `echo` for MacOS; `echo -e` for Linux; \
+  del         = "!f() { \
+                        ECHO='echo'; \
+                        name=\"$1\"; \
+                        findBrL=0; \
+                        findTagL=0; \
+                        for branchL in $(git for-each-ref --format='%(refname:short)' refs/heads/); do \
+                          [[ \"${name}\" = \"${branchL}\" ]] && findBrL=1 && break; \
+                        done; \
+                        for tagL in $(git --no-pager tag -l); do \
+                          [[ \"${name}\" = \"${tagL}\" ]] && findTagL=1 && break; \
+                        done; \
+                        if [ 1 = ${findBrL} ]; then \
+                          git branch -D \"${name}\"; \
+                          ${ECHO} \"~~> branch : \\033[1;33m${name}\\033[0m removed from local\"; \
+                        elif [ 1 = ${findTagL} ]; then \
+                          git tag -d \"${name}\"; \
+                          ${ECHO} \"~~> tag : \\033[1;33m${name}\\033[0m removed from local\"; \
+                          git fetch --tags --prune --prune-tags --quiet; \
+                        else \
+                          ${ECHO} \"~~> \\033[1;31m${name}\\033[0m cannot be found in local\"; \
+                        fi; \
+                        findBrR=0; \
+                        findTagR=0; \
+                        for refsR in $(git for-each-ref --format='%(refname:short)' refs/); do \
+                          [[ \"origin/${name}\" = \"${refsR}\" ]] && findBrR=1 && break; \
+                          [[ \"${name}\" = \"${refsR}\" ]] && findTagR=1 && break; \
+                        done; \
+                        if [ 1 = ${findBrR} ]; then \
+                          refsName='branch'; \
+                        elif [ 1 = ${findTagR} ]; then \
+                          refsName='tag'; \
+                        else \
+                          refsName=''; \
+                        fi; \
+                        if [ ! -z ${refsName} ]; then \
+                          ${ECHO} \"~~> ${refsName} : \\033[1;33morigin/${name}\\033[0m removed from remote\"; \
+                          git push origin --delete \"${name}\"; \
+                        else \
+                          ${ECHO} \"~~> \\033[1;31morigin/${name}\\033[0m cannot be found in remote.\"; \
                         fi; \
                       }; f \
                 "
@@ -296,8 +355,8 @@
                     git commit --amend --no-edit \n\
                     if [ 'meta/config' == \"${branch}\" ]; then \n\
                       git push -u --force origin HEAD:refs/meta/config \n\
-                      git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \
-                      git reset --hard remotes/origin/${branch} ; \
+                      git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \n\
+                      git reset --hard remotes/origin/${branch} ; \n\
                     else \n\
                       git push -u --force origin ${branch} \n\
                     fi \n\
@@ -323,21 +382,27 @@
                 # "
 
   # [r]eset to [o]riginal
+  # `echo` for MacOS; `echo -e` for Linux; \
   ro          = "!f() { \
+                        ECHO='echo'; \
                         if [ 0 -eq $# ]; then \
                           branch=$(git rev-parse --abbrev-ref HEAD)   ; \
-                          echo \"\\033[1;33m~~> ${branch}\\033[0m\"   ; \
+                          ${ECHO} \"\\033[1;33m~~> ${branch}\\033[0m\"   ; \
                           if [ 'meta/config' == \"${branch}\" ]; then \
                             git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \
                             git reset --hard remotes/origin/${branch} ; \
+                            git clean -dffx                               ; \
                           else \
-                            git fetch --all --force           ; \
-                            git reset --hard origin/${branch} ; \
+                            git fetch --all --force                       ; \
+                            git fetch --prune --prune-tags --force origin ; \
+                            git reset --hard origin/${branch}             ; \
+                            git clean -dffx                               ; \
                           fi ; \
                         else \
-                          echo \"\\033[1;33m~~> \"$*\"\\033[0m\" ; \
-                          git fetch --all --force                ; \
-                          git reset --hard origin/\"$*\"         ; \
+                          ${ECHO} \"\\033[1;33m~~> \"$*\"\\033[0m\" ; \
+                          git fetch --all --force                       ; \
+                          git fetch --prune --prune-tags --force origin ; \
+                          git reset --hard origin/\"$*\"                ; \
                         fi ; \
                         if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \
                           git submodule foreach --recursive git clean -dffx  ; \
@@ -393,7 +458,7 @@
   ghprofile       = "! bash -c 'git config user.email \"marslo.jiao@gmail.com\"; \n\
                                 git config user.name \"marslo\" \n\
                                '"
-  ls              = log --stat --pretty                                                                                                    = short --graph
+  ls              = log --stat --pretty=short --graph
   subst           = submodule foreach \"git status\"
   first           = rev-list --max-parents=0 HEAD
   make-patch      = "!bash -c \"git format-patch HEAD~1; git reset HEAD~1\""
