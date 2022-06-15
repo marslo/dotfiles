@@ -4,11 +4,11 @@
   rb          = rebase
   # pl          = pull --rebase
   ci          = commit -m
-  # [c]ommit [a]llow [e]mepty
+  ### [c]ommit [a]llow [e]mepty
   cae         = commit --allow-empty -am
-  # [c]ommit [a]dd [a]all
+  ### [c]ommit [a]dd [a]all
   caa         = "!f(){ git add --all && git commit --amend --no-edit --allow-empty; }; f"
-  # [c]ommit no-ed[i]t ame[n]d
+  ### [c]ommit no-ed[i]t ame[n]d
   cin         = commit --amend --no-edit --allow-empty
   caj         = commit --author "marslo <marslo.jiao@gmail.com>" -m
   co          = checkout
@@ -27,24 +27,25 @@
   pst         = push origin --tag
   fpush       = push origin --force
   root        = rev-parse --show-toplevel
+  first       = rev-list --max-parents=0 HEAD
   # cfmp      = "!func(){ git add --all . && git commit -aqm \"$1\" && git fetch --all && git merge --all && git push; }; func"
   # cap       = "!f() { git add --all .; git commit -am \"${1}\"; git push; }; f"
   # fma       = "!f() { git fetch --all --force; git merge --all --progress; git remote prune origin; }; f"
 
   # credit from https://www.everythingcli.org/git-like-a-pro/
-  # ignored files
-  ign = ls-files -o -i --exclude-standard
+  ### ignored files
+  ign         = ls-files -o -i --exclude-standard
 
-  # [r]ebase & s[q]uash
-  sq          = ! "f() { TARGET=$1 && GIT_EDITOR=\"sed -i -e '2,$TARGET s/^pick /s /;/# This is the 2nd commit message:/,$ {d}'\" git rebase -i HEAD~$TARGET; }; f"
-  # sq        = !"f() { NL=$1; GIT_EDITOR=\"sed -i '2,$NL s/^pick/squash/;/# This is the 2nd commit message:/,$ {d}'\"; git rebase -i HEAD~$NL; }; f"
+  ### [r]ebase & s[q]uash
+  sq          = "! f() { TARGET=$1 && GIT_EDITOR=\"sed -i -e '2,$TARGET s/^pick /s /;/# This is the 2nd commit message:/,$ {d}'\" git rebase -i HEAD~$TARGET; }; f"
+  # sq        = "! f() { NL=$1; GIT_EDITOR=\"sed -i '2,$NL s/^pick/squash/;/# This is the 2nd commit message:/,$ {d}'\"; git rebase -i HEAD~$NL; }; f"
 
-  # [d]iff with [p]revious branch
+  ### [d]iff with [p]revious branch
   pd          = diff ..@{-1}
-  # [d]iff [f]ile name only
+  #### [d]iff [f]ile name only
   fd          = diff --name-status
   in          = info --no-config
-  # [d]iff via colorful [w]ords
+  #### [d]iff via colorful [w]ords
   wd          = diff --color-words -U0
   ld          = !bash -c '. ~/.marslo/.gitrc && git diff -U0 \"$@\" | diff-lines' -
   # ld        = !bash -l -c 'git diff -U0 "$@" | diff-lines' -
@@ -54,22 +55,25 @@
   ls-effort   = !git log --pretty=format: --name-only | sort | uniq -c | sort -rg
   tagcommit   = rev-list -1
   stag        = tag --sort=-creatordate --format='%(creatordate:short)%09%(refname:strip=2)'
-  # [p]retty [l]og
+  ls          = log --stat --pretty=short --graph
+  ### [p]retty [l]og[s]
   pl          = !git --no-pager log --color --graph --pretty=tformat:'%C(red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=3
-  # [p]retty [l]og in [p]revious branch
-  plp         = !git --no-pager log --color --graph --pretty=tformat:'%C(red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=5 @{-1}
   pls         = log --color --graph --pretty=tformat:'%C(red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative
-  # [f]ull [p]retty [l]log
+  ### [p]revious branch [p]retty [l]og
+  ppl         = !git --no-pager log --color --graph --pretty=tformat:'%C(red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=3 @{-1}
+  ### [p]retty [l]og in [p]revious branch
+  plp         = !git --no-pager log --color --graph --pretty=tformat:'%C(red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=5 @{-1}
+  ### [f]ull [p]retty [l]log
   fpl         = log --color --graph --pretty=tformat:'%C(red)%H%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative
   fl          = log -p --graph --color --graph
   dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format='%C(red)%h%Creset %C(yellow)(%ad)%Creset %s %C(blue)<%an>%Creset'
-
-  # Showing all branches and their relationshps
-  tre         = log --color --graph --pretty=oneline --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --decorate --abbrev-commit --all
+  revlog      = log --max-count=3 --color --graph --notes=linrev --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %C(blue)<%an>%Creset %N' --abbrev-commit --date=relative
+  ### Showing all branches and their relationshps
+  tree        = log --color --graph --pretty=oneline --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --decorate --abbrev-commit --all
   clog        = log --color --graph --all --decorate --simplify-by-decoration --oneline
   pshow       = show -s --pretty='tformat:%Cred%h%Creset %Cgreen(%s)%Creset'
 
-  # [p]retty [t]ag
+  ### [p]retty [t]ag
   pt          = "!git for-each-ref --sort=-taggerdate refs/tags --format='%(color:red)%(objectname:short)%(color:reset) - %(align:left,38)%(color:bold yellow)[%(objecttype) : %(refname:short)]%(color:reset)%(end) %(subject) %(color:green)(%(if)%(taggerdate)%(then)%(taggerdate:format:%Y-%m-%d %H:%M:%S)%(else)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(end))%(color:reset) %(color:blue)%(if)%(taggername)%(then)<%(taggername)>%(else)<%(committername)>%(end)%(color:reset)' --color --count=10"
   pts         = "!git for-each-ref --sort=-taggerdate refs/tags --format='%(color:red)%(objectname:short)%(color:reset) - %(color:bold yellow)[%(objecttype) : %(refname:short)]%(color:reset) - %(subject) %(color:green)(%(if)%(taggerdate)%(then)%(taggerdate:format:%Y-%m-%d %H:%M:%S)%(else)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(end))%(color:reset) %(color:blue)%(if)%(taggername)%(then)<%(taggername)>%(else)<%(committername)>%(end)%(color:reset)' --color"
   # credit from https://www.everythingcli.org/git-like-a-pro-sort-git-tags-by-date/
@@ -117,8 +121,8 @@
   # curbranch = "!bash -c 'git branch | grep \* | sed "s/\* \(.*\)/ (\1)/"'"
   dreview     = review development
 
-  # Merge GitHub pull request on top of the current branch or,
   # if a branch name is specified, on top of the specified branch.
+  ### merge github pull request on top of the current branch or,
   mpr         = "!f() { \
                         declare currentBranch=\"$(git symbolic-ref --short HEAD)\"; \
                         declare branch=\"${2:-$currentBranch}\"; \
@@ -159,8 +163,9 @@
                         fi \
                       }; f \
                 "
+  add-fetch   = "! sh -c 'git config --add remote.$0.fetch \"+refs/heads/$1:refs/remotes/$0/$1\"'"
 
-  # [m]eta/[c]onfig checkout
+  ### [m]eta/[c]onfig checkout
   mc          = "!f() { \
                         if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then \
                           git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config; \
@@ -171,7 +176,7 @@
                       }; f \
                 "
 
-  # [m]arslo [h]elp
+  ### [m]arslo [h]elp
   mh          = "!f() { \
                         declare help=\"\"\"\
                           marslo specific git alias \n\n\
@@ -191,8 +196,10 @@
   sub         = submodule
   subpull     = !git pull && git submodule sync --recursive && git submodule update --init --recursive
   subupdate   = submodule update --remote --merge
+  subst       = submodule foreach \"git status\"
+
   pdraft      = !git push origin HEAD:refs/drafts/$1
-  ghook       = !bash -c 'scp -p -P 29418 gerrit.company.com:hooks/commit-msg $(git rev-parse --git-dir)/hooks/'
+  ghook       = "!bash -c 'scp -p -P 29418 my.gerrit.com:hooks/commit-msg $(git rev-parse --git-dir)/hooks/'"
   showupstream = "!bash -c 'while read branch; do \n\
                     upstream=$(git rev-parse --abbrev-ref ${branch}@{upstream} 2>/dev/null); \n\
                     if [[ $? == 0 ]]; then \n\
@@ -209,7 +216,7 @@
                       }; f \
                 "
 
-  # [c]omm[i]t --[a]mend
+  ### [c]omm[i]t --[a]mend
   cia         = "!f() { \
                         OPT='commit --amend --allow-empty' ; \
                         if [ 0 -eq $# ]; then \
@@ -321,11 +328,11 @@
                         fi; \
                       }; f \
                 "
-  # [s]ubmodel [u]pdate
+  ### [s]ubmodel [u]pdate
   su          = "!bash -c 'git submodule sync --recursive && git submodule update -f --init --recursive'"
 
-  # [u]pdate [a]ll
   # git fetch --prune origin 'refs/tags/*:refs/tags/*' '+refs/heads/*:refs/remotes/origin/*'
+  ### [u]pdate [a]ll
   ua          = "!bash -c 'while read branch; do \n\
                    echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
                    git fetch --all --force; \n\
@@ -342,13 +349,13 @@
                    fi \n\
                  done < <(git rev-parse --abbrev-ref HEAD) '"
 
-  # [r]eset --h[a]rd
+  ### [r]eset --h[a]rd
   ra          = "!bash -c 'while read branch; do \n\
                    echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
                    git reset --hard origin/${branch} \n\
                  done < <(git rev-parse --abbrev-ref HEAD)' "
 
-  # [m]arslo force [p]ush
+  ### [m]arslo force [p]ush
   mp          = "!bash -c 'while read branch; do \n\
                     echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
                     git add --all $(git rev-parse --show-toplevel) \n\
@@ -362,7 +369,7 @@
                     fi \n\
                  done < <(git rev-parse --abbrev-ref HEAD) '"
 
-  # [m]arslo revie[w]
+  ### [m]arslo revie[w]
   mw          = "!bash -c 'while read branch; do \n\
                     echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
                     if [ 'meta/config' == \"${branch}\" ]; then \n\
@@ -381,29 +388,23 @@
                       # }; f \
                 # "
 
-  # [r]eset to [o]riginal
   # `echo` for MacOS; `echo -e` for Linux; \
+  ### [r]eset to [o]riginal
   ro          = "!f() { \
                         ECHO='echo'; \
                         if [ 0 -eq $# ]; then \
-                          branch=$(git rev-parse --abbrev-ref HEAD)   ; \
-                          ${ECHO} \"\\033[1;33m~~> ${branch}\\033[0m\"   ; \
-                          if [ 'meta/config' == \"${branch}\" ]; then \
-                            git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \
-                            git reset --hard remotes/origin/${branch} ; \
-                            git clean -dffx                               ; \
-                          else \
-                            git fetch --all --force                       ; \
-                            git fetch --prune --prune-tags --force origin ; \
-                            git reset --hard origin/${branch}             ; \
-                            git clean -dffx                               ; \
-                          fi ; \
+                          branch=$(git rev-parse --abbrev-ref HEAD)    ; \
                         else \
-                          ${ECHO} \"\\033[1;33m~~> \"$*\"\\033[0m\" ; \
-                          git fetch --all --force                       ; \
-                          git fetch --prune --prune-tags --force origin ; \
-                          git reset --hard origin/\"$*\"                ; \
+                          branch=\"$*\" ; \
                         fi ; \
+                        ${ECHO} \"\\033[1;33m~~> ${branch}\\033[0m\"   ; \
+                        if [ 'meta/config' == \"${branch}\" ]; then \
+                          git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \
+                        else \
+                          git fetch --all --prune --prune-tags --force ; \
+                        fi                                             ; \
+                        git reset --hard remotes/origin/${branch}      ; \
+                        git clean -dffx                                ; \
                         if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \
                           git submodule foreach --recursive git clean -dffx  ; \
                           git submodule foreach --recursive git reset --hard ; \
@@ -412,25 +413,45 @@
                       }; f \
                 "
 
-  # sort local/remote branch via committerdate (DESC)
+  # `echo` for MacOS; `echo -e` for Linux; \
+  ### [r]eset to [o]riginal and re[b]ase
+  rob         = "!f() { \
+                        ECHO='echo'; \
+                        if [ 0 -eq $# ]; then \
+                          branch=$(git rev-parse --abbrev-ref HEAD) ; \
+                          doRebase='false'                          ; \
+                        else \
+                          branch=\"$*\"                             ; \
+                          doRebase='true'                           ; \
+                        fi ; \
+                        git ro ${branch}                            ; \
+                        if [ 'true' == \"${doRebase}\" ]; then \
+                          ${ECHO} \"\\033[1;33m~~> rebase from : ${branch}\\033[0m\"   ; \
+                          git rebase \"${branch}\"                  ; \
+                        fi ; \
+                      }; f \
+                "
+
   # git for-each-ref --sort=-committerdate ${refs} --format='%(HEAD)%(color:yellow)%(refname:short)|%(color:bold green)%(committerdate:relative)|%(color:blue)%(subject)|%(color:magenta)%(authorname)%(color:reset)' --color=always | column -ts'|'; \
-  recent = "!f() { declare help=\"USAGE: git recent [remotes]\"; \
-                   declare refs='refs/heads'; \
-                   if [ 0 -eq $# ]; then \
-                     refs='refs/heads'; \
-                   elif [ 1 -eq $# ] && [ 'remotes' = \"$1\" ]; then \
-                     refs='refs/remotes/origin'; \
-                   else \
-                     echo \"${help}\"; \
-                     exit 1; \
-                   fi; \
-                   git for-each-ref \
-                       --sort=-committerdate \
-                       ${refs} \
-                       --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))' \
-                       --color=always; \
-                 }; f \
-           "
+  ### sort local/remote branch via committerdate (DESC)
+  recent    = "!f() { \
+                      declare help=\"USAGE: git recent [remotes]\"; \
+                      declare refs='refs/heads'; \
+                      if [ 0 -eq $# ]; then \
+                        refs='refs/heads'; \
+                      elif [ 1 -eq $# ] && [ 'remotes' = \"$1\" ]; then \
+                        refs='refs/remotes/origin'; \
+                      else \
+                        echo \"${help}\"; \
+                        exit 1; \
+                      fi; \
+                      git for-each-ref \
+                          --sort=-committerdate \
+                          ${refs} \
+                          --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) (%(color:green)%(committerdate:relative)%(color:reset))' \
+                          --color=always; \
+                  }; f \
+              "
 
   revset      = "!bash -c 'ix=0; for ih in $(git rev-list --reverse HEAD); do \n\
                   TCMD=\"git notes --ref linrev\"; \n\
@@ -444,26 +465,38 @@
                   eval \"$TCMD 2>/dev/null\"; \n\
                 done; \n\
                 echo \"Linear revision notes are unset.\" '"
-  revlog          = log --max-count=3 --color --graph --notes=linrev --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %C(blue)<%an>%Creset %N' --abbrev-commit --date=relative
+
+  show-rev    = "!f(){ git rev-list --count $1; }; f"
   show-rev-number = "!bash -c 'git rev-list --reverse HEAD | \n\
                                nl | \n\
                                awk \"{ if(\\$1 == "$0") { print \\$2 }}\" \n\
                               '"
-  show-rev        = "!f(){ git rev-list --count $1; }; f"
-
   show-remote-rev = "! bash -c 'git ls-remote --heads $(git config --get remote.origin.url) | \n\
                                 grep \"refs/heads/$0\" | \n\
                                 cut -f 1 \n\
                                '"
-  ghprofile       = "! bash -c 'git config user.email \"marslo.jiao@gmail.com\"; \n\
-                                git config user.name \"marslo\" \n\
-                               '"
-  ls              = log --stat --pretty=short --graph
-  subst           = submodule foreach \"git status\"
-  first           = rev-list --max-parents=0 HEAD
-  make-patch      = "!bash -c \"git format-patch HEAD~1; git reset HEAD~1\""
-  aliases         = !git config --get-regexp ^alias\\. | sed -e s/^alias.// -e s/\\ /\\ $(printf \"\\043\")--\\>\\ / | column -t -s $(printf \"\\043\")
-  add-fetch       = "!sh -c 'git config --add remote.$0.fetch \"+refs/heads/$1:refs/remotes/$0/$1\"'"
+  ghprofile   = "! bash -c 'git config user.email \"marslo.jiao@gmail.com\"; \n\
+                            git config user.name \"marslo\" \n\
+                           '"
+  make-patch  = "! bash -c \"git format-patch HEAD~1; git reset HEAD~1\""
+
+  # https://stackoverflow.com/q/53841043/2940319
+  ### show [g]it alia[s]
+  as         = "! bash -c '''grep --no-group-separator -A1 -e \"^\\s*###\" \"$HOME\"/.marslo/.gitalias | \n\
+                              awk \"END{if((NR%2))print p}!(NR%2){print\\$0p}{p=\\$0}\" | \n\
+                              sed -re \"s/( =)(.*)(###)/*/g\" | \n\
+                              sed -re \"s:[][]::g\" | \n\
+                              awk -F* \"{printf \\\"\\033[1;33m%-20s\\033[0m » \\033[0;34m%s\\033[0m\\n\\\", \\$1, \\$2}\" | \n\
+                              sort \n\
+                           '''"
+
+  ### debug git aliases - 'git debug <alias>'
+  debug       = "! set -x; GIT_TRACE=2 GIT_CURL_VERBOSE=2 GIT_TRACE_PERFORMANCE=2 GIT_TRACE_PACK_ACCESS=2 GIT_TRACE_PACKET=2 GIT_TRACE_PACKFILE=2 GIT_TRACE_SETUP=2 GIT_TRACE_SHALLOW=2 git"
+
+  # https://stackoverflow.com/a/39616600/2940319
+  ### convert anything into sh+ : `\"` -> `\\\"`
+  quote-string      = "!read -r l; printf \\\"!; printf %s \"$l\" | sed 's/\\([\\\"]\\)/\\\\\\1/g'; printf \" #\\\"\\n\" #"
+  quote-string-undo = "!read -r l; printf %s \"$l\" | sed 's/\\\\\\([\\\"]\\)/\\1/g'; printf \"\\n\" #"
 
   # deprecated
   show-cmd        = "!f() { \
