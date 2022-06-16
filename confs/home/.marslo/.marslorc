@@ -107,8 +107,17 @@ fi
 # For public server (use common account)
 function bello()
 {
-  # For Public account server
-  source "${iRCHOME}/.imac"
+  source <(cat "${iRCHOME}"/others/.bash_completion.sh \
+               "${iRCHOME}"/.imac \
+               "${iRCHOME}"/.env  \
+               "${iRCHOME}"/.gitrc
+          )
+  source <( cat "${iRCHOME}/bin/ifunc.sh" \
+                "${iRCHOME}/bin/ii.sh"    \
+                "${iRCHOME}/bin/ig.sh"    \
+                "${iRCHOME}/bin/irt.sh"   \
+                "${iRCHOME}/bin/im.sh"
+          )
   # set -o vi
 }
 
@@ -143,9 +152,9 @@ c() {
 
 # my functions
 source <( cat "${iRCHOME}/bin/ifunc.sh" \
-              "${iRCHOME}/bin/ii.sh" \
-              "${iRCHOME}/bin/ig.sh" \
-              "${iRCHOME}/bin/irt.sh" \
+              "${iRCHOME}/bin/ii.sh"    \
+              "${iRCHOME}/bin/ig.sh"    \
+              "${iRCHOME}/bin/irt.sh"   \
               "${iRCHOME}/bin/im.sh"
         )
 # source "${iRCHOME}/bin/idisable"
