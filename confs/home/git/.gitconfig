@@ -1,50 +1,53 @@
 [user]
-  name        = marslo
-  email       = marslo.jiao@gmail.com
+  name              = marslo
+  email             = marslo.jiao@gmail.com
 [push]
-  default     = matching
-  followTags = true
+  default           = matching
+  followTags        = true
 # [remote "origin"]
   # fetch       = +refs/heads/*:refs/remotes/origin/*
 [diff]
-  rename      = copy
-  submodule   = log
-  wsErrorHighlight = all
+  rename            = copy
+  submodule         = log
+  wsErrorHighlight  = all
 # Inspired from tpope: https://github.com/tpope/tpope/blob/master/.gitconfig
 [diff "ruby"]
-  funcname    = \"^ */(/(def/) .*/)\"
+  funcname          = \"^ */(/(def/) .*/)\"
 [diff "image"]
-  textconv    = identify
+  textconv          = identify
 [diff "bin"]
-    textconv = hexdump -v -C
+  textconv          = hexdump -v -C
 [color]
-  ui          = true
-  log         = always
-  status      = always
-  add         = always
-  push        = always
-  pull        = always
-  diff        = always
-  branch      = always
-  interactive = auto
+  ui                = true
+  log               = always
+  status            = always
+  add               = always
+  push              = always
+  pull              = always
+  diff              = always
+  branch            = always
+  interactive       = auto
 [color "branch"]
-  current     = green bold
-  local       = yellow
-  remote      = red
+  current           = green bold
+  local             = yellow
+  remote            = red
 [color "status"]
-  added       = yellow
-  changed     = red bold
-  untracked   = magenta normal dim
+  added             = yellow
+  changed           = red bold
+  untracked         = magenta normal dim
 [color "diff"]
-  meta        = blue bold
-  frag        = magenta
-  old         = red bold
-  new         = green bold
-  # whitespace  = red reverse
-  whitespace  = yellow reverse
-  commit      = cyan
+  meta              = blue bold
+  frag              = magenta
+  old               = red bold
+  new               = green bold
+  # whitespace      = red reverse
+  whitespace        = yellow reverse
+  commit            = cyan
 [color "status"]
-    updated   = green
+  updated           = green
+[color "blame"]
+  highlightRecent   = 239, 20 month ago, 240, 18 month ago, 241, 16 month ago, 242, 14 month ago, 243, 12 month ago, 244, 10 month ago, 245, 8 month ago, 246, 6 month ago, 247, 4 month ago, 131, 3 month ago, 137, 2 month ago, 172, 1 month ago, 167, 3 weeks ago, 166, 2 weeks ago, 203, 1 week ago, 202
+  repeatedLines     = 130
 [core]
   editor            = vim
   # pager           = cat
@@ -53,8 +56,7 @@
   pager             = diff-highlight | less $LESS -F -x1,5 -X
   whitespace        = fix,-indent-with-non-tab,trailing-space,cr-at-eol,tab-in-indent
   # whitespace      = cr-at-eol
-  # autocrlf        = input
-  autocrlf = input
+  autocrlf          = input
   precomposeUnicode = true
   ignorecase        = false
   excludesfile      = /Users/marslo/.gitignore_global
@@ -68,67 +70,70 @@
   log               = diff-highlight | less
   show              = diff-highlight | less
 [gui]
-  fontdiff    = -family Consolas -size 11 -weight normal -slant roman -underline 0 -overstrike 0
+  fontdiff          = -family Consolas -size 11 -weight normal -slant roman -underline 0 -overstrike 0
 [pretty]
-    custom = "%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
-    #                     │        │            │            │             └─ author name
-    #                     │        │            │            └─ message
-    #                     │        │            └─ date (relative)
-    #                     │        └─ decorations (branch, heads or tags)
-    #                     └─ hash (abbreviated)
+  custom            = "%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
+  #                                │        │            │            │             └─ author name
+  #                                │        │            │            └─ message
+  #                                │        │            └─ date (relative)
+  #                                │        └─ decorations (branch, heads or tags)
+  #                                └─ hash (abbreviated)
 
 [status]
-  submoduleSummary = true
+  submoduleSummary  = true
   # showuntrackedfiles = false
 [fetch]
-  prune = true
-  pruneTags = true
+  prune             = true
+  pruneTags         = true
 [branch]
-  autosetuprebase = always
-  sort = -committerdate
+  autosetuprebase   = always
+  sort              = -committerdate
 [rerere]
-  enabled = true
+  enabled           = true
 [difftool "sourcetree"]
-  cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-  path =
+  cmd               = opendiff \"$LOCAL\" \"$REMOTE\"
+  # path            =
 [mergetool "sourcetree"]
-  cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-  trustExitCode = true
+  cmd               = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+  trustExitCode     = true
 [commit]
-  template = /Users/marslo/.stCommitMsg
+  template          = /Users/marslo/.stCommitMsg
 [gitreview]
-  username = marslo
-  remote = origin
+  username          = marslo
+  remote            = origin
 [include]
-  path = ~/.marslo/.gitalias
-
-[url "https://github.com/"]
-  insteadOf = git@github.com:
+  path              = ~/.marslo/.gitalias
 
 # [credential]
-  # helper = wincred
+  # helper          = wincred
 
 [http]
-  proxy = http://127.0.0.1:1087
-#   sslBackend = openssl
+  proxy             = http://127.0.0.1:1087
+  postBuffer        = 524288000
+  # sslBackend      = openssl
 [https]
-  proxy = http://127.0.0.1:1087
+  proxy             = http://127.0.0.1:1087
 # [http "https://chromium.googlesource.com"]
-  # sslVerify = false
-  # proxy = http://127.0.0.1:1087
-# [http "git@github.com:"]
-  # sslVerify = false
-  # proxy = http://127.0.0.1:1087
+  # sslVerify       = false
+  # proxy           = http://127.0.0.1:1087
 
-# [url "git@github.com:"]
-  # insteadOf   = https://github.com/
-  # proxy = http://127.0.0.1:1087
+# [url "git@ssh.github.com:"]
+  # insteadOf       = https://github.com/
+  # sslVerify       = false
+  # proxy           = http://127.0.0.1:1087
+# [url "https://github.com/"]
+  # insteadOf         = git@github.com:
+
 [advice]
-  detachedHead        = false
-  objectNameWarning   = false
+  detachedHead      = false
+  objectNameWarning = false
 [pull]
-  rebase              = true
+  rebase            = true
 [rebase]
-  autoStash           = true
+  autoStash         = true
 [init]
-  defaultBranch       = marslo
+  defaultBranch     = marslo
+[blame]
+  # https://gist.github.com/BuonOmo/ce45b51d0cefe949fd0c536a4a60f000
+  date              ="format:%Y-%m-%d %H:%M:%S %p"
+  coloring          = highlightRecent
