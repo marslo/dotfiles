@@ -251,10 +251,31 @@
                       }; f \
                 "
 
+
+  # git fetch --tags --prune --prune-tags --quiet
   # `echo` for MacOS; `echo -e` for Linux; \
   del         = "!f() { \
                         ECHO='echo'; \
                         name=\"$1\"; \
+                        findBrR=0; \
+                        findTagR=0; \
+                        git fetch --tags --prune --prune-tags --quiet; \
+                        for refsR in $(git for-each-ref --format='%(refname:short)' refs/); do \
+                          [[ \"origin/${name}\" = \"${refsR}\" ]] && findBrR=1 && break; \
+                          [[ \"${name}\" = \"${refsR}\" ]] && findTagR=1 && break; \
+                        done; \
+                        if [ 1 = ${findBrR} ]; then \
+                          refsName='branch'; \
+                        elif [ 1 = ${findTagR} ]; then \
+                          refsName='tag'; \
+                        else \
+                          refsName=''; \
+                          ${ECHO} \"~~> \\033[1;31morigin/${name}\\033[0m cannot be found in remote.\"; \
+                        fi; \
+                        if [ ! -z ${refsName} ]; then \
+                          git push origin --delete \"${name}\"; \
+                          ${ECHO} \"~~> ${refsName} : \\033[1;33morigin/${name}\\033[0m removed from remote\"; \
+                        fi; \
                         findBrL=0; \
                         findTagL=0; \
                         for branchL in $(git for-each-ref --format='%(refname:short)' refs/heads/); do \
@@ -272,25 +293,6 @@
                           git fetch --tags --prune --prune-tags --quiet; \
                         else \
                           ${ECHO} \"~~> \\033[1;31m${name}\\033[0m cannot be found in local\"; \
-                        fi; \
-                        findBrR=0; \
-                        findTagR=0; \
-                        for refsR in $(git for-each-ref --format='%(refname:short)' refs/); do \
-                          [[ \"origin/${name}\" = \"${refsR}\" ]] && findBrR=1 && break; \
-                          [[ \"${name}\" = \"${refsR}\" ]] && findTagR=1 && break; \
-                        done; \
-                        if [ 1 = ${findBrR} ]; then \
-                          refsName='branch'; \
-                        elif [ 1 = ${findTagR} ]; then \
-                          refsName='tag'; \
-                        else \
-                          refsName=''; \
-                        fi; \
-                        if [ ! -z ${refsName} ]; then \
-                          ${ECHO} \"~~> ${refsName} : \\033[1;33morigin/${name}\\033[0m removed from remote\"; \
-                          git push origin --delete \"${name}\"; \
-                        else \
-                          ${ECHO} \"~~> \\033[1;31morigin/${name}\\033[0m cannot be found in remote.\"; \
                         fi; \
                       }; f \
                 "
