@@ -52,11 +52,12 @@
   editor            = vim
   # pager           = cat
   # pager           = less -r
-  # pager             = less
+  # pager           = less
   pager             = diff-highlight | less $LESS -F -x1,5 -X
-  whitespace        = fix,-indent-with-non-tab,trailing-space,cr-at-eol,tab-in-indent
   # whitespace      = cr-at-eol
-  autocrlf          = input
+  whitespace        = fix,-indent-with-non-tab,trailing-space,cr-at-eol,tab-in-indent
+  # autocrlf        = input
+  autocrlf          = false
   precomposeUnicode = true
   ignorecase        = false
   excludesfile      = /Users/marslo/.gitignore_global
@@ -64,6 +65,7 @@
   safecrlf          = warn
   attributesfile    = /Users/marslo/.gitattributes
   fileMode          = true
+  sshCommand        = ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa
 [pager]
   branch            = false
   diff              = diff-highlight | less
@@ -80,8 +82,8 @@
   #                                └─ hash (abbreviated)
 
 [status]
-  submoduleSummary  = true
   # showuntrackedfiles = false
+  submoduleSummary  = true
 [fetch]
   prune             = true
   pruneTags         = true
@@ -108,8 +110,9 @@
   # helper          = wincred
 
 [http]
-  proxy             = http://127.0.0.1:1087
+  sslVerify         = false
   postBuffer        = 524288000
+  proxy             = http://127.0.0.1:1087
   # sslBackend      = openssl
 [https]
   proxy             = http://127.0.0.1:1087
@@ -135,5 +138,8 @@
   defaultBranch     = marslo
 [blame]
   # https://gist.github.com/BuonOmo/ce45b51d0cefe949fd0c536a4a60f000
+  # date=relative
   date              ="format:%Y-%m-%d %H:%M:%S %p"
   coloring          = highlightRecent
+[help]
+  autocorrect       = 20
