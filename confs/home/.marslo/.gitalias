@@ -6,7 +6,7 @@
   co          = checkout --force --recurse-submodules
   cb          = rev-parse --abbrev-ref HEAD
   cl          = clean -dffx
-  cn          = clone
+  cn          = clone --recurse-submodules --tags
   cp          = cherry-pick
   wc          = whatchanged
   gca         = gc --aggressive
@@ -46,6 +46,8 @@
   prettytags  = "! git for-each-ref --sort=-taggerdate --format='[%(tag)]_,,,_%(taggerdate:raw)_,,,_<%(taggername)>_,,,_%(subject)' refs/tags \
                        | awk 'BEGIN { FS = \"_,,,_\"  } ; { t=strftime(\"%Y-%m-%d  %H:%M\",$2); printf \"%-20s %-18s %-25s %s\\n\", t, $1, $4, $3  }'"
   stag        = tag --sort=-creatordate --format='%(creatordate:short)%09%(refname:strip=2)'
+  # https://stackoverflow.com/a/40480534/2940319
+  show-tags   = "! bash -c 'git show-ref -d --tags | cut -b 42- | sort | sed \"s/\\^{}//\" | uniq -c | sed \"s/2\\ refs\\/tags\\// a /\" | sed \"s/1\\ refs\\/tags\\//lw /\"'"
   rlog        = "! bash -c 'while read branch; do \n\
                               git fetch --all --force; \n\
                               git pl refs/remotes/origin/${branch}; \n\
