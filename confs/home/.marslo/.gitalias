@@ -58,6 +58,10 @@
                               git pls refs/remotes/origin/${branch}; \n\
                             done < <(git rev-parse --abbrev-ref HEAD) \n\
                            '"
+  # https://stackoverflow.com/a/53535353/2940319
+  ### [p]retty [b]ranch
+  pb          = "! git for-each-ref --sort=-committerdate refs/remotes --format='%(color:red)%(objectname:short)%(color:reset) - %(color:bold yellow)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(color:reset) - %(align:left,20)%(color:blue)<%(authorname)>%(color:reset)%(end) %(refname:short)' --color --count=5"
+  pbs         = "! git for-each-ref --sort=-committerdate refs/remotes --format='%(color:red)%(objectname:short)%(color:reset) - %(color:bold yellow)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(color:reset) - %(align:left,20)%(color:blue)<%(authorname)>%(color:reset)%(end) %(refname:short)' --color"
   # git for-each-ref --sort=-committerdate ${refs} --format='%(HEAD)%(color:yellow)%(refname:short)|%(color:bold green)%(committerdate:relative)|%(color:blue)%(subject)|%(color:magenta)%(authorname)%(color:reset)' --color=always | column -ts'|'; \
   ### sort local/remote branch via committerdate (DESC). usage: $ git recent; $ git recent remotes 10
   recent      = "!f() { \
@@ -114,6 +118,7 @@
   caa         = "!f(){ git add --all && git commit --amend --no-edit --allow-empty; }; f"
   ### [c]ommit --no-ed[i]t --ame[n]d --allow-empty
   cin         = commit --amend --no-edit --allow-empty
+  cij         = commit --amend --no-edit --allow-empty --author "marslo <marslo@my.com>"
   caj         = commit --author "marslo <marslo.jiao@gmail.com>" -m
   # [c]ommit -[a]m
   ca          = "!f() { \
