@@ -67,10 +67,10 @@
   fileMode          = true
   sshCommand        = ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa
 [pager]
-  branch            = false
+  branch            = less -FRXK
   diff              = diff-highlight | less
-  log               = diff-highlight | less
-  show              = diff-highlight | less
+  log               = diff-highlight | less -FRXK
+  show              = diff-highlight | less -FRXK
 [gui]
   fontdiff          = -family Consolas -size 11 -weight normal -slant roman -underline 0 -overstrike 0
 [pretty]
