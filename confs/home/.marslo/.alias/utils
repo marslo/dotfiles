@@ -10,6 +10,7 @@
 alias rm='trash'
 alias cp='cp -i'
 alias cpa='cp --parents'
+# alias cat='/usr/local/bin/ccat'
 # alias mv='mv -i'
 
 # Operation of files and directory

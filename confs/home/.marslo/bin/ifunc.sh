@@ -168,6 +168,17 @@ function 256color() {
   done | column -c 180 -s ' '; echo -e "\e[m"
 }
 
+function 256colors() {
+  for fgbg in 38 48 ; do # Foreground / Background
+      for color in {0..255} ; do # Colors
+          printf "\e[${fgbg};5;%sm  %3s  \e[0m" $color $color
+          if [ $((($color + 1) % 6)) == 4 ] ; then
+              echo # New line
+          fi
+      done
+      echo # New line
+  done
+}
 # how may days == ddiff YYYY-MM-DD now
 hmdays() {
   usage="""SYNOPSIS
@@ -214,4 +225,7 @@ function cleanview(){
   rm -rf ~/.vim/view/*
 }
 
+function copy() {
+  cat "$1" | /usr/bin/pbcopy
+}
 # vim: ts=2 sts=2 sw=2 et ft=sh
