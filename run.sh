@@ -7,7 +7,7 @@ file="$HOME/.profile"
 [ -d "${irc}" ] || mkdir -p "${irc}"
 
 # shellcheck disable=SC1083
-cp -t "${irc}" "${conf}"/.marslo/{.marslorc,.imac,.gitalias .env .colors .it2colors,.bye}
+cp -t "${irc}" "${conf}"/.marslo/{.marslorc,.imac,.gitalias,.env,.colors,.it2colors,.bye}
 cp -t "${irc}" -r "${conf}"/.marslo/{bin,.alias}
 
 # shellcheck disable=SC2086
@@ -21,7 +21,6 @@ cp -t $HOME -r "${conf}"/{.iStats,.idlerc}
 [include]
   path = "${irc}/.gitalias"
 EOF
-
 
 # https://github.com/KittyKatt/screenFetch/issues/692#issuecomment-726631900
 if [[ -x /usr/bin/sw_vers ]] && /usr/bin/sw_vers | grep -E '\s*[mM]ac\s*OS\s*X?' >/dev/null; then
