@@ -59,7 +59,7 @@ function gf() {
         fi
 
         if git rev-parse --verify --quiet "${pruneBr}" > /dev/null; then
-          echo -e "$(c M)== REMOVE LOCAL BRNACH: ${pruneBr}$(c)"
+          echo -e "$(c M)== REMOVE LOCAL BRANCH: ${pruneBr}$(c)"
           if ! git branch -D "${pruneBr}"; then
             echo -e "$(c R)WARNING: REMOVE LOCAL BRANCH ${pruneBr} failed!!$(c)"
           fi
@@ -103,8 +103,7 @@ function gf() {
 }
 
 # git fetch dir
-function gfdir()
-{
+function gfdir() {
   myDir="$1"
   [ 2 -eq $# ] && br="$2"
   for i in $(${LS} -1d "${myDir%%/}"/); do
@@ -114,8 +113,7 @@ function gfdir()
 }
 
 # git fetch all (dir)
-function gfall()
-{
+function gfall() {
   if [ 1 -eq $# ]; then
     dir="$1"
   elif git rev-parse --git-dir > /dev/null 2>&1; then
@@ -136,14 +134,13 @@ function gfall()
   done
 }
 
-function mybr()
-{
+function mybr() {
   myBranch=$1
   mainBranch="dev"
   set +H
   for i in $(${LS} -1d */); do
     pushd . > /dev/null
-    cd "$i"
+    cd "$i" || return
     dirPath=${i%%/}
     if git rev-parse --git-dir > /dev/null 2>&1; then
       currentBr=$(git rev-parse --abbrev-ref HEAD)
@@ -157,7 +154,7 @@ function mybr()
         fi
       fi
     fi
-    popd > /dev/null
+    popd > /dev/null || return
   done
 }
 
@@ -167,12 +164,60 @@ function gitclean() {
     GITDIR=${i%%/}
     echo -e "=== \\033[32m ${GITDIR} \\033[0m ==="
     pushd . > /dev/null
-    cd "${GITDIR}"
+    cd "${GITDIR}" || return
     git clean -dfx
     git checkout -- *
     git reset --hard
-    popd > /dev/null
+    popd > /dev/null || return
   done
+}
+
+function grt() {
+  usage="""\t$(c B)g$(c)it $(c M)r$(c)ename $(c R)t$(c)ag - rename tag with original committer and date
+  \nSYNOPSIS$(c sY)
+  \t\$ grt [p|-p|push|--push] <SOURCE_TAG> <NEW_TAG> $(c)
+  \nEXAMPLE$(c G)
+  \t\$ grt docker.v2.0           docker.x
+  \t\$ grt docker.v2.0           refs/tags/docker.x
+  \t\$ grt refs/tags/docker.v2.0 docker.x
+  \t\$ grt refs/tags/docker.v2.0 refs/tags/docker.x $(c)
+  \nOPT
+  \t$(c B)p$(c), $(c B)-p$(c), $(c B)push$(c), $(c B)--push$(c) : push changes into remote repository
+  """
+  if [ 2 -eq $# ]; then
+    declare push="false"
+    declare sourceTag="""$(echo "$1" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
+    declare newTag="""$(echo "$2" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
+  elif [ 3 -eq $# ] && { [ 'p' = "$1" ] || [ '-p' = "$1" ] || [ 'push' = "$1" ] || [ '--push' = "$1" ]; }; then
+    declare push="true"
+    declare sourceTag="""$(echo "$2" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
+    declare newTag="""$(echo "$3" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
+  else
+    echo -e "${usage}"
+    return
+  fi
+  declare objectType="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(objecttype)")"""
+  echo -e "$(c Y)~~> rename$(c) $(c R)${objectType}$(c) $(c Y): ${sourceTag} to ${newTag}$(c)"
+  if [ 'tag' = "${objectType}" ]; then
+    declare objectName="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(*objectname)")"""
+    declare contents="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(contents)")"""
+    GIT_TAGGER_NAME="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(taggername)")"""   \
+    GIT_TAGGER_EMAIL="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(taggeremail)")""" \
+    GIT_TAGGER_DATE="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(taggerdate)")"""   \
+    git tag -a "${newTag}" "${objectName}" -m "${contents}"
+  else
+    declare objectName="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(objectname)")"""
+    GIT_COMMITTER_NAME="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(committername)")"""   \
+    GIT_COMMITTER_EMAIL="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(committeremail)")""" \
+    GIT_COMMITTER_DATE="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(committerdate)")"""   \
+    git tag "${newTag}" "${objectName}"
+  fi
+  git tag -d "${sourceTag}"
+  if [ 'true' = "${push}" ]; then
+    echo -e "$(c Y)~~> push ${newTag} and remove ${sourceTag}$(c)"
+    git push origin "${newTag}" ":${sourceTag}"
+    git pull --prune --tags
+  fi
 }
 
 # vim: ts=2 sts=2 sw=2 et ft=sh
