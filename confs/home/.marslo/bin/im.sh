@@ -24,7 +24,7 @@ function contains() {
 # marslo grep
 function mg() {
   set -f
-  usage="""mg - marslo grep - combined find and grep to quick find keywords
+  usage="""\tmg - $(c B)m$(c)arslo $(c M)g$(c)rep - combined find and grep to quick find keywords
   \nSYNOPSIS
   \t$(c sY)\$ mg [i|I] [f|F] [m|M] [w|W]
   \t     [a|A <num>] [b|B <num>] [c|C <num>]
@@ -34,11 +34,11 @@ function mg() {
   \n\t$(c G)\$ mg 'hello'
   \t\$ mg i 'hello' ~/.marslo
   \t\$ mg iC 3 'hello' ~/.marslo$(c)
-  \nOPT:
-  \n\t$(c B)i$(c) : ignore case
-  \t$(c B)f$(c) : find file name only
-  \t$(c B)m$(c) : find markdown only
-  \t$(c B)w$(c) : match word only
+  \nOPT
+  \t$(c B)i$(c)            : ignore case
+  \t$(c B)f$(c)            : find file name only
+  \t$(c B)m$(c)            : find markdown only
+  \t$(c B)w$(c)            : match word only
   \t$(c B)a|A <num>$(c)    : print <num> lines of trailing context after matching lines
   \t$(c B)b|B <num>$(c)    : print <num> lines of leading context before matching lines
   \t$(c B)c|C <num>$(c)    : print <num> lines of output context
@@ -56,7 +56,7 @@ function mg() {
 
   if [ 0 -eq $# ] ; then
     echo -e "${usage}"
-    break
+    return
   elif [ 1 -eq $# ]; then
     keyword="$1"
   elif [ 2 -eq $# ] && [[ "$2" =~ '/' || "$2" =~ '.' ]]; then
@@ -89,7 +89,7 @@ function mg() {
     cmd=" find '${path}'"
     cmd+=" -type f"
     cmd+=" ${name}"
-    cmd+=" -not -path '*git/*'"
+    cmd+=" -not -path '*.git/*'"
     cmd+=" -not -path '*node_modules/*'"
     cmd+=" -exec ${GREP} ${grepOpt} '${keyword}' {} \;"
 
@@ -101,7 +101,7 @@ function mg() {
          # -exec ${GREP} ${grepOpt} "${keyword}" {} \; ||
     eval "${cmd}" ||
          echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
-  else
+  elif [ 0 -ne $# ]; then
     echo -e "${usage}"
   fi
 
@@ -110,7 +110,8 @@ function mg() {
 
 # find file
 function ff() {
-  usage="""SYNOPSIS
+  usage="""\t$(c B)f$(c)ind $(c M)f$(c)ile(s)
+  \nSYNOPSIS
   \n\t$(c sY)\$ ff <FILENAME> [<PATH>]$(c)
   \nEXAMPLE
   \n\t$(c G)\$ ff myfile.txt
@@ -187,8 +188,8 @@ function erc()
 # proxy clear
 function pclr(){
   PROXY_ENV="http_proxy ftp_proxy https_proxy all_proxy socks_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY SOCKS_PROXY"
-  for envvar in $PROXY_ENV; do
-    unset "$envvar"
+  for envvar in ${PROXY_ENV}; do
+    unset "${envvar}"
   done
   echo -e "$(c sM)all proxy environment variable has been removed.$(c)"
 }
@@ -310,11 +311,11 @@ function startJenkins() {
          --name jenkins \
          --detach   \
          --rm \
-         --network jenkins \
-         --env DOCKER_HOST=tcp://docker:2376   \
-         --env DOCKER_CERT_PATH=/certs/client \
-         --env DOCKER_TLS_VERIFY=1   \
-         --publish 80:8080 \
+         # --network jenkins \
+         # --env DOCKER_HOST=tcp://docker:2376   \
+         # --env DOCKER_CERT_PATH=/certs/client \
+         # --env DOCKER_TLS_VERIFY=1   \
+         --publish 8080:8080 \
          --publish 50000:50000   \
          --env JENKINS_ADMIN_ID=admin \
          --env JENKINS_ADMIN_PW=admin \
