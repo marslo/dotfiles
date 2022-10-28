@@ -129,11 +129,22 @@
 
   ### [c]omm[i]t --[a]mend
   cia         = "!f() { \
-                        OPT='commit --amend --allow-empty' ; \
+                        declare authorDate=\"${GIT_AUTHOR_DATE}\"; \
+                        declare commiterDate=\"${GIT_COMMITTER_DATE}\"; \
+                        OPT='commit --amend --allow-empty'; \
                         if [ 0 -eq $# ]; then \
                           git ${OPT} ; \
                         else \
-                          git ${OPT} -m \"$*\" ; \
+                          if [ \"o\" == \"$1\" ] || [ \"original\" == \"$1\" ]; then \
+                            declare dd=\"$(git log -n 1 --format=%aD)\"; \
+                            export GIT_AUTHOR_DATE=\"${dd}\"; \
+                            export GIT_COMMITTER_DATE=\"${dd}\"; \
+                            git ${OPT} --date=\"${dd}\" -m \"${@:2}\" ; \
+                          else \
+                            git ${OPT} -m \"$@\" ; \
+                          fi; \
+                          unset GIT_AUTHOR_DATE; \
+                          unset GIT_COMMITTER_DATE; \
                         fi; \
                       }; f \
                 "
@@ -188,6 +199,8 @@
                             done < <(git grep --no-color -l \"<<<<<<< HEAD\") \n\
                            ' \n\
                 "
+  # [c]onflict [f]ile [n]ame
+  cfn         = diff --name-only --diff-filter=U --relative
   # }}}
 
   #-----------------------#
@@ -355,7 +368,7 @@
   # `echo` for MacOS; `echo -e` for Linux; \
   del         = "!f() { \
                         ECHO='echo'; \
-                        name=\"$1\"; \
+                        name=$(sed -re \"s:^(refs/heads)?(refs/tags/)?(remotes/)?(origin/)?(.*)$:\\5:\" <<< \"$1\"); \
                         findBrR=0; \
                         findTagR=0; \
                         git fetch --tags --prune --prune-tags --quiet; \
@@ -461,6 +474,18 @@
 
   ### [m]arslo revie[w]
   mw          = "! bash -c 'while read branch; do \n\
+                              echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
+                              if [ 'meta/config' == \"${branch}\" ]; then \n\
+                                git push origin HEAD:refs/for/refs/meta/config \n\
+                              else \n\
+                                git review ${branch} --reviewers dclark@marvell.com phuang@marvell.com rjagdale@marvell.com gperez@marvell.com \n\
+                              fi \n\
+                            done < <(git rev-parse --abbrev-ref HEAD) \n\
+                           ' \n\
+                "
+
+  ### [p]ure [m]arslo revie[w]
+  pmw         = "! bash -c 'while read branch; do \n\
                               echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
                               if [ 'meta/config' == \"${branch}\" ]; then \n\
                                 git push origin HEAD:refs/for/refs/meta/config \n\
