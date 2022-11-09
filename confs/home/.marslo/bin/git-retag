@@ -49,6 +49,7 @@ function grt() {
     GIT_TAGGER_NAME="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(taggername)")"""   \
     GIT_TAGGER_EMAIL="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(taggeremail)")""" \
     GIT_TAGGER_DATE="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(taggerdate)")"""   \
+    GIT_COMMITTER_DATE="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(taggerdate)")"""   \
     git tag -a "${newTag}" "${objectName}" -m "${contents}"
   # lightweight tags
   else
