@@ -140,17 +140,11 @@ usage="""
 """
 
 # for non '-' params
-if [[ 1 -eq $# ]]; then
-  var="$1"
-  if [[ '--unset' != "${var}" ]] && [[ '-u' != "${var}" ]]; then
-    unSetEnv='true'
-  elif [[ '-h' = "${var}" ]] && [[ '--help' = "${var}" ]]; then
-    showHelp
-  elif [[ '-' = "${var::1}" ]]; then
-    die "wrong parameter of ${var}"
-  else
-    sha="${var}"
-  fi
+if [[ 0 -eq $# ]]; then
+  showHelp
+# simple usage: not starts with '-' && not contians '='
+elif [[ 1 -eq $# ]] && [[ '-' != "${1::1}" ]] && [[ "$1" =~ '=' ]]; then
+  sha="$1"
 # for '-'/'--' params
 else
   # credit belongs to https://stackoverflow.com/a/28466267/519360
@@ -202,7 +196,7 @@ if [[ -n "${revision}" ]]; then
   echo -e """
     .. FINAL RESULT .. \n
     $(c Y)${shortRevision}$(c) : ${values}
-    \t$(c Y)HEAD$(c) : $(getInfo HEAD)
+    \t  $(c Y)HEAD$(c) : $(getInfo HEAD)
   """
 fi
 
