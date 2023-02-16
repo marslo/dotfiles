@@ -2,6 +2,7 @@
 # reset environment variables that could interfere with normal usage
 export GREP_OPTIONS=
 # export GIT_OPTS='--after="2020-01-01" --before="2021-01-01"'
+# export GIT_OPTS='--after="2021-01-01" --before="2022-01-01"'
 # put all utility functions here
 
 # make a temporary file
