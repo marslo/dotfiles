@@ -142,7 +142,7 @@ usage="""
 # for non '-' params
 if [[ 0 -eq $# ]]; then
   showHelp
-# simple usage: not starts with '-' && not contians '='
+# simple usage: not starts with '-' && not contains '='
 elif [[ 1 -eq $# ]] && [[ '-' != "${1::1}" ]] && [[ "$1" =~ '=' ]]; then
   sha="$1"
 # for '-'/'--' params

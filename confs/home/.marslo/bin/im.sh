@@ -8,9 +8,13 @@
 #         Desc : for artifactory
 # =============================================================================
 
-function exitOnError() {
-  echo -e "$1"
-}
+function exitOnError() { echo -e "$1"; }
+function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
+# shellcheck disable=SC2154,SC2086,SC1091
+function mrc() { source "${iRCHOME}"/.marslorc; }
+function ssl_expiry () { echo | openssl s_client -connect "${1}":443 2> /dev/null | openssl x509 -noout -enddate; }
+function color() { for c; do printf '\e[48;5;%dm%03d' "$c" "$c"; done; printf '\e[0m \n'; }
+function erc() { /usr/local/bin/vim "${iRCHOME}/.marslorc"; }
 
 function contains() {
   string=$1
@@ -24,7 +28,7 @@ function contains() {
 # marslo grep
 function mg() {
   set -f
-  usage="""\tmg - $(c B)m$(c)arslo $(c M)g$(c)rep - combined find and grep to quick find keywords
+  usage="""\tMG - $(c B)M$(c)ARSLO $(c M)G$(c)REP - COMBINED FIND AND GREP TO QUICK FIND KEYWORDS
   \nSYNOPSIS
   \t$(c sY)\$ mg [i|I] [f|F] [m|M] [w|W]
   \t     [a|A <num>] [b|B <num>] [c|C <num>]
@@ -175,16 +179,6 @@ function ms() {
   fi
 }
 
-function mrc()
-{
-  source "${iRCHOME}/.marslorc"
-}
-
-function erc()
-{
-  /usr/local/bin/vim "${iRCHOME}/.marslorc"
-}
-
 # proxy clear
 function pclr(){
   PROXY_ENV="http_proxy ftp_proxy https_proxy all_proxy socks_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY SOCKS_PROXY"
@@ -208,14 +202,6 @@ function pset(){
     export "$envvar"="$myproxy"
   done
   echo -e "$(c sG)proxy has been all set as $myproxy.$(c)"
-}
-
-function color() {
-  # https://unix.stackexchange.com/a/269085/29178
-  for c; do
-      printf '\e[48;5;%dm%03d' $c $c
-  done
-  printf '\e[0m \n'
 }
 
 function run() {
@@ -349,11 +335,6 @@ function startJenkins() {
          jenkins/jenkins:latest
 
 # -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true \
-}
-
-# https://serverfault.com/a/906310/129815
-ssl_expiry () {
-  echo | openssl s_client -connect "${1}":443 2> /dev/null | openssl x509 -noout -enddate
 }
 
 # vim: ts=2 sts=2 sw=2 et ft=sh
