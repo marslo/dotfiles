@@ -198,8 +198,8 @@
                             awk '{ key=$0; getline; print key \" : \" $0; }'; \
                       }; f \
                 "
-  ### [c]hange-[i][d][s]
-  cids        = "!f() { \
+  ### [c]hange-[i][d] -[n]
+  cidn        = "!f() { \
                         OPT='-3'; \
                         if [ 0 -ne $# ]; then OPT=\"$@\"; fi; \
                         echo \"\\033[1;33m~~> Commit-Id : Change-Id :\\033[0m\"; \
@@ -230,6 +230,17 @@
                                 while read number revision; do \
                                   cid=$(git show -s \"${revision}\" --format='%B' | sed -rn 's/^\\s*Change-Id:\\s*(.+)$/\\1/p') ; \
                                   if [[ \"${cid}\" = \"$1\" ]]; then echo \"${number} : ${revision} : ${cid}\"; break; fi; \
+                                done; \
+                          }; f"
+
+  ### [c]hange-[id][s] [r]ev-count
+  cids            = "!f() { \
+                            echo \"\\033[1;33m~~> Revision-Count : Commit-Id : Change-Id :\\033[0m\"; \
+                            git rev-list --no-color --reverse HEAD | nl | sort -nr | \
+                                while read number revision; do \
+                                  cid=$(git show -s \"${revision}\" --format='%B' | sed -rn 's/^\\s*Change-Id:\\s*(.+)$/\\1/p') ; \
+                                  echo \"${number} : ${revision} : ${cid}\"; \
+                                  if [[ \"${cid}\" = \"$1\" ]]; then break; fi; \
                                 done; \
                           }; f"
   # }}}
