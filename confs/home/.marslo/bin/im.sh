@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck disable=SC1078,SC1079
 # =============================================================================
-#     FileName : irt.sh
+#     FileName : im.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2012
-#   LastChange : 2020-10-20 21:53:33
+#   LastChange : 2023-06-26 15:52:44
 #         Desc : for artifactory
 # =============================================================================
 
@@ -15,6 +15,9 @@ function mrc() { source "${iRCHOME}"/.marslorc; }
 function ssl_expiry () { echo | openssl s_client -connect "${1}":443 2> /dev/null | openssl x509 -noout -enddate; }
 function color() { for c; do printf '\e[48;5;%dm%03d' "$c" "$c"; done; printf '\e[0m \n'; }
 function erc() { /usr/local/bin/vim "${iRCHOME}/.marslorc"; }
+function kdev() { kubectl config use-context kubernetes-dev; }
+function kprod() { kubectl config use-context kubernetes-prod; }
+function kx() { [ "$1" ] && kubectl config use-context $1 || kubectl config current-context ; }
 
 function contains() {
   string=$1
@@ -212,6 +215,7 @@ function run() {
   \t$(c G)\$ run jenkins$(c)
   \nOPT:
   \t$(c B)jenkins$(c) : start jenkins service via docker
+  \t$(c B)iaws$(c) : enable route for jenkins instance in aws
   """
 
   if [ 0 -eq $# ]; then
@@ -224,6 +228,9 @@ function run() {
         ;;
       docker )
         startDocker
+        ;;
+      iaws )
+        enableAWShost
         ;;
       * )
         echo -e "${usage}"
@@ -327,7 +334,10 @@ function startJenkins() {
                 -Dhudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID=true \
                 -Dcom.cloudbees.workflow.rest.external.ChangeSetExt.resolveCommitAuthors=true \
                 -Dhudson.plugins.active_directory.ActiveDirectorySecurityRealm.forceLdaps=false \
-                -Dhudson.model.DirectoryBrowserSupport.CSP=\"sandbox allow-same-origin allow-scripts; default-src 'self'; script-src * 'unsafe-eval'; img-src *; style-src * 'unsafe-inline'; font-src *;\" \
+                -Dhudson.model.ParametersAction.keepUndefinedParameters=true \
+                -Dhudson.model.DirectoryBrowserSupport.CSP=\"\" \
+                -Djsch.client_pubkey="ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256,ssh-rsa" \
+                -Djsch.server_host_key="ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256,ssh-rsa"
               " \
          --env JNLP_PROTOCOL_OPTS="-Dorg.jenkinsci.remoting.engine.JnlpProtocol3.disabled=false" \
          --volume /opt/JENKINS_HOME:/var/jenkins_home \
@@ -337,4 +347,17 @@ function startJenkins() {
 # -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true \
 }
 
+function enableAWShost() {
+  sudo /sbin/route get 34.233.44.163
+  sudo /sbin/route -nv add -host 34.233.44.163 172.16.0.1
+  sudo /sbin/route -nv add -host 3.230.55.102 172.16.0.1
+  sudo /sbin/route get 34.233.44.163
+  sudo /sbin/route get 3.230.55.102
+}
+function trust() {
+  host=$*
+  sudo /sbin/route get "${host}"
+  sudo /sbin/route -nv add -host "${host}" 172.16.0.1
+  sudo /sbin/route get "${host}"
+}
 # vim: ts=2 sts=2 sw=2 et ft=sh

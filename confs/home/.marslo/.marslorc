@@ -63,12 +63,18 @@ shopt -s cmdhist
 shopt -s histappend
 # shopt -s extdebug
 
-# Disable ctrl+s lock putty
+### Disable ctrl+s lock putty
 # stty -echo
 # stty stop undef
+# stty start undef
+# to avoid issues: [here](https://stackoverflow.com/a/25391867/2940319)
+# - tput: No value for $TERM and no -T specified
+# - stty: 'standard input': Inappropriate ioctl for device
+if [[ $- == *i*  ]]; then
 stty ixany
 stty ixoff -ixon
-# stty start undef
+  [[ -f ~/.LESS_TERMCAP  ]] && . ~/.LESS_TERMCAP
+fi
 
 export TERM='xterm-color'
 # CentOS or RHEL

@@ -32,3 +32,5 @@ MAVEN_OPTS="-Xms256m -Xmx512m"
 M2="${M2_HOME}/bin"
 PATH=$PATH:$M2
 export M2_HOME M2 MAVEN_OPTS PATH
+# ldapsearch
+# alias ldapsearch="ldapsearch -LLL -x -o ldif-wrap=no -H ldaps://msi-sldap.marvell.com:636 -b 'dc=marvell,dc=com' -D user -w password "
