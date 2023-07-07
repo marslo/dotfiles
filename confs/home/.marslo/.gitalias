@@ -18,12 +18,18 @@
   first       = rev-list --max-parents=0 HEAD
   last        = cat-file commit HEAD
   undo        = reset HEAD~1 --mixed
+  slap        = blame -s -w -C -M
 
 
   #-----------------------#
   # pretty show
   #-----------------------#
   # {{{
+  # -p       : show patchset ( detail contents )
+  # -M       : show renames
+  # --follow : all logs including before renamed
+  # --stat   : show a summary of the total additions and removals for that commit
+  changes     = log -M --follow --stat --
   ### [p]retty [t]ag
   ls          = log --stat --pretty=short --graph
   ### [p]retty [l]og[s]
@@ -34,6 +40,7 @@
   ### [f]ull [p]retty [l]log
   fpl         = log --color --graph --pretty=tformat:'%C(red)%H%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative
   fl          = log -p --graph --color --graph
+  who-renamed ="! bach -c 'git log -M --summary | grep -E '^\\s*rename.*{.*=>.*}'"
   dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format='%C(red)%h%Creset %C(yellow)(%ad)%Creset %s %C(blue)<%an>%Creset'
   revlog      = log --max-count=3 --color --graph --notes=linrev --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %C(blue)<%an>%Creset %N' --abbrev-commit --date=relative
   ### Showing all branches and their relationshps
