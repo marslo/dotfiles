@@ -12,12 +12,15 @@ function exitOnError() { echo -e "$1"; }
 function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
 # shellcheck disable=SC2154,SC2086,SC1091
 function mrc() { source "${iRCHOME}"/.marslorc; }
+# https://serverfault.com/a/906310/129815
 function ssl_expiry () { echo | openssl s_client -connect "${1}":443 2> /dev/null | openssl x509 -noout -enddate; }
+# https://unix.stackexchange.com/a/269085/29178
 function color() { for c; do printf '\e[48;5;%dm%03d' "$c" "$c"; done; printf '\e[0m \n'; }
 function erc() { /usr/local/bin/vim "${iRCHOME}/.marslorc"; }
 function kdev() { kubectl config use-context kubernetes-dev; }
 function kprod() { kubectl config use-context kubernetes-prod; }
 function kx() { [ "$1" ] && kubectl config use-context $1 || kubectl config current-context ; }
+function pipurl() { pip list --format=freeze | cut -d= -f1 | xargs pip show | awk '/^Name/{printf $2} /^Home-page/{print ": "$2}' | column -t; }
 
 function contains() {
   string=$1
@@ -74,12 +77,12 @@ function mg() {
     [[ "${param}" =~ 'w' ]] && grepOpt+=' -w'            && params='threeMost'
     [[ "${param}" =~ 'f' ]] && grepOpt+=' -l'            && params='threeMost'
     [[ "${param}" =~ 'm' ]] && name='-iname *.md'        && params='threeMost'
-    [[ "$1" =~ 'a' ]]       && grepOpt+=" -i -A $2"      && params='fourMost'
-    [[ "$1" =~ 'b' ]]       && grepOpt+=" -i -B $2"      && params='fourMost'
-    [[ "$1" =~ 'c' ]]       && grepOpt+=" -i -C $2"      && params='fourMost'
-    [[ "$1" =~ 'A' ]]       && grepOpt+=" -A $2"         && params='fourMost'
-    [[ "$1" =~ 'B' ]]       && grepOpt+=" -B $2"         && params='fourMost'
-    [[ "$1" =~ 'C' ]]       && grepOpt+=" -C $2"         && params='fourMost'
+    [[ "$1" =~ 'a'       ]] && grepOpt+=" -i -A $2"      && params='fourMost'
+    [[ "$1" =~ 'b'       ]] && grepOpt+=" -i -B $2"      && params='fourMost'
+    [[ "$1" =~ 'c'       ]] && grepOpt+=" -i -C $2"      && params='fourMost'
+    [[ "$1" =~ 'A'       ]] && grepOpt+=" -A $2"         && params='fourMost'
+    [[ "$1" =~ 'B'       ]] && grepOpt+=" -B $2"         && params='fourMost'
+    [[ "$1" =~ 'C'       ]] && grepOpt+=" -C $2"         && params='fourMost'
     [[ "${param}" =~ 'e' ]] && name='-not -iname *.'"$2" && params='fourMost'
     if [ 'threeMost' == "${params}" ]; then
       [ 2 -le $# ] && keyword="$2"
@@ -344,7 +347,8 @@ function startJenkins() {
          --volume /var/run/docker.sock:/var/run/docker.sock \
          jenkins/jenkins:latest
 
-# -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true \
+        # -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true \
+        # -Dhudson.model.DirectoryBrowserSupport.CSP=\"sandbox allow-same-origin allow-scripts; default-src 'self'; script-src * 'unsafe-eval'; img-src *; style-src * 'unsafe-inline'; font-src *;\" \
 }
 
 function enableAWShost() {
@@ -354,10 +358,12 @@ function enableAWShost() {
   sudo /sbin/route get 34.233.44.163
   sudo /sbin/route get 3.230.55.102
 }
+
 function trust() {
   host=$*
   sudo /sbin/route get "${host}"
   sudo /sbin/route -nv add -host "${host}" 172.16.0.1
   sudo /sbin/route get "${host}"
 }
+
 # vim: ts=2 sts=2 sw=2 et ft=sh
