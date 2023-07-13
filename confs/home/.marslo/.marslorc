@@ -16,11 +16,15 @@ BASH_COMP_DIR="${HOMEBREW_PREFIX}/etc/bash_completion.d"
 bashComp="${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"        # for bash_completion 1.3
 bashComp2="${HOMEBREW_PREFIX}/opt/bash-completion@2/etc/profile.d/bash_completion.sh"
 additionalComp="${iRCHOME}/bin/bash_completion_init_completion"
-rtComp="/Users/marslo/.jfrog/jfrog_bash_completion"
 gitCompDir="${HOMEBREW_PREFIX}/opt/git/etc/bash_completion.d"
 maccliComp='/usr/local/bin/mac-cli/completion/bash_completion'
-vboxComp="${iRCHOME}/others/VBoxManage-completion.bash"
+# https://github.com/dysosmus/ansible-completion
+ansibleComp="${iRCHOME}/.completion/ansible-completion"
+# https://github.com/mug896/virtualbox-bash-completion
+# https://github.com/gryf/vboxmanage-bash-completion
+# vboxComp="${iRCHOME}/.completion/vbox/VBoxManage-completion.bash"
 # bashCompDirDir2=$(pkg-config --variable=completionsdir bash-completion)
+# rtComp="/Users/marslo/.jfrog/jfrog_bash_completion"
 
 if command -v brew > /dev/null; then
   if test -d "${BASH_COMP_DIR}"; then
@@ -31,26 +35,27 @@ if command -v brew > /dev/null; then
                   "${BASH_COMP_DIR}"/tmux \
                   "${BASH_COMP_DIR}"/tig-completion.bash \
             )
-    ls "${BASH_COMP_DIR}"/*git* >/dev/null 2>&1; [ $? -eq 0 ] && source "${BASH_COMP_DIR}"/*git*
+    ls "${BASH_COMP_DIR}"/*git*    >/dev/null 2>&1; [ $? -eq 0 ] && source "${BASH_COMP_DIR}"/*git*
     ls "${BASH_COMP_DIR}"/*docker* >/dev/null 2>&1; [ $? -eq 0 ] && source "${BASH_COMP_DIR}"/*docker*
   fi
 
-  # [ -f "${bashComp2}" ]         && source "${bashComp2}";
+  # [ -f "${bashComp2}"      ]   && source "${bashComp2}";
   # for complete_alias (https://raw.githubusercontent.com/cykerway/complete-alias/master/complete_alias)
-  # [ -f "${bashComp2}" ]         && source <(cat "${bashComp2}")
+  # [ -f "${bashComp2}"      ]   && source <(cat "${bashComp2}")
   # workaround: https://github.com/mobile-shell/mosh/issues/675#issuecomment-156457108
-  # [ -f "${additionalComp}" ]    && source "${additionalComp}"
-  [ -f "${rtComp}" ]              && source "${rtComp}"
-  [ -f "${maccliComp}" ]          && source "${maccliComp}"
-  [ -d "${groovyHome}/bin" ]      && source <( cat "${groovyHome}"/bin/*_completion )
-  [ -f "${vboxComp}" ]            && source "${vboxComp}"
-  # [ -f "${additionalComp}" ]      && source "${additionalComp}"
-  command -v kubectl > /dev/null  && source <( kubectl completion bash )
-  command -v npm > /dev/null && source <( npm completion )
+  # [ -f "${additionalComp}" ]   && source "${additionalComp}"
+  # [ -f "${vboxComp}"       ]   && source "${vboxComp}"
+  # [ -f "${additionalComp}" ]   && source "${additionalComp}"
+  # [ -f "${rtComp}"         ]   && source "${rtComp}"
+  [ -f "${maccliComp}"       ]   && source "${maccliComp}"
+  [ -d "${groovyHome}/bin"   ]   && source <( cat "${groovyHome}"/bin/*_completion )
+  [ -d "${ansibleComp}"      ]   && source <( cat "${ansibleComp}"/*.bash )
+  command -v kubectl > /dev/null && source <( kubectl completion bash )
+  command -v npm     > /dev/null && source <( npm completion )
   # find "${groovyHome}/bin" -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
 fi
 
-source <(cat "${iRCHOME}"/others/.bash_completion.sh \
+source <(cat "${iRCHOME}"/.completion/.bash_completion.sh \
              "${iRCHOME}"/.imac \
              "${iRCHOME}"/.env  \
              "${iRCHOME}"/.gitrc
@@ -71,8 +76,8 @@ shopt -s histappend
 # - tput: No value for $TERM and no -T specified
 # - stty: 'standard input': Inappropriate ioctl for device
 if [[ $- == *i*  ]]; then
-stty ixany
-stty ixoff -ixon
+  stty ixany
+  stty ixoff -ixon
   [[ -f ~/.LESS_TERMCAP  ]] && . ~/.LESS_TERMCAP
 fi
 
@@ -113,7 +118,7 @@ fi
 # For public server (use common account)
 function bello()
 {
-  source <(cat "${iRCHOME}"/others/.bash_completion.sh \
+  source <(cat "${iRCHOME}"/.completion/.bash_completion.sh \
                "${iRCHOME}"/.imac \
                "${iRCHOME}"/.env  \
                "${iRCHOME}"/.gitrc
