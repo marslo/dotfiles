@@ -94,6 +94,7 @@ export TERM='xterm-color'
 # iTerm2 shell integration
 test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
 test -f /usr/local/bin/screenfetch && /usr/local/bin/screenfetch
+test -f ${iRCHOME}/bin/now         && now
 
 if test -f '/usr/local/opt/coreutils/libexec/gnubin/ls'; then
   LS='/usr/local/opt/coreutils/libexec/gnubin/ls'

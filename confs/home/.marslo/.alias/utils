@@ -96,7 +96,8 @@ alias wget='wget --no-cookies --no-check-certificate'
 alias curl='/usr/local/opt/curl/bin/curl --netrc-file ~/.marslo/.netrc'
 # alias curl='/usr/bin/curl --netrc-file ~/.marslo/.netrc'
 alias clear-dns-cache='sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
-alias myip='/usr/bin/curl ip.appspot.com'
+# alias myip='/usr/bin/curl ip.appspot.com'
+alias myip='curl -sS https://ipecho.net/plain'
 alias lsock='sudo /usr/sbin/lsof -i -P'             # lsock:        Display open sockets
 alias lsockU='sudo /usr/sbin/lsof -nP | grep UDP'   # lsockU:       Display only open UDP sockets
 alias lsockT='sudo /usr/sbin/lsof -nP | grep TCP'   # lsockT:       Display only open TCP sockets
@@ -114,4 +115,4 @@ alias imbusy='cat /dev/urandom | hexdump -C | grep "ca fe"'
 
 alias weekno='date +"%V"'
 alias daysleft='echo "There are $(($(date +%j -d"Dec 31, $(date +%Y)")-$(date +%j))) left in year $(date +%Y)."'
-alias weather='/usr/bin/curl -x http://127.0.0.1:1087 wttr.in/chengdu'
+alias weather='curl wttr.in/sanjose?mMFn'
