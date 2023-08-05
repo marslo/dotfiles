@@ -14,6 +14,9 @@ RTDOMAIN='pww.artifactory.cdi.philips.com'
 # export GIT_TRACE_PERFORMANCE=1
 export GIT_PS1_SHOWDIRTYSTATE=true
 export GIT_PS1_SHOWUNTRACKEDFILES=true
+# https://stackoverflow.com/a/18781512/2940319
+# using git config --global pager.log 'diff-highlight | less -FRXK' instead of
+# alias git='git --no-pager'
 
 alias en7dump='tcpdump -nni en7 -p'
 alias startjack='jackd -d coreaudio &'
