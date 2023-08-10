@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# NAME:   now
-# PATH:   $HOME/bin
-# DESC:   Display current weather, calendar and time
-# CALL:   Called from terminal or ~/.bashrc
-# DATE:   Apr 6, 2017. Modified:  May 24, 2019.
+# NAME: now
+# PATH: $HOME/bin
+# DESC: Display current weather, calendar and time
+# CALL: Called from terminal or ~/.bashrc
+# DATE: Apr 6, 2017. Modified: May 24, 2019.
 # CREDIT: https://askubuntu.com/a/1020693/92979
 
 # UPDT: 2019-05-24 If Weather unavailable nicely formatted error message.
@@ -16,17 +16,29 @@
 DateColumn=34 # Default is 27 for 80 character line, 34 for 92 character line
 TimeColumn=61 # Default is 49 for   "   "   "   "    61 "   "   "   "
 
-
 #--------- WEATHER ----------------------------------------------------------
 
 # Current weather, already in color so no need to override
-echo " "
 # Replace Edmonton with your city name, GPS, etc. See: curl wttr.in/:help
-curl wttr.in/sanjose?mM0 --silent --max-time 3
-#  Timeout #. Increase for slow connection---^
+curl wttr.in/sanjose?QmM0 --silent --max-time 3 > /tmp/now-weather
+#   Timeout #. Increase for slow connection---^
 
-echo " "
-echo " "                # Pad with blank lines for calendar & time to fit
+# Was valid weather report found or an error message?
+if grep '°C' /tmp/now-weather >/dev/null 2>&1; then
+  WeatherSuccess=true
+  cat /tmp/now-weather
+else
+  WeatherSuccess=false
+  echo "                              "
+  echo "                              "
+  echo "                              "
+  echo "                              "
+  echo "                              " # Replace Edmonton with your city
+  echo "                              "
+  echo "                              "
+  echo " "
+fi
+echo " "                # Pad blank lines for calendar & time to fit
 
 #--------- DATE -------------------------------------------------------------
 
@@ -39,14 +51,18 @@ tput sc                 # Save cursor position.
 i=0
 while [ $((++i)) -lt 10 ]; do tput cuu1; done
 
-# Depending on length of your city name and country name you will:
-#   1. Comment out next three lines of code. Uncomment fourth code line.
-#   2. Change subtraction value and set number of print spaces to match
-#      subtraction value. Then place comment on fourth code line.
-Column=$((DateColumn - 10))
-tput cuf $Column        # Move x column number
-# Blank out ", country" with x spaces
-printf "          "
+if [[ "$WeatherSuccess" == true ]] ; then
+    # Depending on length of your city name and country name you will:
+    #   1. Comment out next three lines of code. Uncomment fourth code line.
+    #   2. Change subtraction value and set number of print spaces to match
+    #      subtraction value. Then place comment on fourth code line.
+    Column=$((DateColumn - 10))
+    tput cuf $Column        # Move x column number
+    # Blank out ", country" with x spaces
+    printf "          "
+else
+    tput cuf $DateColumn    # Position to column 27 for date display
+fi
 
 # -h needed to turn off formatting: https://askubuntu.com/questions/1013954/bash-substring-stringoffsetlength-error/1013960#1013960
 # -h not supported in Ubuntu 18.04. Use second answer: https://askubuntu.com/a/1028566/307523
@@ -95,11 +111,11 @@ while [ $((++i)) -lt 9 ]; do tput cuu1; done
 tput cuf $TimeColumn    # Move 49 columns right
 
 if hash toilet 2>/dev/null; then                          # if has toilet
-     date +"%I:%M %P" | toilet -f future  > /tmp/terminal
+   date +"%I:%M %P" | toilet -f future  > /tmp/terminal
 elif hash figlet 2>/dev/null; then                        # if has figlet
-     date +"%I:%M %P" | figlet > /tmp/terminal
+   date +"%I:%M %P" | figlet > /tmp/terminal
 else
-     date +"%I:%M %P" > /tmp/terminal
+   date +"%I:%M %P" > /tmp/terminal
 fi
 
 while IFS= read -r Time; do
@@ -109,6 +125,6 @@ while IFS= read -r Time; do
   tput cuf $TimeColumn    # Move 49 columns right
 done < /tmp/terminal
 
-tput rc                   # Restore saved cursor position.
+tput rc                     # Restore saved cursor position.
 
 exit 0
