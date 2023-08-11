@@ -20,8 +20,11 @@ TimeColumn=61 # Default is 49 for   "   "   "   "    61 "   "   "   "
 
 # Current weather, already in color so no need to override
 # Replace Edmonton with your city name, GPS, etc. See: curl wttr.in/:help
-curl wttr.in/sanjose?QmM0 --silent --max-time 3 > /tmp/now-weather
+curl wttr.in/sanjose?QmM0 --fail --silent --max-time 3 > /tmp/now-weather
 #   Timeout #. Increase for slow connection---^
+if [[ 0 -ne $? ]]; then
+  ~/.marslo/bin/iweather > /tmp/now-weather
+fi
 
 # Was valid weather report found or an error message?
 if grep '°C' /tmp/now-weather >/dev/null 2>&1; then
@@ -46,16 +49,15 @@ echo " "                # Pad blank lines for calendar & time to fit
 # colors 00=bright white, 31=red, 32=green, 33=yellow, 34=blue, 35=purple,
 #        36=cyan, 37=white
 
-tput sc                 # Save cursor position.
-# Move up 9 lines
-i=0
-while [ $((++i)) -lt 10 ]; do tput cuu1; done
+tput sc                 # save cursor position.
+tput cuu 9              # move up 9 lines
+# i=0; while [ $((++i)) -lt 10 ]; do tput cuu1; done
 
 if [[ "$WeatherSuccess" == true ]] ; then
-    # Depending on length of your city name and country name you will:
-    #   1. Comment out next three lines of code. Uncomment fourth code line.
-    #   2. Change subtraction value and set number of print spaces to match
-    #      subtraction value. Then place comment on fourth code line.
+    # depending on length of your city name and country name you will:
+    #   1. comment out next three lines of code. uncomment fourth code line.
+    #   2. change subtraction value and set number of print spaces to match
+    #      subtraction value. then place comment on fourth code line.
     Column=$((DateColumn - 10))
     tput cuf $Column        # Move x column number
     # Blank out ", country" with x spaces
@@ -92,15 +94,15 @@ while IFS= read -r Cal; do
     done
   fi
 
-  tput cud1               # Down one line
-  tput cuf $DateColumn    # Move 27 columns right
+  tput cud1               # down one line
+  tput cuf $DateColumn    # move 27 columns right
   CalLineCnt=$((++CalLineCnt))
 done < /tmp/terminal
 
 printf "\033[00m"           # color -- bright white (default)
 echo ""
 
-tput rc                     # Restore saved cursor position.
+tput rc                     # restore saved cursor position.
 
 #-------- TIME --------------------------------------------------------------
 
