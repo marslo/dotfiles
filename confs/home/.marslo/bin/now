@@ -42,6 +42,7 @@ else
   echo " "
 fi
 echo " "                # Pad blank lines for calendar & time to fit
+rm -rf /tmp/now-weather
 
 #--------- DATE -------------------------------------------------------------
 
@@ -50,7 +51,7 @@ echo " "                # Pad blank lines for calendar & time to fit
 #        36=cyan, 37=white
 
 tput sc                 # save cursor position.
-tput cuu 9              # move up 9 lines
+tput cuu 8              # move up 9 lines
 # i=0; while [ $((++i)) -lt 10 ]; do tput cuu1; done
 
 if [[ "$WeatherSuccess" == true ]] ; then
