@@ -51,7 +51,7 @@ rm -rf /tmp/now-weather
 #        36=cyan, 37=white
 
 tput sc                 # save cursor position.
-tput cuu 8              # move up 9 lines
+tput cuu 7              # move up 9 lines
 # i=0; while [ $((++i)) -lt 10 ]; do tput cuu1; done
 
 if [[ "$WeatherSuccess" == true ]] ; then
@@ -108,9 +108,9 @@ tput rc                     # restore saved cursor position.
 #-------- TIME --------------------------------------------------------------
 
 tput sc                 # Save cursor position.
+tput cuu 7              # move up 9 lines
 # Move up 8 lines
-i=0
-while [ $((++i)) -lt 9 ]; do tput cuu1; done
+# i=0; while [ $((++i)) -lt 9 ]; do tput cuu1; done
 tput cuf $TimeColumn    # Move 49 columns right
 
 if hash toilet 2>/dev/null; then                          # if has toilet
