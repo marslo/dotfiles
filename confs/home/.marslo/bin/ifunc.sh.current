@@ -53,7 +53,6 @@ function mdiff() {
   echo -e " [${1##*/}]\\t\\t\\t\\t\\t\\t\\t[${2##*/}]"
   diff -y --suppress-common-lines "$1" "$2"
 }
-
 function dir() {
   if [ 0 -eq $? ]; then
     _p='.'
@@ -169,9 +168,9 @@ function 256color() {
 function 256colors() {
   for fgbg in 38 48 ; do # Foreground / Background
     for color in {0..255} ; do # Colors
-      # Display the color
+      # display the color
       printf "\e[${fgbg};5;%sm  %3s  \e[0m" $color $color
-      # Display 6 colors per lines
+      # display 6 colors per lines
       if [ $(( (color + 1) % 6 )) == 4 ] ; then
         echo # New line
       fi
@@ -245,11 +244,17 @@ function cleanview() {
   rm -rf ~/.vim/view/*
 }
 
-function copy() {
-  /usr/bin/pbcopy < $1
-}
+function copy() { /usr/bin/pbcopy < $1; }
 
 # brew install fzf
+function vim() {
+  if [[ 0 -eq $# ]]; then
+    fzf --multi --bind="enter:become($(which -a vim | head -1) {+})"
+  else
+    $(which -a vim | head -1) -u $HOME/.vimrc $@
+  fi
+}
+
 function fs() {
   # vim $(/usr/local/bin/fzf --height 40% --layout=reverse --multi)
   # fzf --bind 'enter:become(vim {})'
@@ -302,4 +307,4 @@ lsps() {
           --layout=reverse --height=80% | awk '{print $2}'
 }
 
-# vim: ts=2 sts=2 sw=2 et ft=sh
+# vim:ts=2:sts=2:sw=2:et:ft=sh
