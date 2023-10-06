@@ -265,23 +265,14 @@ fe() {
   [[ -n "$files" ]] && ${EDITOR:-vim} "${files[@]}"
 }
 
-
-# fd - cd to selected directory
-fd() {
-  local dir
-  dir=$(find ${1:-.} -path '*/\.*' -prune \
-                  -o -type d -print 2> /dev/null | fzf +m) &&
-  cd "$dir"
-}
-
 # fda - including hidden directories
 fda() {
   local dir
   dir=$(find ${1:-.} -type d 2> /dev/null | fzf +m) && cd "$dir"
 }
 
-# fdr - cd to selected parent directory
-fdr() {
+# cdp - cd to selected parent directory
+cdp() {
   local declare dirs=()
   get_parent_dirs() {
     if [[ -d "${1}" ]]; then dirs+=("$1"); else return; fi
@@ -292,14 +283,23 @@ fdr() {
     fi
   }
   local DIR=$(get_parent_dirs $(realpath "${1:-$PWD}") | fzf-tmux --tac)
-  cd "$DIR"
+  cd "$DIR" || return
 }
 
 # cdf - cd into the directory of the selected file
 cdf() {
-   local file
-   local dir
-   file=$(fzf +m -q "$1") && dir=$(dirname "$file") && cd "$dir"
+  local file
+  local dir
+  file=$(fzf +m -q "$1") && dir=$(dirname "$file") && cd "$dir"
+}
+
+# list process
+lsps() {
+  (date; ps -ef) |
+      fzf --bind='ctrl-r:reload(date; ps -ef)' \
+          --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
+          --preview='echo {}' --preview-window=down,3,wrap \
+          --layout=reverse --height=80% | awk '{print $2}'
 }
 
 # vim: ts=2 sts=2 sw=2 et ft=sh
