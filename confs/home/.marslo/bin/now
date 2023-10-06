@@ -15,14 +15,14 @@
 # Setup for 92 character wide terminal
 DateColumn=34 # Default is 27 for 80 character line, 34 for 92 character line
 TimeColumn=61 # Default is 49 for   "   "   "   "    61 "   "   "   "
+curlOpt="-k"
 
 #--------- WEATHER ----------------------------------------------------------
 
 # Current weather, already in color so no need to override
 # Replace Edmonton with your city name, GPS, etc. See: curl wttr.in/:help
-curl wttr.in/sanjose?QmM0 --fail --silent --max-time 3 > /tmp/now-weather
+if ! curl ${curlOpt} wttr.in/sanjose?QmM0 --fail --silent --max-time 3 > /tmp/now-weather; then
 #   Timeout #. Increase for slow connection---^
-if [[ 0 -ne $? ]]; then
   ~/.marslo/bin/iweather > /tmp/now-weather
 fi
 
@@ -42,7 +42,6 @@ else
   echo " "
 fi
 echo " "                # Pad blank lines for calendar & time to fit
-rm -rf /tmp/now-weather
 
 #--------- DATE -------------------------------------------------------------
 

@@ -21,6 +21,7 @@ alias kt1="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst
 alias kt2="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst2/.kube/config"
 alias kt3="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst3/.kube/config"
 
+alias  kd='kubectl --kubeconfig ~/.kube/config --namespace devops-ci'
 # alias kcEvicted="kubectl -n devops-ci get pods -o json | jq '.items[] | select(.status.reason!=null) | select(.status.reason | contains("Evicted")) | "kubectl delete pods \(.metadata.name) -n \(.metadata.namespace)"' | xargs -n 1 bash -c"
 alias kcEvicted="kubectl get pods --all-namespaces --field-selector 'status.phase==Failed' -o json | kubectl delete -f -"
 

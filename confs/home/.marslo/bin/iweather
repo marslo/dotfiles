@@ -45,8 +45,8 @@ function windDirection() {
 
 function getLatLon() {
   ccity=$(echo "$*" | xargs | sed 's/ /%20/g')
-  # curl -skg "${API_HOME}?q=${ccity,,}&appid=${OWM_API_TOKEN}&limit=5" | jq -r '.[] | select(.state == "California") | .lat ...'
-  curl -skg "${API_HOME}/geo/1.0/direct?q=${ccity,,}&limit=1&appid=${appid}" | jq -r '.[] | "lat=" + (.lat|tostring) + "&lon=" + (.lon|tostring)' > "${locFile}"
+  # ${CURL} -skg "${API_HOME}?q=${ccity,,}&appid=${OWM_API_TOKEN}&limit=5" | jq -r '.[] | select(.state == "California") | .lat ...'
+  ${CURL} -skg "${API_HOME}/geo/1.0/direct?q=${ccity,,}&limit=1&appid=${appid}" | jq -r '.[] | "lat=" + (.lat|tostring) + "&lon=" + (.lon|tostring)' > "${locFile}"
   if [[ ! -s ${locFile} ]] || [[ ! -f "${locFile}" ]]; then
     echo '-1'
   else
@@ -61,12 +61,13 @@ function getWeatherData() {
   units='metric'
   exclude='hourly,daily,minutely,alerts'
   # shellcheck disable=SC1111,SC1110,SC2086
-  curl -skg "${API_HOME}/data/3.0/onecall?${loc}&units=${units}&exclude=${exclude}&appid=${appid}" \
+  ${CURL} -skg "${API_HOME}/data/3.0/onecall?${loc}&units=${units}&exclude=${exclude}&appid=${appid}" \
        | jq -r .current > ${tempfile}
 }
 
 source "$(dirname "$0")/iweather.icon"
 API_HOME="https://api.openweathermap.org"
+CURL='/usr/bin/curl'
 tempfile='/tmp/open-weather-map.json'
 locFile='/tmp/omw-lat-lon'
 cname='San Jose'

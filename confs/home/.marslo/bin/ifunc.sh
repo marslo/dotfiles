@@ -7,35 +7,29 @@
 #  LastChange : 2021-01-15 22:00:55
 # =============================================================================
 
-function take()
-{
+function take() {
   mkdir -p "$1" && cd "$1" || return
 }
 
-function cdls()
-{
+function cdls() {
   cd "$1" && ls
 }
 
-function cdla()
-{
+function cdla() {
   cd "$1" && la
 }
 
-function chmv()
-{
+function chmv() {
   sudo mv "$1" "$2"
   sudo chown -R "$(whoami)":"$(whoami)" "$2"
 }
 
-function chcp()
-{
+function chcp() {
   sudo cp -r "$1" "$2"
   sudo chown -R "$(whoami)":"$(whoami)" "$2"
 }
 
-function cha()
-{
+function cha() {
   sudo chown -R "$(whoami)":"$(whoami)" "$1"
 }
 
@@ -44,12 +38,9 @@ function udfs {
   v='*'
   # shellcheck disable=SC2124
   [ 1 -le $# ] && v="$@"
-  du -sk ${v} | sort -nr | while read -r size fname;
-  do
-    for unit in k M G T P E Z Y;
-    do
-      if [ "$size" -lt 1024 ];
-      then
+  du -sk ${v} | sort -nr | while read -r size fname; do
+    for unit in k M G T P E Z Y; do
+      if [ "$size" -lt 1024 ]; then
         echo -e "${size}${unit}\\t${fname}";
         break;
       fi;
@@ -58,20 +49,29 @@ function udfs {
   done
 }
 
-function mydiff() {
+function mdiff() {
   echo -e " [${1##*/}]\\t\\t\\t\\t\\t\\t\\t[${2##*/}]"
   diff -y --suppress-common-lines "$1" "$2"
 }
 
-function dir()
-{
-  find . -iname "$@" -print0 | xargs -r0 ${LS} -altr | awk '{print; total += $5}; END {print "total size: ", total}';
+function dir() {
+  if [ 0 -eq $? ]; then
+    _p='.'
+  else
+    _p="$*"
+  fi
+
+  find . -iname "${_p}" -print0 | xargs -r0 ${LS} -altr | awk '{print; total += $5}; END {print "total size: ", total}';
 }
 
-function dir-h()
-{
-  find . -iname "$@" -exec ${LS} -lthrNF --color=always {} \;
-  find . -iname "$@" -print0 | xargs -r0 du -csh| tail -n 1
+function dir-h() {
+  if [ 0 -eq $? ]; then
+    _p='.'
+  else
+    _p="$*"
+  fi
+  find . -iname "${_p}" -exec ${LS} -lthrNF --color=always {} \;
+  find . -iname "${_p}" -print0 | xargs -r0 du -csh| tail -n 1
 }
 
 function rcsync()
@@ -82,8 +82,8 @@ function rcsync()
     CURNAME=$( echo "$i" | tr '[:upper:]' '[:lower:]' )
     if [ "$HNAME" != "$CURNAME" ]; then
       echo ------------------- "$i" ---------------------;
-      pushd "$PWD"
-      cd "/home/appadmin"
+      pushd "$PWD" || return
+      cd "/home/appadmin" || return
       rsync \
         -avzrlpgoD \
         --exclude=Tools \
@@ -94,18 +94,16 @@ function rcsync()
         --exclude=.ssh/known_hosts \
         -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' \
         .marslo .vim .vimrc .inputrc .tmux.conf .pip appadmin@"$i":~/
-      popd
+      popd || return
     fi
   done
 }
 
-function getperm()
-{
+function getperm() {
   find "$1" -printf '%m\t%u\t%g\t%p\n'
 }
 
-function rdiff()
-{
+function rdiff() {
   rsync -rv --size-only --dry-run "$1" "$2"
 }
 
@@ -172,14 +170,14 @@ function 256colors() {
   for fgbg in 38 48 ; do # Foreground / Background
       for color in {0..255} ; do # Colors
           printf "\e[${fgbg};5;%sm  %3s  \e[0m" $color $color
-          if [ $((($color + 1) % 6)) == 4 ] ; then
+        if [ $(( (color + 1) % 6 )) == 4 ] ; then
               echo # New line
           fi
       done
       echo # New line
   done
 }
-function 256FomatterColors(){
+function 256colorsAll() {
   #Background
   for clbg in {40..47} {100..107} 49 ; do
     #Foreground
@@ -214,10 +212,14 @@ hmdays() {
 }
 
 ibtoc() {
+  if [ 0 -eq $# ]; then
   find "${MYWORKSPACE}/tools/git/marslo/mbook/docs" \
        -iname '*.md' \
        -not -path '**/SUMMARY.md' \
        -exec doctoc --github --maxlevel 3 {} \;
+  else
+    doctoc --github --maxlevel 3 "$@"
+  fi
 }
 
 gtoc() {
@@ -241,6 +243,13 @@ function cleanview(){
 }
 
 function copy() {
-  cat "$1" | /usr/bin/pbcopy
+  /usr/bin/pbcopy < $1
+}
+
+# brew install fzf
+function fs() {
+  # vim $(/usr/local/bin/fzf --height 40% --layout=reverse --multi)
+  # fzf --bind 'enter:become(vim {})'
+  fzf --multi --bind 'enter:become(vim {+})'
 }
 # vim: ts=2 sts=2 sw=2 et ft=sh
