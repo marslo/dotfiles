@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=SC2139,SC2034
 # =============================================================================
 #   FileName: imarslo
@@ -17,9 +17,11 @@ alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_en
 # alias polipo='polipo -c $HOME/.marslo/polipo/config daemonise=true >/dev/null 2>&1 &'
 alias sshmarslo='ssh marslo@118.193.233.78'
 alias nd='npm run deploy'
+alias vi="$(which -a vim | head -1)"
 
 alias irc="cd ~/.marslo"
 alias desk="cd ~/Desktop"
+alias ecd="cd $iRCHOME/utils/enhancd"
 
 alias mw="cd ${MYWORKSPACE}"
 alias jo="cd ${MYWORKSPACE}/job/"

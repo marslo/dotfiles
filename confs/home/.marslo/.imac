@@ -1,10 +1,10 @@
-#!/bin/bash
-# shellcheck disable=SC2155,SC2034,SC1091,SC1090,SC2046
+#!/usr/bin/env bash
+# shellcheck disable=SC2155,SC2034,SC1091,SC1090,SC2046,SC2086,SC2154
 # =============================================================================
 #   FileName: .imac
 #     Author: marslo.jiao@gmail.com
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2020-06-08 18:35:46
+# LastChange: 2023-10-06 20:07:49
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
 
@@ -12,12 +12,186 @@ for _i in $( /bin/ls -1 ${iRCHOME}/.alias ); do
   source "${iRCHOME}/.alias/${_i}"
 done
 
-if command -v kubectl > /dev/null; then
-  source <(kubectl completion bash)
-fi
+command -v kubectl > /dev/null                                     && source <(kubectl completion bash)
+# source $(brew --prefix)/Cellar/git/$(git --version | awk '{print $3}')/etc/bash_completion.d/git-prompt.sh
+test -f $(brew --prefix)/etc/bash_completion.d/git-prompt.sh       && source $(brew --prefix)/etc/bash_completion.d/git-prompt.sh
+test -f $(brew --prefix)/etc/bash_completion.d/git-completion.bash && source $(brew --prefix)/etc/bash_completion.d/git-completion.bash
+# enhancd
+test -f ${iRCHOME}/utils/enhancd/init.sh                           && source ${iRCHOME}/utils/enhancd/init.sh
 
-# source $(brew --prefix)/Cellar/git/$(git --version | awk -F" " '{print $3}')/etc/bash_completion.d/git-prompt.sh
-source $(brew --prefix)/etc/bash_completion.d/git-prompt.sh
-if [ -f $(brew --prefix)/etc/bash_completion.d/git-completion.bash ]; then
-  source $(brew --prefix)/etc/bash_completion.d/git-completion.bash
+# if [[ -x /usr/bin/sw_vers ]] && /usr/bin/sw_vers | grep -E '\s*[mM]ac\s*OS\s*X?' >/dev/null; then
+if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]]; then
+  # HomeBrew
+  # https://cloud.tencent.com/developer/article/1614039
+  # export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
+  HOMEBREW_BINS="/usr/local/bin"
+  HOMEBREW_BINS+=":/usr/local/sbin"
+  # HomeBrew END
+
+  OPENLDAP_HOME='/usr/local/opt/openldap'
+  CURL_OPENSSL_HOME='/usr/local/opt/curl'                         # via: brew install curl-openssl (https://stackoverflow.com/a/49798271/2940319)
+  OPENSSL_HOME='/usr/local/opt/openssl@1.1'                       # OPENSSL_HOME="$(brew --prefix openssl)"
+  LIBRESSL_HOME='/usr/local/opt/libressl'
+  GIT_EXTRAS='/usr/local/opt/git-extras'                          # GIT_EXTRAS="$(brew --prefix git-extras)"
+  ICU4C_711='/usr/local/Cellar/icu4c@71.1/71.1'                   # '/usr/local/opt/icu4c@71.1'
+
+  BINUTILS='/usr/local/opt/binutils'
+  GNUBINHOME='/usr/local/opt/coreutils/libexec/gnubin'
+  GNUMANHOME='/usr/local/opt/coreutils/libexec/gnuman'
+  GNUWHICH='/usr/local/opt/gnu-which/libexec/gnubin'
+  GNUGREP='/usr/local/opt/grep/libexec/gnubin'
+  GNUGETOPT='/usr/local/opt/gnu-getopt/bin'
+  GNUTAR='/usr/local/opt/gnu-tar/libexec/gnubin'
+  GNUFIND='/usr/local/opt/findutils/libexec/gnubin'
+  GNUINDENT='/usr/local/opt/gnu-indent/libexec/gnubin'
+  GNUSED='/usr/local/opt/gnu-sed/libexec/gnubin'
+  INETUTILS='/usr/local/opt/inetutils/libexec/gnubin'
+  GUILE_TLS_CERTIFICATE_DIRECTORY='/usr/local/etc/gnutls/'
+
+  KW_BUILD_TOOLS='/opt/kwbuildtools'
+  MACVIM_HOME='/Applications/MacVim.app'
+  # vim-tabnine
+  LLVM_HOME='/usr/local/opt/llvm'
+
+  TOOLS_PATH="${KW_BUILD_TOOLS}/bin"
+  TOOLS_PATH+=":/usr/local/vim/bin"
+  TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"
+  TOOLS_PATH+=":${LLVM_HOME}/bin"
+
+  GNU_PATH="${GNUBINHOME}"
+  GNU_PATH+=":${GNUBINHOME}"
+  GNU_PATH+=":${GNUWHICH}"
+  GNU_PATH+=":${GNUGETOPT}"
+  GNU_PATH+=":${GNUGREP}"
+  GNU_PATH+=":${GNUTAR}"
+  GNU_PATH+=":${GNUFIND}"
+  GNU_PATH+=":${GNUINDENT}"
+  GNU_PATH+=":${GNUSED}"
+  GNU_PATH+=":${BINUTILS}/bin"
+
+  GRADLE_HOME='/opt/gradle/gradle-4.8'
+  M2_HOME='/opt/maven/apache-maven-3.5.0'
+  M2=$M2_HOME/bin
+  MAVEN_OPTS='-Xms512m -Xmx1G'
+  ANDROID_HOME='/opt/android'
+  ANDROID_NDK_HOME="$ANDROID_HOME/android-ndk"
+
+  # https://docs.oracle.com/en/java/javase/11/install/installation-jdk-macos.html
+  # java 8
+  #   JAVA_HOME='/Library/Java/JavaVirtualMachines/jdk1.8.0_271.jdk/Contents/Home'
+  # java 11
+  #   JAVA_HOME=$(/usr/libexec/java_home -v 11)
+  # java 21
+  #   JAVA_HOME="$(brew --prefix java)"
+  #   JAVA_HOME=$(/usr/libexec/java_home)
+  # java 17
+  JAVA_HOME=$(brew --prefix openjdk@17)                           # -> '/usr/local/opt/openjdk@17'
+  GROOVY_HOME=$(brew --prefix groovy)/libexec                     # -> '/usr/local/opt/groovy/libexec'
+  CLASSPATH=".:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar:$GROOVY_HOME/lib"
+  # JAVA_OPTS+='-Dhttp.proxyHost=ipamunix.marvell.com -Dhttp.proxyPort=8080'
+
+  NODE_HOME='/usr/local/opt/node@12'
+  MYSQL_HOME='/usr/local/mysql'
+  ITERM2_ADDITIONAL="${HOME}/.iterm2"
+
+  PYTHON_HOME=$(brew --prefix python@3.11)
+  PYTHONPATH='/usr/local/lib/python3.11/site-packages'
+  PYTHONUSERBASE="$(${PYTHON_HOME}/libexec/bin/python -c 'import site; print(site.USER_BASE)')"   # PYTHONUSERBASE=$PYTHONPATH
+  PYTHON_CONFIGURE_OPTS="--with-tcltk-includes='-I${TCLTK_HOME}/include' --with-tcltk-libs='-L${TCLTK_HOME}/lib -ltcl8.6 -ltk8.6'"
+
+  TCLTK_HOME='/usr/local/opt/tcl-tk'                              # -> "$(brew --prefix tcl-tk)"
+  SQLITE_HOME='/usr/local/opt/sqlite'
+  RUBY_HOME='/usr/local/opt/ruby'                                 # -> "$HOME/.rbenv/shims"
+  RUBYGEM="${HOME}/.gem/ruby/2.6.0/bin"
+  RUBY_CONFIGURE_OPTS="--with-openssl-dir=${OPENSSL_HOME}"
+  ED_HOME='/usr/local/opt/ed'
+
+  SCRIPT_BINS="${TCLTK_HOME}/bin"
+  SCRIPT_BINS+=":${PYTHON_HOME}/libexec/bin"
+  SCRIPT_BINS+=":${PYTHONUSERBASE}/bin"
+  SCRIPT_BINS+=":${NODE_HOME}/bin"
+  SCRIPT_BINS+=":${JAVA_HOME}/bin"
+  SCRIPT_BINS+=":${GROOVY_HOME}/bin"
+  SCRIPT_BINS+=":${RUBY_HOME}/bin"
+  SCRIPT_BINS+=":${ED_HOME}/libexec/gnubin"
+  SCRIPT_BINS+=":${ED_HOME}/bin"
+  SCRIPT_BINS+=":${RUBYGEM}"
+  SCRIPT_BINS+=":${GIT_EXTRAS}/bin"
+  # SCRIPT_BINS+=":${PYENV_ROOT}/bin"                             # Shell: bash 3.2.57
+
+  UTLS_PATH="${OPENLDAP_HOME}/bin"
+  UTLS_PATH+=":${OPENLDAP_HOME}/sbin"
+  UTLS_PATH+=":${CURL_OPENSSL_HOME}/bin"
+  UTLS_PATH+=":${OPENSSL_HOME}/bin"
+  UTLS_PATH+=":${INETUTILS}"
+  UTLS_PATH+=":/usr/local/opt/file-formula/bin"
+  UTLS_PATH+=":/usr/local/opt/gettext/bin"
+
+  SPECIAL_TOOLS="${ICU4C_711}/bin"
+  SPECIAL_TOOLS+=":${ICU4C_711}/sbin"
+
+  LDFLAGS="-L${OPENLDAP_HOME}/lib"
+  LDFLAGS+=" -L${CURL_OPENSSL_HOME}/lib"
+  LDFLAGS+=" -L${BINUTILS}/lib"
+  LDFLAGS+=" -L${PYTHON_HOME}/lib"
+  LDFLAGS+=" -L${RUBY_HOME}/lib"
+  LDFLAGS+=" -L${TCLTK_HOME}/lib"
+  LDFLAGS+=" -L${SQLITE_HOME}/lib"
+  LDFLAGS+=" -L$(brew --prefix)/lib"
+  LDFLAGS+=" -L/usr/local/opt/readline/lib"
+  LDFLAGS+=" -L${OPENSSL_HOME}/lib"
+  LDFLAGS+=" -L${NODE_HOME}/lib"
+  LDFLAGS+=" -L${LIBRESSL_HOME}/lib"
+  LDFLAGS+=" -L${ICU4C_711}/lib"
+  LDFLAGS+=" -L${LLVM_HOME}/lib"
+
+  CPPFLAGS="-I${JAVA_HOME}/include"
+  CPPFLAGS+="-I${OPENLDAP_HOME}/include"
+  CPPFLAGS+=" -I${CURL_OPENSSL_HOME}/include"
+  CPPFLAGS+=" -I${BINUTILS}/include"
+  CPPFLAGS+=" -I${SQLITE_HOME}/include"
+  CPPFLAGS+=" -I$(brew --prefix)/include"
+  CPPFLAGS+=" -I/usr/local/opt/readline/include"
+  CPPFLAGS+=" -I${OPENSSL_HOME}/include"
+  CPPFLAGS+=" -I${NODE_HOME}/include"
+  CPPFLAGS+=" -I${LIBRESSL_HOME}/include"
+  CPPFLAGS+=" -I${TCLTK_HOME}/include"
+  CPPFLAGS+=" -I${RUBY_HOME}/include"
+  CPPFLAGS+=" -I${ICU4C_711}/include"
+  CPPFLAGS+=" -I${LLVM_HOME}/include"
+
+  # PKG_CONFIG_PATH="${PKG_CONFIG_PATH}"
+  PKG_CONFIG_PATH="${CURL_OPENSSL_HOME}/lib/pkgconfig"
+  PKG_CONFIG_PATH+=":${TCLTK_HOME}/lib/pkgconfig"
+  PKG_CONFIG_PATH+=":/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/11.1"
+  PKG_CONFIG_PATH+=":${SQLITE_HOME}/lib/pkgconfig"
+  PKG_CONFIG_PATH+=":${OPENSSL_HOME}/lib/pkgconfig"
+  PKG_CONFIG_PATH+=":${PYTHON_HOME}/lib/pkgconfig"
+  PKG_CONFIG_PATH+=":${RUBY_HOME}/lib/pkgconfig"
+  PKG_CONFIG_PATH+=":${LIBRESSL_HOME}/lib/pkgconfig"
+  PKG_CONFIG_PATH+=":${ICU4C_711}/lib/pkgconfig"
+
+  CFLAGS="-I${TCLTK_HOME}/include"
+
+  TEMP_PATH="${TOOLS_PATH}"
+  TEMP_PATH+="${HOMEBREW_BINS}"
+  TEMP_PATH+=":${GNU_PATH}"
+  TEMP_PATH+=":${SCRIPT_BINS}"
+  TEMP_PATH+=":${SQLITE_HOME}/bin"
+  TEMP_PATH+=":${UTLS_PATH}"
+  TEMP_PATH+=":${ITERM2_ADDITIONAL}"
+
+  TEMP_MANPATH="$GNUMANHOME"
+  TEMP_MANPATH+=":/usr/local/share/man"
+  TEMP_MANPATH+=":/usr/share/man"
+  TEMP_MANPATH+=":/usr/local/man"
+  TEMP_MANPATH+=":/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/share/man"
+
+  PATH="$SPECIAL_TOOLS:$TEMP_PATH:$PATH"
+  MANPATH="$TEMP_MANPATH:$MANPATH"
+
+  # eval "$(/usr/libexec/path_helper)"
+  export JAVA_HOME GROOVY_HOME PATH MANPATH
+  export GUILE_TLS_CERTIFICATE_DIRECTORY PYTHONPATH PYTHONUSERBASE CLASSPATH LDFLAGS CPPFLAGS RUBY_CONFIGURE_OPTS PKG_CONFIG_PATH CFLAGS
+  # JAVA_OPTS
 fi

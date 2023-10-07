@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2034,SC1090
+# shellcheck disable=SC2034,SC1090,SC2182,SC2181
 # =============================================================================
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2020-12-16 19:26:40
+# LastChange : 2023-10-07 02:11:39
 # =============================================================================
 
 export iRCHOME='/Users/marslo/.marslo'
@@ -29,31 +29,42 @@ ansibleComp="${iRCHOME}/.completion/ansible-completion"
 if command -v brew > /dev/null; then
   if test -d "${BASH_COMP_DIR}"; then
     # export BASH_COMPLETION_COMPAT_DIR="${BASH_COMP_DIR}"
-    [[ -r "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh" ]] && source "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"
-    [[ -f "${bashComp}" ]] && source "${bashComp}"
+    # shellcheck disable=SC1091
+    test -r "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh" && source "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"
+    test -f "${bashComp}"                                         && source "${bashComp}"
     source <( cat "${BASH_COMP_DIR}"/brew \
                   "${BASH_COMP_DIR}"/tmux \
                   "${BASH_COMP_DIR}"/tig-completion.bash \
             )
-    ls "${BASH_COMP_DIR}"/*git*    >/dev/null 2>&1; [ $? -eq 0 ] && source "${BASH_COMP_DIR}"/*git*
-    ls "${BASH_COMP_DIR}"/*docker* >/dev/null 2>&1; [ $? -eq 0 ] && source "${BASH_COMP_DIR}"/*docker*
+    ls "${BASH_COMP_DIR}"/*git*    >/dev/null 2>&1;  [ $? -eq 0 ] && source "${BASH_COMP_DIR}"/*git*
+    ls "${BASH_COMP_DIR}"/*docker* >/dev/null 2>&1;  [ $? -eq 0 ] && source "${BASH_COMP_DIR}"/*docker*
   fi
 
-  # [ -f "${bashComp2}"      ]   && source "${bashComp2}";
+  # test -f "${bashComp2}"       && source "${bashComp2}";
   # for complete_alias (https://raw.githubusercontent.com/cykerway/complete-alias/master/complete_alias)
-  # [ -f "${bashComp2}"      ]   && source <(cat "${bashComp2}")
+  # test -f "${bashComp2}"       && source <(cat "${bashComp2}")
   # workaround: https://github.com/mobile-shell/mosh/issues/675#issuecomment-156457108
-  # [ -f "${additionalComp}" ]   && source "${additionalComp}"
-  # [ -f "${vboxComp}"       ]   && source "${vboxComp}"
-  # [ -f "${additionalComp}" ]   && source "${additionalComp}"
-  # [ -f "${rtComp}"         ]   && source "${rtComp}"
-  [ -f "${maccliComp}"       ]   && source "${maccliComp}"
-  [ -d "${groovyHome}/bin"   ]   && source <( cat "${groovyHome}"/bin/*_completion )
-  [ -d "${ansibleComp}"      ]   && source <( cat "${ansibleComp}"/*.bash )
-  command -v kubectl > /dev/null && source <( kubectl completion bash )
-  command -v npm     > /dev/null && source <( npm completion )
+  # test -f "${additionalComp}"  && source "${additionalComp}"
+  # test -f "${vboxComp}"        && source "${vboxComp}"
+  # test -f "${additionalComp}"  && source "${additionalComp}"
+  # test -f "${rtComp}"          && source "${rtComp}"
   # find "${groovyHome}/bin" -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
 fi
+
+test -d "${groovyHome}/bin"      && source <( cat "${groovyHome}"/bin/*_completion )
+test -f "${maccliComp}"          && source "${maccliComp}"
+test -d "${ansibleComp}"         && source <( cat "${ansibleComp}"/*.bash )
+command -v kubectl > /dev/null   && source <( kubectl completion bash )
+command -v npm     > /dev/null   && source <( npm completion )
+command -v vault   > /dev/null   && complete -C /usr/local/bin/vault vault
+
+# fzf: $ git clone git@github.com:junegunn/fzf.git ${iRCHOME}/utils
+# fzf auto-completion
+# shellcheck disable=SC1091
+[[ $- == *i* ]] && test -f "${iRCHOME}/utils/fzf/shell/completion.bash" && source "${iRCHOME}/utils/fzf/shell/completion.bash" 2> /dev/null
+# key bindings
+# shellcheck disable=SC1091
+test -f "${iRCHOME}/utils/fzf/shell/key-bindings.bash"                  && source "${iRCHOME}/utils/fzf/shell/key-bindings.bash"
 
 source <(cat "${iRCHOME}"/.completion/.bash_completion.sh \
              "${iRCHOME}"/.imac \
@@ -72,30 +83,30 @@ shopt -s histappend
 # stty -echo
 # stty stop undef
 # stty start undef
+
 # to avoid issues: [here](https://stackoverflow.com/a/25391867/2940319)
-# - tput: No value for $TERM and no -T specified
-# - stty: 'standard input': Inappropriate ioctl for device
+# - tput : No value for $TERM and no -T specified
+# - stty : 'standard input': Inappropriate ioctl for device
 if [[ $- == *i*  ]]; then
   stty ixany
   stty ixoff -ixon
-  [[ -f ~/.LESS_TERMCAP  ]] && . ~/.LESS_TERMCAP
+  test -f  ~/.LESS_TERMCAP && . ~/.LESS_TERMCAP
 fi
 
 export TERM='xterm-color'
 # CentOS or RHEL
-[ -e /usr/share/terminfo/x/xterm-256color ] && export TERM='xterm-256color'
+test -e /usr/share/terminfo/x/xterm-256color     && export TERM='xterm-256color'
 # Ubuntu
-[ -e /lib/terminfo/x/xterm-256color ] && export TERM='xterm-256color'
-# cygwin
-[ -e /usr/share/terminfo/78/xterm-256color ] && export TERM='xterm-256color'
-# MacOS
-[ -e /usr/share/terminfo/78/xterm-256color ] && export TERM='xterm-256color'
+test -e /lib/terminfo/x/xterm-256color           && export TERM='xterm-256color'
+# cygwin && osx
+test -e /usr/share/terminfo/78/xterm-256color    && export TERM='xterm-256color'
 
 # iTerm2 shell integration
+# shellcheck disable=SC1091
 test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
 # test -f /usr/local/bin/screenfetch && /usr/local/bin/screenfetch
-test -f ${iRCHOME}/bin/screenfetch-dev && ${iRCHOME}/bin/screenfetch-dev
-test -f ${iRCHOME}/bin/now             && ${iRCHOME}/bin/now
+test -f ${iRCHOME}/bin/screenfetch-dev           && ${iRCHOME}/bin/screenfetch-dev
+test -f ${iRCHOME}/bin/now                       && ${iRCHOME}/bin/now
 
 if test -f '/usr/local/opt/coreutils/libexec/gnubin/ls'; then
   LS='/usr/local/opt/coreutils/libexec/gnubin/ls'
@@ -135,6 +146,7 @@ function bello() {
 
 # for public account server
 # set -o vi;
+# shellcheck disable=SC1091
 function bye() { source "${iRCHOME}/.bye"; }
 
 # ┌───────┬─────────┬──────────────────┐   ┌──────┬─────────────────┬──────────┐
@@ -150,12 +162,12 @@ function bye() { source "${iRCHOME}/.bye"; }
 # │  W/w  │ White   │ \033[ + 3/4 + 7m │   └──────┴─────────────────┴──────────┘
 # └───────┴─────────┴──────────────────┘
 #
-# References:
+# references:
 #  - [WAOW! Complete explanations](https://stackoverflow.com/a/28938235/101831)
 #  - [coloring functions](https://gist.github.com/inexorabletash/9122583)
 # credit belongs to https://raw.githubusercontent.com/ppo/bash-colors/master/bash-colors.sh
 c() {
-  # shellcheck disable=SC1009,SC2015
+  # shellcheck disable=SC1009,SC2015,SC2028
   [ $# -eq 0 ] && echo "\033[0m" || echo "$1" | sed -E "s/(.)/‹\1›/g;s/([KRGYBMCW])/3\1/g;s/([krgybmcw])/4\1/g;s/S/22/;y/sufnKRGYBMCWkrgybmcw›/14570123456701234567m/;s/‹/\\\033[/g";
 }
 
@@ -167,3 +179,5 @@ source <( cat "${iRCHOME}/bin/ifunc.sh" \
               "${iRCHOME}/bin/im.sh"
         )
 # source "${iRCHOME}/bin/idisable"
+
+#:vim:ts=2:sts=2:sw=2:et:ft=sh
