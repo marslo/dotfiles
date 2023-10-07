@@ -578,7 +578,7 @@
   ### [p]ure [m]arslo revie[w]
   pmw         = "! bash -c 'while read branch; do \n\
                               echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
-                              if [ 'meta/config' == \"${branch}\" ]; then \n\
+                              if [ 'meta/config' = \"${branch}\" ]; then \n\
                                 git push origin HEAD:refs/for/refs/meta/config \n\
                               else \n\
                                 git review ${branch} \n\
@@ -597,7 +597,7 @@
                           branch=\"$*\" ; \
                         fi ; \
                         ${ECHO} \"\\033[1;33m~~> ${branch}\\033[0m\"   ; \
-                        if [ 'meta/config' == \"${branch}\" ]; then \
+                        if [ 'meta/config' = \"${branch}\" ]; then \
                           git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \
                         else \
                           git fetch --all --prune --prune-tags --force ; \

@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# =============================================================================
+#     FileName : .marslorc
+#       Author : marslo.jiao@gmail.com
+#  Description : entrypoint of wsl dot file
+#   LastChange : 2023-10-07 00:12:02
+# =============================================================================
+
+export iRCHOME='/home/marslo/.marslo'
+
+# for public account server
+# source /home/marslo/.marslo/.scm/.public_marslo
+# source /home/marslo/.marslo/.common_marslo
+# source $HOME/.marslo/.tmux-session
+source $HOME/.marslo/.iwsl
+
+shopt -s cdspell
+
+# Disable ctrl+s lock putty
+# stty -echo
+# stty stop undef
+stty ixany
+stty ixoff -ixon
+# stty start undef
+
+# Set terminal color
+# CentOS or RHEL
+test -e /usr/share/terminfo/x/xterm-256color      && export TERM='xterm-256color'
+# Ubuntu
+test -e /lib/terminfo/x/xterm-256color            && export TERM='xterm-256color'
+# cygwin && osx
+test -e /usr/share/terminfo/78/xterm-256color     && export TERM='xterm-256color'
+
+command -v kubectl > /dev/null                    && source <( kubectl completion bash )
+command -v npm > /dev/null                        && source <( npm completion )
+
+[[ -f ${iRCHOME}/.env.wsl            ]] && source ${iRCHOME}/.env.wsl
+[[ -f ${iRCHOME}/.iwsl               ]] && source ${iRCHOME}/.iwsl
+[[ -f ${iRCHOME}/bin/screenfetch-dev ]] && bash   ${iRCHOME}/bin/screenfetch-dev
+[[ -f ${iRCHOME}/bin/now             ]] && bash   ${iRCHOME}/bin/now
+
+# for open cygwin from totoalcommander/bat/vim
+if [ -z "$STARTIN" ]; then
+  cd $HOME
+elif [ -d "$STARTIN" ]; then
+  cd "$STARTIN"
+else
+  T=`dirname $STARTIN`
+  if [ -d "$T" ]; then
+    cd "$T"
+  else
+    echo "$STARTIN is not a valid path."
+    cd $HOME
+  fi
+fi
+
+LS="/usr/bin/ls"
+GREP="/usr/bin/grep"
+
+# for public server (use common account)
+# set -o vi
+function bello() { source <( cat $HOME/.marslo/.devops/.public_marslo $HOME/.marslo/.bello_marslo ); }
+function bye() { source $HOME/.marslo/.bye_marslo; }
+
+# ┌───────┬─────────┬──────────────────┐   ┌──────┬─────────────────┬──────────┐
+# │ Fg/Bg │ Style   │ Octal            │   │ Code │ Style           │ Octal    │
+# ├───────┼─────────┼──────────────────┤   ├──────┼─────────────────┼──────────┤
+# │  K/k  │ Black   │ \033[ + 3/4 + 0m │   │   s  │ Bold (strong)   │ \033[1m  │
+# │  R/r  │ Red     │ \033[ + 3/4 + 1m │   │   u  │ Underline       │ \033[4m  │
+# │  G/g  │ Green   │ \033[ + 3/4 + 2m │   │   f  │ Blink (flash)   │ \033[5m  │
+# │  Y/y  │ Yellow  │ \033[ + 3/4 + 3m │   │   n  │ Negative        │ \033[7m  │
+# │  B/b  │ Blue    │ \033[ + 3/4 + 4m │   ├──────┼─────────────────┼──────────┤
+# │  M/m  │ Magenta │ \033[ + 3/4 + 5m │   │   S  │ Normal (unbold) │ \033[22m │
+# │  C/c  │ Cyan    │ \033[ + 3/4 + 6m │   │   0  │ Reset           │ \033[0m  │
+# │  W/w  │ White   │ \033[ + 3/4 + 7m │   └──────┴─────────────────┴──────────┘
+# └───────┴─────────┴──────────────────┘
+#
+# references:
+#  - [WAOW! Complete explanations](https://stackoverflow.com/a/28938235/101831)
+#  - [coloring functions](https://gist.github.com/inexorabletash/9122583)
+# credit belongs to https://raw.githubusercontent.com/ppo/bash-colors/master/bash-colors.sh
+c() {
+  [ $# -eq 0 ] && echo "\033[0m" || echo "$1" | sed -E "s/(.)/‹\1›/g;s/([KRGYBMCW])/3\1/g;s/([krgybmcw])/4\1/g;s/S/22/;y/sufnKRGYBMCWkrgybmcw›/14570123456701234567m/;s/‹/\\\033[/g";
+}
+
+# fucntions
+source <( cat "$HOME/.marslo/bin/imarslo" \
+              "$HOME/.marslo/bin/iutil.wsl"
+        )
+
+export OWM_API_TOKEN='002bc5218fcca4be4b3c7374963d717c'

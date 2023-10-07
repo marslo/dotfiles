@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# =============================================================================
+#     FileName : .iwsl
+#       Author : marslo.jiao@gmail.com
+#  Description : wsl specific settings
+#   LastChange : 2023-10-07 00:12:02
+# =============================================================================
+
+while read _i; do source "${iRCHOME}/.alias/$_i"; done < <( /bin/ls -1 "${iRCHOME}/.alias" )
+
+alias mw="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo'"
+alias dos="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo/job/devops'"
+alias ecd="cd $HOME/iMarslo/tools/git/utils/enhancd"
+alias clip='/mnt/c/Windows/System32/clip.exe'
+alias pbcopy='/mnt/c/Windows/System32/clip.exe'
+alias bcomp='/mnt/c/Program\ Files/Beyond\ Compare\ 4/BComp.exe'
+alias open='/mnt/c/Windows/explorer.exe'
+alias chrome='/mnt/c/Program\ Files/Google/Chrome/Application/chrome.exe'
+
+function copy() { /mnt/c/Windows/System32/clip.exe < "$1"; }
+
+test -f $HOME/iMarslo/tools/git/utils/enhancd/init.sh && source $HOME/iMarslo/tools/git/utils/enhancd/init.sh
+
+# vim:ts=2:sts=2:sw=2:et:ft=sh
