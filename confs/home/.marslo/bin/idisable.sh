@@ -39,16 +39,14 @@ function pydict() {
   cd "$currentDir" || return
 }
 
-function ccker()
-{
+function ccker() {
   pushd .
   cd "$HOME/myworks/appliance/automation/robot/branches/dev_main" || return
   python utility/checkers/CodeChecker.py --check_all
   popd
 }
 
-function getcomputerversion()
-{
+function getcomputerversion() {
   sudo dmidecode | ${GREP} -i prod
 }
 

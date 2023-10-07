@@ -1,11 +1,49 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# For git diff
+# for ssh agent: start the ssh-agent
+function start_agent {
+  echo "Initializing new SSH agent..."
+  # spawn ssh-agent
+  /usr/bin/ssh-agent | sed 's/^echo/#echo/' > ${SSH_ENV}
+  echo succeeded
+  chmod 600 ${SSH_ENV}
+  . ${SSH_ENV} > /dev/null
+  /usr/bin/ssh-add
+}
+
+function ssh_agent() {
+  if [ -f "${SSH_ENV}" ]; then
+    . ${SSH_ENV} > /dev/null
+    ps -ef | ${GREP} ${SSH_AGENT_PID} | ${GREP} ssh-agent$ > /dev/null || {
+    start_agent;
+  }
+  else
+    start_agent;
+  fi
+}
+
+# inspired from http://www.earthinfo.org/linux-disk-usage-sorted-by-size-and-human-readable/
+function udfs {
+  du -sk "$@" | sort -nr | while read size fname;
+  do
+    for unit in k M G T P E Z Y;
+    do
+      if [ $size -lt 1024 ];
+      then
+        echo -e "${size}${unit}\t${fname}";
+        break;
+      fi;
+      size=$((size/1024));
+    done;
+  done
+}
+
+# for git diff
 # Inspired from http://stackoverflow.com/questions/8259851/using-git-diff-how-can-i-get-added-and-modified-lines-numbers
 function diff-lines() {
   local path=
   local line=
-  while read -r; do
+  while read; do
     esc=$'\033'
     if [[ $REPLY =~ ---\ (a/)?.* ]]; then
       continue
@@ -22,7 +60,6 @@ function diff-lines() {
   done
 }
 
-
 # author: Duane Johnson
 # email: duane.johnson@gmail.com
 # date: 2008 Jun 12
@@ -30,17 +67,17 @@ function diff-lines() {
 # Modified by Marslo
 # Email: marslo.vida@gmail.com
 # date: 2013-10-15 17:54:58
-
 # Based on discussion at http://kerneltrap.org/mailarchive/git/2007/11/12/406496
 # For get git infor
 function gitinfo() {
-  pushd . >/dev/null
-
+  # pushd . >/dev/null
   # Find base of git directory
-  while [ ! -d .git ] && [ ! "$(pwd)" = "/" ]; do cd ..; done
+  # while [ ! -d .git ] && [ ! `pwd` = "/" ]; do cd ..; done
+
+  gittop=$(git rev-parse --show-toplevel 2>/dev/null)
 
   # Show various information about this git directory
-  if [ -d .git ]; then
+  if [ ! -z "$gittop" ]; then
     echo "== Remote URL: "
     git remote -v
     echo
@@ -54,7 +91,7 @@ function gitinfo() {
     echo
 
     echo "== Configuration (.git/config)"
-    cat .git/config
+    cat ${gittop}/.git/config
     echo
 
     echo "== Most Recent Commit"
@@ -65,10 +102,16 @@ function gitinfo() {
   else
     echo "Not a git repository."
   fi
-  popd >/dev/null
+  # popd >/dev/null
 }
 
-function gbl() {
-  git for-each-ref --sort=-committerdate --format='%(committerdate) %(authorname) %(refname)' refs/remotes/origin/ | ${GREP} -e ".$*" | head -n 10;
+
+# fe [FUZZY PATTERN] - Open the selected file with the default editor
+#   - Bypass fuzzy finder if there's only one match (--select-1)
+#   - Exit if there's no match (--exit-0)
+fe() {
+  IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
+  [[ -n "$files" ]] && ${EDITOR:-vim} "${files[@]}"
 }
 
+# vim:ts=2:sts=2:sw=2:et:ft=sh
