@@ -65,7 +65,8 @@ function getWeatherData() {
        | jq -r .current > ${tempfile}
 }
 
-source "$(dirname "$0")/iweather.icon"
+# shellcheck disable=SC2086
+source "$(dirname $0)/iweather.icon"
 API_HOME="https://api.openweathermap.org"
 CURL='/usr/bin/curl'
 tempfile='/tmp/open-weather-map.json'
@@ -73,6 +74,7 @@ locFile='/tmp/omw-lat-lon'
 cname='San Jose'
 verbose='false'
 appid="${OWM_API_TOKEN}"
+# shellcheck disable=SC1078,SC1079
 usage="""
 $(c M)iweather$(c) - show weather status of city
 \nNOTICE:
@@ -109,6 +111,7 @@ USAGE:
 """
 
 if [[ 0 -eq $# ]]; then
+  # shellcheck disable=SC2269
   cname="${cname}"
 # simple usage: not starts with '-' && not contains '='
 elif [[ 1 -eq $# ]] && [[ '-' != "${1::1}" ]] ; then
@@ -171,6 +174,7 @@ declare -A descMap=(
                       ['05_uvi']="${uvi} mW/cm2"
                    )
 
+# shellcheck disable=SC2086
 [[ 'true' = "${verbose}" ]] && echo -e " $(c G)$(capitalized ${cname})$(c): $(capitalized ${description})"
 echo -e "${!codeMap["x${weatherIcon:0:-1}"]}"
 

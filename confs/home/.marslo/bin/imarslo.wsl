@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2164,SC2086
 
 function mkcd() { mkdir -p $1 && cd $1; }
 function cdls() { cd $1 && ls; }
@@ -6,22 +7,23 @@ function cdla() { cd $1 && la; }
 function chmv() { sudo mv $1 $2; sudo chown -R appadmin:appadmin $2; }
 function cha() { sudo chown -R appadmin:appadmin $1; }
 function rcsource() { source $HOME/.marslo/.marslorc; }
-function gbl() { git for-each-ref --sort=-committerdate --format='%(committerdate) %(authorname) %(refname)' refs/remotes/origin/ | grep -e ".$@" | head -n 10; }
+function gbl() { git for-each-ref --sort=-committerdate --format='%(committerdate) %(authorname) %(refname)' refs/remotes/origin/ | grep -e ."$*" | head -n 10; }
 # export cl=`p4 change -o | sed 's/<enter description here>/"Change list description"/' | sed '/^#/d' | sed '/^$/d' | p4 change -i | cut -d ' ' -f 2`
-function p4nc() { p4 change -o | sed '/^#/d' | sed '/^$/d' | sed "s|Description: |Description: $@|" | sed "s|JIRA ID.*$|JIRA ID: APPSOL-00000|" | sed "s|Review.*$|Review: self-review|" | sed "s/+$//" | p4 change -i; }
+function p4nc() { p4 change -o | sed '/^#/d' | sed '/^$/d' | sed "s|Description: |Description: $*|" | sed "s|JIRA ID.*$|JIRA ID: APPSOL-00000|" | sed "s|Review.*$|Review: self-review|" | sed "s/+$//" | p4 change -i; }
 function p4blame() { FILE="$1"; LINE="$2"; p4 annotate -cq "${FILE}" | sed "${LINE}q;d" | cut -f1 -d: | xargs p4 describe -s | sed -e '/Affected files/,$d'; }
 function p4cd() { unset P4DIFF; p4 opened -c $1 | awk -F' ' '{print $1}' | p4 -x - -z tag diff -du > $1.diff; export P4DIFF=vimdiff; }
 function dir() { find . -iname "$@" -print0 | xargs -r0 ls -altr | awk '{print; total += $5}; END {print "total size: ", total}'; }
 
 function pydict() {
-  currentDir=`pwd`
+  currentDir=$(pwd)
   cd ~/.vim/bundle/pydiction
-  python pydiction.py $@
+  python pydiction.py "$@"
   cd $currentDir
 }
 
 # marslo grep
 function mg() {
+  # shellcheck disable=SC1078,SC1079
   usage="""mg - marslo grep - combined find and grep to quick find keywords
   \nUSAGE:
   \n\t$(c sY)\$ mg [OPT] [NUM] KEYWORD [<PATHA>]$(c)
@@ -75,6 +77,7 @@ function mg() {
 
     if [ -n "${kw}" ]; then
       # or using + instead of ; details: https://unix.stackexchange.com/a/43743/29178
+      # shellcheck disable=SC2125,SC2027
       cmd="""find "${p}" -type f -not -path "*git/*" -exec grep ${opt} "${kw}" {} ;"""
       find "${p}" -type f -not -path "*git/*" -exec grep ${opt} "${kw}" {} \; \
         || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
@@ -86,6 +89,7 @@ function mg() {
 
 # find file
 ff() {
+  # shellcheck disable=SC1078,SC1079
   usage="""USAGE:
   \n\t$(c sY)\$ ff <FILENAME> [<PATH>]$(c)
   \nExample:
@@ -104,6 +108,7 @@ ff() {
 
 # marslo sed
 function ms() {
+  # shellcheck disable=SC1078,SC1079
   usage="""msed - marslo sed - sed all key words in the path
   \n$(c s)USAGE:$(c)
   \n\t$(c sY)\$ msed [OPT] <ORIGIN_STRING> <NEW_STRING> [PATH]$(c)
@@ -141,6 +146,7 @@ function ms() {
   fi
 
   if [ -n "${sw}" ] && [ -n "${tw}" ]; then
+    # shellcheck disable=SC2125,SC2027
     cmd="""find "${p}" -type f -not -path "*git/*" -exec sed ${opt} "s,${sw},${tw},g" {} ;"""
     ${cmd} \
       || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
@@ -154,7 +160,8 @@ function bd() {
   DOMAIN='engba'
   TYPE='appbuilder'
 
-  args=`getopt rcd $*`
+  # shellcheck disable=SC2048
+  args=$(getopt rcd $*)
   if test $? != 0
   then
     echo -e 'Usage: [-r[c[d]]] HostnumVMnum
@@ -200,7 +207,7 @@ function ccker() {
 
 function rcsync() {
   SITE="Jira Confluence Jenkins Gitlab Artifactory Sonar Slave"
-  HNAME=`hostname | tr '[:upper:]' '[:lower:]'`
+  HNAME=$(hostname | tr '[:upper:]' '[:lower:]')
   for i in $SITE; do
     CURNAME=$(echo $i | tr '[:upper:]' '[:lower:]')
     if [ "$HNAME" != $CURNAME ]; then
@@ -225,7 +232,7 @@ function gitFetch() {
     utFiles=$(git ls-files --others --exclude-standard)
     mdFiles=$(git ls-files --modified)
     cBranch=$(git rev-parse --abbrev-ref HEAD)
-    [ ! -z "${utFiles}" ] && echo -e "\\033[35mUNTRACKED FILES in ${cBranch}: ${utFiles}\\033[0m"
+    [[ -n "${utFiles}" ]] && echo -e "\\033[35mUNTRACKED FILES in ${cBranch}: ${utFiles}\\033[0m"
 
     if ! git branch -a | ${GREP} ${GITBRANCH} > /dev/null 2>&1; then
       GITBRANCH=master
@@ -233,8 +240,8 @@ function gitFetch() {
     echo -e "\\033[33m-> ${GITBRANCH}\\033[0m"
 
     # checkout branch to $GITBRANCH
-    if [ ! "${cBranch}" = "${GITBRANCH}" ]; then
-      if [ ! -z "${mdFiles}" ]; then
+    if [[ ! "${cBranch}" = "${GITBRANCH}" ]]; then
+      if [[ -n "${mdFiles}" ]]; then
         echo -e "\\033[31mGIT STASH: ${GITDIR} : ${cBranch} !!\\033[0m"
         git stash save "auto-stashed by gitFetch command"
         ISStashed=true
@@ -289,6 +296,7 @@ function fetchall() {
   else
     brName="dev"
   fi
+  # shellcheck disable=SC2035
   for i in $(${LS} -1d */); do
     gitFetch "$i" "$brName"
   done
@@ -329,7 +337,7 @@ function vim() {
   if [[ 0 -eq $# ]]; then
     fzf --multi --bind="enter:become($(which -a vim | head -1) {+})"
   else
-    $(which -a vim | head -1) -u $HOME/.vimrc $@
+    $(which -a vim | head -1) -u $HOME/.vimrc "$@"
   fi
 }
 
