@@ -1,11 +1,11 @@
-#!/bin/bash
-# shellcheck disable=SC1078,SC1079
+#!/usr/bin/env bash
+# shellcheck disable=SC1078,SC1079,SC2076
 # =============================================================================
 #     FileName : im.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2012
-#   LastChange : 2023-06-26 15:52:44
-#         Desc : for artifactory
+#   LastChange : 2023-10-07 18:40:03
+#         Desc : iMarslo
 # =============================================================================
 
 function exitOnError() { echo -e "$1"; }
@@ -19,8 +19,12 @@ function color() { for c; do printf '\e[48;5;%dm%03d' "$c" "$c"; done; printf '\
 function erc() { /usr/local/bin/vim "${iRCHOME}/.marslorc"; }
 function kdev() { kubectl config use-context kubernetes-dev; }
 function kprod() { kubectl config use-context kubernetes-prod; }
-function kx() { [ "$1" ] && kubectl config use-context $1 || kubectl config current-context ; }
+# shellcheck disable=SC2015
+function kx() { [ "$1" ] && kubectl config use-context "$1" || kubectl config current-context ; }
 function pipurl() { pip list --format=freeze | cut -d= -f1 | xargs pip show | awk '/^Name/{printf $2} /^Home-page/{print ": "$2}' | column -t; }
+function getsum { awk '{ sum += $1 } END { print sum }' "$1"; }
+## how many days since now https://tecadmin.net/calculate-difference-between-two-dates-in-bash/
+function hmds() { echo $(( ( $(date -d "$1" +%s) - $(date +%s))/86400 )); }
 
 function contains() {
   string=$1
@@ -62,14 +66,15 @@ function mg() {
   param=$( tr '[:upper:]' '[:lower:]' <<< "$1" )
 
   contains 'ifmwabce' "${param}"
+  # shellcheck disable=SC2034
   paramValid=$?
 
-  if [ 0 -eq $# ] ; then
+  if [[ 0 -eq $# ]] ; then
     echo -e "${usage}"
     return
-  elif [ 1 -eq $# ]; then
+  elif [[ 1 -eq $# ]]; then
     keyword="$1"
-  elif [ 2 -eq $# ] && [[ "$2" =~ '/' || "$2" =~ '.' ]]; then
+  elif [[ 2 -eq $# ]] && [[ "$2" =~ '/' || "$2" =~ '.' ]]; then
     keyword="$1"
     path="$2"
   else
@@ -187,27 +192,26 @@ function ms() {
 
 # proxy clear
 function pclr(){
-  PROXY_ENV="http_proxy ftp_proxy https_proxy all_proxy socks_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY SOCKS_PROXY"
-  for envvar in ${PROXY_ENV}; do
+  pEnv="http_proxy ftp_proxy https_proxy all_proxy socks_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY SOCKS_PROXY"
+  for envvar in ${pEnv}; do
     unset "${envvar}"
   done
   echo -e "$(c sM)all proxy environment variable has been removed.$(c)"
 }
 
 # proxy setup
+# myproxy=$(echo $1 | sed -n 's/\([0-9]\{1,3\}.\)\{4\}:\([0-9]\+\)/&/p')
 function pset(){
-  # myproxy=$(echo $1 | sed -n 's/\([0-9]\{1,3\}.\)\{4\}:\([0-9]\+\)/&/p')
-  if [ 0 -eq $# ]; then
-    myproxy='http://127.0.0.1:1087'
-  else
-    myproxy=$*
-  fi
-  # PROXY_ENV="http_proxy ftp_proxy https_proxy all_proxy socks_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY SOCKS_PROXY"
-  PROXY_ENV='http_proxy ftp_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY'
-  for envvar in $PROXY_ENV; do
-    export "$envvar"="$myproxy"
+  myproxy=$( [ 0 -eq $# ] && echo 'http://127.0.0.1:8081' || echo "$*" )
+  pEnv='http_proxy HTTP_PROXY'
+  pEnv+=' https_proxy HTTPS_PROXY'
+  pEnv+=' ftp_proxy FTP_PROXY'
+  # pEnv+=' socks_proxy SOCKS_PROXY'
+
+  for envvar in $pEnv; do
+    export "${envvar}"="${myproxy}"
   done
-  echo -e "$(c sG)proxy has been all set as $myproxy.$(c)"
+  echo -e "$(c sG)proxy has been all set as ${myproxy}.$(c)"
 }
 
 function run() {
@@ -272,13 +276,13 @@ function stop() {
 }
 
 function startDocker() {
-  if [ -z "$(ps aux | grep '/Applications/Docker.app/Contents/MacOS/Docker' | grep -v grep)" ]; then
+  if ! pgrep -f '/Applications/Docker.app/Contents/MacOS/Docker' >/dev/null 2>&1; then
     echo -e "$(c sY)~~> start Docker.app ...$(c)"
 
     i=0
     open -g -a Docker.app &&
     while ! docker system info &>/dev/null; do
-      (( i++ == 0 )) && printf $(c sY)%-6s$(c) '    waiting for Docker to finish starting up...' || printf $(c sY)%s$(c) '.'
+      (( i++ == 0 )) && printf "$(c sY)%-6s$(c)     waiting for Docker to finish starting up..." || printf "$(c sY)%s$(c) ."
       sleep 1
     done
     (( i )) && printf '\n'
@@ -289,7 +293,7 @@ function startDocker() {
 }
 
 function stopDocker() {
-  if [ ! -z "$(ps aux | grep '/Applications/Docker.app/Contents/MacOS/Docker' | grep -v grep)" ]; then
+  if pgrep -f '/Applications/Docker.app/Contents/MacOS/Docker' >/dev/null 2>&1; then
     echo -e "$(c sM)~~> quitting Docker.app...$(c)"
     osascript - << EOF || exit
     tell application "Docker"
@@ -302,15 +306,15 @@ EOF
   fi
 }
 
+#        --network jenkins \
+#        --env DOCKER_HOST=tcp://docker:2376   \
+#        --env DOCKER_CERT_PATH=/certs/client \
+#        --env DOCKER_TLS_VERIFY=1   \
 function startJenkins() {
   docker run \
          --name jenkins \
          --detach   \
          --rm \
-         # --network jenkins \
-         # --env DOCKER_HOST=tcp://docker:2376   \
-         # --env DOCKER_CERT_PATH=/certs/client \
-         # --env DOCKER_TLS_VERIFY=1   \
          --publish 8080:8080 \
          --publish 50000:50000   \
          --env JENKINS_ADMIN_ID=admin \
@@ -339,8 +343,8 @@ function startJenkins() {
                 -Dhudson.plugins.active_directory.ActiveDirectorySecurityRealm.forceLdaps=false \
                 -Dhudson.model.ParametersAction.keepUndefinedParameters=true \
                 -Dhudson.model.DirectoryBrowserSupport.CSP=\"\" \
-                -Djsch.client_pubkey="ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256,ssh-rsa" \
-                -Djsch.server_host_key="ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256,ssh-rsa"
+                -Djsch.client_pubkey=\"ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256,ssh-rsa\" \
+                -Djsch.server_host_key=\"ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256,ssh-rsa\"
               " \
          --env JNLP_PROTOCOL_OPTS="-Dorg.jenkinsci.remoting.engine.JnlpProtocol3.disabled=false" \
          --volume /opt/JENKINS_HOME:/var/jenkins_home \
@@ -366,4 +370,4 @@ function trust() {
   sudo /sbin/route get "${host}"
 }
 
-# vim: ts=2 sts=2 sw=2 et ft=sh
+# vim:ts=2:sts=2:sw=2:et:ft=sh

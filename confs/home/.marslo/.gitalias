@@ -160,7 +160,7 @@
                               echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
                               git add --all $(git rev-parse --show-toplevel) \n\
                               git commit --amend --no-edit \n\
-                              if [ 'meta/config' == \"${branch}\" ]; then \n\
+                              if [ 'meta/config' = \"${branch}\" ]; then \n\
                                 git push -u --force origin HEAD:refs/meta/config \n\
                                 git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \n\
                                 git reset --hard remotes/origin/${branch} ; \n\
@@ -671,7 +671,7 @@
   ign         = ls-files -o -i --exclude-standard
   make-patch  = "! bash -c \"git format-patch HEAD~1; git reset HEAD~1\""
   pdraft      = !git push origin HEAD:refs/drafts/$1
-  ghook       = "!bash -c 'scp -p -O -P 29418 vgitcentral.marvell.com:hooks/commit-msg $(git rev-parse --git-dir)/hooks/'"
+  ghook       = "!bash -c 'scp -p -O -P 29418 vgitcentral.example.com:hooks/commit-msg $(git rev-parse --git-dir)/hooks/'"
   ghprofile   = "! bash -c 'git config user.email \"marslo.jiao@gmail.com\"; \n\
                             git config user.name \"marslo\" \n\
                            '"
