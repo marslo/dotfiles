@@ -88,7 +88,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   JAVA_HOME=$(brew --prefix openjdk@17)                           # -> '/usr/local/opt/openjdk@17'
   GROOVY_HOME=$(brew --prefix groovy)/libexec                     # -> '/usr/local/opt/groovy/libexec'
   CLASSPATH=".:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar:$GROOVY_HOME/lib"
-  # JAVA_OPTS+='-Dhttp.proxyHost=ipamunix.marvell.com -Dhttp.proxyPort=8080'
+  # JAVA_OPTS+='-Dhttp.proxyHost=ipamunix.example.com -Dhttp.proxyPort=8080'
 
   NODE_HOME='/usr/local/opt/node@12'
   MYSQL_HOME='/usr/local/mysql'
