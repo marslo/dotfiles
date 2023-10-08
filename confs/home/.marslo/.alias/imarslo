@@ -7,8 +7,10 @@
 # LastChange: 2019-09-19 15:49:10
 # =============================================================================
 
-MYWORKSPACE="/Users/marslo/iMarslo"
+MYWORKSPACE="$HOME/iMarslo"
 
+# alias v='vim -u ~/.vimrc.imarslo'
+# alias vimdiff='/usr/local/bin/vim -d'
 alias tmax='tmux at -t marslo'
 alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
 alias polipo='polipo -c $HOME/.marslo/polipo/config >/dev/null 2>&1 &'
@@ -30,11 +32,11 @@ alias fw="cd ${MYWORKSPACE}/job/code/fw"
 alias ds="cd ${MYWORKSPACE}/job/code/devops"
 alias dj="cd ${MYWORKSPACE}/job/code/devops/jenkins"
 alias eng="cd ${MYWORKSPACE}/job/code/devops/eng"
-alias wj="cd ${MYWORKSPACE}/job/code/devops/wj"
-alias vj="cd ${MYWORKSPACE}/job/code/devops/vj"
-alias hj="cd ${MYWORKSPACE}/job/code/devops/hj"
+alias wj="cd ${MYWORKSPACE}/job/code/devops/eng/j"
+alias vj="cd ${MYWORKSPACE}/job/code/devops/eng/vj"
+alias hj="cd ${MYWORKSPACE}/job/code/devops/eng/hj"
 alias ej="cd ${MYWORKSPACE}/job/code/devops/eng/ejenkins"
-alias dos="cd ${MYWORKSPACE}/job/devops"
+alias dos="cd ${MYWORKSPACE}/job/code/devops"
 
 alias st="cd ${MYWORKSPACE}/study"
 alias sg="cd ${MYWORKSPACE}/study/mystudy/groovy"
