@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2023-10-07 16:30:22
+# LastChange : 2023-10-08 05:35:22
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -21,6 +21,7 @@ export iRCHOME="$HOME/.marslo"
 #
 # --------------------------------------------------------------/
 groovyHome='/opt/groovy-3.0.7'
+# https://github.com/dysosmus/ansible-completion
 ansibleComp="${iRCHOME}/.completion/ansible-completion"
 
 ## for mac
@@ -33,7 +34,6 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   additionalComp="${iRCHOME}/bin/bash_completion_init_completion"
   gitCompDir="${HOMEBREW_PREFIX}/opt/git/etc/bash_completion.d"
   maccliComp='/usr/local/bin/mac-cli/completion/bash_completion'
-  # https://github.com/dysosmus/ansible-completion
   # https://github.com/mug896/virtualbox-bash-completion
   # https://github.com/gryf/vboxmanage-bash-completion
   # vboxComp="${iRCHOME}/.completion/vbox/VBoxManage-completion.bash"
@@ -50,7 +50,6 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
       ls "${BASH_COMP_DIR}"/*docker* >/dev/null 2>&1;  [ $? -eq 0 ] && source "${BASH_COMP_DIR}"/*docker*
     fi
 
-    test -f "${maccliComp}"        && source "${maccliComp}"
     # for complete_alias (https://raw.githubusercontent.com/cykerway/complete-alias/master/complete_alias)
     # test -f "${bashComp2}"       && source <(cat "${bashComp2}")     # or source "${bashComp2}";
     # workaround: https://github.com/mobile-shell/mosh/issues/675#issuecomment-156457108
@@ -58,6 +57,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
     # test -f "${vboxComp}"        && source "${vboxComp}"
     # test -f "${additionalComp}"  && source "${additionalComp}"
     # test -f "${rtComp}"          && source "${rtComp}"
+    # test -f "${maccliComp}"      && source "${maccliComp}"
   fi
   # iTerm2 shell integration
   test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
@@ -72,7 +72,6 @@ fi
 # find "${groovyHome}/bin" -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
 test -d "${groovyHome}/bin"                          && source <( cat "${groovyHome}"/bin/*_completion )
 test -d "${ansibleComp}"                             && source <( cat "${ansibleComp}"/*.bash )
-# test -f "${iRCHOME}/others/.bash_completion.sh"    && source <( cat "${iRCHOME}/others/.bash_completion.sh" )
 test -f "${iRCHOME}/.completion/.bash_completion.sh" && source <( cat "${iRCHOME}/.completion/.bash_completion.sh" )
 command -v kubectl > /dev/null                       && source <( kubectl completion bash )
 command -v npm     > /dev/null                       && source <( npm completion )
@@ -82,6 +81,8 @@ command -v vault   > /dev/null                       && complete -C /usr/local/b
 [[ $- == *i* ]] && test -f "${iRCHOME}/utils/fzf/shell/completion.bash" && source "${iRCHOME}/utils/fzf/shell/completion.bash" 2> /dev/null
 test -f "${iRCHOME}/utils/fzf/shell/key-bindings.bash"                  && source "${iRCHOME}/utils/fzf/shell/key-bindings.bash"
 
+# eval "$(rbenv init -)"
+# test -f $HOME/.tmux-session && source $HOME/.tmux-session
 
 # /--------------------------------------------------------------
 #                   __ _
@@ -204,7 +205,7 @@ c() {
 #             __/ |
 #            |___/
 # --------------------------------------------------------------/
-source <( cat "${iRCHOME}/bin/{ifunc,ii,ig,irt,im}.sh" )
+source <( cat "${iRCHOME}"/bin/{ifunc,ii,ig,irt,im}.sh )
 # source "${iRCHOME}/bin/idisable"
 
 # vim: tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------
