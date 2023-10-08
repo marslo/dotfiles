@@ -125,6 +125,7 @@ function mg() {
 
 # find file
 function ff() {
+  # shellcheck disable=SC1078,SC1079
   usage="""\t$(c B)f$(c)ind $(c M)f$(c)ile(s)
   \nSYNOPSIS
   \n\t$(c sY)\$ ff <FILENAME> [<PATH>]$(c)
@@ -144,6 +145,7 @@ function ff() {
 
 # marslo sed
 function ms() {
+  # shellcheck disable=SC1078,SC1079
   usage="""msed - marslo sed - sed all key words in the path
   \n$(c s)SYNOPSIS$(c)
   \n\t$(c sY)\$ msed [OPT] <ORIGIN_STRING> <NEW_STRING> [PATH]$(c)
@@ -203,10 +205,8 @@ function pclr(){
 # myproxy=$(echo $1 | sed -n 's/\([0-9]\{1,3\}.\)\{4\}:\([0-9]\+\)/&/p')
 function pset(){
   myproxy=$( [ 0 -eq $# ] && echo 'http://127.0.0.1:8081' || echo "$*" )
-  pEnv='http_proxy HTTP_PROXY'
-  pEnv+=' https_proxy HTTPS_PROXY'
-  pEnv+=' ftp_proxy FTP_PROXY'
-  # pEnv+=' socks_proxy SOCKS_PROXY'
+  pEnv="http_proxy ftp_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY"
+  # pEnv+="socks_proxy SOCKS_PROXY"
 
   for envvar in $pEnv; do
     export "${envvar}"="${myproxy}"
@@ -282,7 +282,7 @@ function startDocker() {
     i=0
     open -g -a Docker.app &&
     while ! docker system info &>/dev/null; do
-      (( i++ == 0 )) && printf "$(c sY)%-6s$(c)     waiting for Docker to finish starting up..." || printf "$(c sY)%s$(c) ."
+      (( i++ == 0 )) && printf "$(c sY)%-6s$(c)     waiting for Docker to finish starting up..." || printf "$(c sY)%s$(c)."
       sleep 1
     done
     (( i )) && printf '\n'

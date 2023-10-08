@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+
+# inspired from http://www.earthinfo.org/linux-disk-usage-sorted-by-size-and-human-readable/
+function udfs {
+  du -sk "$@" | sort -nr | while read size fname;
+  do
+    for unit in k M G T P E Z Y;
+    do
+      if [ $size -lt 1024 ];
+      then
+        echo -e "${size}${unit}\t${fname}";
+        break;
+      fi;
+      size=$((size/1024));
+    done;
+  done
+}
+
+
+# /**************************************************************
+#  __      __
+#  / _|    / _|
+# | |_ ___| |_
+# |  _|_  /  _|
+# | |  / /| |
+# |_| /___|_|
+#
+# **************************************************************/
+
+# smart vim
+function vim() {
+  if [[ 0 -eq $# ]]; then
+    fzf --multi --bind="enter:become($(which -a vim | head -1) {+})"
+  else
+    $(which -a vim | head -1) -u $HOME/.vimrc "$@"
+  fi
+}
+
+## preview contents via `$ cd **<tab>`: https://pragmaticpineapple.com/four-useful-fzf-tricks-for-your-terminal/
+_fzf_comprun() {
+  local command=$1
+  shift
+
+  case "$command" in
+    cd)           fzf "$@" --preview 'tree -C {} | head -200' ;;
+    *)            fzf "$@" ;;
+  esac
+}
+
+# fe [FUZZY PATTERN] - Open the selected file with the default editor
+#   - Bypass fuzzy finder if there's only one match (--select-1)
+#   - Exit if there's no match (--exit-0)
+# https://github.com/junegunn/fzf/wiki/examples#opening-files
+fe() {
+  # shellcheck disable=SC2207
+  IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
+  # shellcheck disable=SC2128
+  [[ -n "$files" ]] && ${EDITOR:-vim} "${files[@]}"
+}
+
+# fda - including hidden directories
+fda() {
+  local dir
+  # shellcheck disable=SC2164
+  dir=$(find ${1:-.} -type d 2> /dev/null | fzf +m) && cd "$dir"
+}
+
+# cdp - cd to selected parent directory
+cdp() {
+  # shellcheck disable=SC2034,SC2316
+  local declare dirs=()
+  get_parent_dirs() {
+    if [[ -d "${1}" ]]; then dirs+=("$1"); else return; fi
+    if [[ "${1}" == '/' ]]; then
+      for _dir in "${dirs[@]}"; do echo $_dir; done
+    else
+      # shellcheck disable=SC2046
+      get_parent_dirs $(dirname "$1")
+    fi
+  }
+  # shellcheck disable=SC2155,SC2046
+  local DIR=$(get_parent_dirs $(realpath "${1:-$PWD}") | fzf-tmux --tac)
+  cd "$DIR" || return
+}
+
+# cdf - cd into the directory of the selected file
+cdf() {
+  local file
+  local dir
+  # shellcheck disable=SC2164
+  file=$(fzf +m -q "$1") && dir=$(dirname "$file") && cd "$dir"
+}
+
+# list process
+lsps() {
+  (date; ps -ef) |
+      fzf --bind='ctrl-r:reload(date; ps -ef)' \
+          --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
+          --preview='echo {}' --preview-window=down,3,wrap \
+          --layout=reverse --height=80% | awk '{print $2}'
+}
+
+# bat
+help() { "$@" --help 2>&1 | bat --plain --language=help ; }
+
+# vim:ts=2:sts=2:sw=2:et:ft=sh
