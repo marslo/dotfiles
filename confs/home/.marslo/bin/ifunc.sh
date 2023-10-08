@@ -202,6 +202,27 @@ gtoc() {
 # fzf --bind 'enter:become(vim {})'
 function fs() { fzf --multi --bind 'enter:become(vim {+})'; }
 
+# smart vim
+function vim() {
+  if [[ 0 -eq $# ]]; then
+    fzf --multi --bind="enter:become($(which -a vim | head -1) {+})"
+  else
+    # shellcheck disable=SC2068
+    $(which -a vim | head -1) -u $HOME/.vimrc $@
+  fi
+}
+
+## preview contents via `$ cd **<tab>`: https://pragmaticpineapple.com/four-useful-fzf-tricks-for-your-terminal/
+_fzf_comprun() {
+  local command=$1
+  shift
+
+  case "$command" in
+    cd)           fzf "$@" --preview 'tree -C {} | head -200' ;;
+    *)            fzf "$@" ;;
+  esac
+}
+
 # fe [FUZZY PATTERN] - Open the selected file with the default editor
 #   - Bypass fuzzy finder if there's only one match (--select-1)
 #   - Exit if there's no match (--exit-0)
@@ -255,4 +276,7 @@ lsps() {
           --layout=reverse --height=80% | awk '{print $2}'
 }
 
-# vim: ts=2 sts=2 sw=2 et ft=sh
+# bat
+help() { "$@" --help 2>&1 | bat --plain --language=help ; }
+
+# vim:ts=2:sts=2:sw=2:et:ft=sh
