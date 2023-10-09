@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+function chmv() { sudo mv $1 $2; sudo chown -R appadmin:appadmin $2; }
+function cha() { sudo chown -R appadmin:appadmin $1; }
+# export cl=`p4 change -o | sed 's/<enter description here>/"Change list description"/' | sed '/^#/d' | sed '/^$/d' | p4 change -i | cut -d ' ' -f 2`
+function p4nc() { p4 change -o | sed '/^#/d' | sed '/^$/d' | sed "s|Description: |Description: $*|" | sed "s|JIRA ID.*$|JIRA ID: APPSOL-00000|" | sed "s|Review.*$|Review: self-review|" | sed "s/+$//" | p4 change -i; }
+function p4blame() { FILE="$1"; LINE="$2"; p4 annotate -cq "${FILE}" | sed "${LINE}q;d" | cut -f1 -d: | xargs p4 describe -s | sed -e '/Affected files/,$d'; }
+function p4cd() { unset P4DIFF; p4 opened -c $1 | awk -F' ' '{print $1}' | p4 -x - -z tag diff -du > $1.diff; export P4DIFF=vimdiff; }
+
 # for git diff
 # Inspired from http://stackoverflow.com/questions/8259851/using-git-diff-how-can-i-get-added-and-modified-lines-numbers
 function diff-lines() {
