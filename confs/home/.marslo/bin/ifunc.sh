@@ -202,9 +202,14 @@ gtoc() {
 # fzf --bind 'enter:become(vim {})'
 function fs() { fzf --multi --bind 'enter:become(vim {+})'; }
 
-# smart vim
+# magic vim
 function vim() {
   if [[ 0 -eq $# ]]; then
+    fzf --multi --bind="enter:become($(which -a vim | head -1) {+})"
+  elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
+    local target=$1
+    pushd . >/dev/null
+    cd "${target}" || return
     fzf --multi --bind="enter:become($(which -a vim | head -1) {+})"
   else
     # shellcheck disable=SC2068
