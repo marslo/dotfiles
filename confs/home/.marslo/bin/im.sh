@@ -27,12 +27,23 @@ function getsum { awk '{ sum += $1 } END { print sum }' "$1"; }
 function hmds() { echo $(( ( $(date -d "$1" +%s) - $(date +%s))/86400 )); }
 
 function contains() {
-  string=$1
+  standard=$1
   sub=$2
   for _s in $(echo "${sub}" | fold -w1); do
-    [[ ! "${string}" =~ ${_s} ]] && return 1
+    [[ ! "${standard}" =~ ${_s} ]] && return 1
   done
   return 0
+}
+
+# return 0 if found $2
+function hasit() {
+  standard=$1
+  sub=$2
+  result=1
+  for _s in $(echo "${sub}" | fold -w1); do
+    [[ "${standard}" =~ "${_s}" ]] && result=0
+  done
+  return ${result}
 }
 
 # marslo grep
@@ -61,7 +72,9 @@ function mg() {
 
   keyword=''
   path='.'
-  grepOpt='--color=always -n -H -E'
+  debug=1
+  grepOpt='--color=always -n -H'
+  gitOptAdditional='-E'
   name=''
   param=$( tr '[:upper:]' '[:lower:]' <<< "$1" )
 
@@ -82,6 +95,7 @@ function mg() {
     [[ "${param}" =~ 'w' ]] && grepOpt+=' -w'            && params='threeMost'
     [[ "${param}" =~ 'f' ]] && grepOpt+=' -l'            && params='threeMost'
     [[ "${param}" =~ 'm' ]] && name='-iname *.md'        && params='threeMost'
+    [[ "${param}" =~ 'd' ]] && debug=0                   && params='threeMost'
     [[ "$1" =~ 'a'       ]] && grepOpt+=" -i -A $2"      && params='fourMost'
     [[ "$1" =~ 'b'       ]] && grepOpt+=" -i -B $2"      && params='fourMost'
     [[ "$1" =~ 'c'       ]] && grepOpt+=" -i -C $2"      && params='fourMost'
@@ -89,16 +103,24 @@ function mg() {
     [[ "$1" =~ 'B'       ]] && grepOpt+=" -B $2"         && params='fourMost'
     [[ "$1" =~ 'C'       ]] && grepOpt+=" -C $2"         && params='fourMost'
     [[ "${param}" =~ 'e' ]] && name='-not -iname *.'"$2" && params='fourMost'
+
     if [ 'threeMost' == "${params}" ]; then
-      [ 2 -le $# ] && keyword="$2"
-      [ 3 -eq $# ] && path="$3"
+      [[ 2 -le $# ]] && keyword="$2"
+      [[ 3 -eq $# ]] && path="$3"
     elif [ 'fourMost' == "${params}" ]; then
-      [ 3 -le $# ] && keyword="$3"
-      [ 4 -eq $# ] && path="$4"
+      [[ 3 -le $# ]] && keyword="$3"
+      [[ 4 -eq $# ]] && path="$4"
     fi
+
   fi
 
   if [ -n "${keyword}" ]; then
+
+    hasit '\' "${keyword}"
+    if [[ 0 = $? ]]; then
+      grepOpt+=" ${gitOptAdditional}"
+    fi
+
     # or using + instead of ; details: https://unix.stackexchange.com/a/43743/29178
     # shellcheck disable=SC2027,SC2125
     cmd=" find '${path}'"
@@ -114,8 +136,23 @@ function mg() {
          # -not -path '*git/*' \
          # -not -path '*node_modules/*' \
          # -exec ${GREP} ${grepOpt} "${keyword}" {} \; ||
+
+    [[ 0 -eq debug ]] &&
+        echo -e """
+          $(c G)DEBUG INFO:$(c)
+                 $(c Y)\$1$(c) : $(c C)'${1}'$(c)
+                 $(c Y)\$2$(c) : $(c C)'${2:-}'$(c)
+                 $(c Y)\$3$(c) : $(c C)'${3:-}'$(c)
+                 $(c Y)\$4$(c) : $(c C)'${4:-}'$(c)
+            $(c Y)keyword$(c) : $(c C)'${keyword}'$(c)
+               $(c Y)path$(c) : $(c C)'${path:-}'$(c)
+            $(c Y)grepOpt$(c) : $(c C)'${grepOpt}'$(c)
+                $(c Y)cmd$(c) : $(c C)\$${cmd}$(c)
+         """
+
     eval "${cmd}" ||
          echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
+
   elif [ 0 -ne $# ]; then
     echo -e "${usage}"
   fi
@@ -205,8 +242,8 @@ function pclr(){
 # myproxy=$(echo $1 | sed -n 's/\([0-9]\{1,3\}.\)\{4\}:\([0-9]\+\)/&/p')
 function pset(){
   myproxy=$( [ 0 -eq $# ] && echo 'http://127.0.0.1:8081' || echo "$*" )
-  pEnv="http_proxy ftp_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY"
-  # pEnv+="socks_proxy SOCKS_PROXY"
+  pEnv='http_proxy ftp_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY'
+  # pEnv+='socks_proxy SOCKS_PROXY'
 
   for envvar in $pEnv; do
     export "${envvar}"="${myproxy}"
@@ -368,6 +405,14 @@ function trust() {
   sudo /sbin/route get "${host}"
   sudo /sbin/route -nv add -host "${host}" 172.16.0.1
   sudo /sbin/route get "${host}"
+}
+
+# function come from
+function fcf() {
+  if [[ 1 -ne $# ]] ; then
+    echo 'Error : provide a function name'
+  fi
+  shopt -s extdebug; declare -F $1; shopt -u extdebug
 }
 
 # vim:ts=2:sts=2:sw=2:et:ft=sh
