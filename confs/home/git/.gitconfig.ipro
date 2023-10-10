@@ -60,7 +60,7 @@
   whitespace        = fix,-indent-with-non-tab,trailing-space,cr-at-eol,tab-in-indent
   # whitespace      = cr-at-eol
   # autocrlf        = input
-  autocrlf          = false
+  autocrlf          = input
   precomposeUnicode = true
   ignorecase        = false
   excludesfile      = /Users/marslo/.gitignore_global
@@ -105,25 +105,14 @@
   template          = /Users/marslo/.stCommitMsg
 [include]
   path              = ~/.marslo/.gitalias
-# [credential]
-  # helper          = wincred
 [http]
   sslVerify         = false
   postBuffer        = 524288000
   # sslBackend      = openssl
-  proxy             = http://127.0.0.1:1087
-# [https]
-  # proxy           = http://127.0.0.1:1087
-
-# [url "git@ssh.github.com:"]
-  # insteadOf       = https://github.com/
-  # sslVerify       = false
-  # proxy           = http://127.0.0.1:1087
-# [url "https://github.com/"]
-  # insteadOf       = git@github.com:
-# [http "https://chromium.googlesource.com"]
-  # sslVerify       = false
-  # proxy           = http://127.0.0.1:1087
+[url "git@ssh.github.com:"]
+  insteadOf         = https://github.com/
+[url "ssh://marslo@vgitcentral.marvell.com:29418/"]
+  insteadOf         = ssh://srv-ssd-fw-devops@vgitcentral.marvell.com:29418/
 [advice]
   detachedHead      = false
   objectNameWarning = false
@@ -133,7 +122,6 @@
   autoStash         = true
 [init]
   defaultBranch     = marslo
-  templatedir       = /Users/marslo/.git-templates
 [blame]
   # https://gist.github.com/BuonOmo/ce45b51d0cefe949fd0c536a4a60f000
   # date            =relative
@@ -146,5 +134,9 @@
   renamelimit       = 10000
 [git-extras]
   github-personal-access-token = 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
+[safe]
+  directory         = /usr/local/Homebrew
+  directory         = /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask
+  directory         = /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core
 
 # vim:ts=2:sts=2:sw=2:et:ft=gitconfig
