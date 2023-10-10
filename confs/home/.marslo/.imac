@@ -146,7 +146,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   LDFLAGS+=" -L${LLVM_HOME}/lib"
 
   CPPFLAGS="-I${JAVA_HOME}/include"
-  CPPFLAGS+="-I${OPENLDAP_HOME}/include"
+  CPPFLAGS+=" -I${OPENLDAP_HOME}/include"
   CPPFLAGS+=" -I${CURL_OPENSSL_HOME}/include"
   CPPFLAGS+=" -I${BINUTILS}/include"
   CPPFLAGS+=" -I${SQLITE_HOME}/include"
