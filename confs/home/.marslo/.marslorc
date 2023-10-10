@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2034,SC1090,SC1091,SC2182,SC2181
+# shellcheck disable=SC2034,SC1090,SC1091,SC2182,SC2181,SC1094
 # =============================================================================
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
@@ -22,7 +22,9 @@ export iRCHOME="$HOME/.marslo"
 # --------------------------------------------------------------/
 groovyHome='/opt/groovy-3.0.7'
 # https://github.com/dysosmus/ansible-completion
-ansibleComp="${iRCHOME}/.completion/ansible-completion"
+ANSIBLE_COMPLETION_PATH="${iRCHOME}/.completion/ansible-completion"
+# https://github.com/Jephuff/npm-bash-completion
+NPM_COMPLETION_PATH="/usr/local/lib/node_modules/npm-completion"
 
 ## for mac
 if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]]; then
@@ -60,7 +62,9 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
     # test -f "${maccliComp}"      && source "${maccliComp}"
   fi
   # iTerm2 shell integration
-  test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
+  test -e "$HOME/.iterm2_shell_integration.bash" && source "$HOME/.iterm2_shell_integration.bash"
+  # docker desktop
+  test -f "$HOME/.docker/init-bash.sh"           && source "$HOME/.docker/init-bash.sh"
   source <( cat "${iRCHOME}"/.{imac,env,gitrc} )
 ## for ubuntu or RHEL/CentOS
 elif [ -f '/etc/os-release' ]; then
@@ -71,11 +75,12 @@ fi
 
 # find "${groovyHome}/bin" -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
 test -d "${groovyHome}/bin"                          && source <( cat "${groovyHome}"/bin/*_completion )
-test -d "${ansibleComp}"                             && source <( cat "${ansibleComp}"/*.bash )
-test -f "${iRCHOME}/.completion/.bash_completion.sh" && source <( cat "${iRCHOME}/.completion/.bash_completion.sh" )
+test -d "${ANSIBLE_COMPLETION_PATH}"                 && source <( cat "${ANSIBLE_COMPLETION_PATH}"/*.bash )
+test -f "${iRCHOME}/.completion/.bash_completion.sh" && source "${iRCHOME}/.completion/.bash_completion.sh"
 command -v kubectl > /dev/null                       && source <( kubectl completion bash )
 command -v npm     > /dev/null                       && source <( npm completion )
 command -v vault   > /dev/null                       && complete -C /usr/local/bin/vault vault
+command -v pipx    > /dev/null                       && eval "$(register-python-argcomplete pipx)"
 # fzf: $ git clone git@github.com:junegunn/fzf.git ${iRCHOME}/utils
 # fzf auto-completion and key bindings
 [[ $- == *i* ]] && test -f "${iRCHOME}/utils/fzf/shell/completion.bash" && source "${iRCHOME}/utils/fzf/shell/completion.bash" 2> /dev/null

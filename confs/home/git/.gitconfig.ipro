@@ -109,10 +109,12 @@
   sslVerify         = false
   postBuffer        = 524288000
   # sslBackend      = openssl
-[url "git@ssh.github.com:"]
-  insteadOf         = https://github.com/
 [url "ssh://marslo@vgitcentral.marvell.com:29418/"]
   insteadOf         = ssh://srv-ssd-fw-devops@vgitcentral.marvell.com:29418/
+[url "git@ssh.github.com"]
+  insteadOf         = git@github.com
+[url "git@ssh.github.com:"]                      # for password free
+  insteadOf         = https://github.com/
 [advice]
   detachedHead      = false
   objectNameWarning = false
