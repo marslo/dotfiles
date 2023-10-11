@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2139,SC2034
+# shellcheck disable=SC2139,SC2034,SC2154
 # =============================================================================
 #   FileName: imarslo
 #     Author: marslo.jiao@gmail.com
@@ -10,16 +10,16 @@
 MYWORKSPACE="$HOME/iMarslo"
 
 # alias v='vim -u ~/.vimrc.imarslo'
-# alias vimdiff='/usr/local/bin/vim -d'
+alias vi="$(which -a vim | head -1)"
+alias vimdiff='/usr/local/bin/vim -d'
 alias tmax='tmux at -t marslo'
 alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
+# alias polipo='polipo -c $HOME/.marslo/polipo/config daemonise=true >/dev/null 2>&1 &'
 alias polipo='polipo -c $HOME/.marslo/polipo/config >/dev/null 2>&1 &'
 alias myaws='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.marslo/Marslo/Tools/Softwares/sshkey/marslo-aws.pem ec2-user@ec2-54-193-78-97.us-west-1.compute.amazonaws.com'
 alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_env/ubuntu/backups/ss/sslocal-config.json  -d start --log=/Users/marslo/.marslo/log/sslocal.log'
-# alias polipo='polipo -c $HOME/.marslo/polipo/config daemonise=true >/dev/null 2>&1 &'
 alias sshmarslo='ssh marslo@118.193.233.78'
 alias nd='npm run deploy'
-alias vi="$(which -a vim | head -1)"
 
 alias irc="cd ~/.marslo"
 alias desk="cd ~/Desktop"
@@ -28,14 +28,6 @@ alias ecd="cd $iRCHOME/utils/enhancd"
 alias mw="cd ${MYWORKSPACE}"
 alias jo="cd ${MYWORKSPACE}/job/"
 alias jc="cd ${MYWORKSPACE}/job/code/"
-alias fw="cd ${MYWORKSPACE}/job/code/fw"
-alias ds="cd ${MYWORKSPACE}/job/code/devops"
-alias dj="cd ${MYWORKSPACE}/job/code/devops/jenkins"
-alias eng="cd ${MYWORKSPACE}/job/code/devops/eng"
-alias wj="cd ${MYWORKSPACE}/job/code/devops/eng/j"
-alias vj="cd ${MYWORKSPACE}/job/code/devops/eng/vj"
-alias hj="cd ${MYWORKSPACE}/job/code/devops/eng/hj"
-alias ej="cd ${MYWORKSPACE}/job/code/devops/eng/ejenkins"
 alias dos="cd ${MYWORKSPACE}/job/code/devops"
 
 alias st="cd ${MYWORKSPACE}/study"
@@ -55,6 +47,10 @@ alias msp="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/belloMarslo/"
 alias to="cd ${MYWORKSPACE}/tools/"
 alias gi="cd ${MYWORKSPACE}/tools/git/marslo/"
 alias ib="cd ${MYWORKSPACE}/tools/git/marslo/ibook/docs"
-alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs"
+alias ml="cd ${MYWORKSPACE}/tools/git/marslo/mylinux"
 alias mt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"
+alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs"
+
 alias gc='/usr/local/bin/groovyConsole'
+
+# vim:ts=2:sts=2:sw=2:et:ft=sh

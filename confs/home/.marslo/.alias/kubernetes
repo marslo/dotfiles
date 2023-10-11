@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=SC1072,SC1127,SC2139,SC2142,SC2154
 # =============================================================================
 #   FileName: kuberntes
@@ -49,3 +49,5 @@ while read -r _i; do
   # complete -F _complete_alias "${_i}"
   complete -F __start_kubectl "${_i}"
 done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/.alias/kubernetes")
+
+# vim:ts=2:sts=2:sw=2:et:ft=sh

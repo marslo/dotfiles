@@ -8,10 +8,6 @@
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
 
-for _i in $( /bin/ls -1 ${iRCHOME}/.alias ); do
-  source "${iRCHOME}/.alias/${_i}"
-done
-
 command -v kubectl > /dev/null                                     && source <(kubectl completion bash)
 # source $(brew --prefix)/Cellar/git/$(git --version | awk '{print $3}')/etc/bash_completion.d/git-prompt.sh
 test -f $(brew --prefix)/etc/bash_completion.d/git-prompt.sh       && source $(brew --prefix)/etc/bash_completion.d/git-prompt.sh
@@ -195,3 +191,10 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   export GUILE_TLS_CERTIFICATE_DIRECTORY PYTHONPATH PYTHONUSERBASE CLASSPATH LDFLAGS CPPFLAGS RUBY_CONFIGURE_OPTS PKG_CONFIG_PATH CFLAGS
   # JAVA_OPTS
 fi
+
+# move alias after PATH finalized
+for _i in $( /bin/ls -1 ${iRCHOME}/.alias ); do
+  source "${iRCHOME}/.alias/${_i}"
+done
+
+# vim: tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
