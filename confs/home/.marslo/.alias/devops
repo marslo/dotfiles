@@ -38,3 +38,5 @@ export M2_HOME M2 MAVEN_OPTS PATH
 
 # ldapsearch
 # alias ldapsearch="ldapsearch -LLL -x -o ldif-wrap=no -H ldaps://msi-sldap.example.com:636 -b 'dc=example,dc=com' -D user -w password "
+
+# vim:ts=2:sts=2:sw=2:et:ft=sh
