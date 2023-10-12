@@ -80,35 +80,6 @@ function rcsync() {
   done
 }
 
-function proxydefault() {
-  myssproxy="socks5://127.0.0.1:1880"
-  myppproxy="http://127.0.0.1:8123"
-
-  socks_proxy=${myssproxy}
-  SOCKS_PROXY=${myssproxy}
-
-  all_proxy=${myppproxy}
-  ALL_PROXY=${myppproxy}
-
-  http_proxy=${myppproxy}
-  HTTP_PROXY=${myppproxy}
-  https_proxy=${myppproxy}
-  HTTPS_PROXY=${myppproxy}
-  ftp_proxy=${myppproxy}
-  FTP_PROXY=${myppproxy}
-
-  # kubeIP=""
-  flannelIP="$(echo 10.244.0.{0..255} | sed 's: :,:g')"
-  privIP=$(echo 192.168.10.{0..255} | sed 's: :,:g')
-  compDomain=".cdi.philips.com,.philips.com,pww.*.cdi.philips.com,pww.artifactory.cdi.philips.com,healthyliving.cn-132.lan.philips.com,*.cn-132.lan.philips.com,pww.sonar.cdi.philips.com,pww.gitlab.cdi.philips.com,pww.slave01.cdi.philips.com,pww.confluence.cdi.philips.com,pww.jira.cdi.philips.com,bdhub.pic.philips.com,tfsemea1.ta.philips.com,pww.jenkins.cdi.philips.com,blackduck.philips.com,fortify.philips.com"
-  no_proxy="localhost,127.0.0.1,127.0.1.1,130.147.182.57,192.168.10.235,172.17.0.1,10.244.0.0,10.244.0.1,${compDomain},${flannelIP},${privIP}"
-  NO_PROXY=$no_proxy
-
-  export socks_proxy SOCKS_PROXY all_proxy ALL_PROXY
-  export http_proxy HTTP_PROXY https_proxy HTTPS_PROXY ftp_proxy FTP_PROXY
-  export no_proxy NO_PROXY
-}
-
 function 256color() {
   for i in {0..255}; do
     echo -e "\e[38;05;${i}m█${i}";
@@ -272,6 +243,15 @@ cdf() {
   file=$(fzf +m -q "$1") && dir=$(dirname "$file") && cd "$dir"
 }
 
+# find-in-file - usage: fif <searchTerm>   # using ripgrep combined with preview
+fif() {
+  if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
+  rg --files-with-matches --no-messages "$1" \
+    | fzf --preview "highlight -O ansi -l {} 2> /dev/null \
+    | rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 '$1' \
+  || rg --no-line-number --ignore-case --pretty --context 10 '$1' {}"
+}
+
 # list process
 lsps() {
   (date; ps -ef) |
@@ -283,5 +263,14 @@ lsps() {
 
 # bat
 help() { "$@" --help 2>&1 | bat --plain --language=help ; }
+
+# v - open files in ~/.vim_mru_files       # https://github.com/junegunn/fzf/wiki/Examples#v
+v() {
+  local files
+  files=$(grep --color=none -v '^#' ~/.vim_mru_files |
+          while read -r line; do
+            [ -f "${line/\~/$HOME}" ] && echo "$line"
+          done | fzf-tmux -d -m -q "$*" -1) && vim ${files//\~/$HOME}
+}
 
 # vim:ts=2:sts=2:sw=2:et:ft=sh
