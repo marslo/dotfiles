@@ -1,0 +1,68 @@
+# You can edit this file by hand, but it's recommended not to do that.
+
+# Marks:
+'H
+	/Users/marslo/
+	..
+1581918751
+'b
+	/Users/marslo/bin/
+	..
+1581918751
+'h
+	/Users/marslo/
+	..
+1581918751
+'z
+	/Users/marslo/.config/vifm
+	..
+1581918751
+
+# Bookmarks:
+
+# TUI:
+al
+q0
+v2
+ov
+m-1
+l2
+r2
+
+# Left window history (oldest to newest):
+d/Users/marslo/mywork/study/mystudy/python
+	longest-int.py
+1
+d
+
+# Right window history (oldest to newest):
+D/Users/marslo/mywork/study/mystudy/python
+	..
+0
+D
+
+# Command line history (oldest to newest):
+:q
+
+# Search history (oldest to newest):
+
+# Prompt history (oldest to newest):
+
+# Local filter history (oldest to newest):
+
+# Registers:
+
+# Directory stack (oldest to newest):
+
+# Trash content:
+
+# State:
+f
+i1
+[.1
+[F
+F
+I1
+].1
+]F
+s0
