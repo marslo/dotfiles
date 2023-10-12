@@ -1,0 +1,4 @@
+[global]
+index-url = https://artifactory.marvell.com/artifactory/api/pypi/storage-ff-tools/simple
+trusted-host = github.com
+
