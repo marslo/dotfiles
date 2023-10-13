@@ -116,3 +116,5 @@ alias imbusy='cat /dev/urandom | hexdump -C | grep "ca fe"'
 alias weekno='date +"%V"'
 alias daysleft='echo "There are $(($(date +%j -d"Dec 31, $(date +%Y)")-$(date +%j))) left in year $(date +%Y)."'
 alias weather='curl wttr.in/sanjose?mMFn'
+
+# vim:ts=2:sts=2:sw=2:et:ft=sh

@@ -8,21 +8,16 @@
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
 
-command -v kubectl > /dev/null                                     && source <(kubectl completion bash)
-# source $(brew --prefix)/Cellar/git/$(git --version | awk '{print $3}')/etc/bash_completion.d/git-prompt.sh
-test -f $(brew --prefix)/etc/bash_completion.d/git-prompt.sh       && source $(brew --prefix)/etc/bash_completion.d/git-prompt.sh
-test -f $(brew --prefix)/etc/bash_completion.d/git-completion.bash && source $(brew --prefix)/etc/bash_completion.d/git-completion.bash
-# enhancd
-test -f ${iRCHOME}/utils/enhancd/init.sh                           && source ${iRCHOME}/utils/enhancd/init.sh
+# source $(brew --prefix git)/etc/bash_completion.d/git-prompt.sh
+# BASH_COMPLETION_DIR="$(brew --prefix)"/etc/bash_completion.d
+# ls "${BASH_COMPLETION_DIR}"/*git* >/dev/null 2>&1; [ $? -eq 0 ] && source "${BASH_COMPLETION_DIR}"/*git*
 
 # if [[ -x /usr/bin/sw_vers ]] && /usr/bin/sw_vers | grep -E '\s*[mM]ac\s*OS\s*X?' >/dev/null; then
 if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]]; then
-  # HomeBrew
   # https://cloud.tencent.com/developer/article/1614039
   # export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
   HOMEBREW_BINS="/usr/local/bin"
   HOMEBREW_BINS+=":/usr/local/sbin"
-  # HomeBrew END
 
   OPENLDAP_HOME='/usr/local/opt/openldap'
   CURL_OPENSSL_HOME='/usr/local/opt/curl'                         # via: brew install curl-openssl (https://stackoverflow.com/a/49798271/2940319)
@@ -72,10 +67,9 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   ANDROID_HOME='/opt/android'
   ANDROID_NDK_HOME="$ANDROID_HOME/android-ndk"
 
-  # https://docs.oracle.com/en/java/javase/11/install/installation-jdk-macos.html
   # java 8
   #   JAVA_HOME='/Library/Java/JavaVirtualMachines/jdk1.8.0_271.jdk/Contents/Home'
-  # java 11
+  # java 11                                                       # https://docs.oracle.com/en/java/javase/11/install/installation-jdk-macos.html
   #   JAVA_HOME=$(/usr/libexec/java_home -v 11)
   # java 21
   #   JAVA_HOME="$(brew --prefix java)"
@@ -113,7 +107,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   SCRIPT_BINS+=":${ED_HOME}/bin"
   SCRIPT_BINS+=":${RUBYGEM}"
   SCRIPT_BINS+=":${GIT_EXTRAS}/bin"
-  # SCRIPT_BINS+=":${PYENV_ROOT}/bin"                             # Shell: bash 3.2.57
+  # SCRIPT_BINS+=":${PYENV_ROOT}/bin"                             # shell: bash 3.2.57
 
   UTLS_PATH="${OPENLDAP_HOME}/bin"
   UTLS_PATH+=":${OPENLDAP_HOME}/sbin"
@@ -189,7 +183,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   # eval "$(/usr/libexec/path_helper)"
   export JAVA_HOME GROOVY_HOME PATH MANPATH
   export GUILE_TLS_CERTIFICATE_DIRECTORY PYTHONPATH PYTHONUSERBASE CLASSPATH LDFLAGS CPPFLAGS RUBY_CONFIGURE_OPTS PKG_CONFIG_PATH CFLAGS
-  # JAVA_OPTS
+  # export JAVA_OPTS
 fi
 
 # move alias after PATH finalized
