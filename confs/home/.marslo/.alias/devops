@@ -8,12 +8,15 @@
 # =============================================================================
 
 RTDOMAIN='pww.artifactory.cdi.philips.com'
+M2_HOME="/opt/apache-maven-3.6.1"
+if test -d "${M2_HOME}"; then
+  MAVEN_OPTS="-Xms256m -Xmx512m"
+  M2="${M2_HOME}/bin"
+  PATH=$PATH:$M2
+  export M2_HOME M2 MAVEN_OPTS PATH
+fi
 
 # alias pip="pip --trusted-hosts ${RTDOMAIN}"
-# export GIT_TRACE=1
-# export GIT_TRACE_PERFORMANCE=1
-export GIT_PS1_SHOWDIRTYSTATE=true
-export GIT_PS1_SHOWUNTRACKEDFILES=true
 # https://stackoverflow.com/a/18781512/2940319
 # using git config --global pager.log 'diff-highlight | less -FRXK' instead of
 # alias git='git --no-pager'
@@ -30,13 +33,7 @@ alias gcl="gradle --full-stacktrace clean"
 # groovy
 alias groovydock="groovydoc -classpath /opt/groovy/lib"
 
-M2_HOME="/opt/apache-maven-3.6.1"
-MAVEN_OPTS="-Xms256m -Xmx512m"
-M2="${M2_HOME}/bin"
-PATH=$PATH:$M2
-export M2_HOME M2 MAVEN_OPTS PATH
-
 # ldapsearch
-# alias ldapsearch="ldapsearch -LLL -x -o ldif-wrap=no -H ldaps://msi-sldap.example.com:636 -b 'dc=example,dc=com' -D user -w password "
+# alias ldapsearch="ldapsearch -LLL -x -o ldif-wrap=no -H ldaps://msi-sldap.example.com:636 -b 'dc=example,dc=com' -D user -w password"
 
 # vim:ts=2:sts=2:sw=2:et:ft=sh

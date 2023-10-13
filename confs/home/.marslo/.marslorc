@@ -4,11 +4,10 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2023-10-08 05:35:22
+# LastChange : 2023-10-12 20:43:16
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
-source <( cat "${iRCHOME}"/.{env,gitrc} )
 
 # /--------------------------------------------------------------
 #                            _      _   _
@@ -21,80 +20,65 @@ source <( cat "${iRCHOME}"/.{env,gitrc} )
 #                     |_|
 #
 # --------------------------------------------------------------/
-GROOVY_HOME='/opt/groovy-3.0.7'
+GROOVY_HOME='/opt/groovy/current'
 ANSIBLE_COMPLETION_PATH="${iRCHOME}/.completion/ansible-completion"            # https://github.com/dysosmus/ansible-completion
-# NPM_COMPLETION_PATH="/usr/local/lib/node_modules/npm-completion"             # https://github.com/Jephuff/npm-bash-completion
+ENHANCD_HOME="${iRCHOME}/utils/enhancd"
+FZF_HOME="${iRCHOME}"/utils/fzf
 RT_COMPLETION="$HOME/.jfrog/jfrog_bash_completion"
+# NPM_COMPLETION_PATH="/usr/local/lib/node_modules/npm-completion"             # https://github.com/Jephuff/npm-bash-completion
 
-## for osx
-if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]]; then
+if command -v brew >/dev/null; then                                            ## for osx
   HOMEBREW_PREFIX="$(brew --prefix)"
-  BASH_COMPLETION_DIR="${HOMEBREW_PREFIX}/etc/bash_completion.d"
-  # BASH_COMPLETION="${HOMEBREW_PREFIX}/opt/bash-completion/etc/bash_completion"
+  GROOVY_HOME="${HOMEBREW_PREFIX}/opt/groovy"                                  # GROOVY_HOME="$(brew --prefix groovy)"
+  BASH_COMPLETION_DIR="${HOMEBREW_PREFIX}/etc/bash_completion.d"               # BASH_COMPLETION="${HOMEBREW_PREFIX}/opt/bash-completion/etc/bash_completion"
   BASH_COMPLETION="${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"        # for bash_completion 1.3
-  BASH_COMPLETION_2="${HOMEBREW_PREFIX}/opt/bash-completion@2/etc/profile.d/bash_completion.sh"
-  # BASH_COMPLETION_2_DIR=$(pkg-config --variable=completionsdir bash-completion)
-  ADDITIONAL_COMPLETION="${iRCHOME}/.completion/bash_completion_init_completion"
-  GIT_COMPLETION_DIR="${HOMEBREW_PREFIX}/opt/git/etc/bash_completion.d"
-  MACCLI_COMPLETION='/usr/local/bin/mac-cli/completion/bash_completion'
+  BASH_COMPLETION_2="${HOMEBREW_PREFIX}/opt/bash-completion@2/etc/profile.d/bash_completion.sh" # BASH_COMPLETION_2_DIR=$(pkg-config --variable=completionsdir bash-completion)
+  # GIT_COMPLETION_DIR="${HOMEBREW_PREFIX}/opt/git/etc/bash_completion.d"
+  # ADDITIONAL_COMPLETION="${iRCHOME}/.completion/bash_completion_init_completion" # workaround: https://github.com/mobile-shell/mosh/issues/675#issuecomment-156457108
+  # MACCLI_COMPLETION='/usr/local/bin/mac-cli/completion/bash_completion'
   # VBOX_COMPLETION="${iRCHOME}/.completion/vbox/VBoxManage-completion.bash"   # ╮ https://github.com/gryf/vboxmanage-bash-completion
+  ITERM2_INTEGRATION="$HOME/.iterm2_shell_integration.bash"
                                                                                # ╯ https://github.com/mug896/virtualbox-bash-completion
-  if command -v brew > /dev/null; then
-    if test -d "${BASH_COMPLETION_DIR}"; then
-      source <( cat "${BASH_COMPLETION_DIR}"/{brew,tmux,tig-completion.bash} )
-      # export BASH_COMPLETION_COMPAT_DIR="${BASH_COMPLETION_DIR}"
-      # shellcheck disable=SC1091
-      test -r "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"       && source "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"
-      test -f "${BASH_COMPLETION}"                                        && source "${BASH_COMPLETION}"
-      ls "${BASH_COMPLETION_DIR}"/*git*    >/dev/null 2>&1;  [ $? -eq 0 ] && source "${BASH_COMPLETION_DIR}"/*git*
-      ls "${BASH_COMPLETION_DIR}"/*docker* >/dev/null 2>&1;  [ $? -eq 0 ] && source "${BASH_COMPLETION_DIR}"/*docker*
-    fi
-
-    # for complete_alias (https://raw.githubusercontent.com/cykerway/complete-alias/master/complete_alias)
-    # test -f "${BASH_COMPLETION_2}"      && source <( cat "${BASH_COMPLETION_2}" )     # or source "${BASH_COMPLETION_2}";
-    # workaround: https://github.com/mobile-shell/mosh/issues/675#issuecomment-156457108
-    # test -f "${ADDITIONAL_COMPLETION}"  && source "${ADDITIONAL_COMPLETION}"
-    # test -f "${VBOX_COMPLETION}"        && source "${VBOX_COMPLETION}"
-    # test -f "${MACCLI_COMPLETION}"      && source "${MACCLI_COMPLETION}"
+  if test -d "${BASH_COMPLETION_DIR}"; then
+    source <( cat "${BASH_COMPLETION_DIR}"/{brew,tmux,tig-completion.bash} )
+    # export BASH_COMPLETION_COMPAT_DIR="${BASH_COMPLETION_DIR}"
+    test -f "${BASH_COMPLETION}"                                       && source "${BASH_COMPLETION}"
+    ls "${BASH_COMPLETION_DIR}"/*git*    >/dev/null 2>&1; [ $? -eq 0 ] && source <( cat "${BASH_COMPLETION_DIR}"/*git* )
+    ls "${BASH_COMPLETION_DIR}"/*docker* >/dev/null 2>&1; [ $? -eq 0 ] && source <( cat "${BASH_COMPLETION_DIR}"/*docker* )
+    # test -f "${BASH_COMPLETION_2}"                                   && source "${BASH_COMPLETION_2}"
   fi
-  # shellcheck disable=SC1091
-  test -e "$HOME/.iterm2_shell_integration.bash" && source "$HOME/.iterm2_shell_integration.bash"  # iTerm2 shell integration
-  test -f "$HOME/.docker/init-bash.sh"           && source "$HOME/.docker/init-bash.sh"            # docker desktop
-  test -f "${iRCHOME}"/.imac                     && source <( cat "${iRCHOME}"/.imac )
-## for Ubuntu/RHEL/CentOS
-elif [ -f '/etc/os-release' ]; then
+
+  # for complete_alias (https://raw.githubusercontent.com/cykerway/complete-alias/master/complete_alias)
+  # test -f "${ADDITIONAL_COMPLETION}"  && source "${ADDITIONAL_COMPLETION}"
+  # test -f "${MACCLI_COMPLETION}"      && source "${MACCLI_COMPLETION}"
+  # test -f "${VBOX_COMPLETION}"        && source "${VBOX_COMPLETION}"
+  test -e "${ITERM2_INTEGRATION}"       && source "${ITERM2_INTEGRATION}"      # iTerm2 shell integration
+  test -f "$HOME/.docker/init-bash.sh"  && source "$HOME/.docker/init-bash.sh" # docker desktop
+  test -f "${iRCHOME}"/.imac            && source "${iRCHOME}"/.imac
+elif [ -f '/etc/os-release' ]; then                                            ## for Ubuntu/RHEL/CentOS
   distrab=$(awk -F= '$1=="ID" {print $2;}' /etc/os-release)
   GIT_COMPLETION_DIR="/usr/share/doc/git/contrib/completion"
 
   [[ 'ubuntu' == "${distrab}" ]] || [[ 'centos' == "${distrab}" ]] || [[ 'rhel' == "${distrab}" ]] && file="$HOME/.bashrc"
-  # git
-  test -f "${GIT_COMPLETION_DIR}"/git-completion.bash && source /usr/share/doc/git/contrib/completion/git-completion.bash
-  test -f "${GIT_COMPLETION_DIR}"/git-prompt.sh       && source /usr/share/doc/git/contrib/completion/git-prompt.sh
-  test -f "${iRCHOME}"/.irhel                         && source <( cat "${iRCHOME}"/.irhel )
+  ls "${GIT_COMPLETION_DIR}"/*git* >/dev/null 2>&1; [ $? -eq 0 ] && source "${GIT_COMPLETION_DIR}"/*git*.[bs]*h
+  test -f "${iRCHOME}"/.irhel                                    && source <( cat "${iRCHOME}"/.irhel )
 fi
 
 # find "${GROOVY_HOME}/bin" -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
-test -d "${GROOVY_HOME}/bin"                         && source <( cat "${GROOVY_HOME}"/bin/*_completion )
-test -d "${ANSIBLE_COMPLETION_PATH}"                 && source <( cat "${ANSIBLE_COMPLETION_PATH}"/*.bash )
-test -f "${iRCHOME}/.completion/.bash_completion.sh" && source <( cat "${iRCHOME}/.completion/.bash_completion.sh" )
-test -f "${RT_COMPLETION}"                           && source "${RT_COMPLETION}"
-test -f "${iRCHOME}"/utils/enhancd/init.sh           && source "${iRCHOME}"/utils/enhancd/init.sh          # enhancd
-test -f ~/.fzf.bash                                  && source ~/.fzf.bash
-command -v kubectl > /dev/null                       && source <( kubectl completion bash )
-command -v npm     > /dev/null                       && source <( npm completion )
-command -v vault   > /dev/null                       && complete -C /usr/local/bin/vault vault
-command -v pipx    > /dev/null                       && eval "$(register-python-argcomplete pipx)"
-command -v pip     > /dev/null                       && eval "$(pip completion --bash)"
-# _pip_completion() {
-#   COMPREPLY=( $( COMP_WORDS="${COMP_WORDS[*]}" COMP_CWORD=$COMP_CWORD PIP_AUTO_COMPLETE=1 $1 2>/dev/null ) )
-# }
-# complete -o default -F _pip_completion /usr/local/bin/python3 -m pip
-# shellcheck disable=SC1091
-[[ $- == *i* ]] && test -f "${iRCHOME}/utils/fzf/shell/completion.bash" && source "${iRCHOME}/utils/fzf/shell/completion.bash" 2> /dev/null
-# shellcheck disable=SC1091
-test -f "${iRCHOME}/utils/fzf/shell/key-bindings.bash"                  && source "${iRCHOME}/utils/fzf/shell/key-bindings.bash"
-
-# eval "$(rbenv init -)"
+test -f "$HOME"/.fzf.bash                                      && source "$HOME"/.fzf.bash
+test -d "${GROOVY_HOME}/bin"                                   && source <( cat "${GROOVY_HOME}"/bin/*_completion )
+test -d "${ANSIBLE_COMPLETION_PATH}"                           && source <( cat "${ANSIBLE_COMPLETION_PATH}"/*.bash )
+test -f "${iRCHOME}/.completion/.bash_completion.sh"           && source <( cat "${iRCHOME}/.completion/.bash_completion.sh" )
+test -f "${RT_COMPLETION}"                                     && source "${RT_COMPLETION}"
+test -f "${ENHANCD_HOME}"/init.sh                              && source "${ENHANCD_HOME}"/init.sh
+command -v kubectl >/dev/null                                  && source <( kubectl completion bash )
+command -v npm     >/dev/null                                  && source <( npm completion )
+command -v vault   >/dev/null                                  && complete -C /usr/local/bin/vault vault
+command -v pipx    >/dev/null                                  && eval "$(register-python-argcomplete pipx)"
+command -v pip     >/dev/null                                  && eval "$(pip completion --bash)"
+# command -v rbenv >/dev/null                                  && eval "$(rbenv init -)"
+[[ $- == *i* ]] && test -f "${FZF_HOME}/shell/completion.bash" && source "${FZF_HOME}/shell/completion.bash" 2> /dev/null
+test -f "${FZF_HOME}/shell/key-bindings.bash"                  && source "${FZF_HOME}/shell/key-bindings.bash"
 
 # /--------------------------------------------------------------
 #                   __ _
@@ -113,9 +97,9 @@ shopt -s histappend
 # shopt -s extdebug
 
 ### disable ctrl+s lock putty : # stty -echo; stty stop undef; stty start undef
-# to avoid issues: [here](https://stackoverflow.com/a/25391867/2940319)
-# - tput : No value for $TERM and no -T specified
-# - stty : 'standard input': Inappropriate ioctl for device
+# - [here](https://stackoverflow.com/a/25391867/2940319)
+#   - tput : No value for $TERM and no -T specified
+#   - stty : 'standard input': Inappropriate ioctl for device
 if [[ $- == *i*  ]]; then
   stty ixany
   stty ixoff -ixon
@@ -133,16 +117,13 @@ fi
 #
 # --------------------------------------------------------------/
 export TERM='xterm-color'
-# CentOS or RHEL
+# centos/rhel
 test -e /usr/share/terminfo/x/xterm-256color  && export TERM='xterm-256color'
-# Ubuntu
+# ubuntu
 test -e /lib/terminfo/x/xterm-256color        && export TERM='xterm-256color'
-# cygwin && osx
+# cygwin/osx
 test -e /usr/share/terminfo/78/xterm-256color && export TERM='xterm-256color'
 
-# test -f /usr/local/bin/screenfetch          && /usr/local/bin/screenfetch
-test -f "${iRCHOME}"/bin/screenfetch-dev      && bash   "${iRCHOME}"/bin/screenfetch-dev
-test -f "${iRCHOME}"/bin/now                  && bash   "${iRCHOME}"/bin/now
 test -f "${iRCHOME}"/.tmux-session            && source "${iRCHOME}"/.tmux-session
 
 if test -f '/usr/local/opt/coreutils/libexec/gnubin/ls'; then
@@ -152,7 +133,7 @@ elif test -f '/usr/bin/ls'; then
 elif test -f '/bin/ls'; then
   LS='/bin/ls'
 else
-  LS="$(\which -a ls | head)"
+  LS="$(\which -a ls | head -1)"
 fi
 
 if test -f '/usr/local/opt/grep/libexec/gnubin/grep'; then
@@ -162,20 +143,19 @@ elif test -f '/usr/bin/grep'; then
 elif test -f '/bin/grep'; then
   GREP='/bin/grep'
 else
-  GREP="$(\which -a grep | head)"
+  GREP="$(\which -a grep | head -1)"
 fi
 
 # for public server (use common account)
 function bello() {
   source <( cat "${iRCHOME}"/.{completion/.bash_completion.sh,imac,env,.gitrc}; )
   source <( cat "${iRCHOME}"/bin/{ifunc,ii,ig,irt,im}.sh; )
+  source <( cat "${iRCHOME}"/.alias/{imarslo,mac,utils,devops,kubernetes,docker}; )
   # set -o vi
 }
 
 # for public account server
-# set -o vi;
-# shellcheck disable=SC1091
-function bye() { source "${iRCHOME}"/.bye; }
+function bye() { source "${iRCHOME}"/.bye; set -o emacs; }
 
 # ┌───────┬─────────┬──────────────────┐   ┌──────┬─────────────────┬──────────┐
 # │ Fg/Bg │ Style   │ Octal            │   │ Code │ Style           │ Octal    │
@@ -209,7 +189,12 @@ c() {
 #             __/ |
 #            |___/
 # --------------------------------------------------------------/
+source <( cat "${iRCHOME}"/.{env,gitrc} )
 source <( cat "${iRCHOME}"/bin/{ifunc,ii,ig,irt,im}.sh )
-# source "${iRCHOME}/bin/idisable"
+# source "${iRCHOME}/bin/idisable.sh"
+
+# test -f /usr/local/bin/screenfetch          && /usr/local/bin/screenfetch
+test -f "${iRCHOME}"/bin/screenfetch-dev      && bash   "${iRCHOME}"/bin/screenfetch-dev
+test -f "${iRCHOME}"/bin/now                  && bash   "${iRCHOME}"/bin/now
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------
