@@ -20,6 +20,9 @@ alias myaws='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i 
 alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_env/ubuntu/backups/ss/sslocal-config.json  -d start --log=/Users/marslo/.marslo/log/sslocal.log'
 alias sshmarslo='ssh marslo@118.193.233.78'
 alias nd='npm run deploy'
+# alias cat="bat --theme=\$(defaults read -globalDomain AppleInterfaceStyle &> /dev/null && echo default || echo GitHub)"
+alias cat="${iRCHOME}/bin/bat --theme='gruvbox-dark'"
+alias rg="rg --hidden --follow"
 
 alias irc="cd ~/.marslo"
 alias desk="cd ~/Desktop"
@@ -48,6 +51,7 @@ alias to="cd ${MYWORKSPACE}/tools/"
 alias gi="cd ${MYWORKSPACE}/tools/git/marslo/"
 alias ib="cd ${MYWORKSPACE}/tools/git/marslo/ibook/docs"
 alias ml="cd ${MYWORKSPACE}/tools/git/marslo/mylinux"
+alias dm="cd ${MYWORKSPACE}/tools/git/marslo/mylinux/confs/home/.marslo"
 alias mt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"
 alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs"
 
