@@ -1,0 +1,17 @@
+#!/bin/bash
+# shellcheck disable=SC2155,SC2034,SC1091,SC1090,SC2046
+# =============================================================================
+#   FileName: .imac
+#     Author: marslo.jiao@gmail.com
+#    Created: 2019-05-20 12:13:15
+# LastChange: 2020-06-08 18:35:46
+# =============================================================================
+# export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
+
+GIT_COMPLETION_DIR="${iRCHOME}/utils/git-2.35.0/contrib/completion"
+ls "${GIT_COMPLETION_DIR}"/*git* >/dev/null; [ $? -eq 0 ] && source "${GIT_COMPLETION_DIR}"/*git*
+
+for _i in $( /bin/ls -1 ${iRCHOME}/.alias ); do
+  source "${iRCHOME}/.alias/${_i}"
+done
+
