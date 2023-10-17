@@ -4,7 +4,7 @@
 #     FileName : im.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2012
-#   LastChange : 2023-10-07 18:40:03
+#   LastChange : 2023-10-16 21:37:03
 #         Desc : iMarslo
 # =============================================================================
 
@@ -49,7 +49,7 @@ function hasit() {
 # marslo grep
 function mg() {
   set -f
-  usage="""\tMG - $(c B)M$(c)ARSLO $(c M)G$(c)REP - COMBINED FIND AND GREP TO QUICK FIND KEYWORDS
+  usage="""\tmg - $(c B)M$(c)ARSLO $(c M)G$(c)REP - COMBINED FIND AND GREP TO QUICK FIND KEYWORDS
   \nSYNOPSIS
   \t$(c sY)\$ mg [i|I] [f|F] [m|M] [w|W]
   \t     [a|A <num>] [b|B <num>] [c|C <num>]
@@ -158,6 +158,13 @@ function mg() {
   fi
 
   set +f
+}
+
+# [f]ind [f]ile and [s]ort
+function ffs() {
+  path=${1:-~/.marslo}
+  num=${2:--10}
+  find "${path}" -type f -printf "%10T+ | %p\n" | sort -r | head "${num}"
 }
 
 # find file
@@ -412,7 +419,7 @@ function fcf() {
   if [[ 1 -ne $# ]] ; then
     echo 'Error : provide a function name'
   fi
-  shopt -s extdebug; declare -F $1; shopt -u extdebug
+  shopt -s extdebug; declare -F "$1"; shopt -u extdebug
 }
 
 # vim:ts=2:sts=2:sw=2:et:ft=sh
