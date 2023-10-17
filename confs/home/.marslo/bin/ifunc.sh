@@ -22,7 +22,6 @@ function file644() { find . -type f -perm 0777 \( -not -path "*.git" -a -not -pa
 function convert2av() { ffmpeg -i "$1" -i "$2" -c copy -map 0:0 -map 1:0 -shortest -strict -2 "$3"; }
 function zh() { zipinfo "$1" | head; }
 function cleanview() { rm -rf ~/.vim/view/*; }
-function copy() { /usr/bin/pbcopy < $1; }
 
 # inspired from http://www.earthinfo.org/linux-disk-usage-sorted-by-size-and-human-readable/
 function udfs {
@@ -119,7 +118,7 @@ function 256colorsAll() {
 # ansi --color-codes
 function showcolors() {
   local row col blockrow blockcol red green blue
-  local showcolor=_showcolor256_${1:-bg}
+  local showcolor=_showcolor_${1:-bg}
   local white="\033[1;37m"
   local reset="\033[0m"
 
@@ -162,19 +161,21 @@ function showcolors() {
   echo
 }
 
-function _showcolor256_fg() {
+function _showcolor_fg() {
+  # shellcheck disable=SC2155
   local code=$( printf %03d $1 )
   echo -ne "\033[38;5;${code}m"
   echo -nE " $code "
   echo -ne "\033[0m"
 }
 
-function _showcolor256_bg() {
+function _showcolor_bg() {
   if (( $2 % 2 == 0 )); then
     echo -ne "\033[1;37m"
   else
     echo -ne "\033[0;30m"
   fi
+  # shellcheck disable=SC2155
   local code=$( printf %03d $1 )
   echo -ne "\033[48;5;${code}m"
   echo -nE " $code "
@@ -242,6 +243,28 @@ gtoc() {
 # fzf --bind 'enter:become(vim {})'
 function fs() { fzf --multi --bind 'enter:become(vim {+})'; }
 
+# smart copy
+function copy() {
+  if [[ 0 -eq $# ]]; then
+    # shellcheck disable=SC2046
+    /usr/bin/pbcopy < $(fzf)
+  else
+    /usr/bin/pbcopy < "$1"
+  fi
+}
+
+# smart cat
+function cat() {
+  if [[ 0 -eq $# ]]; then
+    # shellcheck disable=SC2046
+    bat --theme='gruvbox-dark' $(fzf)
+  elif [[ 2 -eq $# ]] && [[ '-c' = "$1" ]]; then
+    /usr/local/opt/coreutils/libexec/gnubin/cat "$2"
+  else
+    bat --theme='gruvbox-dark' "$1"
+  fi
+}
+
 # magic vim
 function vim() {
   if [[ 0 -eq $# ]]; then
@@ -251,6 +274,7 @@ function vim() {
     pushd . >/dev/null
     cd "${target}" || return
     fzf --multi --bind="enter:become($(which -a vim | head -1) {+})"
+    popd >/dev/null || true
   else
     # shellcheck disable=SC2068
     $(which -a vim | head -1) -u $HOME/.vimrc $@
@@ -318,16 +342,28 @@ fif() {
   rg --files-with-matches --no-messages "$1" \
     | fzf --preview "highlight -O ansi -l {} 2> /dev/null \
     | rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 '$1' \
-  || rg --no-line-number --ignore-case --pretty --context 10 '$1' {}"
+   || rg --no-line-number --ignore-case --pretty --context 10 '$1' {}"
 }
 
 # list process
 lsps() {
   (date; ps -ef) |
-      fzf --bind='ctrl-r:reload(date; ps -ef)' \
-          --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
-          --preview='echo {}' --preview-window=down,3,wrap \
-          --layout=reverse --height=80% | awk '{print $2}'
+  fzf --bind='ctrl-r:reload(date; ps -ef)' \
+      --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
+      --preview='echo {}' --preview-window=down,3,wrap \
+      --layout=reverse --height=80% |
+  awk '{print $2}'
+}
+
+# kill process
+kps() {
+  (date; ps -ef) |
+  fzf --bind='ctrl-r:reload(date; ps -ef)' \
+      --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
+      --preview='echo {}' --preview-window=down,3,wrap \
+      --layout=reverse --height=80% |
+  awk '{print $2}' |
+  xargs kill -9
 }
 
 # bat
