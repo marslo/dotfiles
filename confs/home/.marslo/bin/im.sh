@@ -164,7 +164,12 @@ function mg() {
 function ffs() {
   path=${1:-~/.marslo}
   num=${2:--10}
-  find "${path}" -type f -printf "%10T+ | %p\n" | sort -r | head "${num}"
+  find "${path}" -type f \
+                 -not -path '*/\.git/*' \
+                 -not -path '*/node_modules/*' \
+                 -printf "%10T+ | %p\n" |
+  sort -r |
+  head "${num}"
 }
 
 # find file
