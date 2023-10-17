@@ -65,15 +65,15 @@ function getWeatherData() {
        | jq -r .current > ${tempfile}
 }
 
-# shellcheck disable=SC2086
+# shellcheck disable=SC2086,SC1091
 source "$(dirname $0)/iweather.icon"
-API_HOME="https://api.openweathermap.org"
 CURL='/usr/bin/curl'
 tempfile='/tmp/open-weather-map.json'
 locFile='/tmp/omw-lat-lon'
 cname='San Jose'
 verbose='false'
 appid="${OWM_API_TOKEN}"
+API_HOME="https://api.openweathermap.org"
 # shellcheck disable=SC1078,SC1079
 usage="""
 $(c M)iweather$(c) - show weather status of city
