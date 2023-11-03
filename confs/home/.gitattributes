@@ -1,0 +1,2 @@
+*.config    text diff=config whitespace=-tab-in-indent
+*.ltsv      text diff=ltsv whitespace=-tab-in-indent
