@@ -27,6 +27,15 @@ function udfs {
 #
 # **************************************************************/
 
+# smart copy
+function copy() {
+  if [[ 0 -eq $# ]]; then
+    # shellcheck disable=SC2046
+    /mnt/c/Windows/System32/clip.exe < $(fzf)
+  else
+    /mnt/c/Windows/System32/clip.exe < "$1"
+  fi
+}
 # magic vim
 function vim() {
   if [[ 0 -eq $# ]]; then
@@ -36,9 +45,10 @@ function vim() {
     pushd . >/dev/null
     cd "${target}" || return
     fzf --multi --bind="enter:become($(which -a vim | head -1) {+})"
+    popd >/dev/null || true
   else
     # shellcheck disable=SC2068
-    $(which -a vim | head -1) -u $HOME/.vimrc $@
+    $(which -a vim | head -1) -u $HOME/.vimrc "$*"
   fi
 }
 
@@ -48,8 +58,8 @@ _fzf_comprun() {
   shift
 
   case "$command" in
-    cd)           fzf "$@" --preview 'tree -C {} | head -200' ;;
-    *)            fzf "$@" ;;
+    cd) fzf "$@" --preview 'tree -C {} | head -200' ;;
+    *)  fzf "$@" ;;
   esac
 }
 
@@ -97,16 +107,46 @@ cdf() {
   file=$(fzf +m -q "$1") && dir=$(dirname "$file") && cd "$dir"
 }
 
+# find-in-file - usage: fif <searchTerm>   # using ripgrep combined with preview
+fif() {
+  if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
+  rg --files-with-matches --no-messages "$1" \
+    | fzf --preview "highlight -O ansi -l {} 2> /dev/null \
+    | rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 '$1' \
+   || rg --no-line-number --ignore-case --pretty --context 10 '$1' {}"
+}
+
 # list process
 lsps() {
   (date; ps -ef) |
-      fzf --bind='ctrl-r:reload(date; ps -ef)' \
-          --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
-          --preview='echo {}' --preview-window=down,3,wrap \
-          --layout=reverse --height=80% | awk '{print $2}'
+  fzf --bind='ctrl-r:reload(date; ps -ef)' \
+      --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
+      --preview='echo {}' --preview-window=down,3,wrap \
+      --layout=reverse --height=80% |
+  awk '{print $2}'
+}
+
+# kill process
+kps() {
+  (date; ps -ef) |
+  fzf --bind='ctrl-r:reload(date; ps -ef)' \
+      --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
+      --preview='echo {}' --preview-window=down,3,wrap \
+      --layout=reverse --height=80% |
+  awk '{print $2}' |
+  xargs kill -9
 }
 
 # bat
 help() { "$@" --help 2>&1 | bat --plain --language=help ; }
+
+# v - open files in ~/.vim_mru_files       # https://github.com/junegunn/fzf/wiki/Examples#v
+v() {
+  local files
+  files=$(grep --color=none -v '^#' ~/.vim_mru_files |
+          while read -r line; do
+            [ -f "${line/\~/$HOME}" ] && echo "$line"
+          done | fzf-tmux -d -m -q "$*" -1) && vim ${files//\~/$HOME}
+}
 
 # vim:ts=2:sts=2:sw=2:et:ft=sh
