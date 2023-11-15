@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2023-10-12 20:43:16
+# LastChange : 2023-11-14 20:56:29
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -31,13 +31,13 @@ if command -v brew >/dev/null; then                                            #
   HOMEBREW_PREFIX="$(brew --prefix)"
   GROOVY_HOME="${HOMEBREW_PREFIX}/opt/groovy"                                  # GROOVY_HOME="$(brew --prefix groovy)"
   BASH_COMPLETION_DIR="${HOMEBREW_PREFIX}/etc/bash_completion.d"               # BASH_COMPLETION="${HOMEBREW_PREFIX}/opt/bash-completion/etc/bash_completion"
-  BASH_COMPLETION="${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"        # for bash_completion 1.3
-  BASH_COMPLETION_2="${HOMEBREW_PREFIX}/opt/bash-completion@2/etc/profile.d/bash_completion.sh" # BASH_COMPLETION_2_DIR=$(pkg-config --variable=completionsdir bash-completion)
+  BASH_COMPLETION="$(brew --prefix bash-completion)/etc/bash_completion"       # for bash_completion 1.3_3 BASH_COMPLETION="${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"
+  ITERM2_INTEGRATION="$HOME/.iterm2_shell_integration.bash"
+  # BASH_COMPLETION_2="${HOMEBREW_PREFIX}/opt/bash-completion@2/etc/profile.d/bash_completion.sh" # BASH_COMPLETION_2_DIR=$(pkg-config --variable=completionsdir bash-completion)
   # GIT_COMPLETION_DIR="${HOMEBREW_PREFIX}/opt/git/etc/bash_completion.d"
-  # ADDITIONAL_COMPLETION="${iRCHOME}/.completion/bash_completion_init_completion" # workaround: https://github.com/mobile-shell/mosh/issues/675#issuecomment-156457108
+  # ADDITIONAL_COMPLETION="${iRCHOME}/.completion/bash_completion_init_completion"    # workaround: https://github.com/mobile-shell/mosh/issues/675#issuecomment-156457108
   # MACCLI_COMPLETION='/usr/local/bin/mac-cli/completion/bash_completion'
   # VBOX_COMPLETION="${iRCHOME}/.completion/vbox/VBoxManage-completion.bash"   # ╮ https://github.com/gryf/vboxmanage-bash-completion
-  ITERM2_INTEGRATION="$HOME/.iterm2_shell_integration.bash"
                                                                                # ╯ https://github.com/mug896/virtualbox-bash-completion
   if test -d "${BASH_COMPLETION_DIR}"; then
     source <( cat "${BASH_COMPLETION_DIR}"/{brew,tmux,tig-completion.bash} )
@@ -54,6 +54,7 @@ if command -v brew >/dev/null; then                                            #
   # test -f "${VBOX_COMPLETION}"        && source "${VBOX_COMPLETION}"
   test -e "${ITERM2_INTEGRATION}"       && source "${ITERM2_INTEGRATION}"      # iTerm2 shell integration
   test -f "$HOME/.docker/init-bash.sh"  && source "$HOME/.docker/init-bash.sh" # docker desktop
+  test -f "${iRCHOME}"/.env             && source "${iRCHOME}"/.env
   test -f "${iRCHOME}"/.imac            && source "${iRCHOME}"/.imac
 elif [ -f '/etc/os-release' ]; then                                            ## for Ubuntu/RHEL/CentOS
   distrab=$(awk -F= '$1=="ID" {print $2;}' /etc/os-release)
@@ -189,7 +190,7 @@ c() {
 #             __/ |
 #            |___/
 # --------------------------------------------------------------/
-source <( cat "${iRCHOME}"/.{env,gitrc} )
+source <( cat "${iRCHOME}"/.gitrc )
 source <( cat "${iRCHOME}"/bin/{ifunc,ii,ig,irt,im}.sh )
 # source "${iRCHOME}/bin/idisable.sh"
 
