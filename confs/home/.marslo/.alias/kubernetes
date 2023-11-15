@@ -1,53 +1,54 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1072,SC1127,SC2139,SC2142,SC2154
 # =============================================================================
-#   FileName: kuberntes
+#   FileName: kubernetes
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2019-09-19 15:49:47
+# LastChange: 2023-11-14 15:54:35
 # =============================================================================
 
-alias k='kubectl'
+alias kubectl='kubecolor'
+alias k='kubecolor'
 alias ka='kubeadm --namespace=kube-system'
 alias kl='kubelet --namespace=kube-system'
-alias kc='kubectl --namespace=kube-system'
+alias kc='kubecolor --namespace=kube-system'
 
 alias kcswatch='watch -n 1 kubectl --namespace=swcoe-system -o wide get all'
 alias kubeproxy="kubectl proxy --address=\"0.0.0.0\" -p 8001 --accept-hosts='^*$' --accept-paths='^.*' --disable-filter=true"
 
-alias  k3="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw3/.kube/config"
-alias  k4="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw4/.kube/config"
-alias kt1="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst1/.kube/config"
-alias kt2="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst2/.kube/config"
-alias kt3="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst3/.kube/config"
-alias kit="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/it-k8s/.kube/config"
+alias  k3="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw3/.kube/config"
+alias  k4="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw4/.kube/config"
+alias kt1="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst1/.kube/config"
+alias kt2="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst2/.kube/config"
+alias kt3="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst3/.kube/config"
+alias kit="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/it-k8s/.kube/config"
 
-alias  kd='kubectl --kubeconfig ~/.kube/config --namespace devops-ci'
-# alias kcEvicted="kubectl -n devops-ci get pods -o json | jq '.items[] | select(.status.reason!=null) | select(.status.reason | contains("Evicted")) | "kubectl delete pods \(.metadata.name) -n \(.metadata.namespace)"' | xargs -n 1 bash -c"
-alias kcEvicted="kubectl get pods --all-namespaces --field-selector 'status.phase==Failed' -o json | kubectl delete -f -"
+alias  kd='kubecolor --kubeconfig ~/.kube/config --namespace devops-ci'
+# alias kcEvicted="kubecolor -n devops-ci get pods -o json | jq '.items[] | select(.status.reason!=null) | select(.status.reason | contains("Evicted")) | "kubecolor delete pods \(.metadata.name) -n \(.metadata.namespace)"' | xargs -n 1 bash -c"
+alias kcEvicted="kubecolor get pods --all-namespaces --field-selector 'status.phase==Failed' -o json | kubecolor delete -f -"
 
-# get current context
-alias krc='kubectl config current-context'
-# list all contexts
-alias klc='kubectl config get-contexts -o name | sed "s/^/  /;\|^  $(kubectl config current-context)$|s/ /*/"'
-# change current context
-alias kcc='kubectl config use-context "$(klc | fzf -e | sed "s/^..//")"'
+
+# Get current context
+alias krc='kubecolor config current-context'
+# List all contexts
+alias klc='kubecolor config get-contexts -o name | sed "s/^/  /;\|^  $(kubectl config current-context)$|s/ /*/"'
+# Change current context
+alias kcc='kubecolor config use-context "$(kubectl config get-contexts -o name | sed "s/^/  /;\|^  $(kubecolor config current-context)$|s/ /*/" | fzf -e | sed "s/^..//")"'
 
 # Get current namespace
-alias krn='kubectl config get-contexts --no-headers $(kubectl config current-context) | awk "{print \$5}" | sed "s/^$/default/"'
+alias krn='kubecolor config get-contexts --no-headers $(kubectl config current-context) | awk "{print \$5}" | sed "s/^$/default/"'
 # List all namespaces
-alias kln='kubectl get -o name ns | sed "s|^.*/|  |;\|^  $(krn)$|s/ /*/"'
+alias kln='kubecolor get -o name ns | sed "s|^.*/|  |;\|^  $(krn)$|s/ /*/"'
 # Change current namespace
-alias kcn='kubectl config set-context --current --namespace "$(kln | fzf -e | sed "s/^..//")"'
+alias kcn='kubecolor config set-context --current --namespace "$(kln | fzf -e | sed "s/^..//")"'
 
 # complete -F __start_kubectl k
 # for _i in $(sed '/^alias /!d;s/^alias //;s/=.*$//' ${iRCHOME}/.alias/kubernetes); do
 # done
 
-# for kubernetes
+# autocomplete
+complete -o default -F __start_kubectl kubecolor
 while read -r _i; do
   # complete -F _complete_alias "${_i}"
-  complete -F __start_kubectl "${_i}"
-done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/.alias/kubernetes")
-
-# vim:ts=2:sts=2:sw=2:et:ft=sh
+  complete -o default -F __start_kubectl "${_i}"
+done < <(alias | sed -rn 's/^alias ([^=]+)=.+kubec.+$/\1/p')

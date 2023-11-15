@@ -3,10 +3,13 @@
 #   FileName: utils
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2020-12-16 20:32:47
+# LastChange: 2023-11-14 15:58:14
 # =============================================================================
 
 # alias rm='rm -i'
+# https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#Aliases
+# https://askubuntu.com/a/22043/92979
+alias sudo='sudo '
 alias rm='trash'
 alias cp='cp -i'
 alias cpa='cp --parents'
@@ -25,7 +28,7 @@ alias ...='cd ../..'
 alias ....='cd ../../..'
 alias dc='cd'
 alias sl='ls'
-alias cdl='cd $@ && ls -Altrh'
+# alias cdl='cd $@ && ls -Altrh'
 
 alias :q='exit'
 alias :x='exit'
