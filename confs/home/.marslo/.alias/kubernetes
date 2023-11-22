@@ -18,6 +18,7 @@ alias kubeproxy="kubectl proxy --address=\"0.0.0.0\" -p 8001 --accept-hosts='^*$
 
 alias  k3="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw3/.kube/config"
 alias  k4="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw4/.kube/config"
+alias  k8="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw8/.kube/config"
 alias kt1="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst1/.kube/config"
 alias kt2="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst2/.kube/config"
 alias kt3="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst3/.kube/config"
