@@ -21,7 +21,7 @@ alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_en
 alias sshmarslo='ssh marslo@118.193.233.78'
 alias nd='npm run deploy'
 # alias cat="bat --theme=\$(defaults read -globalDomain AppleInterfaceStyle &> /dev/null && echo default || echo GitHub)"
-alias cat="${iRCHOME}/bin/bat --theme='gruvbox-dark'"
+# alias cat="bat --theme='gruvbox-dark' "
 alias rg="rg --hidden --follow"
 
 alias irc="cd ~/.marslo"
