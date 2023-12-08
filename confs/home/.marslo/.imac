@@ -20,10 +20,14 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
 
   OPENLDAP_HOME='/usr/local/opt/openldap'
   CURL_OPENSSL_HOME='/usr/local/opt/curl'                         # via: brew install curl-openssl (https://stackoverflow.com/a/49798271/2940319)
-  OPENSSL_HOME='/usr/local/opt/openssl@1.1'                       # OPENSSL_HOME="$(brew --prefix openssl)"
+  OPENSSL_HOME='/usr/local/opt/openssl'                           # OPENSSL_HOME="$(brew --prefix openssl)"
   LIBRESSL_HOME='/usr/local/opt/libressl'
   GIT_EXTRAS='/usr/local/opt/git-extras'                          # GIT_EXTRAS="$(brew --prefix git-extras)"
   ICU4C_711='/usr/local/Cellar/icu4c@71.1/71.1'                   # '/usr/local/opt/icu4c@71.1'
+  EXPAT_HOME='/usr/local/opt/expat'
+  ZLIB_HOME='/usr/local/opt/zlib'
+  LIBICONV_HOME='/usr/local/opt/libiconv'
+  NCURSES_HOME='/usr/local/opt/ncurses'
 
   BINUTILS='/usr/local/opt/binutils'
   GNUBINHOME='/usr/local/opt/coreutils/libexec/gnubin'
@@ -41,7 +45,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   KW_BUILD_TOOLS='/opt/kwbuildtools'
   MACVIM_HOME='/Applications/MacVim.app'
   # vim-tabnine
-  LLVM_HOME='/usr/local/opt/llvm'
+  LLVM_HOME="$(brew --prefix llvm)"
 
   TOOLS_PATH="${KW_BUILD_TOOLS}/bin"
   TOOLS_PATH+=":/usr/local/vim/bin"
@@ -84,7 +88,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   # JAVA_OPTS+='-Dhttp.proxyHost=ipamunix.example.com -Dhttp.proxyPort=8080'
 
   # NODE_HOME='/usr/local/opt/node@12'
-  NODE_HOME='/usr/local/Cellar/node/20.8.0'
+  NODE_HOME='/usr/local/Cellar/node/21.1.0'
   MYSQL_HOME='/usr/local/mysql'
   ITERM2_ADDITIONAL="${HOME}/.iterm2"
 
@@ -117,6 +121,9 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   UTLS_PATH+=":${OPENLDAP_HOME}/sbin"
   UTLS_PATH+=":${CURL_OPENSSL_HOME}/bin"
   UTLS_PATH+=":${OPENSSL_HOME}/bin"
+  UTLS_PATH+=":${EXPAT_HOME}/bin"
+  UTLS_PATH+=":${NCURSES_HOME}/bin"
+  UTLS_PATH+=":${LIBICONV_HOME}/bin"
   UTLS_PATH+=":${INETUTILS}"
   UTLS_PATH+=":/usr/local/opt/file-formula/bin"
   UTLS_PATH+=":/usr/local/opt/gettext/bin"
@@ -134,9 +141,13 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   LDFLAGS+=" -L$(brew --prefix)/lib"
   LDFLAGS+=" -L/usr/local/opt/readline/lib"
   LDFLAGS+=" -L${OPENSSL_HOME}/lib"
-  LDFLAGS+=" -L${NODE_HOME}/lib"
+  LDFLAGS+=" -L${NODE_HOME}/libexec/lib"
   LDFLAGS+=" -L${LIBRESSL_HOME}/lib"
   LDFLAGS+=" -L${ICU4C_711}/lib"
+  LDFLAGS+=" -L${EXPAT_HOME}/lib"
+  LDFLAGS+=" -L${NCURSES_HOME}/lib"
+  LDFLAGS+=" -L${LIBICONV_HOME}/lib"
+  LDFLAGS+=" -L${ZLIB_HOME}/lib"
   LDFLAGS+=" -L${LLVM_HOME}/lib"
   LDFLAGS+=" -L${LLVM_HOME}/lib/c++ -Wl,-rpath,${LLVM_HOME}/lib/c++"  # for c++
 
@@ -150,13 +161,17 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   CPPFLAGS+=" -I${OPENSSL_HOME}/include"
   CPPFLAGS+=" -I${NODE_HOME}/include"
   CPPFLAGS+=" -I${LIBRESSL_HOME}/include"
+  CPPFLAGS+=" -I${EXPAT_HOME}/include"
+  CPPFLAGS+=" -I${NCURSES_HOME}/include"
+  CPPFLAGS+=" -I${LIBICONV_HOME}/include"
+  CPPFLAGS+=" -I${ZLIB_HOME}/include"
   CPPFLAGS+=" -I${TCLTK_HOME}/include"
   CPPFLAGS+=" -I${RUBY_HOME}/include"
   CPPFLAGS+=" -I${ICU4C_711}/include"
   CPPFLAGS+=" -I${LLVM_HOME}/include"
 
   PKG_CONFIG_PATH="${PKG_CONFIG_PATH:-}"
-  PKG_CONFIG_PATH="${CURL_OPENSSL_HOME}/lib/pkgconfig"
+  PKG_CONFIG_PATH+="${CURL_OPENSSL_HOME}/lib/pkgconfig"
   PKG_CONFIG_PATH+=":${TCLTK_HOME}/lib/pkgconfig"
   PKG_CONFIG_PATH+=":/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/11.1"
   PKG_CONFIG_PATH+=":${SQLITE_HOME}/lib/pkgconfig"
@@ -165,8 +180,14 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   PKG_CONFIG_PATH+=":${RUBY_HOME}/lib/pkgconfig"
   PKG_CONFIG_PATH+=":${LIBRESSL_HOME}/lib/pkgconfig"
   PKG_CONFIG_PATH+=":${ICU4C_711}/lib/pkgconfig"
+  PKG_CONFIG_PATH+=":${EXPAT_HOME}/lib/pkgconfig"
+  PKG_CONFIG_PATH+=":${NCURSES_HOME}/lib/pkgconfig"
+  PKG_CONFIG_PATH+=":${ZLIB_HOME}/lib/pkgconfig"
 
-  CFLAGS="-I${TCLTK_HOME}/include"
+  CFLAGS="-I/usr/local/include"
+  CFLAGS+=" -I${TCLTK_HOME}/include"
+
+  LD_LIBRARY_PATH=/usr/local/lib
 
   TEMP_PATH="${TOOLS_PATH}"
   TEMP_PATH+="${HOMEBREW_BINS}"
@@ -187,7 +208,8 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
 
   # eval "$(/usr/libexec/path_helper)"
   export JAVA_HOME GROOVY_HOME PATH MANPATH
-  export GUILE_TLS_CERTIFICATE_DIRECTORY PYTHONPATH PYTHONUSERBASE CLASSPATH LDFLAGS CPPFLAGS RUBY_CONFIGURE_OPTS PKG_CONFIG_PATH CFLAGS
+  export GUILE_TLS_CERTIFICATE_DIRECTORY PYTHONPATH PYTHONUSERBASE CLASSPATH RUBY_CONFIGURE_OPTS
+  export LDFLAGS CPPFLAGS PKG_CONFIG_PATH CFLAGS
   # export JAVA_OPTS
 fi
 
