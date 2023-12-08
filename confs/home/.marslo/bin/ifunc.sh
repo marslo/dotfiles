@@ -247,7 +247,7 @@ function fs() { fzf --multi --bind 'enter:become(vim {+})'; }
 function copy() {
   if [[ 0 -eq $# ]]; then
     # shellcheck disable=SC2046
-    /usr/bin/pbcopy < $(fzf)
+    /usr/bin/pbcopy < $(fzf --exit-0)
   else
     /usr/bin/pbcopy < "$1"
   fi
@@ -257,11 +257,11 @@ function copy() {
 function cat() {
   if [[ 0 -eq $# ]]; then
     # shellcheck disable=SC2046
-    bat --theme='gruvbox-dark' $(fzf)
+    bat --theme='gruvbox-dark' $(fzf --exit-0)
   elif [[ 2 -eq $# ]] && [[ '-c' = "$1" ]]; then
     /usr/local/opt/coreutils/libexec/gnubin/cat "$2"
   else
-    bat --theme='gruvbox-dark' "$1"
+    bat --theme='gruvbox-dark' "${@:1:$#-1}" "${@: -1}"
   fi
 }
 
@@ -376,6 +376,21 @@ v() {
           while read -r line; do
             [ -f "${line/\~/$HOME}" ] && echo "$line"
           done | fzf-tmux -d -m -q "$*" -1) && vim ${files//\~/$HOME}
+}
+
+# yum whatprovides
+brew-whatprovides() {
+  if [[ 0 -ne $# ]]; then
+    _p="$*";
+    _realp="$(realpath ${_p})";
+    while read -r pkg; do
+      echo -ne "\r$(tput el)>> searching in ${pkg} ..."
+      if brew list --verbose "${pkg}" 2>/dev/null | grep "${_realp}" >/dev/null 2>&1; then
+        echo -ne "\r$(tput el)>> \033[0;32m${_p}\033[0m ( \033[0;37m${_realp}\033[0m ) provided by \033[0;33m${pkg}\033[0m";
+        break;
+      fi;
+    done < <(brew leaves);
+  fi
 }
 
 # vim:ts=2:sts=2:sw=2:et:ft=sh
