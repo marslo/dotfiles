@@ -157,7 +157,7 @@
 
   ### [m]arslo force [p]ush
   mp          = "! bash -c 'while read branch; do \n\
-                              echo \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
+                              echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
                               git add --all $(git rev-parse --show-toplevel) \n\
                               git commit --amend --no-edit \n\
                               if [ 'meta/config' = \"${branch}\" ]; then \n\
@@ -260,9 +260,9 @@
   cf          = "! bash -c 'grep --color=always -rnw \"^<<<<<<< HEAD$\"'"
   # [s]how [c]onflict [c]ontent
   scc         = "! bash -c 'while read file; do \n\
-                              echo \"\\n\\033[1;33m${file}\\n---\\033[0m\" \n\
+                              echo -e \"\\n\\033[1;33m${file}\\n---\\033[0m\" \n\
                               sed -n \"/<<<<<<< HEAD/,/>>>>>>> /!d;=;p\" ${file} \n\
-                              echo \"\\n\\033[1;33m---\\033[0m\" \n\
+                              echo -e \"\\n\\033[1;33m---\\033[0m\" \n\
                             done < <(git grep --no-color -l \"<<<<<<< HEAD\") \n\
                            ' \n\
                 "
@@ -429,7 +429,7 @@
                       }; f \
                 "
 
-  # `echo` for MacOS; `echo -e` for Linux; \
+  # `echo` for MacOS (sh); `echo -e` for Linux (bash); \
   del-tag     = "!f() { \
                         ECHO='echo'; \
                         name=\"$1\"; \
@@ -453,7 +453,7 @@
                 "
 
   # git fetch --tags --prune --prune-tags --quiet
-  # `echo` for MacOS; `echo -e` for Linux; \
+  # `echo` for MacOS (sh); `echo -e` for Linux (bash); \
   del         = "!f() { \
                         ECHO='echo'; \
                         name=$(sed -re \"s:^(refs/heads)?(refs/tags/)?(remotes/)?(origin/)?(.*)$:\\5:\" <<< \"$1\"); \
@@ -535,7 +535,7 @@
   # git fetch --prune origin 'refs/tags/*:refs/tags/*' '+refs/heads/*:refs/remotes/origin/*'
   ### [u]pdate [a]ll
   ua          = "! bash -c 'while read branch; do \n\
-                              echo \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
+                              echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
                               git fetch --all --force; \n\
                               git fetch --prune --prune-tags --force origin; \n\
                               if [ 'meta/config' = \"${branch}\" ]; then \n\
@@ -554,7 +554,7 @@
 
   # [r]eset --h[a]rd
   ra          = "! bash -c 'while read branch; do \n\
-                              echo \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
+                              echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
                               git reset --hard origin/${branch} \n\
                             done < <(git rev-parse --abbrev-ref HEAD) \n\
                            ' \n\
@@ -565,7 +565,7 @@
   # git review ${branch} --reviewers a@domain.com b@domain.com c@domain.com cc:e@domain.com \n\
   ### [m]arslo revie[w]
   mw          = "! bash -c 'while read branch; do \n\
-                              echo \"\\033[1;33m~~> ${branch}\\033[0m\"; \n\
+                              echo -e \"\\033[1;33m~~> ${branch}\\033[0m\"; \n\
                               if [ 'meta/config' == \"${branch}\" ]; then \n\
                                 git push origin HEAD:refs/for/refs/meta/config; \n\
                               else \n\
@@ -577,7 +577,7 @@
 
   ### [p]ure [m]arslo revie[w]
   pmw         = "! bash -c 'while read branch; do \n\
-                              echo \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
+                              echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
                               if [ 'meta/config' = \"${branch}\" ]; then \n\
                                 git push origin HEAD:refs/for/refs/meta/config \n\
                               else \n\
@@ -587,7 +587,7 @@
                            ' \n\
                 "
 
-  # `echo` for MacOS; `echo -e` for Linux; \
+  # `echo` for MacOS (sh); `echo -e` for Linux (bash); \
   ### [r]eset to [o]riginal
   ro          = "!f() { \
                         ECHO='echo'                                    ; \
@@ -612,7 +612,7 @@
                       }; f \
                 "
 
-  # `echo` for MacOS; `echo -e` for Linux; \
+  # `echo` for MacOS (sh); `echo -e` for Linux (bash); \
   ### [r]eset to [o]riginal and re[b]ase
   rob         = "!f() { \
                         ECHO='echo'                                 ; \
@@ -684,9 +684,9 @@
   showupstream      = "! bash -c 'while read branch; do \n\
                                     upstream=$(git rev-parse --abbrev-ref ${branch}@{upstream} 2>/dev/null); \n\
                                     if [[ $? == 0 ]]; then \n\
-                                      echo \"${branch} tracks ${upstream}\"; \n\
+                                      echo -e \"${branch} tracks ${upstream}\"; \n\
                                     else \n\
-                                      echo \"${branch} has no upstream configured\"; \n\
+                                      echo -e \"${branch} has no upstream configured\"; \n\
                                     fi; \n\
                                   done < <(git for-each-ref --format=\"%(refname:short)\" refs/heads/*) \n\
                                  ' \n\
