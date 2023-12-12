@@ -5,16 +5,18 @@
 #       Author : marslo.jiao@gmail.com
 #         Desc : im for wsl
 #      Created : 2012
-#   LastChange : 2023-10-08 05:19:48
+#   LastChange : 2023-12-11 19:29:24
 # =============================================================================
 
-# shellcheck disable=SC1091
-function rcsource() { source $HOME/.marslo/.marslorc; }
-function mkcd() { mkdir -p $1 && cd $1; }
-function cdls() { cd $1 && ls; }
-function cdla() { cd $1 && la; }
-function gbl()  { git for-each-ref --sort=-committerdate --format='%(committerdate) %(authorname) %(refname)' refs/remotes/origin/ | grep -e ."$*" | head -n 10; }
-function dir()  { find . -iname "$@" -print0 | xargs -r0 ls -altr | awk '{print; total += $5}; END {print "total size: ", total}'; }
+function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
+# shellcheck disable=SC2154,SC2086,SC1091
+function mrc() { source "${iRCHOME}"/.marslorc; }
+# https://serverfault.com/a/906310/129815
+function ssl_expiry () { echo | openssl s_client -connect "${1}":443 2> /dev/null | openssl x509 -noout -enddate; }
+function erc() { /usr/local/bin/vim "${iRCHOME}/.marslorc"; }
+function pipurl() { pip list --format=freeze | cut -d= -f1 | xargs pip show | awk '/^Name/{printf $2} /^Home-page/{print ": "$2}' | column -t; }
+function gbl() { git for-each-ref --sort=-committerdate --format='%(committerdate) %(authorname) %(refname)' refs/remotes/origin/ | grep -e ."$*" | head -n 10; }
+function erc() { /usr/bin/vim "${iRCHOME}/.marslorc"; }
 
 function contains() {
   standard=$1
@@ -39,7 +41,7 @@ function hasit() {
 # marslo grep
 function mg() {
   set -f
-  usage="""\tMG - $(c B)M$(c)ARSLO $(c M)G$(c)REP - COMBINED FIND AND GREP TO QUICK FIND KEYWORDS
+  usage="""\tmg - $(c B)M$(c)ARSLO $(c M)G$(c)REP - COMBINED FIND AND GREP TO QUICK FIND KEYWORDS
   \nSYNOPSIS
   \t$(c sY)\$ mg [i|I] [f|F] [m|M] [w|W]
   \t     [a|A <num>] [b|B <num>] [c|C <num>]
@@ -106,8 +108,8 @@ function mg() {
 
   if [ -n "${keyword}" ]; then
 
-    hasit '\' "${keyword}"
-    if [[ 0 = $? ]]; then
+    # shellcheck disable=SC1003
+    if ! hasit '\' "${keyword}"; then
       grepOpt+=" ${gitOptAdditional}"
     fi
 
@@ -150,6 +152,20 @@ function mg() {
   set +f
 }
 
+# [f]ind [f]ile and [s]ort
+function ffs() {
+  path=${1:-~/.marslo}
+  num=${2:-10}
+  find "${path}" -type f \
+                 -not -path '*/\.git/*' \
+                 -not -path '*/node_modules/*' \
+                 -not -path '*/go/pkg/*' \
+                 -not -path '*/git/git*/*' \
+                 -printf "%10T+ | %p\n" |
+  sort -r |
+  head "-${num}"
+}
+
 # find file
 function ff() {
   # shellcheck disable=SC1078,SC1079
@@ -188,7 +204,7 @@ function ms() {
   path='.'
   sw=''     # source word
   tw=''     # target word
-  opt='-i'
+  opt=''
 
   if [ 2 -le $# ]; then
     case $1 in
@@ -231,9 +247,9 @@ function pclr(){
 # proxy setup
 # myproxy=$(echo $1 | sed -n 's/\([0-9]\{1,3\}.\)\{4\}:\([0-9]\+\)/&/p')
 function pset(){
-  myproxy=$( [ 0 -eq $# ] && echo 'http://127.0.0.1:8081' || echo "$*" )
-  pEnv="http_proxy ftp_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY"
-  # pEnv+="socks_proxy SOCKS_PROXY"
+  myproxy=$( [ 0 -eq $# ] && echo 'http://proxy.sample.com:80' || echo "$*" )
+  pEnv='http_proxy ftp_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY'
+  # pEnv+='socks_proxy SOCKS_PROXY'
 
   for envvar in $pEnv; do
     export "${envvar}"="${myproxy}"
@@ -241,52 +257,12 @@ function pset(){
   echo -e "$(c sG)proxy has been all set as ${myproxy}.$(c)"
 }
 
-function bd() {
-  USER='svc_appbld'
-  DOMAIN='engba'
-  TYPE='appbuilder'
-
-  # shellcheck disable=SC2048
-  args=$(getopt rcd $*)
-  if test $? != 0
-  then
-    echo -e 'Usage: [-r[c[d]]] HostnumVMnum
-    -r: root
-    -c: cdc builder (engma.veritas.com)
-    -d: dev builder (appreldev)
-    '
-  else
-    set -- $args
-
-    for opt; do
-      case ${opt} in
-        -r) USER='root' ;;
-        -c) DOMAIN='engma' ;;
-        -d) TYPE='appreldev' ;;
-      esac
-    done
-
-    for VAR in "$@"; do true; done
-    HOST=${VAR:0:2}
-    VM=${VAR:2}
-
-    /usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /home/marslo/.marslo/Marslo/Tools/Softwares/sshkey/Marslo\@Appliance ${USER}@${TYPE}${HOST}-vm${VM}.${DOMAIN}.veritas.com
-  fi
-}
-
-function 256color() {
-  for i in {0..255}; do
-    echo -e "\e[38;05;${i}m█${i}";
-    done | column -c 80 -s ' ';
-  echo -e "\e[m"
-}
-
-# function come from
+# [f]unction [c]ome [f]rom
 function fcf() {
   if [[ 1 -ne $# ]] ; then
     echo 'Error : provide a function name'
   fi
-  shopt -s extdebug; declare -F $1; shopt -u extdebug
+  shopt -s extdebug; declare -F "$1"; shopt -u extdebug
 }
 
 # vim:ts=2:sts=2:sw=2:et:ft=sh

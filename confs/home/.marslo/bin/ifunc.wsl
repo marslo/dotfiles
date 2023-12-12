@@ -1,14 +1,30 @@
 #!/usr/bin/env bash
+#=============================================================================
+#     FileName : ifunc.wsl
+#       Author : marslo.jiao@gmail.com
+#      Created : 2023-10-08 06:57:15
+#   LastChange : 2023-12-11 19:30:40
+#=============================================================================
+
+function take() { mkdir -p "$1" && cd "$1" || return; }
+function cdls() { cd "$1" && ls; }
+function cdla() { cd "$1" && la; }
+function getperm() { find "$1" -printf '%m\t%u\t%g\t%p\n'; }
+function rdiff() { rsync -rv --size-only --dry-run "$1" "$2"; }
+function forget() { history -d $(( $(history | tail -n 1 | ${GREP} -oP '^ \d+') - 1 )); }
+function zh() { zipinfo "$1" | head; }
+function cleanview() { rm -rf ~/.vim/view/*; }
+function color() { for c; do printf '\e[48;5;%dm %03d ' "$c" "$c"; done; printf '\e[0m \n'; }
 
 # inspired from http://www.earthinfo.org/linux-disk-usage-sorted-by-size-and-human-readable/
 function udfs {
-  du -sk "$@" | sort -nr | while read size fname;
-  do
-    for unit in k M G T P E Z Y;
-    do
-      if [ $size -lt 1024 ];
-      then
-        echo -e "${size}${unit}\t${fname}";
+  v='$*'
+  # shellcheck disable=SC2124
+  [ 1 -le $# ] && v="$@"
+  du -sk ${v} | sort -nr | while read -r size fname; do
+    for unit in k M G T P E Z Y; do
+      if [ "$size" -lt 1024 ]; then
+        echo -e "${size}${unit}\\t${fname}";
         break;
       fi;
       size=$((size/1024));
@@ -16,6 +32,148 @@ function udfs {
   done
 }
 
+function dir() {
+  _p=$( [ 0 -eq $# ] && echo '.' || echo "$*" )
+  find . -iname "${_p}" -print0 | xargs -r0 ls -altr | awk '{print; total += $5}; END {print "total size: ", total}';
+}
+
+function 256colors() {
+  for i in {0..255}; do
+    echo -e "\e[38;05;${i}m▌$i";        # ctrl+v -> u258c ( left half block ); u2588 ( full block )
+  done | column -c 180 -s ' ';
+  echo -e "\e[m"
+}
+
+function 256color() {
+  declare c="38"
+  [[ '-b' = "$1" ]] && c="48"
+  [[ '-a' = "$1" ]] && c="38 48"
+
+  for fgbg in ${c} ; do                    # foreground / background
+    for color in {0..255} ; do             # colors
+      # display the color
+      printf "\e[${fgbg};5;%sm  %3s  \e[0m" $color $color
+      # display 6 colors per lines
+      if [ $(( (color + 1) % 6 )) == 4 ] ; then
+        echo                               # new line
+      fi
+    done
+    echo                                   # new line
+  done
+}
+
+function 256colorsAll() {
+  for clbg in {40..47} {100..107} 49 ; do  # background
+    for clfg in {30..37} {90..97} 39 ; do  # foreground
+      for attr in 0 1 2 4 5 7 ; do         # formatting
+        # print the result
+        echo -en "\e[${attr};${clbg};${clfg}m ^[${attr};${clbg};${clfg}m \e[0m"
+      done
+      echo                                 # new line
+    done
+  done
+}
+
+# https://stackoverflow.com/a/69648792/2940319
+# usage:
+#   - `showcolors fg`
+#   - `showcolors bg`
+# ansi --color-codes
+function showcolors() {
+  local row col blockrow blockcol red green blue
+  local showcolor=_showcolor_${1:-fg}
+  local white="\033[1;37m"
+  local reset="\033[0m"
+
+  echo -e "set foreground color: \\\\033[38;5;${white}NNN${reset}m"
+  echo -e "set background color: \\\\033[48;5;${white}NNN${reset}m"
+  echo -e "reset color & style:  \\\\033[0m"
+  echo
+
+  echo 16 standard color codes:
+  for row in {0..1}; do
+    for col in {0..7}; do
+      $showcolor $(( row*8 + col )) $row
+    done
+    echo
+  done
+  echo
+
+  echo 6·6·6 RGB color codes:
+  for blockrow in {0..2}; do
+    for red in {0..5}; do
+      for blockcol in {0..1}; do
+        green=$(( blockrow*2 + blockcol ))
+        for blue in {0..5}; do
+          $showcolor $(( red*36 + green*6 + blue + 16 )) $green
+        done
+        echo -n "  "
+      done
+      echo
+    done
+    echo
+  done
+
+  echo 24 grayscale color codes:
+  for row in {0..1}; do
+    for col in {0..11}; do
+      $showcolor $(( row*12 + col + 232 )) $row
+    done
+    echo
+  done
+  echo
+}
+
+function _showcolor_fg() {
+  # shellcheck disable=SC2155
+  local code=$( printf %03d $1 )
+  echo -ne "\033[38;5;${code}m"
+  echo -nE " $code "
+  echo -ne "\033[0m"
+}
+
+function _showcolor_bg() {
+  if (( $2 % 2 == 0 )); then
+    echo -ne "\033[1;37m"
+  else
+    echo -ne "\033[0;30m"
+  fi
+  # shellcheck disable=SC2155
+  local code=$( printf %03d $1 )
+  echo -ne "\033[48;5;${code}m"
+  echo -nE " $code "
+  echo -ne "\033[0m"
+}
+
+# how may days == ddiff YYYY-MM-DD now
+hmdays() {
+  usage="""SYNOPSIS
+  \n\t\$ hmdays YYYY-MM-DD
+  \nEXAMPLE
+  \n\t\$ hmdays 1987-03-08
+  """
+
+  if [ 1 -ne $# ]; then
+    echo -e "${usage}"
+  else
+    if date +%s --date "$1" > /dev/null 2>&1; then
+      echo $((($(date +%s)-$(date +%s --date "$1"))/(3600*24))) days
+    else
+      echo -e "${usage}"
+    fi
+  fi
+}
+
+ibtoc() {
+  if [ 0 -eq $# ]; then
+    find "${MYWORKSPACE}/tools/git/marslo/mbook/docs" \
+         -iname '*.md' \
+         -not -path '**/SUMMARY.md' \
+         -exec doctoc --github --maxlevel 3 {} \;
+  else
+    doctoc --github --maxlevel 3 "$@"
+  fi
+}
 
 # /**************************************************************
 #  __      __
@@ -31,11 +189,24 @@ function udfs {
 function copy() {
   if [[ 0 -eq $# ]]; then
     # shellcheck disable=SC2046
-    /mnt/c/Windows/System32/clip.exe < $(fzf)
+    /mnt/c/Windows/System32/clip.exe < $(fzf --multi --exit-0)
   else
     /mnt/c/Windows/System32/clip.exe < "$1"
   fi
 }
+
+# smart cat
+function cat() {
+  if [[ 0 -eq $# ]]; then
+    # shellcheck disable=SC2046
+    bat --theme='gruvbox-dark' $(fzf --exit-0)
+  elif [[ 2 -eq $# ]] && [[ '-c' = "$1" ]]; then
+    command -p cat "$2"
+  else
+    bat --theme='gruvbox-dark' "${@:1:$#-1}" "${@: -1}"
+  fi
+}
+
 # magic vim
 function vim() {
   if [[ 0 -eq $# ]]; then
@@ -48,7 +219,7 @@ function vim() {
     popd >/dev/null || true
   else
     # shellcheck disable=SC2068
-    $(which -a vim | head -1) -u $HOME/.vimrc "$*"
+    command -p vim -u $HOME/.vimrc "$@"
   fi
 }
 
