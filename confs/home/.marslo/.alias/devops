@@ -21,6 +21,7 @@ fi
 # using git config --global pager.log 'diff-highlight | less -FRXK' instead of
 # alias git='git --no-pager'
 
+alias ipshow="ip addr show | sed -nE \"s/inet\s(.*)\/[0-9]+.*\s(\w+)/\2 \1/p\" | column -to ' => '"
 alias en7dump='tcpdump -nni en7 -p'
 alias startjack='jackd -d coreaudio &'
 # alias mocp="mocp -v 50"

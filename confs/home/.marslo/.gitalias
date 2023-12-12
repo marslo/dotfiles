@@ -4,7 +4,6 @@
   sts         = status
   rb          = rebase
   co          = checkout --force --recurse-submodules
-  cb          = rev-parse --abbrev-ref HEAD
   cl          = clean -dffx
   cn          = clone --recurse-submodules --tags
   cp          = cherry-pick
@@ -107,11 +106,25 @@
   br          = branch --sort=-committerdate
   bra         = branch -a --sort=-committerdate
   ### [s]ort [b]ranch
-  sb          = "! git branch --sort=-committerdate --format='%(HEAD) %(color:red)%(objectname:short)%(color:reset) - %(color:yellow)%(refname:short)%(color:reset) - %(subject) %(color:bold green)(%(committerdate:relative))%(color:reset) %(color:blue)<%(authorname)>%(color:reset)' --color=always"
+  # sb        = "! git branch --sort=-committerdate --format='%(HEAD) %(color:red)%(objectname:short)%(color:reset) - %(color:yellow)%(refname:short)%(color:reset) - %(subject) %(color:bold green)(%(committerdate:relative))%(color:reset) %(color:blue)<%(authorname)>%(color:reset)' --color=always"
   sbranch     = show-branch
-  # [c]urrent [b]ranch
   rbr         = "! f(){ git branch -ra | grep $1; }; f"
+  # [c]urrent [b]ranch
+  # cb        = rev-parse --abbrev-ref HEAD
   # curbranch = "!bash -c 'git branch | grep \* | sed "s/\* \(.*\)/ (\1)/"'"
+  ### [c]heckout sorted [b]ranch
+  cb          = "! bash -c 'git for-each-ref refs/remotes --sort=-committerdate --format=\"%(refname:short)\" | \n\
+                            grep --color=never -v \"origin$\" | \n\
+                            fzf | \n\
+                            sed -rn \"s:\\s*origin/(.*)$:\\1:p\" | \n\
+                            xargs git checkout \n\
+                           '"
+  # cb        = "! bash -c 'git branch --color=never --all | \n\
+  #                         grep -v --color=never HEAD | \n\
+  #                         fzf | \n\
+  #                         sed -rn \"s/^\\s*remotes\\/origin\\/(.*)$/\\1/p\" | \n\
+  #                         xargs git checkout \n\
+  #                        '"
   # }}}
 
   #-----------------------#
