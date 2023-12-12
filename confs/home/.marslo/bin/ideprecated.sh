@@ -11,6 +11,39 @@
 function getcv() { sudo dmidecode | ${GREP} -i prod; }
 function envUpdate() { for i in $(seq 1 9); do ssh slave0"${i}" "cd ~/env; git clean -dfx; git reset --hard; git pull --all"; done; }
 
+function bd() {
+  USER='svc_appbld'
+  DOMAIN='engba'
+  TYPE='appbuilder'
+
+  # shellcheck disable=SC2048
+  args=$(getopt rcd $*)
+  if test $? != 0
+  then
+    echo -e 'Usage: [-r[c[d]]] HostnumVMnum
+    -r: root
+    -c: cdc builder (engma.veritas.com)
+    -d: dev builder (appreldev)
+    '
+  else
+    set -- $args
+
+    for opt; do
+      case ${opt} in
+        -r) USER='root' ;;
+        -c) DOMAIN='engma' ;;
+        -d) TYPE='appreldev' ;;
+      esac
+    done
+
+    for VAR in "$@"; do true; done
+    HOST=${VAR:0:2}
+    VM=${VAR:2}
+
+    /usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /home/marslo/.marslo/Marslo/Tools/Softwares/sshkey/Marslo\@Appliance ${USER}@${TYPE}${HOST}-vm${VM}.${DOMAIN}.veritas.com
+  fi
+}
+
 # For ssh agent
 # start the ssh-agent
 function start_agent {
