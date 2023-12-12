@@ -14,8 +14,10 @@
 
 # if [[ -x /usr/bin/sw_vers ]] && /usr/bin/sw_vers | grep -E '\s*[mM]ac\s*OS\s*X?' >/dev/null; then
 if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]]; then
-  # export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles   # https://cloud.tencent.com/developer/article/1614039
-  # HOMEBREW_BINS="/usr/local/bin"
+  # https://cloud.tencent.com/developer/article/1614039
+  # export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
+  HOMEBREW_PREFIX="$(brew --prefix)"
+  HOMEBREW_BINS="/usr/local/bin"
   HOMEBREW_BINS+=":/usr/local/sbin"
 
   OPENLDAP_HOME='/usr/local/opt/openldap'
@@ -24,10 +26,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   LIBRESSL_HOME='/usr/local/opt/libressl'
   GIT_EXTRAS='/usr/local/opt/git-extras'                          # GIT_EXTRAS="$(brew --prefix git-extras)"
   ICU4C_711='/usr/local/Cellar/icu4c@71.1/71.1'                   # '/usr/local/opt/icu4c@71.1'
-  EXPAT_HOME='/usr/local/opt/expat'
-  ZLIB_HOME='/usr/local/opt/zlib'
   LIBICONV_HOME='/usr/local/opt/libiconv'
-  NCURSES_HOME='/usr/local/opt/ncurses'
 
   BINUTILS='/usr/local/opt/binutils'
   GNUBINHOME='/usr/local/opt/coreutils/libexec/gnubin'
@@ -45,23 +44,25 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   KW_BUILD_TOOLS='/opt/kwbuildtools'
   MACVIM_HOME='/Applications/MacVim.app'
   # vim-tabnine
-  LLVM_HOME="$(brew --prefix llvm)"
+  LLVM_HOME='/usr/local/opt/llvm'
 
-  TOOLS_PATH="${KW_BUILD_TOOLS}/bin"
-  TOOLS_PATH+=":/usr/local/vim/bin"
-  TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"
-  TOOLS_PATH+=":${LLVM_HOME}/bin"
+  TOOLS_PATH="${TOOLS_PATH:-}"
+  test -d "${KW_BUILD_TOOLS}" && TOOLS_PATH+=":${KW_BUILD_TOOLS}/bin"
+  test -d '/usr/local/vim'    && TOOLS_PATH+=':/usr/local/vim/bin'
+  test -d "$HOME/.docker"     && TOOLS_PATH+=":$HOME/.docker/bin"
+  test -d "${MACVIM_HOME}"    && TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"
+  test -d "${LLVM_HOME}"      && TOOLS_PATH+=":${LLVM_HOME}/bin"
 
-  GNU_PATH="${GNUBINHOME}"
-  GNU_PATH+=":${GNUBINHOME}"
-  GNU_PATH+=":${GNUWHICH}"
-  GNU_PATH+=":${GNUGETOPT}"
-  GNU_PATH+=":${GNUGREP}"
-  GNU_PATH+=":${GNUTAR}"
-  GNU_PATH+=":${GNUFIND}"
-  GNU_PATH+=":${GNUINDENT}"
-  GNU_PATH+=":${GNUSED}"
-  GNU_PATH+=":${BINUTILS}/bin"
+  GNU_PATH="${GNU_PATH:-}"
+  test -d "${GNUBINHOME}" && GNU_PATH+=":${GNUBINHOME}"
+  test -d "${GNUWHICH}"   && GNU_PATH+=":${GNUWHICH}"
+  test -d "${GNUGETOPT}"  && GNU_PATH+=":${GNUGETOPT}"
+  test -d "${GNUGREP}"    && GNU_PATH+=":${GNUGREP}"
+  test -d "${GNUTAR}"     && GNU_PATH+=":${GNUTAR}"
+  test -d "${GNUFIND}"    && GNU_PATH+=":${GNUFIND}"
+  test -d "${GNUINDENT}"  && GNU_PATH+=":${GNUINDENT}"
+  test -d "${GNUSED}"     && GNU_PATH+=":${GNUSED}"
+  test -d "${BINUTILS}"   && GNU_PATH+=":${BINUTILS}/bin"
 
   test -d '/opt/gradle/gradle-4.8' && GRADLE_HOME='/opt/gradle/gradle-4.8'
   if test -d '/opt/maven/apache-maven-3.5.0'; then
@@ -76,26 +77,21 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
 
   # java 8
   #   JAVA_HOME='/Library/Java/JavaVirtualMachines/jdk1.8.0_271.jdk/Contents/Home'
-  # java 11                                                                    # https://docs.oracle.com/en/java/javase/11/install/installation-jdk-macos.html
+  # java 11                                                       # https://docs.oracle.com/en/java/javase/11/install/installation-jdk-macos.html
   #   JAVA_HOME=$(/usr/libexec/java_home -v 11)
   # java 21
-  # JAVA_HOME="$(brew --prefix java)"
+  #   JAVA_HOME="$(brew --prefix java)"
   JAVA_HOME=$(/usr/libexec/java_home)
   # java 17
-  # JAVA_HOME=$(brew --prefix openjdk@17)                           # -> '/usr/local/opt/openjdk@17'
+  #   JAVA_HOME=$(brew --prefix openjdk@17)                       # -> '/usr/local/opt/openjdk@17'
   GROOVY_HOME=$(brew --prefix groovy)/libexec                     # -> '/usr/local/opt/groovy/libexec'
   CLASSPATH=".:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar:$GROOVY_HOME/lib"
-  # JAVA_OPTS+='-Dhttp.proxyHost=ipamunix.example.com -Dhttp.proxyPort=8080'
+  # JAVA_OPTS+='-Dhttp.proxyHost=ipamunix.marvell.com -Dhttp.proxyPort=8080'
 
   # NODE_HOME='/usr/local/opt/node@12'
   NODE_HOME='/usr/local/Cellar/node/21.1.0'
   MYSQL_HOME='/usr/local/mysql'
   ITERM2_ADDITIONAL="${HOME}/.iterm2"
-
-  PYTHON_HOME=$(brew --prefix python@3.11)
-  PYTHONPATH='/usr/local/lib/python3.11/site-packages'
-  PYTHONUSERBASE="$(${PYTHON_HOME}/libexec/bin/python -c 'import site; print(site.USER_BASE)')"   # PYTHONUSERBASE=$PYTHONPATH
-  PYTHON_CONFIGURE_OPTS="--with-tcltk-includes='-I${TCLTK_HOME}/include' --with-tcltk-libs='-L${TCLTK_HOME}/lib -ltcl8.6 -ltk8.6'"
 
   TCLTK_HOME='/usr/local/opt/tcl-tk'                              # -> "$(brew --prefix tcl-tk)"
   SQLITE_HOME='/usr/local/opt/sqlite'
@@ -104,104 +100,104 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   RUBY_CONFIGURE_OPTS="--with-openssl-dir=${OPENSSL_HOME}"
   ED_HOME='/usr/local/opt/ed'
 
-  SCRIPT_BINS="${TCLTK_HOME}/bin"
-  SCRIPT_BINS+=":${PYTHON_HOME}/libexec/bin"
-  SCRIPT_BINS+=":${PYTHONUSERBASE}/bin"
-  SCRIPT_BINS+=":${NODE_HOME}/bin"
-  SCRIPT_BINS+=":${JAVA_HOME}/bin"
-  SCRIPT_BINS+=":${GROOVY_HOME}/bin"
-  SCRIPT_BINS+=":${RUBY_HOME}/bin"
-  SCRIPT_BINS+=":${ED_HOME}/libexec/gnubin"
-  SCRIPT_BINS+=":${ED_HOME}/bin"
-  SCRIPT_BINS+=":${RUBYGEM}"
-  SCRIPT_BINS+=":${GIT_EXTRAS}/bin"
+  PYTHON_HOME=$(brew --prefix python@3.11)
+  PYTHONPATH='/usr/local/lib/python3.11/site-packages'
+  PYTHONUSERBASE="$(${PYTHON_HOME}/libexec/bin/python -c 'import site; print(site.USER_BASE)')"   # PYTHONUSERBASE=$PYTHONPATH
+  PYTHON_CONFIGURE_OPTS="--with-tcltk-includes='-I${TCLTK_HOME}/include' --with-tcltk-libs='-L${TCLTK_HOME}/lib -ltcl8.6 -ltk8.6'"
+
+  SCRIPT_BINS="${SCRIPT_BINS:-}"
+  test -d "${TCLTK_HOME}"     && SCRIPT_BINS+=":${TCLTK_HOME}/bin"
+  test -d "${PYTHON_HOME}"    && SCRIPT_BINS+=":${PYTHON_HOME}/libexec/bin"
+  test -d "${PYTHONUSERBASE}" && SCRIPT_BINS+=":${PYTHONUSERBASE}/bin"
+  test -d "${NODE_HOME}"      && SCRIPT_BINS+=":${NODE_HOME}/bin"
+  test -d "${JAVA_HOME}"      && SCRIPT_BINS+=":${JAVA_HOME}/bin"
+  test -d "${GROOVY_HOME}"    && SCRIPT_BINS+=":${GROOVY_HOME}/bin"
+  test -d "${RUBY_HOME}"      && SCRIPT_BINS+=":${RUBY_HOME}/bin"
+  test -d "${ED_HOME}"        && SCRIPT_BINS+=":${ED_HOME}/libexec/gnubin"
+  test -d "${ED_HOME}"        && SCRIPT_BINS+=":${ED_HOME}/bin"
+  test -d "${RUBYGEM}"        && SCRIPT_BINS+=":${RUBYGEM}"
+  test -d "${GIT_EXTRAS}"     && SCRIPT_BINS+=":${GIT_EXTRAS}/bin"
   # SCRIPT_BINS+=":${PYENV_ROOT}/bin"                             # shell: bash 3.2.57
 
-  UTLS_PATH="${OPENLDAP_HOME}/bin"
-  UTLS_PATH+=":${OPENLDAP_HOME}/sbin"
-  UTLS_PATH+=":${CURL_OPENSSL_HOME}/bin"
-  UTLS_PATH+=":${OPENSSL_HOME}/bin"
-  UTLS_PATH+=":${EXPAT_HOME}/bin"
-  UTLS_PATH+=":${NCURSES_HOME}/bin"
-  UTLS_PATH+=":${LIBICONV_HOME}/bin"
-  UTLS_PATH+=":${INETUTILS}"
-  UTLS_PATH+=":/usr/local/opt/file-formula/bin"
-  UTLS_PATH+=":/usr/local/opt/gettext/bin"
+  UTLS_PATH="${UTLS_PATH:-}"
+  test -d "${OPENLDAP_HOME}"            && UTLS_PATH+=":${OPENLDAP_HOME}/bin"
+  test -d "${OPENLDAP_HOME}"            && UTLS_PATH+=":${OPENLDAP_HOME}/sbin"
+  test -d "${CURL_OPENSSL_HOME}"        && UTLS_PATH+=":${CURL_OPENSSL_HOME}/bin"
+  test -d "${OPENSSL_HOME}"             && UTLS_PATH+=":${OPENSSL_HOME}/bin"
+  test -d "${LIBICONV_HOME}"            && UTLS_PATH+=":${LIBICONV_HOME}/bin"
+  test -d "${INETUTILS}"                && UTLS_PATH+=":${INETUTILS}"
+  test -d '/usr/local/opt/file-formula' && UTLS_PATH+=':/usr/local/opt/file-formula/bin'
+  test -d '/usr/local/opt/gettext'      && UTLS_PATH+=':/usr/local/opt/gettext/bin'
 
-  SPECIAL_TOOLS="${ICU4C_711}/bin"
-  SPECIAL_TOOLS+=":${ICU4C_711}/sbin"
+  SPECIAL_TOOLS="${SPECIAL_TOOLS:-}"
+  test -d "${ICU4C_711}" && SPECIAL_TOOLS+=":${ICU4C_711}/bin"
+  test -d "${ICU4C_711}" && SPECIAL_TOOLS+=":${ICU4C_711}/sbin"
 
-  LDFLAGS="-L${OPENLDAP_HOME}/lib"
-  LDFLAGS+=" -L${CURL_OPENSSL_HOME}/lib"
-  LDFLAGS+=" -L${BINUTILS}/lib"
-  LDFLAGS+=" -L${PYTHON_HOME}/lib"
-  LDFLAGS+=" -L${RUBY_HOME}/lib"
-  LDFLAGS+=" -L${TCLTK_HOME}/lib"
-  LDFLAGS+=" -L${SQLITE_HOME}/lib"
-  LDFLAGS+=" -L$(brew --prefix)/lib"
-  LDFLAGS+=" -L/usr/local/opt/readline/lib"
-  LDFLAGS+=" -L${OPENSSL_HOME}/lib"
-  LDFLAGS+=" -L${NODE_HOME}/libexec/lib"
-  LDFLAGS+=" -L${LIBRESSL_HOME}/lib"
-  LDFLAGS+=" -L${ICU4C_711}/lib"
-  LDFLAGS+=" -L${EXPAT_HOME}/lib"
-  LDFLAGS+=" -L${NCURSES_HOME}/lib"
-  LDFLAGS+=" -L${LIBICONV_HOME}/lib"
-  LDFLAGS+=" -L${ZLIB_HOME}/lib"
-  LDFLAGS+=" -L${LLVM_HOME}/lib"
-  LDFLAGS+=" -L${LLVM_HOME}/lib/c++ -Wl,-rpath,${LLVM_HOME}/lib/c++"  # for c++
+  LDFLAGS="${LDFLAGS:-}"
+  test -d "${HOMEBREW_PREFIX}"      && LDFLAGS+=" -L${HOMEBREW_PREFIX}/lib"
+  test -d '/usr/local/opt/readline' && LDFLAGS+=' -L/usr/local/opt/readline/lib'
+  test -d "${OPENLDAP_HOME}"        && LDFLAGS+=" -L${OPENLDAP_HOME}/lib"
+  test -d "${CURL_OPENSSL_HOME}"    && LDFLAGS+=" -L${CURL_OPENSSL_HOME}/lib"
+  test -d "${BINUTILS}"             && LDFLAGS+=" -L${BINUTILS}/lib"
+  test -d "${PYTHON_HOME}"          && LDFLAGS+=" -L${PYTHON_HOME}/lib"
+  test -d "${RUBY_HOME}"            && LDFLAGS+=" -L${RUBY_HOME}/lib"
+  test -d "${TCLTK_HOME}"           && LDFLAGS+=" -L${TCLTK_HOME}/lib"
+  test -d "${SQLITE_HOME}"          && LDFLAGS+=" -L${SQLITE_HOME}/lib"
+  test -d "${OPENSSL_HOME}"         && LDFLAGS+=" -L${OPENSSL_HOME}/lib"
+  test -d "${LIBICONV_HOME}"        && LDFLAGS+=" -L${LIBICONV_HOME}/lib"
+  test -d "${NODE_HOME}"            && LDFLAGS+=" -L${NODE_HOME}/lib"
+  test -d "${LIBRESSL_HOME}"        && LDFLAGS+=" -L${LIBRESSL_HOME}/lib"
+  test -d "${ICU4C_711}"            && LDFLAGS+=" -L${ICU4C_711}/lib"
+  test -d "${LLVM_HOME}"            && LDFLAGS+=" -L${LLVM_HOME}/lib"
+  test -d "${LLVM_HOME}"            && LDFLAGS+=" -L${LLVM_HOME}/lib/c++ -Wl,-rpath,${LLVM_HOME}/lib/c++"  # for c++
 
-  CPPFLAGS="-I${JAVA_HOME}/include"
-  CPPFLAGS+=" -I${OPENLDAP_HOME}/include"
-  CPPFLAGS+=" -I${CURL_OPENSSL_HOME}/include"
-  CPPFLAGS+=" -I${BINUTILS}/include"
-  CPPFLAGS+=" -I${SQLITE_HOME}/include"
-  CPPFLAGS+=" -I$(brew --prefix)/include"
-  CPPFLAGS+=" -I/usr/local/opt/readline/include"
-  CPPFLAGS+=" -I${OPENSSL_HOME}/include"
-  CPPFLAGS+=" -I${NODE_HOME}/include"
-  CPPFLAGS+=" -I${LIBRESSL_HOME}/include"
-  CPPFLAGS+=" -I${EXPAT_HOME}/include"
-  CPPFLAGS+=" -I${NCURSES_HOME}/include"
-  CPPFLAGS+=" -I${LIBICONV_HOME}/include"
-  CPPFLAGS+=" -I${ZLIB_HOME}/include"
-  CPPFLAGS+=" -I${TCLTK_HOME}/include"
-  CPPFLAGS+=" -I${RUBY_HOME}/include"
-  CPPFLAGS+=" -I${ICU4C_711}/include"
-  CPPFLAGS+=" -I${LLVM_HOME}/include"
+  CPPFLAGS="${CPPFLAGS:-}"
+  test -d "${HOMEBREW_PREFIX}"      && CPPFLAGS+=" -I${HOMEBREW_PREFIX}/include"
+  test -d "${JAVA_HOME}"            && CPPFLAGS+=" -I${JAVA_HOME}/include"
+  test -d "${OPENLDAP_HOME}"        && CPPFLAGS+=" -I${OPENLDAP_HOME}/include"
+  test -d "${CURL_OPENSSL_HOME}"    && CPPFLAGS+=" -I${CURL_OPENSSL_HOME}/include"
+  test -d "${BINUTILS}"             && CPPFLAGS+=" -I${BINUTILS}/include"
+  test -d "${SQLITE_HOME}"          && CPPFLAGS+=" -I${SQLITE_HOME}/include"
+  test -d '/usr/local/opt/readline' && CPPFLAGS+=' -I/usr/local/opt/readline/include'
+  test -d "${OPENSSL_HOME}"         && CPPFLAGS+=" -I${OPENSSL_HOME}/include"
+  test -d "${LIBICONV_HOME}"        && CPPFLAGS+=" -I${LIBICONV_HOME}/include"
+  test -d "${NODE_HOME}"            && CPPFLAGS+=" -I${NODE_HOME}/include"
+  test -d "${LIBRESSL_HOME}"        && CPPFLAGS+=" -I${LIBRESSL_HOME}/include"
+  test -d "${TCLTK_HOME}"           && CPPFLAGS+=" -I${TCLTK_HOME}/include"
+  test -d "${RUBY_HOME}"            && CPPFLAGS+=" -I${RUBY_HOME}/include"
+  test -d "${ICU4C_711}"            && CPPFLAGS+=" -I${ICU4C_711}/include"
+  test -d "${LLVM_HOME}"            && CPPFLAGS+=" -I${LLVM_HOME}/include"
 
-  PKG_CONFIG_PATH="${PKG_CONFIG_PATH:-}"
-  PKG_CONFIG_PATH+="${CURL_OPENSSL_HOME}/lib/pkgconfig"
-  PKG_CONFIG_PATH+=":${TCLTK_HOME}/lib/pkgconfig"
-  PKG_CONFIG_PATH+=":/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/11.1"
-  PKG_CONFIG_PATH+=":${SQLITE_HOME}/lib/pkgconfig"
-  PKG_CONFIG_PATH+=":${OPENSSL_HOME}/lib/pkgconfig"
-  PKG_CONFIG_PATH+=":${PYTHON_HOME}/lib/pkgconfig"
-  PKG_CONFIG_PATH+=":${RUBY_HOME}/lib/pkgconfig"
-  PKG_CONFIG_PATH+=":${LIBRESSL_HOME}/lib/pkgconfig"
-  PKG_CONFIG_PATH+=":${ICU4C_711}/lib/pkgconfig"
-  PKG_CONFIG_PATH+=":${EXPAT_HOME}/lib/pkgconfig"
-  PKG_CONFIG_PATH+=":${NCURSES_HOME}/lib/pkgconfig"
-  PKG_CONFIG_PATH+=":${ZLIB_HOME}/lib/pkgconfig"
+  PKG_CONFIG_PATH="${HOMEBREW_PREFIX}/lib/pkgconfig"
+  test -d "${CURL_OPENSSL_HOME}"  && PKG_CONFIG_PATH+=":${CURL_OPENSSL_HOME}/lib/pkgconfig"
+  test -d "${TCLTK_HOME}"         && PKG_CONFIG_PATH+=":${TCLTK_HOME}/lib/pkgconfig"
+  command -v brew >/dev/null 2>&1 && PKG_CONFIG_PATH+=':/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/14'
+  test -d "${SQLITE_HOME}"        && PKG_CONFIG_PATH+=":${SQLITE_HOME}/lib/pkgconfig"
+  test -d "${OPENSSL_HOME}"       && PKG_CONFIG_PATH+=":${OPENSSL_HOME}/lib/pkgconfig"
+  test -d "${PYTHON_HOME}"        && PKG_CONFIG_PATH+=":${PYTHON_HOME}/lib/pkgconfig"
+  test -d "${RUBY_HOME}"          && PKG_CONFIG_PATH+=":${RUBY_HOME}/lib/pkgconfig"
+  test -d "${LIBRESSL_HOME}"      && PKG_CONFIG_PATH+=":${LIBRESSL_HOME}/lib/pkgconfig"
+  test -d "${ICU4C_711}"          && PKG_CONFIG_PATH+=":${ICU4C_711}/lib/pkgconfig"
 
-  CFLAGS="-I/usr/local/include"
-  CFLAGS+=" -I${TCLTK_HOME}/include"
+  CFLAGS="${CFLAGS:-}"
+  test -d "${TCLTK_HOME}" && CFLAGS+=" -I${TCLTK_HOME}/include"
 
-  LD_LIBRARY_PATH=/usr/local/lib
+  LIBRARY_PATH="${HOMEBREW_PREFIX}/lib"
+  test -d "${LIBICONV_HOME}"   && LIBRARY_PATH+=":${LIBICONV_HOME}/lib"
 
   TEMP_PATH="${TOOLS_PATH}"
   TEMP_PATH+="${HOMEBREW_BINS}"
   TEMP_PATH+=":${GNU_PATH}"
   TEMP_PATH+=":${SCRIPT_BINS}"
-  TEMP_PATH+=":${SQLITE_HOME}/bin"
+  test -d "${SQLITE_HOME}"       && TEMP_PATH+=":${SQLITE_HOME}/bin"
   TEMP_PATH+=":${UTLS_PATH}"
-  TEMP_PATH+=":${ITERM2_ADDITIONAL}"
+  test -d "${ITERM2_ADDITIONAL}" && TEMP_PATH+=":${ITERM2_ADDITIONAL}"
 
   TEMP_MANPATH="$GNUMANHOME"
-  TEMP_MANPATH+=":/usr/local/share/man"
-  TEMP_MANPATH+=":/usr/share/man"
-  TEMP_MANPATH+=":/usr/local/man"
-  TEMP_MANPATH+=":/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/share/man"
+  test -d '/usr/local/share/man' && TEMP_MANPATH+=':/usr/local/share/man'
+  test -d '/usr/share/man'       && TEMP_MANPATH+=':/usr/share/man'
+  test -d '/usr/local/man'       && TEMP_MANPATH+=':/usr/local/man'
+  test -d '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/share/man' && TEMP_MANPATH+=':/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/share/man'
 
   PATH="$SPECIAL_TOOLS:$TEMP_PATH:$PATH"
   MANPATH="$TEMP_MANPATH:$MANPATH"
@@ -209,7 +205,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   # eval "$(/usr/libexec/path_helper)"
   export JAVA_HOME GROOVY_HOME PATH MANPATH
   export GUILE_TLS_CERTIFICATE_DIRECTORY PYTHONPATH PYTHONUSERBASE CLASSPATH RUBY_CONFIGURE_OPTS
-  export LDFLAGS CPPFLAGS PKG_CONFIG_PATH CFLAGS
+  export LDFLAGS CFLAGS CPPFLAGS PKG_CONFIG_PATH LIBRARY_PATH
   # export JAVA_OPTS
 fi
 
