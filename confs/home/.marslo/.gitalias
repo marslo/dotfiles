@@ -113,13 +113,13 @@
   # cb        = rev-parse --abbrev-ref HEAD
   # curbranch = "!bash -c 'git branch | grep \* | sed "s/\* \(.*\)/ (\1)/"'"
   ### [c]heckout sorted [b]ranch
-  cb          = "! bash -c 'git for-each-ref refs/remotes --sort=-committerdate --format=\"%(refname:short)\" | \n\
+  bb          = "! bash -c 'git for-each-ref refs/remotes refs/heads --sort=-committerdate --format=\"%(refname:short)\" | \n\
                             grep --color=never -v \"origin$\" | \n\
                             fzf | \n\
-                            sed -rn \"s:\\s*origin/(.*)$:\\1:p\" | \n\
+                            sed -rn \"s:\\s*(origin/)?(.*)$:\\1:p\" | \n\
                             xargs git checkout \n\
                            '"
-  # cb        = "! bash -c 'git branch --color=never --all | \n\
+  # bb        = "! bash -c 'git branch --color=never --all | \n\
   #                         grep -v --color=never HEAD | \n\
   #                         fzf | \n\
   #                         sed -rn \"s/^\\s*remotes\\/origin\\/(.*)$/\\1/p\" | \n\
@@ -579,7 +579,7 @@
   ### [m]arslo revie[w]
   mw          = "! bash -c 'while read branch; do \n\
                               echo -e \"\\033[1;33m~~> ${branch}\\033[0m\"; \n\
-                              if [ 'meta/config' == \"${branch}\" ]; then \n\
+                              if [ 'meta/config' = \"${branch}\" ]; then \n\
                                 git push origin HEAD:refs/for/refs/meta/config; \n\
                               else \n\
                                 git push origin HEAD:refs/for/${branch}%r=a@domain.com,r=b@domain.com,r=c@domain.com,r=d@domain.com,cc=e@domain.com; \n\
@@ -696,7 +696,7 @@
   quote-string-undo = "!read -r l; printf %s \"$l\" | sed 's/\\\\\\([\\\"]\\)/\\1/g'; printf \"\\n\" #"
   showupstream      = "! bash -c 'while read branch; do \n\
                                     upstream=$(git rev-parse --abbrev-ref ${branch}@{upstream} 2>/dev/null); \n\
-                                    if [[ $? == 0 ]]; then \n\
+                                    if [[ $? = 0 ]]; then \n\
                                       echo -e \"${branch} tracks ${upstream}\"; \n\
                                     else \n\
                                       echo -e \"${branch} has no upstream configured\"; \n\
@@ -730,4 +730,4 @@
                     "
   # }}}
 
-# vim: ts=2 sts=2 sw=2 et ft=gitconfig foldmethod=marker
+# vim:ts=2:sts=2:sw=2:et:ft=gitconfig:foldmethod=marker
