@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Dangerous operation needs confirm
+# dangerous operation needs confirm
 alias rm='rm -i'
 alias cp='cp -i'
 alias cpa='cp --parents'
 alias mv='mv -i'
 
-# Operation of files and directory
+# operation of files and directory
 alias cx='chmod u+x'
 alias cw='chmod u+w'
 alias c='clear'

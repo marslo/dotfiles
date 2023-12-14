@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=SC2155,SC2154,SC2034,SC1091,SC1090,SC2046
 # =============================================================================
 #   FileName: .imac
@@ -8,10 +8,16 @@
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
 
-GIT_COMPLETION_DIR="${iRCHOME}/utils/git-2.35.0/contrib/completion"
-ls "${GIT_COMPLETION_DIR}"/*git* >/dev/null; [ $? -eq 0 ] && source "${GIT_COMPLETION_DIR}"/*git*
+# setup in .imarslorc
+# GIT_COMPLETION_DIR="/usr/share/doc/git/contrib/completion"
+# ls "${GIT_COMPLETION_DIR}"/*git* >/dev/null 2>&1; [ $? -eq 0 ] && source "${GIT_COMPLETION_DIR}"/*git*.[bs]*h
+## or
+# GIT_COMPLETION_DIR="${iRCHOME}/utils/git-2.35.0/contrib/completion"
+# test -f "${GIT_COMPLETION_DIR}"/git-completion.bash && source "${GIT_COMPLETION_DIR}"/git-completion.bash
+# test -f "${GIT_COMPLETION_DIR}"/git-prompt.sh       && source "${GIT_COMPLETION_DIR}"/git-prompt.sh
 
 for _i in $( /bin/ls -1 ${iRCHOME}/.alias ); do
   source "${iRCHOME}/.alias/${_i}"
 done
 
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
