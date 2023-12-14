@@ -54,15 +54,16 @@ if command -v brew >/dev/null; then                                            #
   # test -f "${VBOX_COMPLETION}"        && source "${VBOX_COMPLETION}"
   test -e "${ITERM2_INTEGRATION}"       && source "${ITERM2_INTEGRATION}"      # iTerm2 shell integration
   test -f "$HOME/.docker/init-bash.sh"  && source "$HOME/.docker/init-bash.sh" # docker desktop
-  test -f "${iRCHOME}"/.imac            && source "${iRCHOME}"/.imac
   test -f "${iRCHOME}"/.env             && source "${iRCHOME}"/.env
+  test -f "${iRCHOME}"/.imac            && source "${iRCHOME}"/.imac
 elif [ -f '/etc/os-release' ]; then                                            ## for Ubuntu/RHEL/CentOS
   distrab=$(awk -F= '$1=="ID" {print $2;}' /etc/os-release)
   GIT_COMPLETION_DIR="/usr/share/doc/git/contrib/completion"
+
   [[ 'ubuntu' == "${distrab}" ]] || [[ 'centos' == "${distrab}" ]] || [[ 'rhel' == "${distrab}" ]] && file="$HOME/.bashrc"
   ls "${GIT_COMPLETION_DIR}"/*git* >/dev/null 2>&1; [ $? -eq 0 ] && source "${GIT_COMPLETION_DIR}"/*git*.[bs]*h
-  test -f "${iRCHOME}"/.irhel && source <( cat "${iRCHOME}"/.irhel )
   test -f "${iRCHOME}"/.env   && source <( cat "${iRCHOME}"/.env   )
+  test -f "${iRCHOME}"/.irhel && source <( cat "${iRCHOME}"/.irhel )
 fi
 
 # find "${GROOVY_HOME}/bin" -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"

@@ -116,7 +116,7 @@
   bb          = "! bash -c 'git for-each-ref refs/remotes refs/heads --sort=-committerdate --format=\"%(refname:short)\" | \n\
                             grep --color=never -v \"origin$\" | \n\
                             fzf | \n\
-                            sed -rn \"s:\\s*(origin/)?(.*)$:\\1:p\" | \n\
+                            sed -rn \"s:\\s*(origin/)?(.*)$:\\2:p\" | \n\
                             xargs git checkout \n\
                            '"
   # bb        = "! bash -c 'git branch --color=never --all | \n\
