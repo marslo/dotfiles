@@ -115,7 +115,7 @@
   ### [c]heckout sorted [b]ranch
   bb          = "! bash -c 'git for-each-ref refs/remotes refs/heads --sort=-committerdate --format=\"%(refname:short)\" | \n\
                             grep --color=never -v \"origin$\" | \n\
-                            fzf | \n\
+                            fzf -1 -0 +m --prompt=\"branch> \" | \n\
                             sed -rn \"s:\\s*(origin/)?(.*)$:\\2:p\" | \n\
                             xargs git checkout \n\
                            '"
