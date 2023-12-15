@@ -22,6 +22,8 @@ function file644() { find . -type f -perm 0777 \( -not -path "*.git" -a -not -pa
 function convert2av() { ffmpeg -i "$1" -i "$2" -c copy -map 0:0 -map 1:0 -shortest -strict -2 "$3"; }
 function zh() { zipinfo "$1" | head; }
 function cleanview() { rm -rf ~/.vim/view/*; }
+# https://unix.stackexchange.com/a/269085/29178
+function color() { for c; do printf '\e[48;5;%dm%03d ' "$c" "$c"; done; printf '\e[0m \n'; }
 
 # inspired from http://www.earthinfo.org/linux-disk-usage-sorted-by-size-and-human-readable/
 function udfs {
@@ -337,6 +339,7 @@ cdf() {
 }
 
 # find-in-file - usage: fif <searchTerm>   # using ripgrep combined with preview
+# or rgfzf: https://github.com/naggie/dotfiles/blob/359fed497c47b522bb0cc61afc38f051aae13978/include/scripts/rgfzf
 fif() {
   if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
   rg --files-with-matches --no-messages "$1" \
@@ -378,19 +381,14 @@ v() {
           done | fzf-tmux -d -m -q "$*" -1) && vim ${files//\~/$HOME}
 }
 
-# yum whatprovides
-brew-whatprovides() {
-  if [[ 0 -ne $# ]]; then
-    _p="$*";
-    _realp="$(realpath ${_p})";
-    while read -r pkg; do
-      echo -ne "\r$(tput el)>> searching in ${pkg} ..."
-      if brew list --verbose "${pkg}" 2>/dev/null | grep "${_realp}" >/dev/null 2>&1; then
-        echo -ne "\r$(tput el)>> \033[0;32m${_p}\033[0m ( \033[0;37m${_realp}\033[0m ) provided by \033[0;33m${pkg}\033[0m";
-        break;
-      fi;
-    done < <(brew leaves);
-  fi
+kns() {
+  echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania' |
+        fmt -1 |
+        fzf -1 -0 --no-sort +m  --prompt='namespace> ' |
+        xargs -i bash -c "echo -e \"\033[1;33m~~> {}\\033[0m\";
+                          kubectl config set-context --current --namespace {};
+                          kubecolor config get-contexts;
+                         "
 }
 
 # vim:ts=2:sts=2:sw=2:et:ft=sh

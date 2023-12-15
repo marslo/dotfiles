@@ -4,7 +4,7 @@
 #     FileName : im.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2012
-#   LastChange : 2023-10-16 21:37:03
+#   LastChange : 2023-12-14 16:16:36
 #         Desc : iMarslo
 # =============================================================================
 
@@ -14,8 +14,6 @@ function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;
 function mrc() { source "${iRCHOME}"/.marslorc; }
 # https://serverfault.com/a/906310/129815
 function ssl_expiry () { echo | openssl s_client -connect "${1}":443 2> /dev/null | openssl x509 -noout -enddate; }
-# https://unix.stackexchange.com/a/269085/29178
-function color() { for c; do printf '\e[48;5;%dm%03d' "$c" "$c"; done; printf '\e[0m \n'; }
 function erc() { /usr/local/bin/vim "${iRCHOME}/.marslorc"; }
 function kdev() { kubectl config use-context kubernetes-dev; }
 function kprod() { kubectl config use-context kubernetes-prod; }
@@ -116,8 +114,8 @@ function mg() {
 
   if [ -n "${keyword}" ]; then
 
-    hasit '\' "${keyword}"
-    if [[ 0 = $? ]]; then
+    # shellcheck disable=SC1003
+    if ! hasit '\' "${keyword}"; then
       grepOpt+=" ${gitOptAdditional}"
     fi
 
@@ -163,13 +161,15 @@ function mg() {
 # [f]ind [f]ile and [s]ort
 function ffs() {
   path=${1:-~/.marslo}
-  num=${2:--10}
+  num=${2:-10}
   find "${path}" -type f \
                  -not -path '*/\.git/*' \
                  -not -path '*/node_modules/*' \
+                 -not -path '*/go/pkg/*' \
+                 -not -path '*/git/git*/*' \
                  -printf "%10T+ | %p\n" |
   sort -r |
-  head "${num}"
+  head "-${num}"
 }
 
 # find file
@@ -419,12 +419,28 @@ function trust() {
   sudo /sbin/route get "${host}"
 }
 
-# function come from
+# [f]unction [c]ome [f]rom
 function fcf() {
   if [[ 1 -ne $# ]] ; then
     echo 'Error : provide a function name'
   fi
   shopt -s extdebug; declare -F "$1"; shopt -u extdebug
+}
+
+# yum whatprovides
+brew-whatprovides() {
+  if [[ 0 -ne $# ]]; then
+    _p="$*";
+    # shellcheck disable=SC2086
+    _realp="$(realpath ${_p})";
+    while read -r pkg; do
+      echo -ne "\r$(tput el)>> searching in ${pkg} ..."
+      if brew list --verbose "${pkg}" 2>/dev/null | grep "${_realp}" >/dev/null 2>&1; then
+        echo -ne "\r$(tput el)>> \033[0;32m${_p}\033[0m ( \033[0;37m${_realp}\033[0m ) provided by \033[0;33m${pkg}\033[0m";
+        break;
+      fi;
+    done < <(brew leaves);
+  fi
 }
 
 # vim:ts=2:sts=2:sw=2:et:ft=sh
