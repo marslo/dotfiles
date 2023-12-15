@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+#=============================================================================
+#     FileName : git-del
+#       Author : marslo.jiao@gmail.com
+#      Created : 2023-12-14 17:55:55
+#   LastChange : 2023-12-14 18:32:29
+#=============================================================================
+
+git fetch --tags --prune --prune-tags --quiet;
+
+branches=$(git for-each-ref refs/remotes refs/heads --sort=-committerdate --format='%(refname:short)')
+tags=$(git for-each-ref refs/tags --sort=-committerdate --format='%(refname:lstrip=1)')
+
+refname=$( ( echo "${branches}"; echo "${tags}" ) |
+             fmt -1 |
+             grep --color=never -v 'origin$' |
+             fzf +m --prompt='ref> ' |
+             sed -rn "s:\s*(origin/)?(.*)$:\2:p"
+        );
+[[ -z "${refname}" ]] && exit;
+
+name=$(sed -re 's:^(refs/)?(heads/)?(tags/)?(remotes/)?(origin/)?(.*)$:\6:' <<< "${refname}");
+
+declare findBr=0;
+declare findTag=0;
+declare remoteRef='';
+
+for refsR in ${branches} ${tags}; do
+  [[ "origin/${name}" = "${refsR}" ]] && remoteRef='branch' && break;
+  [[ "tags/${name}" = "${refsR}" ]] && remoteRef='tag' && break;
+done;
+for branch in ${branches}; do
+  [[ "${name}" = "${branch}" ]] && findBr=1 && break;
+done;
+for tag in $(git --no-pager tag -l); do
+  [[ "${name}" = "${tag}" ]] && findTag=1 && break;
+done;
+
+# delete remote
+if [[ -n "${remoteRef}" ]]; then
+  git push origin --delete "${name}";
+  echo -e "~~> ${remoteRef} : \033[1;33morigin/${name}\033[0m removed from remote";
+else
+  echo -e "~~> \033[1;31morigin/${name}\033[0m cannot be found in remote.";
+fi;
+
+# delete local
+if [[ 1 = "${findBr}" ]]; then
+  git branch -D "${name}";
+  echo -e "~~> branch : \033[1;33m${name}\033[0m removed from local";
+elif [ 1 = "${findTag}" ]; then
+  git tag -d "${name}";
+  echo -e "~~> tag : \033[1;33m${name}\033[0m removed from local";
+else
+  echo -e "~~> \033[1;31m${name}\033[0m cannot be found in local";
+fi;
