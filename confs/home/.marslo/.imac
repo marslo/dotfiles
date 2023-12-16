@@ -49,13 +49,15 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   # vim-tabnine
   LLVM_HOME="$(brew --prefix llvm)"
 
-  test -d '/usr/local/vim'    && TOOLS_PATH='/usr/local/vim/bin'
+  TOOLS_PATH="${TOOLS_PATH:-}"
+  test -d '/usr/local/vim'    && TOOLS_PATH+=':/usr/local/vim/bin'
   test -d "${KW_BUILD_TOOLS}" && TOOLS_PATH+=":${KW_BUILD_TOOLS}/bin"
   test -d "$HOME/.docker"     && TOOLS_PATH+=":$HOME/.docker/bin"
   test -d "${MACVIM_HOME}"    && TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"
   test -d "${LLVM_HOME}"      && TOOLS_PATH+=":${LLVM_HOME}/bin"
 
-  test -d "${GNUBINHOME}" && GNU_PATH="${GNUBINHOME}"
+  GNU_PATH="${GNU_PATH:-}"
+  test -d "${GNUBINHOME}" && GNU_PATH+=":${GNUBINHOME}"
   test -d "${GNUWHICH}"   && GNU_PATH+=":${GNUWHICH}"
   test -d "${GNUGETOPT}"  && GNU_PATH+=":${GNUGETOPT}"
   test -d "${GNUGREP}"    && GNU_PATH+=":${GNUGREP}"
@@ -106,7 +108,8 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   PYTHONUSERBASE="$(${PYTHON_HOME}/libexec/bin/python -c 'import site; print(site.USER_BASE)')"   # PYTHONUSERBASE=$PYTHONPATH
   PYTHON_CONFIGURE_OPTS="--with-tcltk-includes='-I${TCLTK_HOME}/include' --with-tcltk-libs='-L${TCLTK_HOME}/lib -ltcl8.6 -ltk8.6'"
 
-  test -d "${PYTHON_HOME}"    && SCRIPT_BINS="${PYTHON_HOME}/libexec/bin"
+  SCRIPT_BINS="${SCRIPT_BINS:-}"
+  test -d "${PYTHON_HOME}"    && SCRIPT_BINS+=":${PYTHON_HOME}/libexec/bin"
   test -d "${TCLTK_HOME}"     && SCRIPT_BINS+=":${TCLTK_HOME}/bin"
   test -d "${PYTHONUSERBASE}" && SCRIPT_BINS+=":${PYTHONUSERBASE}/bin"
   test -d "${NODE_HOME}"      && SCRIPT_BINS+=":${NODE_HOME}/bin"
@@ -119,7 +122,8 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${GIT_EXTRAS}"     && SCRIPT_BINS+=":${GIT_EXTRAS}/bin"
   # SCRIPT_BINS+=":${PYENV_ROOT}/bin"                             # shell: bash 3.2.57
 
-  test -d '/usr/local/opt/gettext'      && UTLS_PATH='/usr/local/opt/gettext/bin'
+  UTLS_PATH="${UTLS_PATH:-}"
+  test -d '/usr/local/opt/gettext'      && UTLS_PATH+=':/usr/local/opt/gettext/bin'
   test -d '/usr/local/opt/file-formula' && UTLS_PATH+=':/usr/local/opt/file-formula/bin'
   test -d "${OPENLDAP_HOME}"            && UTLS_PATH+=":${OPENLDAP_HOME}/bin"
   test -d "${OPENLDAP_HOME}"            && UTLS_PATH+=":${OPENLDAP_HOME}/sbin"
@@ -129,10 +133,12 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${LIBICONV_HOME}"            && UTLS_PATH+=":${LIBICONV_HOME}/bin"
   test -d "${INETUTILS}"                && UTLS_PATH+=":${INETUTILS}"
 
-  test -d "${ICU4C_711}" && SPECIAL_TOOLS="${ICU4C_711}/bin"
+  SPECIAL_TOOLS="${SPECIAL_TOOLS:-}"
+  test -d "${ICU4C_711}" && SPECIAL_TOOLS+=":${ICU4C_711}/bin"
   test -d "${ICU4C_711}" && SPECIAL_TOOLS+=":${ICU4C_711}/sbin"
 
-  PKG_CONFIG_PATH="${HOMEBREW_PREFIX}/lib/pkgconfig"
+  PKG_CONFIG_PATH=${PKG_CONFIG_PATH:-}
+  PKG_CONFIG_PATH+=":${HOMEBREW_PREFIX}/lib/pkgconfig"
   test -d "${CURL_OPENSSL_HOME}"  && PKG_CONFIG_PATH+=":${CURL_OPENSSL_HOME}/lib/pkgconfig"
   test -d "${TCLTK_HOME}"         && PKG_CONFIG_PATH+=":${TCLTK_HOME}/lib/pkgconfig"
   command -v brew >/dev/null 2>&1 && PKG_CONFIG_PATH+=':/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/14'
@@ -176,13 +182,13 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${SQLITE_HOME}"          && CPPFLAGS+=" -I${SQLITE_HOME}/include"
   test -d '/usr/local/opt/readline' && CPPFLAGS+=' -I/usr/local/opt/readline/include'
   test -d "${OPENSSL_HOME}"         && CPPFLAGS+=" -I${OPENSSL_HOME}/include"
-  test -d "${LIBICONV_HOME}"        && CPPFLAGS+=" -I${LIBICONV_HOME}/include"
   test -d "${NODE_HOME}"            && CPPFLAGS+=" -I${NODE_HOME}/include"
   test -d "${LIBRESSL_HOME}"        && CPPFLAGS+=" -I${LIBRESSL_HOME}/include"
   test -d "${TCLTK_HOME}"           && CPPFLAGS+=" -I${TCLTK_HOME}/include"
   test -d "${RUBY_HOME}"            && CPPFLAGS+=" -I${RUBY_HOME}/include"
   test -d "${ICU4C_711}"            && CPPFLAGS+=" -I${ICU4C_711}/include"
   test -d "${LLVM_HOME}"            && CPPFLAGS+=" -I${LLVM_HOME}/include"
+  test -d "${LIBICONV_HOME}"        && CPPFLAGS+=" -I${LIBICONV_HOME}/include"
   test -d "${EXPAT_HOME}"           && CPPFLAGS+=" -I${EXPAT_HOME}/include"
   test -d "${NCURSES_HOME}"         && CPPFLAGS+=" -I${NCURSES_HOME}/include"
   test -d "${ZLIB_HOME}"            && CPPFLAGS+=" -I${ZLIB_HOME}/include"
