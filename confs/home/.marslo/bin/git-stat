@@ -152,7 +152,7 @@ while test -n "$1"; do
   esac
 done
 
-[[ 0 = $# ]] && showHelp
+[[ 0 = "$#" ]] && showHelp
 
 declare author="${user:-$(git config --get user.name)}"
 if [[ true = "${allStats}" ]]; then
