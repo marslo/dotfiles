@@ -191,14 +191,14 @@ function ffs() {
   fi
 }
 
-# find file
-function ff() {
+# [f]ind [f]ile with [f]ind
+function fff() {
   # shellcheck disable=SC1078,SC1079
   usage="""\t$(c B)f$(c)ind $(c M)f$(c)ile(s)
   \nSYNOPSIS
-  \n\t$(c sY)\$ ff <FILENAME> [<PATH>]$(c)
+  \n\t$(c sY)\$ fff <FILENAME> [<PATH>]$(c)
   \nEXAMPLE
-  \n\t$(c G)\$ ff myfile.txt
+  \n\t$(c G)\$ fff myfile.txt
   \t\$ ff myfile.txt ~/.marslo$(c)
   """
 
@@ -211,56 +211,6 @@ function ff() {
   fi
 }
 
-# [f]uzzy [f]ind [f]ile
-function fff() {
-  local opt=''
-  local path='.'
-  local params=''
-  local debug=0
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      -*) opt+="$1 " ; shift ;;
-       *) break              ;;
-    esac
-  done
-
-  if [[ 0 = "$#" ]]; then
-    echo -e "\033[0;33mERROR: must provide at least one non-opt param\033[0m"
-    exit 2
-  elif [[ 1 = "$#" ]]; then
-    params="$1"
-  else
-    path=${*: -1}
-    params=${*:1:$#-1}
-  fi
-
-  if [[ "${opt}" == *-d\ * ]] || [[ "${opt}" == *--debug\ * ]]; then
-    [[ "${opt}" == *-d\ *      ]] && opt="${opt//-d /}"
-    [[ "${opt}" == *--debug\ * ]] && opt="${opt//--debug /}"
-    debug=1
-  fi
-
-
-  cmd="fd --type f --hidden --follow --unrestricted"
-  cmd+=" --exclude .git --exclude node_modules"
-  cmd+=" ${opt}"
-  cmd+=" '${params}'"
-  cmd+=" '${path}'"
-  eval "${cmd}"
-
-  result=$?
-  [[ 0 != "${result}" ]] && [[ 1 = "${debug}" ]] && echo -e "\nWARN: no match found :\n\t\033[0;33m$ ${cmd}\033[0m"
-
-  [[ 1 = "${debug}" ]] && echo -e """
-    $(c Wdi)>> [DEBUG] :$(c)   $(c Wkdi)path :$(c) $(c Ci)${path}$(c)
-    $(c Wdi)>> [DEBUG] :$(c) $(c Wkdi)params :$(c) $(c Ci)${params}$(c)
-    $(c Wdi)>> [DEBUG] :$(c)    $(c Wkdi)opt :$(c) $(c Ci)${opt}$(c)
-    $(c Wdi)>> [DEBUG] :$(c)    $(c Wkdi)cmd :$(c) $(c Ci)${cmd}$(c)
-    $(c Wdi)>> [ALSO]  :$(c)  $(c Yi)/usr/local/bin/rg --hidden --smart-case --files \"${path}\" 2>/dev/null | /usr/local/bin/rg --hidden --smart-case ${opt} ${params}$(c)
-    $(c Wdi)>> [ALSO]  :$(c)  $(c Yi)/usr/local/bin/rg --hidden --smart-case --files \"${path}\" ${opt} ${params}$(c)
-  """
-}
 
 # marslo sed
 function ms() {

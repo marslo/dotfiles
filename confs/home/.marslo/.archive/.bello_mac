@@ -18,7 +18,7 @@ alias mv='mv -i'
 # Operation of files and directory
 alias cx='chmod u+x'
 alias cw='chmod u+w'
-alias c='clear'
+alias clr='clear'
 alias totalclear='clear;printf %b "\033[3J"'
 
 alias ..='cd ..'
@@ -40,7 +40,7 @@ alias -- ---='pushd -1'
 alias dv='dirs -v'
 
 # Show colorful
-alias grep='grep -i --color=always'
+alias grep='grep -i -n --color=always'
 alias lgrep='grep -i -n --color=always'
 alias egrep='egrep -i -n --color=always'
 alias egp='egrep -v "(#|^$)"'
@@ -49,11 +49,11 @@ alias his='history'
 alias more='more -r'
 alias diff='diff --color=auto'
 
-alias ld='\ls -ald --color=always */'
-alias ls='ls --color=always'
-alias l='\ls -lthr --color=always'
-alias la='ls -Althr --color=always'
-alias l.='ls -d .* --color=always'
+alias ld='\ls -Nald --color=always */'
+alias ls='ls -NF --color=always'
+alias l='\ls -lthrNF --color=always'
+alias la='\ls -AlthrNF --color=always'
+alias l.='\ls -d .* --color=always'
 alias LS='find -mount -maxdepth 1 -printf "%.5m %10M %#9u:%-9g %#5U:%-5G %TF_%TR %CF_%CR %AF_%AR %#15s [%Y] %p\n" 2>/dev/null'
 alias o='open .'
 
@@ -61,7 +61,6 @@ alias lvim="vim -c \"normal '0\""
 alias lgvim="gvim -c \"normal '0\""
 # alias tig="tig 2> /dev/null"
 
-alias c='clear'
 alias ff=firefox
 alias ud='du -h --max-depth=1 --exclude="\./\.*"'
 alias ud.='du -h --max-depth=1'
