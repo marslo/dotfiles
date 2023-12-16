@@ -389,11 +389,23 @@ v() {
 kns() {
   echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania' |
         fmt -1 |
-        fzf -1 -0 --no-sort +m  --prompt='namespace> ' |
+        fzf -1 -0 --no-sort +m --prompt='namespace> ' |
         xargs -i bash -c "echo -e \"\033[1;33m~~> {}\\033[0m\";
                           kubectl config set-context --current --namespace {};
                           kubecolor config get-contexts;
                          "
+}
+
+# [e]nvironment [c][l]ea[r]
+eclr(){
+  while read -r _env; do
+    echo -e "$(c Ys)>> unset ${_env}$(c)\n$(c Wdi).. $(eval echo \$${_env})$(c)"
+    unset "${_env}"
+  done < <( echo 'LDFLAGS CFLAGS CPPFLAGS PKG_CONFIG_PATH LIBRARY_PATH' |
+                  fmt -1 |
+                  fzf -1 -0 --no-sort -m --prompt='env> '
+          )
+  echo -e "\n$(c Wdi)[TIP]>> to list all env via $(c)$(c Wdiu)\$ env | sed -rn 's/^([a-zA-Z0-9]+)=.*$/\1/p'$(c)"
 }
 
 # vim:ts=2:sts=2:sw=2:et:ft=sh
