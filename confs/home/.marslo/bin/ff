@@ -23,6 +23,8 @@ usage="""\t$(c B)f$(c)ind $(c M)f$(c)ile(s) via $(c Gui)fd$(c)
 \n\tlist details with searched files ( by using OPTIONS from $(c Gui)fd$(c) )
 \t  \$ $(c G)ff -l $(c i)myfile.txt ~/.marslo$(c)$(c)
 \t  \$ $(c G)ff --list-details $(c i)myfile.txt ~/.marslo$(c)$(c)
+\n\tfind all $(c i).DS_*$(c) and remove
+\t  \$ $(c G)fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --glob '*\.DS_*' $HOME | xargs -r rm$(c)
 """
 
 if [[ 0 = "$#" ]]; then
