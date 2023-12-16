@@ -3,7 +3,7 @@
 #   FileName: utils
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2023-11-14 15:58:14
+# LastChange: 2020-12-16 20:32:47
 # =============================================================================
 
 # alias rm='rm -i'
@@ -121,8 +121,8 @@ alias weekno='date +"%V"'
 alias daysleft='echo "There are $(($(date +%j -d"Dec 31, $(date +%Y)")-$(date +%j))) left in year $(date +%Y)."'
 alias weather='curl wttr.in/sanjose?mMFn'
 
-# bat
+# bat ( for zsh )
 alias -- -h='-h 2>&1 | bat --language=help --style=plain'
 alias -- --help='--help 2>&1 | bat --language=help --style=plain'
 
-# vim: tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

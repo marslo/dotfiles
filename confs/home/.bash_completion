@@ -1,0 +1,5 @@
+
+# Begin added by argcomplete
+# source "/Users/marslo/Library/Python/3.11/lib/python/site-packages/argcomplete/bash_completion.d/_python-argcomplete"
+source "/usr/local/lib/python3.12/site-packages/argcomplete/bash_completion.d/_python-argcomplete"
+# End added by argcomplete

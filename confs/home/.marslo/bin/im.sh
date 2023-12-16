@@ -162,24 +162,28 @@ function mg() {
 function ffs() {
   path=${1:-~/.marslo}
   num=${2:-10}
+  depth=${3:-}
+  option='-type f'
+  [[ -n "${depth}" ]] && option="-maxdepth ${depth} ${option}"
   if [[ '-g' = "${path}" ]]; then
+    # git show --name-only --pretty="format:" -"${num}" | awk 'NF' | sort -u
     # references: https://stackoverflow.com/a/54677384/2940319
     git log --date=iso-local --first-parent --pretty=%cd --name-status |
         awk 'NF==1{date=$1}NF>1 && !seen[$2]++{print date,$0}' FS=$'\t' |
         head -"${num}"
   elif [[ '-fg' = "${path}" ]]; then
-    # git show --name-only --pretty="format:" -"${num}" | awk 'NF' | sort -u
     # references: https://stackoverflow.com/a/63864280/2940319
     git ls-tree -r --name-only HEAD -z |
         TZ=PDT xargs -0 -I_ git --no-pager log -1 --date=iso-local --format="%ad _" -- _ |
         sort -r |
         head -"${num}"
   else
-    find "${path}" -type f \
+    find "${path}" ${option} \
                    -not -path '*/\.git/*' \
                    -not -path '*/node_modules/*' \
                    -not -path '*/go/pkg/*' \
                    -not -path '*/git/git*/*' \
+                   -not -path '*/.marslo/utils/git/*' \
                    -printf "%10T+ | %p\n" |
     sort -r |
     head "-${num}"

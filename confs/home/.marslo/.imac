@@ -101,8 +101,8 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   RUBY_CONFIGURE_OPTS="--with-openssl-dir=${OPENSSL_HOME}"
   ED_HOME='/usr/local/opt/ed'
 
-  PYTHON_HOME=$(brew --prefix python@3.11)
-  PYTHONPATH='/usr/local/lib/python3.11/site-packages'
+  PYTHON_HOME=$(brew --prefix python@3.12)
+  PYTHONPATH='/usr/local/lib/python3.12/site-packages'
   PYTHONUSERBASE="$(${PYTHON_HOME}/libexec/bin/python -c 'import site; print(site.USER_BASE)')"   # PYTHONUSERBASE=$PYTHONPATH
   PYTHON_CONFIGURE_OPTS="--with-tcltk-includes='-I${TCLTK_HOME}/include' --with-tcltk-libs='-L${TCLTK_HOME}/lib -ltcl8.6 -ltk8.6'"
 
