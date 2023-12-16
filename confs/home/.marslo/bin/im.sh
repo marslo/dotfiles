@@ -178,6 +178,7 @@ function ffs() {
         sort -r |
         head -"${num}"
   else
+    # shellcheck disable=SC2086
     find "${path}" ${option} \
                    -not -path '*/\.git/*' \
                    -not -path '*/node_modules/*' \
@@ -208,6 +209,54 @@ function ff() {
     [ 2 -eq $# ] && path="$2"
     find "${path}" -type f -not -path "\'*git/*\'" -iname "*${1}*"
   fi
+}
+
+# [f]uzzy [f]ind [f]ile
+function fff() {
+  local opt=''
+  local path='.'
+  local params=''
+  local debug=0
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -*) opt+="$1 "; shift;;
+       *) break            ;;
+    esac
+  done
+
+  if [[ 0 = "$#" ]]; then
+    echo -e "\033[0;33mERROR: must provide at least one non-opt param\033[0m"
+    exit 2
+  elif [[ 1 = "$#" ]]; then
+    params="$1"
+  else
+    path=${*: -1}
+    params=${*:1:$#-1}
+  fi
+
+  if [[ "${opt}" == *-d\ * ]] || [[ "${opt}" == *--debug\ * ]]; then
+    [[ "${opt}" == *-d\ * ]] && opt="${opt//-d /}"
+    debug=1
+  fi
+
+  cmd="/usr/local/bin/rg --hidden --smart-case"
+  cmd+=" --files '${path}' 2>/dev/null |"
+  cmd+=" /usr/local/bin/rg --hidden --smart-case"
+  cmd+=" ${opt}"
+  cmd+=" '${params}'"
+  eval "${cmd}"
+
+  result=$?
+  [[ 0 != "${result}" ]] && [[ 1 = "${debug}" ]] && echo -e "\nWARN: no match found :\n\t\033[0;33m$ ${cmd}\033[0m"
+
+  [[ 1 = "${debug}" ]] && echo """
+    >> [DEBUG]: path: ${path}
+    >> [DEBUG]: params: ${params}
+    >> [DEBUG]: opt: ${opt}
+    >> [DEBUG]: /usr/local/bin/rg --hidden --smart-case --files \"${path}\" 2>/dev/null | /usr/local/bin/rg --hidden --smart-case ${opt} ${params}
+    >> [DEBUG]: /usr/local/bin/rg --hidden --smart-case --files \"${path}\" ${opt} ${params}
+  """
 }
 
 # marslo sed
