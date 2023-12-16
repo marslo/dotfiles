@@ -4,14 +4,14 @@
 #   FileName: imarslo
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2019-09-19 15:49:10
+# LastChange: 2023-12-14 12:48:58
 # =============================================================================
 
 MYWORKSPACE="$HOME/iMarslo"
 
 # alias v='vim -u ~/.vimrc.imarslo'
 alias vi="$(which -a vim | head -1)"
-alias vimdiff='/usr/local/bin/vim -d'
+alias vimdiff="$(which -a vim | head -1) -d"
 alias tmax='tmux at -t marslo'
 alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
 # alias polipo='polipo -c $HOME/.marslo/polipo/config daemonise=true >/dev/null 2>&1 &'
@@ -20,13 +20,12 @@ alias myaws='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i 
 alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_env/ubuntu/backups/ss/sslocal-config.json  -d start --log=/Users/marslo/.marslo/log/sslocal.log'
 alias sshmarslo='ssh marslo@118.193.233.78'
 alias nd='npm run deploy'
-# alias cat="bat --theme=\$(defaults read -globalDomain AppleInterfaceStyle &> /dev/null && echo default || echo GitHub)"
-# alias cat="bat --theme='gruvbox-dark' "
-alias rg="rg --hidden --follow"
+alias rg='rg --hidden --follow --smart-case --vimgrep --ignore-file=$HOME/.rgignore --color=always'
 
 alias irc="cd ~/.marslo"
 alias desk="cd ~/Desktop"
 alias ecd="cd $iRCHOME/utils/enhancd"
+alias prettypath='echo -e ${PATH//:/\\n}'
 
 alias mw="cd ${MYWORKSPACE}"
 alias jo="cd ${MYWORKSPACE}/job/"
@@ -53,7 +52,7 @@ alias ib="cd ${MYWORKSPACE}/tools/git/marslo/ibook/docs"
 alias ml="cd ${MYWORKSPACE}/tools/git/marslo/mylinux"
 alias dm="cd ${MYWORKSPACE}/tools/git/marslo/mylinux/confs/home/.marslo"
 alias mt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"
-alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs"
+alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs >/dev/null"
 
 alias gc='/usr/local/bin/groovyConsole'
 
