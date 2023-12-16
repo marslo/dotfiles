@@ -19,7 +19,7 @@ alias cpa='cp --parents'
 # Operation of files and directory
 alias cx='chmod u+x'
 alias cw='chmod u+w'
-alias c='clear'
+alias clr='clear'
 alias totalclear='clear;printf %b "\033[3J"'
 alias decolorize='sed -r "s/\\x1B\\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g"'
 
@@ -64,7 +64,6 @@ alias lvim="vim -c \"normal '0\""
 alias lgvim="gvim -c \"normal '0\""
 # alias tig="tig 2> /dev/null"
 
-alias c='clear'
 alias ffx='firefox'
 alias ud='du -h --max-depth=1 --exclude="\./\.*"'
 alias ud.='du -h --max-depth=1'

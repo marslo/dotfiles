@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1091,SC2154
+
+source "${iRCHOME}/bin/bash-color.sh"
+
+opt=''
+path='.'
+params=''
+debug=0
+# shellcheck disable=SC2155,SC1078,SC1079
+usage="""\t$(c B)f$(c)ind $(c M)f$(c)ile(s) via $(c Gui)fd$(c)
+\nSYNOPSIS
+\n\t$(c sY)\$ ff [<OPTIONS>] <KEYWORD> [<PATH>]$(c)
+\nOPTIONS
+\n\trespect all options of $(c Gui)fd$(c)
+\nEXAMPLE
+\n\tsearch with fixed string $(c i)myfile.txt$(c) in current location
+\t  \$ $(c G)ff $(c i)myfile.txt$(c)$(c)
+\n\tsearch with fixed string $(c i)myfile.txt$(c) in path $(c i)~/.marslo$(c)
+\t  \$ $(c G)ff $(c i)myfile.txt ~/.marslo$(c)$(c)
+\n\tshow debug info
+\t  \$ $(c G)ff -d $(c i)myfile.txt ~/.marslo$(c)$(c)
+\n\tlist details with searched files ( by using OPTIONS from $(c Gui)fd$(c) )
+\t  \$ $(c G)ff -l $(c i)myfile.txt ~/.marslo$(c)$(c)
+\t  \$ $(c G)ff --list-details $(c i)myfile.txt ~/.marslo$(c)$(c)
+"""
+
+if [[ 0 = "$#" ]]; then
+  echo -e "${usage}"
+  exit 0
+fi
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -*) opt+="$1 " ; shift ;;
+     *) break              ;;
+  esac
+done
+
+if [[ 0 = "$#" ]]; then
+  echo -e "\033[0;33mERROR: must provide at least one non-opt param\033[0m"
+  exit 2
+elif [[ 1 = "$#" ]]; then
+  params="$1"
+else
+  path=${*: -1}
+  params=${*:1:$#-1}
+fi
+
+if [[ "${opt}" == *-d\ * ]] || [[ "${opt}" == *--debug\ * ]]; then
+  [[ "${opt}" == *-d\ *      ]] && opt="${opt//-d /}"
+  [[ "${opt}" == *--debug\ * ]] && opt="${opt//--debug /}"
+  debug=1
+fi
+
+cmd="fd --type f --hidden --follow --unrestricted --fixed-strings"
+cmd+=" --exclude .git --exclude node_modules"
+cmd+=" ${opt}"
+cmd+=" '${params}'"
+cmd+=" '${path}'"
+eval "${cmd}"
+
+result=$?
+[[ 0 != "${result}" ]] && [[ 1 = "${debug}" ]] && echo -e "\nWARN: no match found :\n\t\033[0;33m$ ${cmd}\033[0m"
+
+[[ 1 = "${debug}" ]] && echo -e """
+  $(c Wdi)>> [DEBUG] :$(c)   $(c Wkdi)path :$(c) $(c Ci)${path}$(c)
+  $(c Wdi)>> [DEBUG] :$(c) $(c Wkdi)params :$(c) $(c Ci)${params}$(c)
+  $(c Wdi)>> [DEBUG] :$(c)    $(c Wkdi)opt :$(c) $(c Ci)${opt}$(c)
+  $(c Wdi)>> [DEBUG] :$(c)    $(c Wkdi)cmd :$(c) $(c Ci)${cmd}$(c)
+  $(c Wdi)>> [ALSO]  :$(c)  $(c Yi)/usr/local/bin/rg --hidden --smart-case --files \"${path}\" 2>/dev/null | /usr/local/bin/rg --hidden --smart-case ${opt} ${params}$(c)
+  $(c Wdi)>> [ALSO]  :$(c)  $(c Yi)/usr/local/bin/rg --hidden --smart-case --files \"${path}\" ${opt} ${params}$(c)
+"""
