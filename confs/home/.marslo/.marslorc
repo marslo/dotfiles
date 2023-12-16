@@ -74,7 +74,7 @@ test -d "${ANSIBLE_COMPLETION_PATH}"                           && source <( cat 
 test -f "${iRCHOME}/.completion/.bash_completion.sh"           && source <( cat "${iRCHOME}/.completion/.bash_completion.sh" )
 test -f "${RT_COMPLETION}"                                     && source "${RT_COMPLETION}"
 test -f "${ENHANCD_HOME}"/init.sh                              && source "${ENHANCD_HOME}"/init.sh
-command -v kubectl >/dev/null                                  && source <( /usr/local/bin/kubectl completion bash )
+command -v kubectl >/dev/null                                  && source <( $(/usr/bin/which kubectl) completion bash )
 command -v npm     >/dev/null                                  && source <( npm completion )
 command -v vault   >/dev/null                                  && complete -C /usr/local/bin/vault vault
 command -v pipx    >/dev/null                                  && eval "$(register-python-argcomplete pipx)"
@@ -136,7 +136,7 @@ elif test -f '/usr/bin/ls'; then
 elif test -f '/bin/ls'; then
   LS='/bin/ls'
 else
-  LS="$(\which -a ls | head -1)"
+  LS="$(type -P ls)"
 fi
 
 if test -f '/usr/local/opt/grep/libexec/gnubin/grep'; then
@@ -146,7 +146,7 @@ elif test -f '/usr/bin/grep'; then
 elif test -f '/bin/grep'; then
   GREP='/bin/grep'
 else
-  GREP="$(\which -a grep | head -1)"
+  GREP="$(type -P grep)"
 fi
 
 # for public server (use common account)

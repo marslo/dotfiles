@@ -81,6 +81,11 @@ function rcsync() {
   done
 }
 
+# references:
+#  - [WAOW! Complete explanations](https://stackoverflow.com/a/28938235/101831)
+#  - [coloring functions](https://gist.github.com/inexorabletash/9122583)
+#  - [ppo/bash-colors](https://github.com/ppo/bash-colors/tree/master)
+
 function 256color() {
   for i in {0..255}; do
     echo -e "\e[38;05;${i}m█${i}";
@@ -270,16 +275,16 @@ function cat() {
 # magic vim
 function vim() {
   if [[ 0 -eq $# ]]; then
-    fzf --multi --bind="enter:become($(which -a vim | head -1) {+})"
+    fzf --multi --bind="enter:become($(type -P vim) {+})"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
     local target=$1
     pushd . >/dev/null
     cd "${target}" || return
-    fzf --multi --bind="enter:become($(which -a vim | head -1) {+})"
+    fzf --multi --bind="enter:become($(type -P vim) {+})"
     popd >/dev/null || true
   else
     # shellcheck disable=SC2068
-    $(which -a vim | head -1) -u $HOME/.vimrc $@
+    $(type -P vim) -u $HOME/.vimrc $@
   fi
 }
 
