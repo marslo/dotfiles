@@ -1,0 +1,147 @@
+# ===========================================================================
+#     FileName: .tigrc
+#       Author: marslo.jiao@gmail.com
+#   LastChange: 2020-07-02 17:27:41
+# ===========================================================================
+
+# Shortcut
+# ------
+bind generic g  none
+bind generic gg move-first-line
+
+bind generic G  move-last-line
+bind main    G move-last-line
+
+bind generic vm view-main
+bind generic vd view-diff
+bind generic vl view-log
+bind generic vt view-tree
+bind generic vb view-blob
+bind generic vx view-blame
+bind generic vr view-refs
+bind generic vs view-status
+bind generic vu view-stage
+bind generic vy view-stash
+bind generic vg view-grep
+bind generic vp view-pager
+bind generic vh view-help
+
+bind generic o  none
+bind generic oo :toggle sort-order
+bind generic os :toggle sort-field
+bind generic on :toggle line-number
+bind generic od :toggle date
+bind generic oa :toggle author
+bind generic og :toggle line-graphics
+bind generic of :toggle file-name
+bind generic op :toggle ignore-space
+bind generic oi :toggle id
+bind generic ot :toggle commit-title-overflow
+bind generic oF :toggle file-filter
+bind generic or :toggle commit-title-refs
+
+bind status  u  none
+bind stage   u  none
+bind generic uu status-update
+bind generic ur status-revert
+bind generic um status-merge
+bind generic ul stage-update-line
+bind generic us stage-split-chunk
+
+# bind generic K view-help
+bind generic <C-w><C-w> view-next
+
+# scroll left/right
+bind generic L scroll-right
+bind generic H scroll-left
+bind main H scroll-left
+bind generic ve view-reflog
+
+bind generic xf +sh -c "echo -n %(file) | xclip -sel c && echo File Clipped"
+# bind generic xf +sh -c "cat %(file) | pbcopy && echo File Copied Into The Cliboard (paste with Cmd-V)"
+
+# View
+# ------
+set main-view   = line-number:yes,interval=1 \
+                  id:yes \
+                  date:relative \
+                  author:full \
+                  commit-title:yes,graph,refs,overflow=no
+set blame-view  = id:yes,color \
+                  file-name:auto \
+                  author:full \
+                  date:relative \
+                  line-number:yes,interval=1 \
+                  text
+set refs-view   = line-number:no \
+                  id:no \
+                  date:relative \
+                  author:full \
+                  ref \
+                  commit-title
+set grep-view   = file-name:no \
+                  line-number:yes,interval=1 \
+                  text
+set tree-view   = line-number:yes,interval=1 \
+                  mode \
+                  author:full \
+                  file-size \
+                  date:relative \
+                  id:no file-name
+set status-view = line-number:yes,interval=1 \
+                  status:short \
+                  file-name
+
+set id-width           = 9
+set ignore-case        = yes
+set show-changes       = yes
+set tab-size           = 2
+set line-graphics      = utf-8
+set vertical-split     = horizontal
+set ignore-space       = no
+set show-changes       = yes
+set tab-size           = 2
+set focus-child        = yes
+set split-view-height  = 62%
+set diff-context       = 2
+set editor-line-number = yes
+set send-child-enter   = yes
+set focus-child        = yes
+set blame-options      = -C -C -C
+set mouse-scroll       = 3
+set wrap-lines         = false
+set diff-highlight     = true
+
+# Colors
+# ------
+color "diff --"             blue        default     bold
+color "@@"                  156         default
+color "+"                   green       default
+color " +"                  green       default
+color "-"                   160         default
+color " -"                  124         default
+color "index "              208         default
+color "Author "             61          default
+color default               243         default     normal
+color cursor                172         234         bold
+color status                120         default
+color delimiter             213         default
+color date                  125         default
+color mode                  255         default
+color id                    142         default
+color line-number           238         default
+color title-blur            242         233
+color title-focus           242         233         bold
+color main-commit           default     default
+color main-tag              213         default     bold
+color main-local-tag        213         default
+color main-remote           221         default
+color main-replace          219         default
+color main-tracked          221         default     bold
+color main-ref              57          default
+color diff-stat             99          default     bold
+color graph-commit          226         default
+color main-tag              64          default     bold
+color main-local-tag        94          default     bold
+
+# vim: set expandtab sw=2 tabstop=2:

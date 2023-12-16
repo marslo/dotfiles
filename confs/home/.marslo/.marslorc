@@ -54,8 +54,8 @@ if command -v brew >/dev/null; then                                            #
   # test -f "${VBOX_COMPLETION}"        && source "${VBOX_COMPLETION}"
   test -e "${ITERM2_INTEGRATION}"       && source "${ITERM2_INTEGRATION}"      # iTerm2 shell integration
   test -f "$HOME/.docker/init-bash.sh"  && source "$HOME/.docker/init-bash.sh" # docker desktop
-  test -f "${iRCHOME}"/.env             && source "${iRCHOME}"/.env
   test -f "${iRCHOME}"/.imac            && source "${iRCHOME}"/.imac
+  test -f "${iRCHOME}"/.env             && source "${iRCHOME}"/.env
 elif [ -f '/etc/os-release' ]; then                                            ## for Ubuntu/RHEL/CentOS
   distrab=$(awk -F= '$1=="ID" {print $2;}' /etc/os-release)
   GIT_COMPLETION_DIR="/usr/share/doc/git/contrib/completion"
@@ -78,6 +78,7 @@ command -v npm     >/dev/null                                  && source <( npm 
 command -v vault   >/dev/null                                  && complete -C /usr/local/bin/vault vault
 command -v pipx    >/dev/null                                  && eval "$(register-python-argcomplete pipx)"
 command -v pip     >/dev/null                                  && eval "$(pip completion --bash)"
+# command -v pipenv  >/dev/null                                && eval "$(pipenv --completion)"
 # command -v rbenv >/dev/null                                  && eval "$(rbenv init -)"
 [[ $- == *i* ]] && test -f "${FZF_HOME}/shell/completion.bash" && source "${FZF_HOME}/shell/completion.bash" 2> /dev/null
 test -f "${FZF_HOME}/shell/key-bindings.bash"                  && source "${FZF_HOME}/shell/key-bindings.bash"
