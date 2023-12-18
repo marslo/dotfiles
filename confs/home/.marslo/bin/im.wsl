@@ -5,7 +5,7 @@
 #       Author : marslo.jiao@gmail.com
 #         Desc : im for wsl
 #      Created : 2012
-#   LastChange : 2023-12-11 19:29:24
+#   LastChange : 2023-12-14 16:16:36
 # =============================================================================
 
 function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
@@ -156,24 +156,43 @@ function mg() {
 function ffs() {
   path=${1:-~/.marslo}
   num=${2:-10}
-  find "${path}" -type f \
-                 -not -path '*/\.git/*' \
-                 -not -path '*/node_modules/*' \
-                 -not -path '*/go/pkg/*' \
-                 -not -path '*/git/git*/*' \
-                 -printf "%10T+ | %p\n" |
-  sort -r |
-  head "-${num}"
+  depth=${3:-}
+  option='-type f'
+  [[ -n "${depth}" ]] && option="-maxdepth ${depth} ${option}"
+  if [[ '-g' = "${path}" ]]; then
+    # git show --name-only --pretty="format:" -"${num}" | awk 'NF' | sort -u
+    # references: https://stackoverflow.com/a/54677384/2940319
+    git log --date=iso-local --first-parent --pretty=%cd --name-status |
+        awk 'NF==1{date=$1}NF>1 && !seen[$2]++{print date,$0}' FS=$'\t' |
+        head -"${num}"
+  elif [[ '-fg' = "${path}" ]]; then
+    # references: https://stackoverflow.com/a/63864280/2940319
+    git ls-tree -r --name-only HEAD -z |
+        TZ=PDT xargs -0 -I_ git --no-pager log -1 --date=iso-local --format="%ad _" -- _ |
+        sort -r |
+        head -"${num}"
+  else
+    # shellcheck disable=SC2086
+    find "${path}" ${option} \
+                   -not -path '*/\.git/*' \
+                   -not -path '*/node_modules/*' \
+                   -not -path '*/go/pkg/*' \
+                   -not -path '*/git/git*/*' \
+                   -not -path '*/.marslo/utils/git/*' \
+                   -printf "%10T+ | %p\n" |
+    sort -r |
+    head "-${num}"
+  fi
 }
 
-# find file
-function ff() {
+# [f]ind [f]ile with [f]ind
+function fff() {
   # shellcheck disable=SC1078,SC1079
   usage="""\t$(c B)f$(c)ind $(c M)f$(c)ile(s)
   \nSYNOPSIS
-  \n\t$(c sY)\$ ff <FILENAME> [<PATH>]$(c)
+  \n\t$(c sY)\$ fff <FILENAME> [<PATH>]$(c)
   \nEXAMPLE
-  \n\t$(c G)\$ ff myfile.txt
+  \n\t$(c G)\$ fff myfile.txt
   \t\$ ff myfile.txt ~/.marslo$(c)
   """
 

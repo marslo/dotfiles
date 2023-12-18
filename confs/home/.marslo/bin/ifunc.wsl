@@ -14,11 +14,12 @@ function rdiff() { rsync -rv --size-only --dry-run "$1" "$2"; }
 function forget() { history -d $(( $(history | tail -n 1 | ${GREP} -oP '^ \d+') - 1 )); }
 function zh() { zipinfo "$1" | head; }
 function cleanview() { rm -rf ~/.vim/view/*; }
-function color() { for c; do printf '\e[48;5;%dm %03d \e[0m' "$c" "$c"; done; printf '\e[0m \n'; }
+# https://unix.stackexchange.com/a/269085/29178
+function color() { for c; do printf '\e[48;5;%dm%03d ' "$c" "$c"; done; printf '\e[0m \n'; }
 
 # inspired from http://www.earthinfo.org/linux-disk-usage-sorted-by-size-and-human-readable/
 function udfs {
-  v='$*'
+  v='*'
   # shellcheck disable=SC2124
   [ 1 -le $# ] && v="$@"
   du -sk ${v} | sort -nr | while read -r size fname; do
@@ -201,7 +202,7 @@ function cat() {
     # shellcheck disable=SC2046
     bat --theme='gruvbox-dark' $(fzf --exit-0)
   elif [[ 2 -eq $# ]] && [[ '-c' = "$1" ]]; then
-    command -p cat "$2"
+    /usr/bin/cat "$2"
   else
     bat --theme='gruvbox-dark' "${@:1:$#-1}" "${@: -1}"
   fi
@@ -210,16 +211,16 @@ function cat() {
 # magic vim
 function vim() {
   if [[ 0 -eq $# ]]; then
-    fzf --multi --bind="enter:become($(which -a vim | head -1) {+})"
+    fzf --multi --bind="enter:become($(type -P vim) {+})"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
     local target=$1
     pushd . >/dev/null
     cd "${target}" || return
-    fzf --multi --bind="enter:become($(which -a vim | head -1) {+})"
+    fzf --multi --bind="enter:become($(type -P vim) {+})"
     popd >/dev/null || true
   else
     # shellcheck disable=SC2068
-    command -p vim -u $HOME/.vimrc "$@"
+    $(type -P vim) -u $HOME/.vimrc $@
   fi
 }
 

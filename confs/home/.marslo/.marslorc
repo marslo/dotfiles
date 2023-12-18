@@ -73,7 +73,7 @@ test -d "${GROOVY_HOME}/bin"                                   && source <( cat 
 test -d "${ANSIBLE_COMPLETION_PATH}"                           && source <( cat "${ANSIBLE_COMPLETION_PATH}"/*.bash )
 test -f "${iRCHOME}/.completion/.bash_completion.sh"           && source <( cat "${iRCHOME}/.completion/.bash_completion.sh" )
 test -f "${RT_COMPLETION}"                                     && source "${RT_COMPLETION}"
-test -f "${ENHANCD_HOME}"/init.sh                              && source "${ENHANCD_HOME}"/init.sh
+# test -f "${ENHANCD_HOME}"/init.sh                            && source "${ENHANCD_HOME}"/init.sh
 command -v kubectl >/dev/null                                  && source <( $(/usr/bin/which kubectl) completion bash )
 command -v npm     >/dev/null                                  && source <( npm completion )
 command -v vault   >/dev/null                                  && complete -C /usr/local/bin/vault vault
