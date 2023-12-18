@@ -4,7 +4,7 @@
 #   FileName: kubernetes
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2023-11-14 15:54:35
+# LastChange: 2023-12-18 11:07:06
 # =============================================================================
 
 alias kubectl='kubecolor'
@@ -28,12 +28,11 @@ alias  kd='kubecolor --kubeconfig ~/.kube/config --namespace devops-ci'
 # alias kcEvicted="kubecolor -n devops-ci get pods -o json | jq '.items[] | select(.status.reason!=null) | select(.status.reason | contains("Evicted")) | "kubecolor delete pods \(.metadata.name) -n \(.metadata.namespace)"' | xargs -n 1 bash -c"
 alias kcEvicted="kubecolor get pods --all-namespaces --field-selector 'status.phase==Failed' -o json | kubecolor delete -f -"
 
-
-# Get current context
+# get current context
 alias krc='kubecolor config current-context'
-# List all contexts
+# list all contexts
 alias klc='kubecolor config get-contexts -o name | sed "s/^/  /;\|^  $(kubectl config current-context)$|s/ /*/"'
-# Change current context
+# change current context
 alias kcc='kubecolor config use-context "$(kubectl config get-contexts -o name | sed "s/^/  /;\|^  $(kubecolor config current-context)$|s/ /*/" | fzf -e | sed "s/^..//")"'
 
 # Get current namespace
@@ -47,9 +46,13 @@ alias kcn='kubecolor config set-context --current --namespace "$(kln | fzf -e | 
 # for _i in $(sed '/^alias /!d;s/^alias //;s/=.*$//' ${iRCHOME}/.alias/kubernetes); do
 # done
 
-# autocomplete
+# autocomplete for kubecolor
 complete -o default -F __start_kubectl kubecolor
+
+# for kubernetes
 while read -r _i; do
   # complete -F _complete_alias "${_i}"
   complete -o default -F __start_kubectl "${_i}"
 done < <(alias | sed -rn 's/^alias ([^=]+)=.+kubec.+$/\1/p')
+
+# vim:ts=2:sts=2:sw=2:et:ft=sh
