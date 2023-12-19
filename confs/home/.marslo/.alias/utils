@@ -6,17 +6,16 @@
 # LastChange: 2020-12-16 20:32:47
 # =============================================================================
 
-# alias rm='rm -i'
 # https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#Aliases
 # https://askubuntu.com/a/22043/92979
 alias sudo='sudo '
+# alias rm='rm -i'
 alias rm='trash'
 alias cp='cp -i'
 alias cpa='cp --parents'
-# alias cat='/usr/local/bin/ccat'
 # alias mv='mv -i'
 
-# Operation of files and directory
+# operation of files and directory
 alias cx='chmod u+x'
 alias cw='chmod u+w'
 alias clr='clear'
