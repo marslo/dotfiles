@@ -162,6 +162,7 @@ function mg() {
 function ffs() {
   path=${1:-~/.marslo}
   num=${2:-10}
+  num=${num//-/}
   depth=${3:-}
   option='-type f'
   [[ -n "${depth}" ]] && option="-maxdepth ${depth} ${option}"
@@ -187,7 +188,7 @@ function ffs() {
                    -not -path '*/.marslo/utils/git/*' \
                    -printf "%10T+ | %p\n" |
     sort -r |
-    head "-${num}"
+    head -"${num}"
   fi
 }
 
@@ -210,7 +211,6 @@ function fff() {
     find "${path}" -type f -not -path "\'*git/*\'" -iname "*${1}*"
   fi
 }
-
 
 # marslo sed
 function ms() {
@@ -270,17 +270,28 @@ function pclr(){
   echo -e "$(c sM)all proxy environment variable has been removed.$(c)"
 }
 
+# proxy echo
+function pecho(){
+  pEnv="http_proxy ftp_proxy https_proxy all_proxy socks_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY SOCKS_PROXY no_proxy NO_PROXY"
+  for envvar in ${pEnv}; do
+    printf "$(c Y)%-11s$(c) : $(c Gi)%s$(c)\n" "$envvar" "$(eval echo \$${envvar})";
+  done
+}
+
 # proxy setup
 # myproxy=$(echo $1 | sed -n 's/\([0-9]\{1,3\}.\)\{4\}:\([0-9]\+\)/&/p')
+# myproxy=$( [ 0 -eq $# ] && echo 'http://proxy.sample.com:8080' || echo "$*" );
 function pset(){
-  myproxy=$( [ 0 -eq $# ] && echo 'http://127.0.0.1:8081' || echo "$*" )
-  pEnv='http_proxy ftp_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY'
+  myproxy=${1:-'http://proxy.sample.com:8080'}
+  noproxy='127.0.0.1';
+  pEnv='http_proxy ftp_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY';
   # pEnv+='socks_proxy SOCKS_PROXY'
 
-  for envvar in $pEnv; do
-    export "${envvar}"="${myproxy}"
-  done
-  echo -e "$(c sG)proxy has been all set as ${myproxy}.$(c)"
+  for envvar in $pEnv; do export "${envvar}"="${myproxy}"; done;
+  export no_proxy="${noproxy}";
+
+  echo -e "$(c G)proxy has been all set as$(c) $(c Wdi)${myproxy}.$(c)";
+  echo -e "$(c G)no_proxy has been all set as$(c) $(c Wdi)${noproxy}.$(c)"
 }
 
 function run() {
@@ -290,6 +301,7 @@ function run() {
   \nEXAMPLE
   \t$(c G)\$ run jenkins$(c)
   \nOPT:
+  \t$(c B)docker$(c) : start docker service
   \t$(c B)jenkins$(c) : start jenkins service via docker
   \t$(c B)iaws$(c) : enable route for jenkins instance in aws
   """
@@ -304,9 +316,6 @@ function run() {
         ;;
       docker )
         startDocker
-        ;;
-      iaws )
-        enableAWShost
         ;;
       * )
         echo -e "${usage}"

@@ -85,7 +85,6 @@ function rcsync() {
 #  - [WAOW! Complete explanations](https://stackoverflow.com/a/28938235/101831)
 #  - [coloring functions](https://gist.github.com/inexorabletash/9122583)
 #  - [ppo/bash-colors](https://github.com/ppo/bash-colors/tree/master)
-
 function 256color() {
   for i in {0..255}; do
     echo -e "\e[38;05;${i}m█${i}";
@@ -125,13 +124,13 @@ function 256colorsAll() {
 # ansi --color-codes
 function showcolors() {
   local row col blockrow blockcol red green blue
-  local showcolor=_showcolor_${1:-bg}
+  local showcolor=_showcolor_${1:-fg}
   local white="\033[1;37m"
   local reset="\033[0m"
 
-  echo -e "Set foreground color: \\\\033[38;5;${white}NNN${reset}m"
-  echo -e "Set background color: \\\\033[48;5;${white}NNN${reset}m"
-  echo -e "Reset color & style:  \\\\033[0m"
+  echo -e "set foreground color: \\\\033[38;5;${white}NNN${reset}m"
+  echo -e "set background color: \\\\033[48;5;${white}NNN${reset}m"
+  echo -e "reset color & style:  \\\\033[0m"
   echo
 
   echo 16 standard color codes:
@@ -246,7 +245,7 @@ gtoc() {
 # **************************************************************/
 # brew install fzf
 
-# vim $(/usr/local/bin/fzf --height 40% --layout=reverse --multi)
+# vim $($(type -P fzf) --height 40% --layout=reverse --multi)
 # fzf --bind 'enter:become(vim {})'
 function fs() { fzf --multi --bind 'enter:become(vim {+})'; }
 
@@ -265,8 +264,12 @@ function cat() {
   if [[ 0 -eq $# ]]; then
     # shellcheck disable=SC2046
     bat --theme='gruvbox-dark' $(fzf --exit-0)
-  elif [[ 2 -eq $# ]] && [[ '-c' = "$1" ]]; then
-    /usr/local/opt/coreutils/libexec/gnubin/cat "$2"
+  elif [[ '-c' = "$1" ]]; then
+    $(type -P cat) "${@:2}"
+  elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
+    local target=$1;
+    fd . "${target}" --type f --hidden --follow --exclude .git --exclude node_modules |
+      fzf --multi --bind="enter:become(bat --theme='gruvbox-dark' {+})" ;
   else
     bat --theme='gruvbox-dark' "${@:1:$#-1}" "${@: -1}"
   fi
@@ -294,8 +297,8 @@ _fzf_comprun() {
   shift
 
   case "$command" in
-    cd)           fzf "$@" --preview 'tree -C {} | head -200' ;;
-    *)            fzf "$@" ;;
+    cd) fzf "$@" --preview 'tree -C {} | head -200' ;;
+    *)  fzf "$@" ;;
   esac
 }
 
@@ -378,7 +381,7 @@ kps() {
 help() { "$@" --help 2>&1 | bat --plain --language=help ; }
 
 # v - open files in ~/.vim_mru_files       # https://github.com/junegunn/fzf/wiki/Examples#v
-v() {
+function v() {
   local files
   files=$(grep --color=none -v '^#' ~/.vim_mru_files |
           while read -r line; do
@@ -386,7 +389,7 @@ v() {
           done | fzf-tmux -d -m -q "$*" -1) && vim ${files//\~/$HOME}
 }
 
-kns() {
+function kns() {
   echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania' |
         fmt -1 |
         fzf -1 -0 --no-sort +m --prompt='namespace> ' |
@@ -397,7 +400,7 @@ kns() {
 }
 
 # [e]nvironment [c][l]ea[r]
-eclr(){
+function eclr(){
   while read -r _env; do
     echo -e "$(c Ys)>> unset ${_env}$(c)\n$(c Wdi).. $(eval echo \$${_env})$(c)"
     unset "${_env}"
