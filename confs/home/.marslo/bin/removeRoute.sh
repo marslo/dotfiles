@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # =============================================================================
 #    FileName: removeRoute.sh
 #      Author: marslo.jiao@gmail.com

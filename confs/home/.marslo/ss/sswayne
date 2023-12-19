@@ -1,6 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 sudo /usr/local/bin/sslocal -c /Users/marslo/.marslo/ss/sswayne.json \
-                       -d start \
-                       --pid-file=/Users/marslo/.marslo/ss/sswayne.pid \
-                       --log-file=/Users/marslo/.marslo/ss/sswayne.log
+                            -d start \
+                            --pid-file=/Users/marslo/.marslo/ss/sswayne.pid \
+                            --log-file=/Users/marslo/.marslo/ss/sswayne.log
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

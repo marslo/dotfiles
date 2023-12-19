@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ssHome="${HOME}/.marslo/ss"
 ssjson="${ssHome}/ssmarslo.json"
@@ -9,6 +9,6 @@ sslog="${ssHome}/ssmarslo.log"
 [ ! -f "${sslog}" ] && touch "${sslog}"
 
 sudo /usr/local/bin/sslocal -c ${ssjson}   \
-                       --pid-file=${sspid} \
-                       --log-file=${sslog} \
-                       -d start
+                            --pid-file=${sspid} \
+                            --log-file=${sslog} \
+                            -d start

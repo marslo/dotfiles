@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 while out=$(/usr/local/Cellar/moc/2.5.2_2/bin/mocp -i); do
 

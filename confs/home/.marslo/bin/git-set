@@ -196,4 +196,4 @@ doSetEnv "${author}" "${authorEmail}" "${authorDate}" "${committer}" "${commitEm
 # shellcheck disable=SC2015
 [[ 'true' = "${verbose}" ]] && showParmas "${author}" "${authorEmail}" "${authorDate}" "${committer}" "${commitEmail}" "${commitDate}" || true
 
-# vim: ft=sh ts=2 sts=2 sw=2 et
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
