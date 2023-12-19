@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # alias gvim="$HOME/../../marslo/myprogramfiles/Vim/vim74/gvim.exe $(cygpath -d $@)"
 # alias gvim="$HOME/../../marslo/myprogramfiles/Vim/vim80/gvim.exe $@"
@@ -64,7 +64,7 @@ alias h='history | grep $@'
 alias ls='ls -NF --color=always'
 alias l='ls -lthrNF --color=always'
 alias la='ls -AlthrNF --color=always'
-alias l.='ls -d .* --color=always' 
+alias l.='ls -d .* --color=always'
 alias ld='\ls -NAld --color=always */'
 
 alias lvim="vim -c \"normal '0\""

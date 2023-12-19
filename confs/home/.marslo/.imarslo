@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # dangerous operation needs confirm
 alias rm='rm -i'

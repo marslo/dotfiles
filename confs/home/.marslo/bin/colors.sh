@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # solarized ansicolors (exporting for grins)
 export base03='\033[0;30;40m'
