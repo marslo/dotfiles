@@ -3,9 +3,8 @@
 # =============================================================================
 #     FileName : im.wsl
 #       Author : marslo.jiao@gmail.com
-#         Desc : im for wsl
 #      Created : 2012
-#   LastChange : 2023-12-14 16:16:36
+#   LastChange : 2023-12-18 16:26:52
 # =============================================================================
 
 function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
@@ -156,6 +155,7 @@ function mg() {
 function ffs() {
   path=${1:-~/.marslo}
   num=${2:-10}
+  num=${num//-/}
   depth=${3:-}
   option='-type f'
   [[ -n "${depth}" ]] && option="-maxdepth ${depth} ${option}"
@@ -179,9 +179,10 @@ function ffs() {
                    -not -path '*/go/pkg/*' \
                    -not -path '*/git/git*/*' \
                    -not -path '*/.marslo/utils/git/*' \
+                   -not -path '*/.marslo/.completion/*' \
                    -printf "%10T+ | %p\n" |
     sort -r |
-    head "-${num}"
+    head -"${num}"
   fi
 }
 
@@ -263,17 +264,185 @@ function pclr(){
   echo -e "$(c sM)all proxy environment variable has been removed.$(c)"
 }
 
+# proxy echo
+function pecho(){
+  pEnv="http_proxy ftp_proxy https_proxy all_proxy socks_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY SOCKS_PROXY no_proxy NO_PROXY"
+  for envvar in ${pEnv}; do
+    printf "$(c Y)%-11s$(c) : $(c Gi)%s$(c)\n" "$envvar" "$(eval echo \$${envvar})";
+  done
+}
+
 # proxy setup
 # myproxy=$(echo $1 | sed -n 's/\([0-9]\{1,3\}.\)\{4\}:\([0-9]\+\)/&/p')
+# myproxy=$( [ 0 -eq $# ] && echo 'http://proxy.sample.com:8080' || echo "$*" );
 function pset(){
-  myproxy=$( [ 0 -eq $# ] && echo 'http://proxy.sample.com:80' || echo "$*" )
-  pEnv='http_proxy ftp_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY'
+  myproxy=${1:-'http://proxy.sample.com:8080'}
+  noproxy='127.0.0.1';
+  pEnv='http_proxy ftp_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY';
   # pEnv+='socks_proxy SOCKS_PROXY'
 
-  for envvar in $pEnv; do
-    export "${envvar}"="${myproxy}"
-  done
-  echo -e "$(c sG)proxy has been all set as ${myproxy}.$(c)"
+  for envvar in $pEnv; do export "${envvar}"="${myproxy}"; done;
+  export no_proxy="${noproxy}";
+
+  echo -e "$(c G)proxy has been all set as$(c) $(c Wdi)${myproxy}.$(c)";
+  echo -e "$(c G)no_proxy has been all set as$(c) $(c Wdi)${noproxy}.$(c)"
+}
+
+function run() {
+  usage="""run - shortcut to run particular commands
+  \nSYNOPSIS
+  \t$(c sY)\$ run <command>$(c)
+  \nEXAMPLE
+  \t$(c G)\$ run jenkins$(c)
+  \nOPT:
+  \t$(c B)docker$(c) : start docker service
+  \t$(c B)jenkins$(c) : start jenkins service via docker
+  \t$(c B)iaws$(c) : enable route for jenkins instance in aws
+  """
+
+  if [ 0 -eq $# ]; then
+    echo -e "${usage}"
+  else
+    case $1 in
+      jenkins )
+        startDocker
+        startJenkins
+        ;;
+      docker )
+        startDocker
+        ;;
+      iaws )
+        enableAWShost
+        ;;
+      * )
+        echo -e "${usage}"
+        ;;
+    esac
+  fi
+}
+
+function stop() {
+  usage="""stop - shortcut to stop particular commands
+  \nSYNOPSIS
+  \t$(c sY)\$ stop <command>$(c)
+  \nEXAMPLE
+  \t$(c G)\$ stop jenkins$(c)
+  \nOPT:
+  \t$(c B)docker$(c)  : stop docker daemon
+  \t$(c B)jenkins$(c) : stop jenkins service
+  """
+
+  if [ 0 -eq $# ]; then
+    echo -e "${usage}"
+  else
+    case $1 in
+      jenkins )
+        docker stop jenkins
+        echo -e "$(c sM)~~> stop jenkins service..$(c)"
+        ;;
+      docker )
+        stopDocker
+        ;;
+      * )
+        echo -e "${usage}"
+        ;;
+    esac
+  fi
+}
+
+function startDocker() {
+  if ! pgrep -f '/Applications/Docker.app/Contents/MacOS/Docker' >/dev/null 2>&1; then
+    echo -e "$(c sY)~~> start Docker.app ...$(c)"
+
+    i=0
+    open -g -a Docker.app &&
+    while ! docker system info &>/dev/null; do
+      (( i++ == 0 )) && printf "$(c sY)%-6s$(c)     waiting for Docker to finish starting up..." || printf "$(c sY)%s$(c)."
+      sleep 1
+    done
+    (( i )) && printf '\n'
+    echo -e "$(c sY)~~> docker is ready...$(c)"
+  else
+    echo -e "$(c sG)~~> docker is running, no need start docker process ...$(c)"
+  fi
+}
+
+function stopDocker() {
+  if pgrep -f '/Applications/Docker.app/Contents/MacOS/Docker' >/dev/null 2>&1; then
+    echo -e "$(c sM)~~> quitting Docker.app...$(c)"
+    osascript - << EOF || exit
+    tell application "Docker"
+      if it is running then quit it
+    end tell
+EOF
+  # or osascript -e 'quit app "Docker.app"' (https://forums.docker.com/t/restart-docker-from-command-line/9420/7)
+  else
+    echo -e "$(c sB)~~> no need quit Docker.app since docker process isn't running...$(c)"
+  fi
+}
+
+#        --network jenkins \
+#        --env DOCKER_HOST=tcp://docker:2376   \
+#        --env DOCKER_CERT_PATH=/certs/client \
+#        --env DOCKER_TLS_VERIFY=1   \
+function startJenkins() {
+  docker run \
+         --name jenkins \
+         --detach   \
+         --rm \
+         --publish 8080:8080 \
+         --publish 50000:50000   \
+         --env JENKINS_ADMIN_ID=admin \
+         --env JENKINS_ADMIN_PW=admin \
+         --env JAVA_OPTS=" \
+                -XX:+UseG1GC \
+                -Xms2G  \
+                -Xmx4G \
+                -DsessionTimeout=1440 \
+                -DsessionEviction=43200 \
+                -Djava.awt.headless=true \
+                -Djenkins.ui.refresh=true \
+                -Divy.message.logger.level=4 \
+                -Dhudson.Main.development=true \
+                -Duser.timezone='Asia/Chongqing' \
+                -Djenkins.install.runSetupWizard=true \
+                -Dpermissive-script-security.enabled=true  \
+                -Djenkins.slaves.NioChannelSelector.disabled=true \
+                -Djenkins.slaves.JnlpSlaveAgentProtocol3.enabled=false \
+                -Dhudson.model.ParametersAction.keepUndefinedParameters=true \
+                -Djenkins.security.ClassFilterImpl.SUPPRESS_WHITELIST=true \
+                -Dhudson.security.ArtifactsPermission=true \
+                -Dhudson.security.LDAPSecurityRealm.groupSearch=true \
+                -Dhudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID=true \
+                -Dcom.cloudbees.workflow.rest.external.ChangeSetExt.resolveCommitAuthors=true \
+                -Dhudson.plugins.active_directory.ActiveDirectorySecurityRealm.forceLdaps=false \
+                -Dhudson.model.ParametersAction.keepUndefinedParameters=true \
+                -Dhudson.model.DirectoryBrowserSupport.CSP=\"\" \
+                -Djsch.client_pubkey=\"ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256,ssh-rsa\" \
+                -Djsch.server_host_key=\"ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256,ssh-rsa\"
+              " \
+         --env JNLP_PROTOCOL_OPTS="-Dorg.jenkinsci.remoting.engine.JnlpProtocol3.disabled=false" \
+         --volume /opt/JENKINS_HOME:/var/jenkins_home \
+         --volume /var/run/docker.sock:/var/run/docker.sock \
+         jenkins/jenkins:latest
+
+        # -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true \
+        # -Dhudson.model.DirectoryBrowserSupport.CSP=\"sandbox allow-same-origin allow-scripts; default-src 'self'; script-src * 'unsafe-eval'; img-src *; style-src * 'unsafe-inline'; font-src *;\" \
+}
+
+function enableAWShost() {
+  sudo /sbin/route get 34.233.44.163
+  sudo /sbin/route -nv add -host 34.233.44.163 172.16.0.1
+  sudo /sbin/route -nv add -host 3.230.55.102 172.16.0.1
+  sudo /sbin/route get 34.233.44.163
+  sudo /sbin/route get 3.230.55.102
+}
+
+function trust() {
+  host=$*
+  sudo /sbin/route get "${host}"
+  sudo /sbin/route -nv add -host "${host}" 172.16.0.1
+  sudo /sbin/route get "${host}"
 }
 
 # [f]unction [c]ome [f]rom

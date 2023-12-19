@@ -4,7 +4,7 @@
 #     FileName : im.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2012
-#   LastChange : 2023-12-14 16:16:36
+#   LastChange : 2023-12-18 16:26:52
 #         Desc : iMarslo
 # =============================================================================
 
@@ -186,6 +186,7 @@ function ffs() {
                    -not -path '*/go/pkg/*' \
                    -not -path '*/git/git*/*' \
                    -not -path '*/.marslo/utils/git/*' \
+                   -not -path '*/.marslo/.completion/*' \
                    -printf "%10T+ | %p\n" |
     sort -r |
     head -"${num}"

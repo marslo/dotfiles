@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=SC2139,SC2034
 # =============================================================================
 #   FileName: devops

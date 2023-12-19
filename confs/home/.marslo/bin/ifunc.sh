@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=SC1078,SC1079,SC2086
 # =============================================================================
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2021-01-15 22:00:55
+#  LastChange : 2023-12-18 16:25:34
 # =============================================================================
 
 function take() { mkdir -p "$1" && cd "$1" || return; }
