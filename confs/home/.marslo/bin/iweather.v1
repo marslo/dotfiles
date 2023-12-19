@@ -1,10 +1,10 @@
-#!/usr/local/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=SC2034,SC1111,SC1110
 # ===========================================================================
-#     FileName : iWeather
+#     FileName : iweather.v1
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-08-11 03:05:27
-#   LastChange : 2023-08-11 03:13:50
+#   LastChange : 2023-12-18 16:49:48
 # ===========================================================================
 
 function capitalized() {
@@ -228,3 +228,5 @@ for k in "${!descMap[@]}"; do echo "${k}"; done | sort -h | while read -r _d; do
 done
 
 tput rc
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

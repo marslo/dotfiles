@@ -1,5 +1,5 @@
-#!/bin/bash
-# shellcheck disable=SC1078,SC1079,SC2086
+#!/usr/bin/env bash
+# shellcheck disable=SC1078,SC1079,SC2086,SC2155
 # =============================================================================
 #    FileName : g.sh
 #      Author : marslo.jiao@gmail.com
@@ -26,6 +26,7 @@ function gf() {
       echo -e "$(c R)The current repo is in the rebase procedss. exit.$(c)"
       popd > /dev/null || return
       return 1 2>/dev/null
+      # shellcheck disable=SC2317
       exit 1
     fi
 
@@ -138,6 +139,7 @@ function mybr() {
   myBranch=$1
   mainBranch="dev"
   set +H
+  # shellcheck disable=SC2035
   for i in $(${LS} -1d */); do
     pushd . > /dev/null
     cd "$i" || return
@@ -160,6 +162,7 @@ function mybr() {
 
 function gitclean() {
   set +H
+  # shellcheck disable=SC2035
   for i in $(${LS} -1d */); do
     GITDIR=${i%%/}
     echo -e "=== \\033[32m ${GITDIR} \\033[0m ==="
@@ -220,4 +223,4 @@ function grt() {
   fi
 }
 
-# vim: ts=2 sts=2 sw=2 et ft=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

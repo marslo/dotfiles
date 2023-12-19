@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=SC1078,SC1079
 # =============================================================================
 #     FileName : irt.sh
@@ -297,4 +297,4 @@ function rtbdi() {
   fi
 }
 
-# vim: ts=2 sts=2 sw=2 et ft=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

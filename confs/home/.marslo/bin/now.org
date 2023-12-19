@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # NAME:   now
 # PATH:   $HOME/bin
@@ -135,3 +135,5 @@ done < /tmp/terminal
 tput rc                     # Restore saved cursor position.
 
 exit 0
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

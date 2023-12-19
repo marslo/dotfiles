@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # For git diff
 # Inspired from http://stackoverflow.com/questions/8259851/using-git-diff-how-can-i-get-added-and-modified-lines-numbers
@@ -65,10 +65,11 @@ function gitinfo() {
   else
     echo "Not a git repository."
   fi
-  popd >/dev/null
+  popd >/dev/null || exit
 }
 
 function gbl() {
   git for-each-ref --sort=-committerdate --format='%(committerdate) %(authorname) %(refname)' refs/remotes/origin/ | ${GREP} -e ".$*" | head -n 10;
 }
 
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

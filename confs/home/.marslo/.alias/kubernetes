@@ -55,4 +55,4 @@ while read -r _i; do
   complete -o default -F __start_kubectl "${_i}"
 done < <(alias | sed -rn 's/^alias ([^=]+)=.+kubec.+$/\1/p')
 
-# vim:ts=2:sts=2:sw=2:et:ft=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

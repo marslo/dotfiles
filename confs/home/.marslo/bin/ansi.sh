@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 
 ansicolors () {
   for attr in 0 1 2 3 4 5 6 7; do
@@ -16,3 +15,5 @@ ansicolors () {
 }
 
 ansicolors
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
