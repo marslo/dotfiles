@@ -127,6 +127,15 @@
   #                         sed -rn \"s/^\\s*remotes\\/origin\\/(.*)$/\\1/p\" | \n\
   #                         xargs git checkout \n\
   #                        '"
+  ### [b]ranch [copy]
+  bcopy       = "! bash -c 'branch=$(git for-each-ref refs/remotes refs/heads --sort=-committerdate --format=\"%(refname:short)\" | \n\
+                            grep --color=never -v \"origin$\" | \n\
+                            fzf +m --prompt=\"branch> \" | \n\
+                            sed -rn \"s:\\s*(origin/)?(.*)$:\\2:p\") && \n\
+                            [[ -n \"${branch}\" ]] && \n\
+                            echo -e \"\\033[0;33;1m~~> branch \\033[0m\\033[0;32;3m${branch}\\033[0m \\033[0;33;1mcopied\\033[0m\" && \n\
+                            /mnt/c/Windows/System32/clip.exe <<< \"${branch}\" \n\
+                           '"
   # }}}
 
   #-----------------------#
@@ -664,4 +673,4 @@
                     "
   # }}}
 
-# vim:ts=2:sts=2:sw=2:et:ft=gitconfig:foldmethod=marker
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker
