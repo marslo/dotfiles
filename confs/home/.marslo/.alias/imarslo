@@ -4,7 +4,7 @@
 #   FileName: imarslo
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2023-12-16 12:57:47
+# LastChange: 2023-12-20 23:17:08
 # =============================================================================
 
 MYWORKSPACE="$HOME/iMarslo"
@@ -21,6 +21,7 @@ alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_en
 alias sshmarslo='ssh marslo@118.193.233.78'
 alias nd='npm run deploy'
 alias rg='rg --hidden --follow --smart-case --vimgrep --ignore-file=$HOME/.rgignore --color=always'
+alias as-tree='tree --fromfile'
 
 alias irc="cd ~/.marslo"
 alias desk="cd ~/Desktop"

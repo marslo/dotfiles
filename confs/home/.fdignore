@@ -1,0 +1,16 @@
+.git/
+.tox/
+.github/
+.archive/
+.gitbook/
+.lsp/
+
+**/devops/archive
+**/.marslo/utils
+**/.marslo/bin/go
+**/.marslo/bin/bash-completion
+**/.marslo/bin/screenfetch-dev
+**/.marslo/bin/*completion*
+**/.marslo/.completion
+
+*.png
