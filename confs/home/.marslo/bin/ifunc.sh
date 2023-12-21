@@ -349,13 +349,13 @@ cdf() {
 # find-in-file - usage: fif <searchTerm>
 fif() {
   if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
-  rg --color never --files-with-matches --no-messages "$1" |
+  $(type -P rg) --files-with-matches --no-messages --hidden --follow --smart-case "$1" |
   fzf --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
       --bind "enter:become($(type -P vim) {+})" \
-      --header 'CTRL-N/CTRL-P to view contents' \
-      --preview "bat -n --style=full {} |
-                 rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 '$1' ||
-                 rg --no-line-number --ignore-case --pretty --context 10 '$1' {} \
+      --header 'CTRL-N/CTRL-P or CTRL-↑/CTRL-↓ to view contents' \
+      --preview "bat --color=always --style=plain {} |
+                 rg --no-line-number --colors 'match:bg:yellow' --ignore-case --pretty --context 10 \"$1\" ||
+                 rg --no-line-number --ignore-case --pretty --context 10 \"$1\" {} \
                 "
 }
 
