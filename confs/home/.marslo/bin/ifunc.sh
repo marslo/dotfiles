@@ -346,14 +346,17 @@ cdf() {
   file=$(fzf +m -q "$1") && dir=$(dirname "$file") && cd "$dir"
 }
 
-# find-in-file - usage: fif <searchTerm>   # using ripgrep combined with preview
-# or rgfzf: https://github.com/naggie/dotfiles/blob/359fed497c47b522bb0cc61afc38f051aae13978/include/scripts/rgfzf
+# find-in-file - usage: fif <searchTerm>
 fif() {
   if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
-  rg --files-with-matches --no-messages "$1" \
-    | fzf --preview "highlight -O ansi -l {} 2> /dev/null \
-    | rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 '$1' \
-   || rg --no-line-number --ignore-case --pretty --context 10 '$1' {}"
+  rg --color never --files-with-matches --no-messages "$1" |
+  fzf --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
+      --bind "enter:become($(type -P vim) {+})" \
+      --header 'CTRL-N/CTRL-P to view contents' \
+      --preview "bat -n --style=full {} |
+                 rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 '$1' ||
+                 rg --no-line-number --ignore-case --pretty --context 10 '$1' {} \
+                "
 }
 
 # list process

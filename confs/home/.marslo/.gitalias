@@ -134,7 +134,7 @@
                             sed -rn \"s:\\s*(origin/)?(.*)$:\\2:p\") && \n\
                             [[ -n \"${branch}\" ]] && \n\
                             echo -e \"\\033[0;33;1m~~> branch \\033[0m\\033[0;32;3m${branch}\\033[0m \\033[0;33;1mcopied\\033[0m\" && \n\
-                            /mnt/c/Windows/System32/clip.exe <<< \"${branch}\" \n\
+                            pbcopy <<< \"${branch}\" \n\
                            '"
   # }}}
 
