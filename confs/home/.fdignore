@@ -7,10 +7,13 @@
 
 **/devops/archive
 **/.marslo/utils
-**/.marslo/bin/go
+**/.marslo/bin/go/pkg
 **/.marslo/bin/bash-completion
 **/.marslo/bin/screenfetch-dev
 **/.marslo/bin/*completion*
 **/.marslo/.completion
+**/.marslo/others
+**/.ssh/known_hosts*
+
 
 *.png
