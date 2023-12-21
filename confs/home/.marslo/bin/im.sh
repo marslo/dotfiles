@@ -160,36 +160,60 @@ function mg() {
 
 # [f]ind [f]ile and [s]ort
 function ffs() {
-  path=${1:-~/.marslo}
-  num=${2:-10}
+  local opt=''
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+          -g ) opt+="$1 "   ; shift   ;;
+         -fg ) opt+="$1 "   ; shift   ;;
+          -f ) opt+="$1 "   ; shift   ;;
+         --* ) opt+="$1 $2 "; shift 2 ;;
+          -* ) opt+="$1 "   ; shift   ;;
+           * ) break                  ;;
+    esac
+  done
+
+  local path=${1:-~/.marslo}
+  local num=${2:-10}
   num=${num//-/}
-  depth=${3:-}
-  option='-type f'
-  [[ -n "${depth}" ]] && option="-maxdepth ${depth} ${option}"
-  if [[ '-g' = "${path}" ]]; then
+  local depth=${3:-}
+  depth=${depth//-/}
+  local option='--type f'
+
+  if [[ "${opt}" =~ '-g ' ]]; then
     # git show --name-only --pretty="format:" -"${num}" | awk 'NF' | sort -u
     # references: https://stackoverflow.com/a/54677384/2940319
     git log --date=iso-local --first-parent --pretty=%cd --name-status |
         awk 'NF==1{date=$1}NF>1 && !seen[$2]++{print date,$0}' FS=$'\t' |
         head -"${num}"
-  elif [[ '-fg' = "${path}" ]]; then
+  elif [[ "${opt}" =~ '-fg ' ]]; then
     # references: https://stackoverflow.com/a/63864280/2940319
     git ls-tree -r --name-only HEAD -z |
-        TZ=PDT xargs -0 -I_ git --no-pager log -1 --date=iso-local --format="%ad _" -- _ |
+        TZ=PDT xargs -0 -I_ git --no-pager log -1 --date=iso-local --format="%ad | _" -- _ |
         sort -r |
         head -"${num}"
-  else
+  elif [[ "${opt}" =~ '-f ' ]]; then
+    option=${option: 1}
+    [[ -n "${depth}" ]] && option="-maxdepth ${depth} ${option}"
     # shellcheck disable=SC2086
     find "${path}" ${option} \
                    -not -path '*/\.git/*' \
                    -not -path '*/node_modules/*' \
                    -not -path '*/go/pkg/*' \
                    -not -path '*/git/git*/*' \
-                   -not -path '*/.marslo/utils/git/*' \
+                   -not -path '*/.marslo/utils/*' \
                    -not -path '*/.marslo/.completion/*' \
                    -printf "%10T+ | %p\n" |
     sort -r |
     head -"${num}"
+  else
+    if [[ "${opt}}" =~ .*-t.* ]] || [[ "${opt}" =~ .*--type.* ]]; then
+      option="${option//--type\ f/}"
+    fi
+    option="${opt} ${option} --hidden --follow --unrestricted --ignore-file ~/.fdignore"
+    [[ -n "${depth}"    ]] && option="--max-depth ${depth} ${option}"
+    [[ '.' != "${path}" ]] && option="${path} ${option}"
+    # shellcheck disable=SC2086,SC2027
+    eval """ fd . "${option}" --exec stat --printf='%y | %n\n' | sort -r | head -"${num}" """
   fi
 }
 
@@ -275,6 +299,7 @@ function pclr(){
 function pecho(){
   pEnv="http_proxy ftp_proxy https_proxy all_proxy socks_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY SOCKS_PROXY no_proxy NO_PROXY"
   for envvar in ${pEnv}; do
+    # shellcheck disable=SC2086
     printf "$(c Y)%-11s$(c) : $(c Gi)%s$(c)\n" "$envvar" "$(eval echo \$${envvar})";
   done
 }

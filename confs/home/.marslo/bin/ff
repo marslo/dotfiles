@@ -1,30 +1,45 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1091,SC2154
+#=============================================================================
+#     FileName : ff
+#       Author : marslo.jiao@gmail.com
+#      Created : 2023-12-15 23:23:39
+#   LastChange : 2023-12-20 22:39:53
+#      example :
+#                - find all .DS_* and remove
+#                  $ fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --glob '*\.DS_*' /Users/marslo | xargs -r rm
+#=============================================================================
 
 source "${iRCHOME}/bin/bash-color.sh"
 
-opt=''
-path='.'
-params=''
-debug=0
+declare opt=''
+declare path='.'
+declare params=''
+declare -i debugLevel=0
+# shellcheck disable=SC2016
+declare fdOpt='--type f --show-errors --hidden --follow --unrestricted --fixed-strings --ignore-file="$HOME"/.fdignore'
 # shellcheck disable=SC2155,SC1078,SC1079
-usage="""\t$(c B)f$(c)ind $(c M)f$(c)ile(s) via $(c Gui)fd$(c)
+declare usage="""\t$(c B)f$(c)ind $(c M)f$(c)ile(s) via $(c Gui)fd$(c)
 \nSYNOPSIS
-\n\t$(c sY)\$ ff [<OPTIONS>] <KEYWORD> [<PATH>]$(c)
+\n\t$(c sY)\$ ff [ -d | --debug | -v | --verbose | -dd | -vv | <OPTIONS> ] <KEYWORD> [<PATH>]$(c)
 \nOPTIONS
 \n\trespect all options of $(c Gui)fd$(c)
+\n\t$(c Y)-d, --debug, -v, --verbose$(c)
+\t\tshow debug info ( level 1 )
+\n\t$(c Y)-dd, -vv$(c)
+\t\tshow detail debug info ( level 2 )
 \nEXAMPLE
 \n\tsearch with fixed string $(c i)myfile.txt$(c) in current location
 \t  \$ $(c G)ff $(c i)myfile.txt$(c)$(c)
 \n\tsearch with fixed string $(c i)myfile.txt$(c) in path $(c i)~/.marslo$(c)
 \t  \$ $(c G)ff $(c i)myfile.txt ~/.marslo$(c)$(c)
 \n\tshow debug info
-\t  \$ $(c G)ff -d $(c i)myfile.txt ~/.marslo$(c)$(c)
+\t  \$ $(c G)ff -dd $(c i)myfile.txt ~/.marslo$(c)$(c)
+\t  \$ $(c G)ff --debug $(c i)myfile.txt ~/.marslo$(c)$(c)
 \n\tlist details with searched files ( by using OPTIONS from $(c Gui)fd$(c) )
 \t  \$ $(c G)ff -l $(c i)myfile.txt ~/.marslo$(c)$(c)
-\t  \$ $(c G)ff --list-details $(c i)myfile.txt ~/.marslo$(c)$(c)
-\n\tfind all $(c i).DS_*$(c) and remove
-\t  \$ $(c G)fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --glob '*\.DS_*' $HOME | xargs -r rm$(c)
+\n\tlist details with searched files with debug info ( by using OPTIONS from $(c Gui)fd$(c) )
+\t  \$ $(c G)ff -dd --list-details --glob $(c i)*.txt ~/.marslo$(c)$(c)
 """
 
 if [[ 0 = "$#" ]]; then
@@ -33,42 +48,57 @@ if [[ 0 = "$#" ]]; then
 fi
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -*) opt+="$1 " ; shift ;;
-     *) break              ;;
+    --debug | --verbose ) opt+="$1 "   ; shift   ;;
+    --*                 ) opt+="$1 $2 "; shift 2 ;;
+    -*                  ) opt+="$1 "   ; shift   ;;
+    *                   ) break                  ;;
   esac
 done
 
-if [[ 0 = "$#" ]]; then
+if [[ 0 = "$#" ]] && ! [[ "${opt}" =~ "--glob" ]]; then
   echo -e "\033[0;33mERROR: must provide at least one non-opt param\033[0m"
   exit 2
+elif [[ "${opt}" =~ '--glob' ]]; then
+  params=''
 elif [[ 1 = "$#" ]]; then
-  params="$1"
+  params="'$1'"
 else
-  path=${*: -1}
-  params=${*:1:$#-1}
+  path="'${*: -1}'"
+  params="'${*:1:$#-1}'"
 fi
 
-if [[ "${opt}" == *-d\ * ]] || [[ "${opt}" == *--debug\ * ]]; then
-  [[ "${opt}" == *-d\ *      ]] && opt="${opt//-d /}"
-  [[ "${opt}" == *--debug\ * ]] && opt="${opt//--debug /}"
-  debug=1
+if [[ "${opt}" =~ "-dd " ]] || [[ "${opt}" =~ "-vv " ]]; then
+  [[ "${opt}" =~ "-dd " ]] && opt="${opt//-dd\ /}"
+  [[ "${opt}" =~ "-vv " ]] && opt="${opt//-vv\ /}"
+  debugLevel=2
+fi
+if [[ "${opt}" =~ "-d " ]] || [[ "${opt}" =~ "--debug " ]] || [[ "${opt}" =~ "-v " ]] || [[ "${opt}" =~ "--verbose" ]]; then
+  [[ "${opt}" =~ "--debug "   ]] && opt="${opt//--debug\ /}"
+  [[ "${opt}" =~ "--verbose " ]] && opt="${opt//--verbose\ /}"
+  [[ "${opt}" =~ "-d "        ]] && opt="${opt//-d\ /}"
+  [[ "${opt}" =~ "-v "        ]] && opt="${opt//-v\ /}"
+  debugLevel=1
 fi
 
-cmd="fd --type f --hidden --follow --unrestricted --fixed-strings"
-cmd+=" --exclude .git --exclude node_modules"
-cmd+=" ${opt}"
-cmd+=" '${params}'"
-cmd+=" '${path}'"
+if [[ "${opt}}" =~ .*-g.* ]] || [[ "${opt}" =~ .*--glob.* ]]; then
+  fdOpt="${fdOpt//--fixed-strings/}"
+fi
+if [[ "${opt}}" =~ .*-t.* ]] || [[ "${opt}" =~ .*--type.* ]]; then
+  fdOpt="${fdOpt//--type\ f/}"
+fi
+
+fdOpt=$(xargs <<< "${fdOpt} --exclude .git --exclude node_modules ${opt}")
+cmd="fd ${fdOpt} ${params} ${path}"
+[[ "${debugLevel}" =~ [1-2] ]] && echo -e "  $(c Wdi)>> [COMMAND] :$(c)\n\t\033[0;33m$ ${cmd}\033[0m\n\n  $(c Wdi)>> [RESULT]:$(c)"
+
 eval "${cmd}"
-
-result=$?
-[[ 0 != "${result}" ]] && [[ 1 = "${debug}" ]] && echo -e "\nWARN: no match found :\n\t\033[0;33m$ ${cmd}\033[0m"
-
-[[ 1 = "${debug}" ]] && echo -e """
+[[ 2 = "${debugLevel}" ]] && echo -e """
   $(c Wdi)>> [DEBUG] :$(c)   $(c Wkdi)path :$(c) $(c Ci)${path}$(c)
   $(c Wdi)>> [DEBUG] :$(c) $(c Wkdi)params :$(c) $(c Ci)${params}$(c)
-  $(c Wdi)>> [DEBUG] :$(c)    $(c Wkdi)opt :$(c) $(c Ci)${opt}$(c)
+  $(c Wdi)>> [DEBUG] :$(c)    $(c Wkdi)opt :$(c) $(c Ci)$(xargs <<< "${opt}")$(c)
   $(c Wdi)>> [DEBUG] :$(c)    $(c Wkdi)cmd :$(c) $(c Ci)${cmd}$(c)
   $(c Wdi)>> [ALSO]  :$(c)  $(c Yi)/usr/local/bin/rg --hidden --smart-case --files \"${path}\" 2>/dev/null | /usr/local/bin/rg --hidden --smart-case ${opt} ${params}$(c)
   $(c Wdi)>> [ALSO]  :$(c)  $(c Yi)/usr/local/bin/rg --hidden --smart-case --files \"${path}\" ${opt} ${params}$(c)
 """
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
