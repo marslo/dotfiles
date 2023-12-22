@@ -290,7 +290,7 @@ function vimdiff() {                       # smart vimdiff
   fi
 
   if [[ -z "${rPath}" ]] && [[ -z "${lPath}" ]]; then
-    $(type -P vim) -d "$*"
+    $(type -P vim) -d "${@:1:$#-1}" "${@: -1}"
   else
     fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore --exec-batch ls -t"
     lfile="$(fd ${rPath} ${fdOpt} | fzf +m)" &&
