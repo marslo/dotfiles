@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-#=============================================================================
-#     FileName : ifunc.wsl
-#       Author : marslo.jiao@gmail.com
-#      Created : 2023-10-08 06:57:15
-#   LastChange : 2023-12-11 19:30:40
-#=============================================================================
+# shellcheck disable=SC1078,SC1079,SC2086
+# =============================================================================
+#    FileName : ifunc.wsl
+#      Author : marslo.jiao@gmail.com
+#     Created : 2023-10-08 06:57:15
+#  LastChange : 2023-12-21 16:56:51
+# =============================================================================
 
 function take() { mkdir -p "$1" && cd "$1" || return; }
 function cdls() { cd "$1" && ls; }
@@ -16,6 +17,17 @@ function zh() { zipinfo "$1" | head; }
 function cleanview() { rm -rf ~/.vim/view/*; }
 # https://unix.stackexchange.com/a/269085/29178
 function color() { for c; do printf '\e[48;5;%dm%03d ' "$c" "$c"; done; printf '\e[0m \n'; }
+
+# /**************************************************************
+#        _   _ _ _ _
+#       | | (_) (_) |
+#  _   _| |_ _| |_| |_ _   _
+# | | | | __| | | | __| | | |
+# | |_| | |_| | | | |_| |_| |
+#  \__,_|\__|_|_|_|\__|\__, |
+#                       __/ |
+#                      |___/
+# **************************************************************/
 
 # inspired from http://www.earthinfo.org/linux-disk-usage-sorted-by-size-and-human-readable/
 function udfs {
@@ -38,9 +50,38 @@ function dir() {
   find . -iname "${_p}" -print0 | xargs -r0 ls -altr | awk '{print; total += $5}; END {print "total size: ", total}';
 }
 
+ibtoc() {
+  path=${*:-}
+  if [ 0 -eq $# ]; then
+    # shellcheck disable=SC2124
+    path="${MYWORKSPACE}/tools/git/marslo/mbook/docs"
+    xargs doctoc --github \
+                 --notitle \
+                 --maxlevel 3 >/dev/null \
+           < <( fd . "${path}" --type f --extension md --exclude SUMMARY.md --exclude README.md )
+  else
+    doctoc --github --maxlevel 3 "${path}"
+  fi
+}
+
+
+# /**************************************************************
+#            _
+#           | |
+#   ___ ___ | | ___  _ __ ___
+#  / __/ _ \| |/ _ \| '__/ __|
+# | (_| (_) | | (_) | |  \__ \
+#  \___\___/|_|\___/|_|  |___/
+#
+# references:
+#  - [WAOW! Complete explanations](https://stackoverflow.com/a/28938235/101831)
+#  - [coloring functions](https://gist.github.com/inexorabletash/9122583)
+#  - [ppo/bash-colors](https://github.com/ppo/bash-colors/tree/master)
+# **************************************************************/
+
 function 256colors() {
   for i in {0..255}; do
-    echo -e "\e[38;05;${i}m▌$i";        # ctrl+v -> u258c ( left half block ); u2588 ( full block )
+    echo -e "\e[38;05;${i}m▌${i}";       # ctrl+v -> u258c ( left half block ); u2588 ( full block )
   done | column -c 180 -s ' ';
   echo -e "\e[m"
 }
@@ -165,17 +206,6 @@ hmdays() {
   fi
 }
 
-ibtoc() {
-  if [ 0 -eq $# ]; then
-    find "${MYWORKSPACE}/tools/git/marslo/mbook/docs" \
-         -iname '*.md' \
-         -not -path '**/SUMMARY.md' \
-         -exec doctoc --github --maxlevel 3 {} \;
-  else
-    doctoc --github --maxlevel 3 "$@"
-  fi
-}
-
 # /**************************************************************
 #  __      __
 #  / _|    / _|
@@ -186,8 +216,18 @@ ibtoc() {
 #
 # **************************************************************/
 
-# smart copy
-function copy() {
+## preview contents via `$ cd **<tab>`: https://pragmaticpineapple.com/four-useful-fzf-tricks-for-your-terminal/
+_fzf_comprun() {
+  local command=$1
+  shift
+
+  case "$command" in
+    cd ) fzf "$@" --preview 'tree -C {} | head -200' ;;
+     * ) fzf "$@"                                    ;;
+  esac
+}
+
+function copy() {                          # smart copy
   if [[ 0 -eq $# ]]; then
     # shellcheck disable=SC2046
     /mnt/c/Windows/System32/clip.exe < $(fzf --multi --exit-0)
@@ -196,65 +236,70 @@ function copy() {
   fi
 }
 
-# smart cat
-function cat() {
+function cat() {                           # smart cat
   if [[ 0 -eq $# ]]; then
     # shellcheck disable=SC2046
     bat --theme='gruvbox-dark' $(fzf --exit-0)
-  elif [[ 2 -eq $# ]] && [[ '-c' = "$1" ]]; then
-    /usr/bin/cat "$2"
+  elif [[ '-c' = "$1" ]]; then
+    /usr/bin/cat "${@:2}"
+  elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
+    local target=$1;
+    fd . "${target}" --type f --hidden --follow --exclude .git --exclude node_modules |
+      fzf --multi --bind="enter:become(bat --theme='gruvbox-dark' {+})" ;
   else
     bat --theme='gruvbox-dark' "${@:1:$#-1}" "${@: -1}"
   fi
 }
 
-# magic vim
-function vim() {
+function vim() {                           # magic vim - fzf list in most recent modified order
+  local target
+  local fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore --exec-batch ls -t"
   if [[ 0 -eq $# ]]; then
-    fzf --multi --bind="enter:become($(type -P vim) {+})"
+    fd . ${fdOpt} | fzf --multi --bind="enter:become($(type -P vim) {+})"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
-    local target=$1
-    pushd . >/dev/null
-    cd "${target}" || return
-    fzf --multi --bind="enter:become($(type -P vim) {+})"
-    popd >/dev/null || true
+    [[ '.' = "${1}" ]] && target="${1}" || target=". ${1}"
+    fd ${target} ${fdOpt} | fzf --multi --bind="enter:become($(type -P vim) {+})"
   else
     # shellcheck disable=SC2068
     $(type -P vim) -u $HOME/.vimrc $@
   fi
 }
 
-## preview contents via `$ cd **<tab>`: https://pragmaticpineapple.com/four-useful-fzf-tricks-for-your-terminal/
-_fzf_comprun() {
-  local command=$1
-  shift
-
-  case "$command" in
-    cd) fzf "$@" --preview 'tree -C {} | head -200' ;;
-    *)  fzf "$@" ;;
-  esac
+function v() {                             # v - open files in ~/.vim_mru_files
+  local files
+  files=$( grep --color=none -v '^#' ~/.vim_mru_files |
+           while read -r line; do
+             [ -f "${line/\~/$HOME}" ] && echo "$line"
+           done | fzf-tmux -d -m -q "$*" -1
+         ) && vim ${files//\~/$HOME}
 }
 
-# fe [FUZZY PATTERN] - Open the selected file with the default editor
-#   - Bypass fuzzy finder if there's only one match (--select-1)
-#   - Exit if there's no match (--exit-0)
-# https://github.com/junegunn/fzf/wiki/examples#opening-files
-fe() {
-  # shellcheck disable=SC2207
-  IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
-  # shellcheck disable=SC2128
-  [[ -n "$files" ]] && ${EDITOR:-vim} "${files[@]}"
+function vimdiff() {                       # smart vimdiff
+  local rPath
+  local lPath
+
+  if [[ 0 -eq $# ]]; then
+    rPath='.'
+    # shellcheck disable=SC2154
+    lPath=". ${iRCHOME}"
+  elif [[ 1 -eq $# ]] && [[ -d "$1" ]]; then
+    [[ '.' = "${1}" ]] && lPath="${1}" || lPath=". ${1}"
+  elif [[ 2 -eq $# ]] && [[ -d "$1" ]] && [[ -d "$2" ]]; then
+    [[ '.' = "${1}" ]] && rPath="${1}" || rPath=". ${1}"
+    [[ '.' = "${2}" ]] && lPath="${2}" || lPath=". ${2}"
+  fi
+
+  if [[ -z "${rPath}" ]] && [[ -z "${lPath}" ]]; then
+    $(type -P vim) -d "$*"
+  else
+    fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore --exec-batch ls -t"
+    lfile="$(fd ${rPath} ${fdOpt} | fzf +m)" &&
+    rfile="$(fd ${lPath} ${fdOpt} | fzf +m)" &&
+    $(type -P vim) -d "${lfile}" "${rfile}"
+  fi
 }
 
-# fda - including hidden directories
-fda() {
-  local dir
-  # shellcheck disable=SC2164
-  dir=$(find ${1:-.} -type d 2> /dev/null | fzf +m) && cd "$dir"
-}
-
-# cdp - cd to selected parent directory
-cdp() {
+function cdp() {                           # cdp - [c][d] to selected [p]arent directory
   # shellcheck disable=SC2034,SC2316
   local declare dirs=()
   get_parent_dirs() {
@@ -271,26 +316,26 @@ cdp() {
   cd "$DIR" || return
 }
 
-# cdf - cd into the directory of the selected file
-cdf() {
+function cdf() {                           # [c][d] into the directory of the selected [f]ile
   local file
   local dir
   # shellcheck disable=SC2164
-  file=$(fzf +m -q "$1") && dir=$(dirname "$file") && cd "$dir"
+  file=$(fzf +m -q "$1") && dir=$(dirname "${file}") && cd "${dir}"
 }
 
-# find-in-file - usage: fif <searchTerm>   # using ripgrep combined with preview
-# or rgfzf: https://github.com/naggie/dotfiles/blob/359fed497c47b522bb0cc61afc38f051aae13978/include/scripts/rgfzf
-fif() {
+function fif() {                           # [f]ind-[i]n-[f]ile
   if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
-  rg --files-with-matches --no-messages "$1" \
-    | fzf --preview "highlight -O ansi -l {} 2> /dev/null \
-    | rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 '$1' \
-   || rg --no-line-number --ignore-case --pretty --context 10 '$1' {}"
+  $(type -P rg) --files-with-matches --no-messages --hidden --follow --smart-case "$1" |
+  fzf --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
+      --bind "enter:become($(type -P vim) {+})" \
+      --header 'CTRL-N/CTRL-P or CTRL-↑/CTRL-↓ to view contents' \
+      --preview "bat --color=always --style=plain {} |
+                 rg --no-line-number --colors 'match:bg:yellow' --ignore-case --pretty --context 10 \"$1\" ||
+                 rg --no-line-number --ignore-case --pretty --context 10 \"$1\" {} \
+                "
 }
 
-# list process
-lsps() {
+function lsps() {                          # [l]i[s]t [p]roces[s]
   (date; ps -ef) |
   fzf --bind='ctrl-r:reload(date; ps -ef)' \
       --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
@@ -299,8 +344,7 @@ lsps() {
   awk '{print $2}'
 }
 
-# kill process
-kps() {
+function killps() {                        # [kill] [p]roces[s]
   (date; ps -ef) |
   fzf --bind='ctrl-r:reload(date; ps -ef)' \
       --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
@@ -310,19 +354,7 @@ kps() {
   xargs kill -9
 }
 
-# bat
-help() { "$@" --help 2>&1 | bat --plain --language=help ; }
-
-# v - open files in ~/.vim_mru_files       # https://github.com/junegunn/fzf/wiki/Examples#v
-v() {
-  local files
-  files=$(grep --color=none -v '^#' ~/.vim_mru_files |
-          while read -r line; do
-            [ -f "${line/\~/$HOME}" ] && echo "$line"
-          done | fzf-tmux -d -m -q "$*" -1) && vim ${files//\~/$HOME}
-}
-
-kns() {
+function kns() {                           # [k]ubectl [n]ame[s]pace
   echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania' |
         fmt -1 |
         fzf -1 -0 --no-sort +m --prompt='namespace> ' |
@@ -332,16 +364,32 @@ kns() {
                          "
 }
 
-# [e]nvironment [c][l]ea[r]
-eclr(){
+function eclr() {                          # [e]nvironment variable [c][l]ea[r]
   while read -r _env; do
     echo -e "$(c Ys)>> unset ${_env}$(c)\n$(c Wdi).. $(eval echo \$${_env})$(c)"
     unset "${_env}"
   done < <( echo 'LDFLAGS CFLAGS CPPFLAGS PKG_CONFIG_PATH LIBRARY_PATH' |
                   fmt -1 |
-                  fzf -1 -0 --no-sort -m --prompt='env> '
+                  fzf -1 --exit-0 \
+                         --no-sort \
+                         --multi \
+                         --prompt 'env> ' \
+                         --header 'TAB/SHIFT-TAB to select multiple items, CTRL-D to deselect-all'
           )
-  echo -e "\n$(c Wdi)[TIP]>> to list all env via $(c)$(c Wdiu)\$ env | sed -rn 's/^([a-zA-Z0-9]+)=.*$/\1/p'$(c)"
+  # echo -e "\n$(c Wdi)[TIP]>> to list all env via $(c)$(c Wdiu)\$ env | sed -rn 's/^([a-zA-Z0-9]+)=.*$/\1/p'$(c)"
 }
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# /**************************************************************
+#  _           _
+# | |         | |
+# | |__   __ _| |_
+# | '_ \ / _` | __|
+# | |_) | (_| | |_
+# |_.__/ \__,_|\__|
+#
+# **************************************************************/
+
+# bat
+help() { "$@" --help 2>&1 | bat --plain --language=help ; }
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************
