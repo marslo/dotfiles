@@ -4,7 +4,7 @@
 #     FileName : ff
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-15 23:23:39
-#   LastChange : 2023-12-20 22:39:53
+#   LastChange : 2023-12-20 23:17:08
 #      example :
 #                - find all .DS_* and remove
 #                  $ fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --glob '*\.DS_*' /Users/marslo | xargs -r rm
@@ -49,9 +49,9 @@ fi
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --debug | --verbose ) opt+="$1 "   ; shift   ;;
-    --*                 ) opt+="$1 $2 "; shift 2 ;;
-    -*                  ) opt+="$1 "   ; shift   ;;
-    *                   ) break                  ;;
+                    --* ) opt+="$1 $2 "; shift 2 ;;
+                     -* ) opt+="$1 "   ; shift   ;;
+                      * ) break                  ;;
   esac
 done
 

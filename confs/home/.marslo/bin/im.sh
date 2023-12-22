@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1078,SC1079,SC2076
 # =============================================================================
-#     FileName : im.sh
-#       Author : marslo.jiao@gmail.com
-#      Created : 2012
-#   LastChange : 2023-12-18 16:26:52
-#         Desc : iMarslo
+#    FileName : im.sh
+#      Author : marslo.jiao@gmail.com
+#     Created : 2012
+#  LastChange : 2023-12-21 16:56:51
 # =============================================================================
 
 function exitOnError() { echo -e "$1"; }
@@ -182,7 +181,7 @@ function ffs() {
   if [[ "${opt}" =~ '-g ' ]]; then
     # git show --name-only --pretty="format:" -"${num}" | awk 'NF' | sort -u
     # references: https://stackoverflow.com/a/54677384/2940319
-    git log --date=iso-local --first-parent --pretty=%cd --name-status |
+    git log --date=iso-local --first-parent --pretty=%cd --name-status --relative |
         awk 'NF==1{date=$1}NF>1 && !seen[$2]++{print date,$0}' FS=$'\t' |
         head -"${num}"
   elif [[ "${opt}" =~ '-fg ' ]]; then
