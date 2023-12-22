@@ -64,7 +64,6 @@ ibtoc() {
   fi
 }
 
-
 # /**************************************************************
 #            _
 #           | |
@@ -241,7 +240,7 @@ function cat() {                           # smart cat
     # shellcheck disable=SC2046
     bat --theme='gruvbox-dark' $(fzf --exit-0)
   elif [[ '-c' = "$1" ]]; then
-    /usr/bin/cat "${@:2}"
+    $(type -P cat) "${@:2}"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
     local target=$1;
     fd . "${target}" --type f --hidden --follow --exclude .git --exclude node_modules |
