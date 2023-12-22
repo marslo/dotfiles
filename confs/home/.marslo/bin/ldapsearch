@@ -3,10 +3,8 @@
 
 shopt -s extglob
 
-c() {
-  # shellcheck disable=SC1009,SC2015,SC2028
-  [ $# -eq 0 ] && echo "\033[0m" || echo "$1" | sed -E "s/(.)/‹\1›/g;s/([KRGYBMCW])/3\1/g;s/([krgybmcw])/4\1/g;s/S/22/;y/sufnKRGYBMCWkrgybmcw›/14570123456701234567m/;s/‹/\\\033[/g";
-}
+# shellcheck disable=SC2154,SC1091
+source "${iRCHOME}"/bin/bash-color.sh
 
 usage="""TO SEARCH IN LDAP
 \nSYNOPSIS:
@@ -61,3 +59,5 @@ else
 
   eval "${command}"
 fi
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

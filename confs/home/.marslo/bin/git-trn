@@ -7,11 +7,8 @@
 # $ git tag -a [new_tag] [old_tag]^{} -m [new_message]
 # ```
 
-# credit belongs to https://raw.githubusercontent.com/ppo/bash-colors/master/bash-colors.sh
-c() {
-  # shellcheck disable=SC1009,SC2015
-  [ $# -eq 0 ] && echo "\033[0m" || echo "$1" | sed -E "s/(.)/‹\1›/g;s/([KRGYBMCW])/3\1/g;s/([krgybmcw])/4\1/g;s/S/22/;y/sufnKRGYBMCWkrgybmcw›/14570123456701234567m/;s/‹/\\\033[/g";
-}
+# shellcheck disable=SC2154,SC1091
+source "${iRCHOME}"/bin/bash-color.sh
 
 function gtr() {
   usage="""\t$(c B)g$(c)it $(c R)t$(c)ag $(c M)r$(c)ename - rename tag with original committer and date
