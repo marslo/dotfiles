@@ -40,7 +40,7 @@ alias -- --='pushd -0'
 alias -- ---='pushd -1'
 alias dv='dirs -v'
 
-# Show colorful
+# show colorful
 alias grep='grep -i --color=always'
 alias lgrep='grep -i -n --color=always'
 alias egrep='egrep -i -n --color=always'
