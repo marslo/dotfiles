@@ -4,7 +4,7 @@
 #    FileName : im.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2023-12-21 16:56:51
+#  LastChange : 2023-12-23 15:19:41
 # =============================================================================
 
 function exitOnError() { echo -e "$1"; }
@@ -21,7 +21,7 @@ function kx() { [ "$1" ] && kubectl config use-context "$1" || kubectl config cu
 function pipurl() { pip list --format=freeze | cut -d= -f1 | xargs pip show | awk '/^Name/{printf $2} /^Home-page/{print ": "$2}' | column -t; }
 function getsum { awk '{ sum += $1 } END { print sum }' "$1"; }
 ## how many days since now https://tecadmin.net/calculate-difference-between-two-dates-in-bash/
-function hmds() { echo $(( ( $(date -d "$1" +%s) - $(date +%s))/86400 )); }
+function hmdays() { usage="SYNOPSIS:\t\$ hmdays YYYY-MM-DD"; [[ 1 -ne $# ]] && echo -e "${usage}" || echo $(( ( $(date -d "$1" +%s) - $(date +%s))/(3600*24))) days; }
 
 function contains() {
   standard=$1

@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2023-12-21 16:56:51
+#  LastChange : 2023-12-23 17:54:44
 # =============================================================================
 
 function take() { mkdir -p "$1" && cd "$1" || return; }
@@ -58,38 +58,14 @@ function mdiff() {
 }
 
 function dir() {
-  _p=$( [ 0 -eq $# ] && echo '.' || echo "$*" )
+  [[ 0 -eq $# ]] && _p='.' || _p="$*"
   find . -iname "${_p}" -print0 | xargs -r0 ${LS} -altr | awk '{print; total += $5}; END {print "total size: ", total}';
 }
 
 function dir-h() {
-  _p=$( [ 0 -eq $# ] && echo '.' || echo "$*" )
+  [[ 0 -eq $# ]] && _p='.' || _p="$*"
   find . -iname "${_p}" -exec ${LS} -lthrNF --color=always {} \;
   find . -iname "${_p}" -print0 | xargs -r0 du -csh| tail -n 1
-}
-
-function rcsync() {
-  SITE="Jira Confluence Jenkins Gitlab Artifactory Sonar Slave"
-  HNAME=$( hostname | tr '[:upper:]' '[:lower:]' )
-  for i in $SITE; do
-    CURNAME=$( echo "$i" | tr '[:upper:]' '[:lower:]' )
-    if [ "$HNAME" != "$CURNAME" ]; then
-      echo ------------------- "$i" ---------------------;
-      pushd "$PWD" || return
-      cd "/home/appadmin" || return
-      rsync \
-        -avzrlpgoD \
-        --exclude=Tools \
-        --exclude=.vim/view \
-        --exclude=.vim/vimsrc \
-        --exclude=.vim/cache \
-        --exclude=.vim/.netrwhist \
-        --exclude=.ssh/known_hosts \
-        -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' \
-        .marslo .vim .vimrc .inputrc .tmux.conf .pip appadmin@"$i":~/
-      popd || return
-    fi
-  done
 }
 
 ibtoc() {
@@ -103,40 +79,6 @@ ibtoc() {
            < <( fd . "${path}" --type f --extension md --exclude SUMMARY.md --exclude README.md )
   else
     doctoc --github --maxlevel 3 "${path}"
-  fi
-}
-
-gtoc() {
-  top=$(git rev-parse --show-toplevel)
-  if [ 1 -eq $# ]; then
-    case $1 in
-      [mM] )
-        top="${top}/docs"
-        ;;
-    esac
-  fi
-  xargs doctoc --github \
-               --notitle \
-               --maxlevel 3 >/dev/null \
-         < <( fd . "${top}" --type f --extension md --exclude SUMMARY.md --exclude README.md )
-}
-
-# how may days == ddiff YYYY-MM-DD now
-hmdays() {
-  usage="""SYNOPSIS
-  \n\t\$ hmdays YYYY-MM-DD
-  \nEXAMPLE
-  \n\t\$ hmdays 1987-03-08
-  """
-
-  if [ 1 -ne $# ]; then
-    echo -e "${usage}"
-  else
-    if date +%s --date "$1" > /dev/null 2>&1; then
-      echo $((($(date +%s)-$(date +%s --date "$1"))/(3600*24))) days
-    else
-      echo -e "${usage}"
-    fi
   fi
 }
 
@@ -285,16 +227,26 @@ _fzf_comprun() {
 }
 
 function copy() {                          # smart copy
+  if uname -r | grep -q 'Microsoft'; then
+    COPY='/mnt/c/Windows/System32/clip.exe'
+  elif [[ 'Darwin' = "$(uname)" ]]; then
+    COPY='/usr/bin/pbcopy'
+  else
+    echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)"
+    exit 0
+  fi
+
   if [[ 0 -eq $# ]]; then
     # shellcheck disable=SC2046
-    /usr/bin/pbcopy < $(fzf --exit-0)
+    "${COPY}" < $(fzf --exit-0)
   else
-    /usr/bin/pbcopy < "$1"
+    "${COPY}" < "$1"
   fi
 }
 
 function cat() {                           # smart cat
-  local fdOpt="--type f --hidden --follow --exclude .git --exclude node_modules --exec-batch ls -t"
+  local fdOpt='--type f --hidden --follow --exclude .git --exclude node_modules'
+  if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
   if [[ 0 -eq $# ]]; then
     # shellcheck disable=SC2046
     bat --theme='gruvbox-dark' $(fd . ${fdOpt} | fzf --exit-0)
@@ -302,7 +254,8 @@ function cat() {                           # smart cat
     $(type -P cat) "${@:2}"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
     local target=$1;
-    fd . "${target}" ${fdOpt} | fzf --multi --bind="enter:become(bat --theme='gruvbox-dark' {+})" ;
+    fd . "${target}" ${fdOpt} |
+      fzf --multi --bind="enter:become(bat --theme='gruvbox-dark' {+})" ;
   else
     bat --theme='gruvbox-dark' "${@:1:$#-1}" "${@: -1}"
   fi
@@ -310,7 +263,8 @@ function cat() {                           # smart cat
 
 function vim() {                           # magic vim - fzf list in most recent modified order
   local target
-  local fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore --exec-batch ls -t"
+  local fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore"
+  if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
   if [[ 0 -eq $# ]]; then
     fd . ${fdOpt} | fzf --multi --bind="enter:become($(type -P vim) {+})"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
@@ -331,7 +285,8 @@ function v() {                             # v - open files in ~/.vim_mru_files
 }
 
 function fzfFromPath() {                         # return file name via fzf to particular folder
-  local fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore --exec-batch ls -t"
+  local fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore"
+  if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec-batch ls -t'; fi
   [[ '.' = "${1}" ]] && path="${1}" || path=". ${1}"
   fd ${path} ${fdOpt} | fzf +m --header "filter in ${1} :"
 }
