@@ -254,6 +254,9 @@ function cat() {                           # smart cat
 function vim() {                           # magic vim - fzf list in most recent modified order
   local target
   local fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore --exec-batch ls -t"
+  if uname -r | grep -q "Microsoft"; then
+    fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore"
+  fi
   if [[ 0 -eq $# ]]; then
     fd . ${fdOpt} | fzf --multi --bind="enter:become($(type -P vim) {+})"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
@@ -275,6 +278,9 @@ function v() {                             # v - open files in ~/.vim_mru_files
 
 function fzfFromPath() {                         # return file name via fzf to particular folder
   local fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore --exec-batch ls -t"
+  if uname -r | grep -q "Microsoft"; then
+    fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore"
+  fi
   [[ '.' = "${1}" ]] && path="${1}" || path=". ${1}"
   fd ${path} ${fdOpt} | fzf +m --header "filter in ${1} :"
 }
