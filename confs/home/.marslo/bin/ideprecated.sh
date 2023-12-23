@@ -44,6 +44,66 @@ function bd() {
   fi
 }
 
+function rcsync() {
+  SITE="Jira Confluence Jenkins Gitlab Artifactory Sonar Slave"
+  HNAME=$( hostname | tr '[:upper:]' '[:lower:]' )
+  for i in $SITE; do
+    CURNAME=$( echo "$i" | tr '[:upper:]' '[:lower:]' )
+    if [ "$HNAME" != "$CURNAME" ]; then
+      echo ------------------- "$i" ---------------------;
+      pushd "$PWD" || return
+      cd "/home/appadmin" || return
+      rsync \
+        -avzrlpgoD \
+        --exclude=Tools \
+        --exclude=.vim/view \
+        --exclude=.vim/vimsrc \
+        --exclude=.vim/cache \
+        --exclude=.vim/.netrwhist \
+        --exclude=.ssh/known_hosts \
+        -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' \
+        .marslo .vim .vimrc .inputrc .tmux.conf .pip appadmin@"$i":~/
+      popd || return
+    fi
+  done
+}
+
+gtoc() {
+  top=$(git rev-parse --show-toplevel)
+  if [ 1 -eq $# ]; then
+    case $1 in
+      [mM] )
+        top="${top}/docs"
+        ;;
+    esac
+  fi
+  xargs doctoc --github \
+               --notitle \
+               --maxlevel 3 >/dev/null \
+         < <( fd . "${top}" --type f --extension md --exclude SUMMARY.md --exclude README.md )
+}
+
+# how may days == ddiff YYYY-MM-DD now
+hmdays() {
+  usage="""
+    SYNOPSIS
+    \n\t\$ hmdays YYYY-MM-DD
+    \nEXAMPLE
+    \n\t\$ hmdays 1987-03-08
+  """
+
+  if [ 1 -ne $# ]; then
+    echo -e "${usage}"
+  else
+    if date +%s --date "$1" > /dev/null 2>&1; then
+      echo $((($(date +%s)-$(date +%s --date "$1"))/(3600*24))) days
+    else
+      echo -e "${usage}"
+    fi
+  fi
+}
+
+
 # For ssh agent
 # start the ssh-agent
 function start_agent {
