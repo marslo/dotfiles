@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2023-12-23 17:54:44
+#  LastChange : 2023-12-25 16:00:34
 # =============================================================================
 
 function take() { mkdir -p "$1" && cd "$1" || return; }
@@ -249,13 +249,13 @@ function cat() {                           # smart cat
   if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
   if [[ 0 -eq $# ]]; then
     # shellcheck disable=SC2046
-    bat --theme='gruvbox-dark' $(fd . ${fdOpt} | fzf --exit-0)
+    bat --theme='gruvbox-dark' $(fd . ${fdOpt} | fzf --multi --cycle --exit-0)
   elif [[ '-c' = "$1" ]]; then
     $(type -P cat) "${@:2}"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
     local target=$1;
     fd . "${target}" ${fdOpt} |
-      fzf --multi --bind="enter:become(bat --theme='gruvbox-dark' {+})" ;
+      fzf --multi --cycle --bind="enter:become(bat --theme='gruvbox-dark' {+})" ;
   else
     bat --theme='gruvbox-dark' "${@:1:$#-1}" "${@: -1}"
   fi
@@ -266,10 +266,10 @@ function vim() {                           # magic vim - fzf list in most recent
   local fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore"
   if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
   if [[ 0 -eq $# ]]; then
-    fd . ${fdOpt} | fzf --multi --bind="enter:become($(type -P vim) {+})"
+    fd . ${fdOpt} | fzf --multi --cycle --bind="enter:become($(type -P vim) {+})"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
     [[ '.' = "${1}" ]] && target="${1}" || target=". ${1}"
-    fd ${target} ${fdOpt} | fzf --multi --bind="enter:become($(type -P vim) {+})"
+    fd ${target} ${fdOpt} | fzf --multi --cycle --bind="enter:become($(type -P vim) {+})"
   else
     # shellcheck disable=SC2068
     $(type -P vim) -u $HOME/.vimrc $@
@@ -281,14 +281,15 @@ function v() {                             # v - open files in ~/.vim_mru_files
   files=$( grep --color=none -v '^#' ~/.vim_mru_files |
            while read -r line; do [ -f "${line/\~/$HOME}" ] && echo "$line"; done |
            fzf-tmux -d -m -q "$*" -1
-         ) && vim ${files//\~/$HOME}
+         ) &&
+  vim ${files//\~/$HOME}
 }
 
-function fzfFromPath() {                         # return file name via fzf to particular folder
+function fzfInPath() {                   # return file name via fzf in particular folder
   local fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore"
   if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec-batch ls -t'; fi
   [[ '.' = "${1}" ]] && path="${1}" || path=". ${1}"
-  fd ${path} ${fdOpt} | fzf +m --header "filter in ${1} :"
+  eval "fd ${path} ${fdOpt} | fzf --multi --cycle --header 'filter in ${1} :'"
 }
 
 function vimdiff() {                       # smart vimdiff
@@ -297,29 +298,32 @@ function vimdiff() {                       # smart vimdiff
   local option
 
   if [[ 0 -eq $# ]]; then
-    lFile=$(fzfFromPath '.')
+    lFile=$(fzfInPath '.')
     # shellcheck disable=SC2154
-    rFile=$(fzfFromPath "${iRCHOME}")
+    rFile=$(fzfInPath "${iRCHOME}")
   elif [[ 1 -eq $# ]]; then
-    lFile=$(fzfFromPath '.')
-    [[ -d "$1" ]] && rFile=$(fzfFromPath "$1") || rFile="$1"
+    lFile=$(fzfInPath '.')
+    [[ -d "$1" ]] && rFile=$(fzfInPath "$1") || rFile="$1"
   elif [[ 2 -eq $# ]]; then
-    [[ -d "$1" ]] && lFile=$(fzfFromPath "$1") || lFile="$1"
-    [[ -d "$2" ]] && rFile=$(fzfFromPath "$2") || rFile="$2"
+    [[ -d "$1" ]] && lFile=$(fzfInPath "$1") || lFile="$1"
+    [[ -d "$2" ]] && rFile=$(fzfInPath "$2") || rFile="$2"
   else
     option="${*: 1:$#-2}"
-    [[ -d "${*: -2:1}" ]] && lFile=$(fzfFromPath "${*: -2:1}") || lFile="${*: -2:1}"
-    [[ -d "${*: -1}"   ]] && rFile=$(fzfFromPath "${*: -1}")   || rFile="${*: -1}"
+    [[ -d "${*: -2:1}" ]] && lFile=$(fzfInPath "${*: -2:1}") || lFile="${*: -2:1}"
+    [[ -d "${*: -1}"   ]] && rFile=$(fzfInPath "${*: -1}")   || rFile="${*: -1}"
   fi
 
   [[ -f "${lFile}" ]] && [[ -f "${rFile}" ]] && $(type -P vim) -d ${option} "${lFile}" "${rFile}"
 }
 
 function vd() {                            # vd - open vimdiff loaded files from ~/.vim_mru_files
+  [[ 1 -eq $# ]] && [[ '-q' = "$1" ]] && opt='--bind start:select+down+select' || opt=''
+  # shellcheck disable=SC2046
   files=$( grep --color=none -v '^#' ~/.vim_mru_files |
            xargs -d'\n' -I_ bash -c "sed 's:\~:$HOME:' <<< _" |
-           fzf --multi --sync
-         ) && vimdiff ${files}
+           fzf --multi --sync --cycle --reverse ${opt}
+         ) &&
+  vimdiff $(xargs <<< "${files}")
 }
 
 function cdp() {                           # cdp - [c][d] to selected [p]arent directory
@@ -396,6 +400,7 @@ function eclr() {                          # [e]nvironment variable [c][l]ea[r]
                   fzf -1 --exit-0 \
                          --no-sort \
                          --multi \
+                         --cycle \
                          --prompt 'env> ' \
                          --header 'TAB/SHIFT-TAB to select multiple items, CTRL-D to deselect-all'
           )
