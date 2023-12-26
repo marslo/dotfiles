@@ -5,6 +5,7 @@
 .gitbook/
 .lsp/
 
+## **/.marslo/.completion/*
 **/devops/archive
 **/.marslo/utils
 **/.marslo/pkg
@@ -12,7 +13,7 @@
 **/.marslo/bin/bash-completion
 **/.marslo/bin/screenfetch-dev
 **/.marslo/bin/*completion*
-**/.marslo/.completion
+**/.marslo/.completion/archive
 **/.marslo/others
 **/.ssh/known_hosts*
 
