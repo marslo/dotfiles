@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2023-12-25 16:00:34
+#  LastChange : 2023-12-25 19:33:39
 # =============================================================================
 
 function take() { mkdir -p "$1" && cd "$1" || return; }
@@ -226,6 +226,12 @@ _fzf_comprun() {
   esac
 }
 
+# smart copy - using `fzf` to list files and copy the selected file
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @description :
+#   - if `copy` without paramter, then list file via `fzf` and copy via `pbcopy` or `clip.exe`
+#   - otherwise copy the content of parameter `$1` via `pbcopy` or `clip.exe`
 function copy() {                          # smart copy
   if uname -r | grep -q 'Microsoft'; then
     COPY='/mnt/c/Windows/System32/clip.exe'
@@ -238,12 +244,20 @@ function copy() {                          # smart copy
 
   if [[ 0 -eq $# ]]; then
     # shellcheck disable=SC2046
-    "${COPY}" < $(fzf --exit-0)
+    "${COPY}" < $(fzf --cycle --exit-0)
   else
     "${COPY}" < "$1"
   fi
 }
 
+# smart cat - using bat by default for cat content, respect bat options
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @description :
+#   - if `bat` without  paramter, then search file via `fzf` and shows via `bat`
+#   - if `bat` with 1   paramter, and `$1` is directory, then search file via `fzf` from `$1` and shows via `bat`
+#   - if `bat` with 1st paramter is `-c`, then call default `cat` with rest of paramters
+#   - otherwise respect `bat` options, and shows via `bat`
 function cat() {                           # smart cat
   local fdOpt='--type f --hidden --follow --exclude .git --exclude node_modules'
   if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
@@ -261,21 +275,45 @@ function cat() {                           # smart cat
   fi
 }
 
+# magic vim - fzf list in recent modified order
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @description :
+#   - if `vim` commands without paramters, then call fzf and using vim to open selected file
+#   - if `vim` commands with    paramters
+#       - if single paramters and parameters is directlry, then call fzf in target directory and using vim to open selected file
+#       - otherwise call regular vim to open file(s)
+#   - respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vim`
 function vim() {                           # magic vim - fzf list in most recent modified order
+  local option
   local target
   local fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore"
   if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
-  if [[ 0 -eq $# ]]; then
-    fd . ${fdOpt} | fzf --multi --cycle --bind="enter:become($(type -P vim) {+})"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --help ) option+="$1 "   ; shift   ;;
+          -* ) option+="$1 $2 "; shift 2 ;;
+           * ) break                     ;;
+    esac
+  done
+  option+="--multi --cycle"
+
+  if [[ ! "${option}" =~ '--help' ]] && [[ 0 -eq $# ]]; then
+    fd . ${fdOpt} | fzf ${option//--help\ /} --bind="enter:become($(type -P vim) {+})"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
     [[ '.' = "${1}" ]] && target="${1}" || target=". ${1}"
-    fd ${target} ${fdOpt} | fzf --multi --cycle --bind="enter:become($(type -P vim) {+})"
+    fd ${target} ${fdOpt} | fzf ${option//--help\ /} --bind="enter:become($(type -P vim) {+})"
   else
     # shellcheck disable=SC2068
-    $(type -P vim) -u $HOME/.vimrc $@
+    $(type -P vim) -u $HOME/.vimrc ${option//--multi\ --cycle/} $@
   fi
 }
 
+# v - open files in ~/.vim_mru_files       # https://github.com/junegunn/fzf/wiki/Examples#v
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @description : list 10 most recently used files via fzf, and open by regular vim
 function v() {                             # v - open files in ~/.vim_mru_files
   local files
   files=$( grep --color=none -v '^#' ~/.vim_mru_files |
@@ -292,6 +330,15 @@ function fzfInPath() {                   # return file name via fzf in particula
   eval "fd ${path} ${fdOpt} | fzf --multi --cycle --header 'filter in ${1} :'"
 }
 
+# magic vimdiff - using fzf list in recent modified order
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @description :
+#   - if any of paramters is directory, then get file path via fzf in target path first
+#   - if `vimdiff` commands without parameter , then compare files in `.` and `~/.marslo`
+#   - if `vimdiff` commands with 1  parameter , then compare files in current path and `$1`
+#   - if `vimdiff` commands with 2  parameters, then compare files in `$1` and `$2`
+#   - otherwise ( if more than 2 paramters )  , then compare files in `${*: -2:1}` and `${*: -1}` with paramters of `${*: 1:$#-2}`
 function vimdiff() {                       # smart vimdiff
   local lFile
   local rFile
@@ -316,6 +363,12 @@ function vimdiff() {                       # smart vimdiff
   [[ -f "${lFile}" ]] && [[ -f "${rFile}" ]] && $(type -P vim) -d ${option} "${lFile}" "${rFile}"
 }
 
+# vd - open vimdiff loaded files from ~/.vim_mru_files
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @description : list 10 most recently used files via fzf, and open by vimdiff
+#   - if `vd` commands without parameter, list 10 most recently used files via fzf, and open selected files by vimdiff
+#   - if `vd` commands with `-a` ( [q]uiet ) parameter, list 10 most recently used files via fzf and automatic select top 2, and open selected files by vimdiff
 function vd() {                            # vd - open vimdiff loaded files from ~/.vim_mru_files
   [[ 1 -eq $# ]] && [[ '-q' = "$1" ]] && opt='--bind start:select+down+select' || opt=''
   # shellcheck disable=SC2046
@@ -347,7 +400,7 @@ function cdf() {                           # [c][d] into the directory of the se
   local file
   local dir
   # shellcheck disable=SC2164
-  file=$(fzf +m -q "$1") && dir=$(dirname "${file}") && cd "${dir}"
+  file=$(fzf --multi --query "$1") && dir=$(dirname "${file}") && cd "${dir}"
 }
 
 function fif() {                           # [f]ind-[i]n-[f]ile
@@ -381,6 +434,11 @@ function killps() {                        # [kill] [p]roces[s]
   xargs kill -9
 }
 
+# kns - kubectl set default namesapce
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @description : using `fzf` to list all available namespaces and use the selected namespace as default
+# [k]ubectl [n]ame[s]pace
 function kns() {                           # [k]ubectl [n]ame[s]pace
   echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania' |
         fmt -1 |
@@ -391,6 +449,10 @@ function kns() {                           # [k]ubectl [n]ame[s]pace
                          "
 }
 
+# eclr - environment variable clear, support multiple select
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @description : list all environment varialbe via `fzf`, and unset for selected items
 function eclr() {                          # [e]nvironment variable [c][l]ea[r]
   while read -r _env; do
     echo -e "$(c Ys)>> unset ${_env}$(c)\n$(c Wdi).. $(eval echo \$${_env})$(c)"

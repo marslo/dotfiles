@@ -85,6 +85,7 @@ command -v pip     >/dev/null                                  && eval "$(pip co
 test -f "${FZF_HOME}/shell/key-bindings.bash"                  && source "${FZF_HOME}/shell/key-bindings.bash"
 type -t _fd >/dev/null 2>&1                                    && complete -F _fd -o nosort -o bashdefault -o default ff    # fd --gen-completions
 type -t _fd >/dev/null 2>&1                                    && complete -F _fd -o nosort -o bashdefault -o default ffs   # fd --gen-completions
+type -t _fzf_opts_completion >/dev/null 2>&1                   && complete -F _fzf_opts_completion -o bashdefault -o default vim
 
 # /--------------------------------------------------------------
 #                   __ _
