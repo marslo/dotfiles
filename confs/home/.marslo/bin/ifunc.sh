@@ -512,9 +512,10 @@ function penv() {                          # [p]rint [e]nvironment variable
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
 # @description :
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default imgview`
+#   - disable `gif` due to imgcat performance issue
 # shellcheck disable=SC2215
 function imgview() {                       # view image via [imgcat](https://github.com/eddieantonio/imgcat)
-  fd --unrestricted --type f --exclude .git --exclude node_modules '^*\.(png|gif|jpg)$' |
+  fd --unrestricted --type f --exclude .git --exclude node_modules '^*\.(png|jpeg|jpg|xpm|bmp)$' |
   fzf "$@" --height 100% \
            --preview "imgcat -W \$FZF_PREVIEW_COLUMNS -H \$FZF_PREVIEW_LINES {}" \
            --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
