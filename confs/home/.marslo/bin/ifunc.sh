@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2023-12-27 00:49:46
+#  LastChange : 2023-12-27 05:55:08
 # =============================================================================
 
 function take() { mkdir -p "$1" && cd "$1" || return; }
@@ -333,7 +333,7 @@ function fzfInPath() {                   # return file name via fzf in particula
 #   - if `vimdiff` commands without parameter , then compare files in `.` and `~/.marslo`
 #   - if `vimdiff` commands with 1  parameter , then compare files in current path and `$1`
 #   - if `vimdiff` commands with 2  parameters, then compare files in `$1` and `$2`
-#   - otherwise ( if more than 2 paramters )  , then compare files in `${*: -2:1}` and `${*: -1}` with paramters of `${*: 1:$#-2}`
+#   - otherwise ( if more than 2 parameters )  , then compare files in `${*: -2:1}` and `${*: -1}` with paramters of `${*: 1:$#-2}`
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vimdiff`
 function vimdiff() {                       # smart vimdiff
   local lFile
@@ -505,6 +505,23 @@ function penv() {                          # [p]rint [e]nvironment variable
                 --header 'TAB/SHIFT-TAB to select multiple items, CTRL-D to deselect-all, CTRL-S to select-all'
           )
   [[ "${option}" == *-c\ * ]] && [[ -n "${COPY}" ]] && "${COPY}" < <( printf '%s\n' "${array[@]}" | head -c-1 )
+}
+
+# imgview - fzf list and preview images
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @description :
+#   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default imgview`
+# shellcheck disable=SC2215
+function imgview() {                       # view image via [imgcat](https://github.com/eddieantonio/imgcat)
+  fd --unrestricted --type f --exclude .git --exclude node_modules '^*\.(png|gif|jpg)$' |
+  fzf "$@" --height 100% \
+           --preview "imgcat -W \$FZF_PREVIEW_COLUMNS -H \$FZF_PREVIEW_LINES {}" \
+           --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
+           --header 'Press CTRL-Y to copy name into clipboard' \
+           --preview-window 'down:80%:nowrap' \
+           --exit-0 \
+  >/dev/null || true
 }
 
 # /**************************************************************
