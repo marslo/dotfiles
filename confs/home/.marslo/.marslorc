@@ -83,10 +83,8 @@ command -v pip     >/dev/null                                  && eval "$(pip co
 # command -v rbenv >/dev/null                                  && eval "$(rbenv init -)"
 [[ $- == *i* ]] && test -f "${FZF_HOME}/shell/completion.bash" && source "${FZF_HOME}/shell/completion.bash" 2> /dev/null
 test -f "${FZF_HOME}/shell/key-bindings.bash"                  && source "${FZF_HOME}/shell/key-bindings.bash"
-type -t _fd >/dev/null 2>&1                                    && complete -F _fd -o nosort -o bashdefault -o default ff    # fd --gen-completions
-type -t _fd >/dev/null 2>&1                                    && complete -F _fd -o nosort -o bashdefault -o default ffs   # fd --gen-completions
-type -t _fzf_opts_completion >/dev/null 2>&1                   && complete -F _fzf_opts_completion -o bashdefault -o default vim
-type -t _fzf_opts_completion >/dev/null 2>&1                   && complete -F _fzf_opts_completion -o bashdefault -o default penv
+type -t _fd >/dev/null 2>&1                                    && complete -F _fd -o nosort -o bashdefault -o default ff ffs
+type -t _fzf_opts_completion >/dev/null 2>&1                   && complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv
 
 # /--------------------------------------------------------------
 #                   __ _

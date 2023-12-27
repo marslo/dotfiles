@@ -322,7 +322,7 @@ function fzfInPath() {                   # return file name via fzf in particula
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec-batch ls -t'; fi
   [[ '.' = "${1}" ]] && path="${1}" || path=". ${1}"
-  eval "fd ${path} ${fdOpt} | fzf --multi --cycle --header 'filter in ${1} :'"
+  eval "fd ${path} ${fdOpt} | fzf --multi --cycle ${*:2} --header 'filter in ${1} :'"
 }
 
 # magic vimdiff - using fzf list in recent modified order
@@ -334,28 +334,38 @@ function fzfInPath() {                   # return file name via fzf in particula
 #   - if `vimdiff` commands with 1  parameter , then compare files in current path and `$1`
 #   - if `vimdiff` commands with 2  parameters, then compare files in `$1` and `$2`
 #   - otherwise ( if more than 2 paramters )  , then compare files in `${*: -2:1}` and `${*: -1}` with paramters of `${*: 1:$#-2}`
+#   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vimdiff`
 function vimdiff() {                       # smart vimdiff
   local lFile
   local rFile
   local option
+  local var
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --help ) option+="$1 "   ; shift   ;;
+          -* ) option+="$1 $2 "; shift 2 ;;
+           * ) break                     ;;
+    esac
+  done
 
   if [[ 0 -eq $# ]]; then
-    lFile=$(fzfInPath '.')
+    lFile=$(fzfInPath '.' "${option}")
     # shellcheck disable=SC2154
-    rFile=$(fzfInPath "${iRCHOME}")
+    rFile=$(fzfInPath "${iRCHOME}" "${option}")
   elif [[ 1 -eq $# ]]; then
-    lFile=$(fzfInPath '.')
-    [[ -d "$1" ]] && rFile=$(fzfInPath "$1") || rFile="$1"
+    lFile=$(fzfInPath '.' "${option}")
+    [[ -d "$1" ]] && rFile=$(fzfInPath "$1" "${option}") || rFile="$1"
   elif [[ 2 -eq $# ]]; then
-    [[ -d "$1" ]] && lFile=$(fzfInPath "$1") || lFile="$1"
-    [[ -d "$2" ]] && rFile=$(fzfInPath "$2") || rFile="$2"
+    [[ -d "$1" ]] && lFile=$(fzfInPath "$1" "${option}") || lFile="$1"
+    [[ -d "$2" ]] && rFile=$(fzfInPath "$2" "${option}") || rFile="$2"
   else
-    option="${*: 1:$#-2}"
+    var="${*: 1:$#-2}"
     [[ -d "${*: -2:1}" ]] && lFile=$(fzfInPath "${*: -2:1}") || lFile="${*: -2:1}"
     [[ -d "${*: -1}"   ]] && rFile=$(fzfInPath "${*: -1}")   || rFile="${*: -1}"
   fi
 
-  [[ -f "${lFile}" ]] && [[ -f "${rFile}" ]] && $(type -P vim) -d ${option} "${lFile}" "${rFile}"
+  [[ -f "${lFile}" ]] && [[ -f "${rFile}" ]] && $(type -P vim) -d ${var} "${lFile}" "${rFile}"
 }
 
 # vd - open vimdiff loaded files from ~/.vim_mru_files
@@ -488,13 +498,13 @@ function penv() {                          # [p]rint [e]nvironment variable
   while read -r _env; do
     echo -e "$(c Ys)>> ${_env}$(c)\n$(c Wi).. $(eval echo \$${_env})$(c)"
     array+=( "${_env}=$(eval echo \$${_env})" )
-    [[ "${option}" == *-c\ * ]] && [[ -n "${COPY}" ]] && "${COPY}" < <( printf '%s\n' "${array[@]}" | head -c-1 )
   done < <( env |
             sed -r 's/^([a-zA-Z0-9_-]+)=.*$/\1/' |
             fzf ${option//-c\ /} \
                 --prompt 'env> ' \
                 --header 'TAB/SHIFT-TAB to select multiple items, CTRL-D to deselect-all, CTRL-S to select-all'
           )
+  [[ "${option}" == *-c\ * ]] && [[ -n "${COPY}" ]] && "${COPY}" < <( printf '%s\n' "${array[@]}" | head -c-1 )
 }
 
 # /**************************************************************
