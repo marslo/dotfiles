@@ -322,7 +322,7 @@ function fzfInPath() {                   # return file name via fzf in particula
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec-batch ls -t'; fi
   [[ '.' = "${1}" ]] && path="${1}" || path=". ${1}"
-  eval "fd ${path} ${fdOpt} | fzf --multi --cycle ${*:2} --header 'filter in ${1} :'"
+  eval "fd ${path} ${fdOpt} | fzf --cycle --multi ${*:2} --header 'filter in ${1} :'"
 }
 
 # magic vimdiff - using fzf list in recent modified order
@@ -379,7 +379,7 @@ function vd() {                            # vd - open vimdiff loaded files from
   # shellcheck disable=SC2046
   files=$( grep --color=none -v '^#' ~/.vim_mru_files |
            xargs -d'\n' -I_ bash -c "sed 's:\~:$HOME:' <<< _" |
-           fzf --multi --sync --cycle --reverse ${opt}
+           fzf --multi 3 --sync --cycle --reverse ${opt}
          ) &&
   vimdiff $(xargs <<< "${files}")
 }
