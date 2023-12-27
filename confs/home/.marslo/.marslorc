@@ -86,6 +86,7 @@ test -f "${FZF_HOME}/shell/key-bindings.bash"                  && source "${FZF_
 type -t _fd >/dev/null 2>&1                                    && complete -F _fd -o nosort -o bashdefault -o default ff    # fd --gen-completions
 type -t _fd >/dev/null 2>&1                                    && complete -F _fd -o nosort -o bashdefault -o default ffs   # fd --gen-completions
 type -t _fzf_opts_completion >/dev/null 2>&1                   && complete -F _fzf_opts_completion -o bashdefault -o default vim
+type -t _fzf_opts_completion >/dev/null 2>&1                   && complete -F _fzf_opts_completion -o bashdefault -o default penv
 
 # /--------------------------------------------------------------
 #                   __ _
@@ -149,6 +150,14 @@ elif test -f '/bin/grep'; then
   GREP='/bin/grep'
 else
   GREP="$(type -P grep)"
+fi
+
+if uname -r | grep -q 'Microsoft'; then
+  COPY='/mnt/c/Windows/System32/clip.exe'
+elif [[ 'Darwin' = "$(uname)" ]]; then
+  COPY='/usr/bin/pbcopy'
+else
+  COPY=''
 fi
 
 # for public server (use common account)
