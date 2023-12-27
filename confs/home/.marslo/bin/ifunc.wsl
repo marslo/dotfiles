@@ -5,6 +5,7 @@
 #      Author : marslo.jiao@gmail.com
 #     Created : 2023-10-08 06:57:15
 #  LastChange : 2023-12-25 19:33:39
+#  LastChange : 2023-12-27 00:49:46
 # =============================================================================
 
 function take() { mkdir -p "$1" && cd "$1" || return; }
@@ -211,21 +212,16 @@ _fzf_comprun() {
 # @author      : marslo
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
 # @description :
-#   - if `copy` without paramter, then list file via `fzf` and copy via `pbcopy` or `clip.exe`
+#   - if `copy` without parameter, then list file via `fzf` and copy the content
+#     - "${COPY}"
+#       - `pbcopy` in osx
+#       - `/mnt/c/Windows/System32/clip.exe` in wsl
 #   - otherwise copy the content of parameter `$1` via `pbcopy` or `clip.exe`
+# shellcheck disable=SC2317
 function copy() {                          # smart copy
-  if uname -r | grep -q 'Microsoft'; then
-    COPY='/mnt/c/Windows/System32/clip.exe'
-  elif [[ 'Darwin' = "$(uname)" ]]; then
-    COPY='/usr/bin/pbcopy'
-  else
-    echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)"
-    exit 0
-  fi
-
+  [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)"; exit 0
   if [[ 0 -eq $# ]]; then
-    # shellcheck disable=SC2046
-    "${COPY}" < $(fzf --cycle --exit-0)
+    "${COPY}" < <(fzf --cycle --exit-0)
   else
     "${COPY}" < "$1"
   fi
@@ -264,11 +260,11 @@ function cat() {                           # smart cat
 #   - if `vim` commands with    paramters
 #       - if single paramters and parameters is directlry, then call fzf in target directory and using vim to open selected file
 #       - otherwise call regular vim to open file(s)
-#   - respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vim`
+#   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vim`
 function vim() {                           # magic vim - fzf list in most recent modified order
   local option
   local target
-  local fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore"
+  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
 
   while [[ $# -gt 0 ]]; do
@@ -305,7 +301,7 @@ function v() {                             # v - open files in ~/.vim_mru_files
 }
 
 function fzfInPath() {                   # return file name via fzf in particular folder
-  local fdOpt="--type f --hidden --follow --ignore-file $HOME/.fdignore"
+  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec-batch ls -t'; fi
   [[ '.' = "${1}" ]] && path="${1}" || path=". ${1}"
   eval "fd ${path} ${fdOpt} | fzf --multi --cycle --header 'filter in ${1} :'"
@@ -433,7 +429,7 @@ function kns() {                           # [k]ubectl [n]ame[s]pace
 # eclr - environment variable clear, support multiple select
 # @author      : marslo
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
-# @description : list all environment varialbe via `fzf`, and unset for selected items
+# @description : list all environment variable via `fzf`, and unset for selected items
 function eclr() {                          # [e]nvironment variable [c][l]ea[r]
   while read -r _env; do
     echo -e "$(c Ys)>> unset ${_env}$(c)\n$(c Wdi).. $(eval echo \$${_env})$(c)"
@@ -445,9 +441,42 @@ function eclr() {                          # [e]nvironment variable [c][l]ea[r]
                          --multi \
                          --cycle \
                          --prompt 'env> ' \
-                         --header 'TAB/SHIFT-TAB to select multiple items, CTRL-D to deselect-all'
+                         --header 'TAB/SHIFT-TAB to select multiple items, CTRL-D to deselect-all, CTRL-S to select-all'
           )
   # echo -e "\n$(c Wdi)[TIP]>> to list all env via $(c)$(c Wdiu)\$ env | sed -rn 's/^([a-zA-Z0-9]+)=.*$/\1/p'$(c)"
+}
+
+# penv - print environment variable, support multiple select
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @description : list all environment variable via `fzf`, and print values for selected items
+#   - to copy via `-c`
+#     - "${COPY}"
+#       - `pbcopy` in osx
+#       - `/mnt/c/Windows/System32/clip.exe` in wsl
+#   - to respect fzf options via `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default penv`
+function penv() {                          # [p]rint [e]nvironment variable
+  local option
+  local -a array
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -c ) option+="$1 "   ; shift   ;;
+      -* ) option+="$1 $2 "; shift 2 ;;
+       * ) break                     ;;
+    esac
+  done
+
+  option+='-1 --exit-0 --sort --multi --cycle'
+  while read -r _env; do
+    echo -e "$(c Ys)>> ${_env}$(c)\n$(c Wi).. $(eval echo \$${_env})$(c)"
+    array+=( "${_env}=$(eval echo \$${_env})" )
+    [[ "${option}" == *-c\ * ]] && [[ -n "${COPY}" ]] && "${COPY}" < <( printf '%s\n' "${array[@]}" | head -c-1 )
+  done < <( env |
+            sed -r 's/^([a-zA-Z0-9_-]+)=.*$/\1/' |
+            fzf ${option//-c\ /} \
+                --prompt 'env> ' \
+                --header 'TAB/SHIFT-TAB to select multiple items, CTRL-D to deselect-all, CTRL-S to select-all'
+          )
 }
 
 # /**************************************************************
