@@ -16,5 +16,9 @@
 **/.marslo/.completion/archive
 **/.marslo/others
 **/.ssh/known_hosts*
+**/.marslo/.password-store
 
 *.png
+*.gif
+*.jpeg
+*.jpg
