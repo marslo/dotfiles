@@ -10,10 +10,26 @@
 # get computer  version
 function getcv() { sudo dmidecode | ${GREP} -i prod; }
 function envUpdate() { for i in $(seq 1 9); do ssh slave0"${i}" "cd ~/env; git clean -dfx; git reset --hard; git pull --all"; done; }
+function cdls() { cd "$1" && ls; }
+function cdla() { cd "$1" && la; }
+function chmv() { sudo mv "$1" "$2"; sudo chown -R "$(whoami)":"$(whoami)" "$2"; }
+function chcp() { sudo cp -r "$1" "$2"; sudo chown -R "$(whoami)":"$(whoami)" "$2"; }
+function cha() { sudo chown -R "$(whoami)":"$(whoami)" "$1"; }
 function dir755() { find . -type d -perm 0777 \( -not -path "*.git" -a -not -path "*.git/*" \) -exec sudo chmod 755 {} \; -print ; }
 function file644() { find . -type f -perm 0777 \( -not -path "*.git" -a -not -path "*.git/*" \) -exec sudo chmod 644 {} \; -print; }
 function cleanview() { rm -rf ~/.vim/view/*; }
 function zh() { zipinfo "$1" | head; }
+
+function dir() {
+  [[ 0 -eq $# ]] && _p='.' || _p="$*"
+  find . -iname "${_p}" -print0 | xargs -r0 ${LS} -altr | awk '{print; total += $5}; END {print "total size: ", total}';
+}
+
+function dir-h() {
+  [[ 0 -eq $# ]] && _p='.' || _p="$*"
+  find . -iname "${_p}" -exec ${LS} -lthrNF --color=always {} \;
+  find . -iname "${_p}" -print0 | xargs -r0 du -csh| tail -n 1
+}
 
 function bd() {
   USER='svc_appbld'

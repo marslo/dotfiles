@@ -8,11 +8,6 @@
 # =============================================================================
 
 function take() { mkdir -p "$1" && cd "$1" || return; }
-function cdls() { cd "$1" && ls; }
-function cdla() { cd "$1" && la; }
-function chmv() { sudo mv "$1" "$2"; sudo chown -R "$(whoami)":"$(whoami)" "$2"; }
-function chcp() { sudo cp -r "$1" "$2"; sudo chown -R "$(whoami)":"$(whoami)" "$2"; }
-function cha() { sudo chown -R "$(whoami)":"$(whoami)" "$1"; }
 function getperm() { find "$1" -printf '%m\t%u\t%g\t%p\n'; }
 function rdiff() { rsync -rv --size-only --dry-run "$1" "$2"; }
 function rget() { route -nv get "$@"; }
@@ -53,17 +48,6 @@ function mdiff() {
   diff -y --suppress-common-lines "$1" "$2"
 }
 
-function dir() {
-  [[ 0 -eq $# ]] && _p='.' || _p="$*"
-  find . -iname "${_p}" -print0 | xargs -r0 ${LS} -altr | awk '{print; total += $5}; END {print "total size: ", total}';
-}
-
-function dir-h() {
-  [[ 0 -eq $# ]] && _p='.' || _p="$*"
-  find . -iname "${_p}" -exec ${LS} -lthrNF --color=always {} \;
-  find . -iname "${_p}" -print0 | xargs -r0 du -csh| tail -n 1
-}
-
 ibtoc() {
   path=${*:-}
   if [ 0 -eq $# ]; then
@@ -93,8 +77,10 @@ ibtoc() {
 # **************************************************************/
 
 function 256colors() {
+  local bar='█'                                          # ctrl+v -> u2588 ( full block )
+  if ! uname -r | grep -q "Microsoft"; then bar='▌'; fi  # ctrl+v -> u258c ( left half block )
   for i in {0..255}; do
-    echo -e "\e[38;05;${i}m█${i}";       # ctrl+v -> u258c ( left half block ); u2588 ( full block )
+    echo -e "\e[38;05;${i}m${bar}${i}";
   done | column -c 180 -s ' ';
   echo -e "\e[m"
 }
@@ -208,7 +194,6 @@ function _showcolor_bg() {
 # | |  / /| |
 # |_| /___|_|
 #
-# brew install fzf
 # **************************************************************/
 
 ## preview contents via `$ cd **<tab>`: https://pragmaticpineapple.com/four-useful-fzf-tricks-for-your-terminal/
@@ -525,9 +510,10 @@ function imgview() {                       # view image via [imgcat](https://git
 # @source      : https://github.com/junegunn/fzf/wiki/examples#fzf-man-pages-widget-for-zsh
 # @description :
 #   - CTRL-N/CTRL-P or SHIFT-↑/↓ for view preview content
-#   - ENTER/Q for toggle maximize/normal preview window
-#   - CTRL+O  for toggle tldr in preview window
-#   - CTRL+I  for toggle man in preview window
+#   - ENTER/Q to toggle maximize/normal preview window
+#   - CTRL+O  to toggle tldr in preview window
+#   - CTRL+I  to toggle man in preview window
+#   - CTRL+/  to toggle preview window hidden/show
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default fman`
 # shellcheck disable=SC2046
 function fman() {
@@ -561,6 +547,7 @@ function fman() {
       --bind "ctrl-o:+change-preview(tldr --color {1})+change-prompt(ﳁ tldr > )" \
       --bind "ctrl-i:+change-preview(${batman})+change-prompt(ᓆ  man > )" \
       --bind "enter:execute(${batman})+change-preview(${batman})+change-prompt(ᓆ > )" \
+      --bind='ctrl-/:toggle-preview' \
       --header 'CTRL-N/P or SHIFT-↑/↓ to view preview contents; ENTER/Q to maximize/normal preview window' \
       --exit-0
 }
