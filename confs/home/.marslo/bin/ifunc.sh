@@ -17,13 +17,9 @@ function getperm() { find "$1" -printf '%m\t%u\t%g\t%p\n'; }
 function rdiff() { rsync -rv --size-only --dry-run "$1" "$2"; }
 function rget() { route -nv get "$@"; }
 function forget() { history -d $(( $(history | tail -n 1 | ${GREP} -oP '^ \d+') - 1 )); }
-function dir755() { find . -type d -perm 0777 \( -not -path "*.git" -a -not -path "*.git/*" \) -exec sudo chmod 755 {} \; -print ; }
-function file644() { find . -type f -perm 0777 \( -not -path "*.git" -a -not -path "*.git/*" \) -exec sudo chmod 644 {} \; -print; }
 function convert2av() { ffmpeg -i "$1" -i "$2" -c copy -map 0:0 -map 1:0 -shortest -strict -2 "$3"; }
-function zh() { zipinfo "$1" | head; }
-function cleanview() { rm -rf ~/.vim/view/*; }
 # https://unix.stackexchange.com/a/269085/29178
-function color() { for c; do printf '\e[48;5;%dm%03d ' "$c" "$c"; done; printf '\e[0m \n'; }
+function color() { for c; do printf '\e[48;5;%dm %03d ' "$c" "$c"; done; printf '\e[0m \n'; }
 
 # /**************************************************************
 #        _   _ _ _ _

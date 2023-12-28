@@ -10,13 +10,17 @@
 # get computer  version
 function getcv() { sudo dmidecode | ${GREP} -i prod; }
 function envUpdate() { for i in $(seq 1 9); do ssh slave0"${i}" "cd ~/env; git clean -dfx; git reset --hard; git pull --all"; done; }
+function dir755() { find . -type d -perm 0777 \( -not -path "*.git" -a -not -path "*.git/*" \) -exec sudo chmod 755 {} \; -print ; }
+function file644() { find . -type f -perm 0777 \( -not -path "*.git" -a -not -path "*.git/*" \) -exec sudo chmod 644 {} \; -print; }
+function cleanview() { rm -rf ~/.vim/view/*; }
+function zh() { zipinfo "$1" | head; }
 
 function bd() {
   USER='svc_appbld'
   DOMAIN='engba'
   TYPE='appbuilder'
 
-  # shellcheck disable=SC2048
+  # shellcheck disable=SC2048,SC2086
   args=$(getopt rcd $*)
   if test $? != 0
   then
@@ -26,7 +30,7 @@ function bd() {
     -d: dev builder (appreldev)
     '
   else
-    set -- $args
+    set -- "${args}"
 
     for opt; do
       case ${opt} in
@@ -40,7 +44,10 @@ function bd() {
     HOST=${VAR:0:2}
     VM=${VAR:2}
 
-    /usr/bin/ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /home/marslo/.marslo/Marslo/Tools/Softwares/sshkey/Marslo\@Appliance ${USER}@${TYPE}${HOST}-vm${VM}.${DOMAIN}.veritas.com
+    /usr/bin/ssh -o StrictHostKeyChecking=no \
+                 -o UserKnownHostsFile=/dev/null \
+                 -i /home/marslo/.marslo/Marslo/Tools/Softwares/sshkey/Marslo\@Appliance  \
+                 "${USER}@${TYPE}${HOST}-vm${VM}.${DOMAIN}".veritas.com
   fi
 }
 
