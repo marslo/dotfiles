@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2046
+
+# fman - fzf list and preview for manpage:
+# @source      : https://github.com/junegunn/fzf/wiki/examples#fzf-man-pages-widget-for-zsh
+# @description :
+#   - CTRL-N/CTRL-P or SHIFT-↑/↓ for view preview content
+#   - ENTER/Q for toggle maximize/normal preview window
+#   - CTRL+O  for toggle tldr in preview window
+#   - CTRL+I  for toggle man in preview window
+#   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default fman`
+
+declare option
+batman="man {1} | col -bx | bat --language=man --plain --color always --theme='gruvbox-dark'"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+        -* ) option+="$1 $2 "; shift 2 ;;
+         * ) break                     ;;
+  esac
+done
+
+man -k . |
+sort -u |
+sed -r 's/(\(.+\))//g' |
+grep -v -E '::' |
+awk -v cyan=$(tput setaf 6) -v blue=$(tput setaf 4) -v res=$(tput sgr0) -v bld=$(tput bold) '{ $1=cyan bld $1; $2=res blue $2;} 1' |
+fzf "${option}" \
+    -d ' ' \
+    --nth 1 \
+    --height 100% \
+    --ansi \
+    --no-multi \
+    --tiebreak=begin \
+    --prompt='ᓆ > ' \
+    --color='prompt:#0099BD' \
+    --preview-window 'up,70%,wrap,rounded,<50(up,85%,border-bottom)' \
+    --preview "${batman}" \
+    --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
+    --bind "ctrl-o:+change-preview(tldr --color {1})+change-prompt(ﳁ tldr > )" \
+    --bind "ctrl-i:+change-preview(${batman})+change-prompt(ᓆ  man > )" \
+    --bind "enter:execute(${batman})+change-preview(${batman})+change-prompt(ᓆ > )" \
+    --header 'CTRL-N/P or SHIFT-↑/↓ to view preview contents; ENTER/Q to maximize/normal preview window' \
+    --exit-0
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

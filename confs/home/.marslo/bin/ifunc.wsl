@@ -4,7 +4,7 @@
 #    FileName : ifunc.wsl
 #      Author : marslo.jiao@gmail.com
 #     Created : 2023-10-08 06:57:15
-#  LastChange : 2023-12-27 05:55:08
+#  LastChange : 2023-12-27 16:46:54
 # =============================================================================
 
 function take() { mkdir -p "$1" && cd "$1" || return; }
@@ -428,7 +428,7 @@ function killps() {                        # [kill] [p]roces[s]
 function kns() {                           # [k]ubectl [n]ame[s]pace
   echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania' |
         fmt -1 |
-        fzf -1 -0 --no-sort +m --prompt='namespace> ' |
+        fzf -1 -0 --no-sort --no-multi --prompt='namespace> ' |
         xargs -i bash -c "echo -e \"\033[1;33m~~> {}\\033[0m\";
                           kubectl config set-context --current --namespace {};
                           kubecolor config get-contexts;
@@ -504,6 +504,50 @@ function imgview() {                       # view image via [imgcat](https://git
            --preview-window 'down:80%:nowrap' \
            --exit-0 \
   >/dev/null || true
+}
+
+# fman - fzf list and preview for manpage:
+# @source      : https://github.com/junegunn/fzf/wiki/examples#fzf-man-pages-widget-for-zsh
+# @description :
+#   - CTRL-N/CTRL-P or SHIFT-↑/↓ for view preview content
+#   - ENTER/Q for toggle maximize/normal preview window
+#   - CTRL+O  for toggle tldr in preview window
+#   - CTRL+I  for toggle man in preview window
+#   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default fman`
+# shellcheck disable=SC2046
+function fman() {
+  local option
+  local batman="man {1} | col -bx | bat --language=man --plain --color always --theme='gruvbox-dark'"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+          -* ) option+="$1 $2 "; shift 2 ;;
+           * ) break                     ;;
+    esac
+  done
+
+  man -k . |
+  sort -u |
+  sed -r 's/(\(.+\))//g' |
+  grep -v -E '::' |
+  awk -v cyan=$(tput setaf 6) -v blue=$(tput setaf 4) -v res=$(tput sgr0) -v bld=$(tput bold) '{ $1=cyan bld $1; $2=res blue $2;} 1' |
+  fzf ${option:-} \
+      -d ' ' \
+      --nth 1 \
+      --height 100% \
+      --ansi \
+      --no-multi \
+      --tiebreak=begin \
+      --prompt='ᓆ > ' \
+      --color='prompt:#0099BD' \
+      --preview-window 'up,70%,wrap,rounded,<50(up,85%,border-bottom)' \
+      --preview "${batman}" \
+      --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
+      --bind "ctrl-o:+change-preview(tldr --color {1})+change-prompt(ﳁ tldr > )" \
+      --bind "ctrl-i:+change-preview(${batman})+change-prompt(ᓆ  man > )" \
+      --bind "enter:execute(${batman})+change-preview(${batman})+change-prompt(ᓆ > )" \
+      --header 'CTRL-N/P or SHIFT-↑/↓ to view preview contents; ENTER/Q to maximize/normal preview window' \
+      --exit-0
 }
 
 # /**************************************************************
