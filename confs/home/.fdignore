@@ -4,6 +4,7 @@
 .archive/
 .gitbook/
 .lsp/
+.Trash/
 
 ## **/.marslo/.completion/*
 **/devops/archive

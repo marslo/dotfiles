@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2046
+# shellcheck disable=SC2046,SC2086
 
 # fman - fzf list and preview for manpage:
 # @source      : https://github.com/junegunn/fzf/wiki/examples#fzf-man-pages-widget-for-zsh
@@ -9,9 +9,9 @@
 #   - CTRL+O  for toggle tldr in preview window
 #   - CTRL+I  for toggle man in preview window
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default fman`
-
+# shellcheck disable=SC2046
 declare option
-batman="man {1} | col -bx | bat --language=man --plain --color always --theme='gruvbox-dark'"
+declare batman="man {1} | col -bx | bat --language=man --plain --color always --theme='gruvbox-dark'"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -25,7 +25,7 @@ sort -u |
 sed -r 's/(\(.+\))//g' |
 grep -v -E '::' |
 awk -v cyan=$(tput setaf 6) -v blue=$(tput setaf 4) -v res=$(tput sgr0) -v bld=$(tput bold) '{ $1=cyan bld $1; $2=res blue $2;} 1' |
-fzf "${option}" \
+fzf ${option:-} \
     -d ' ' \
     --nth 1 \
     --height 100% \

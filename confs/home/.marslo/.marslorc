@@ -180,7 +180,7 @@ function bye() { source "${iRCHOME}"/.bye; set -o emacs; }
 #            |___/
 # --------------------------------------------------------------/
 source <( cat "${iRCHOME}"/.gitrc )
-source <( cat "${iRCHOME}"/bin/{ifunc,ii,ig,irt,im}.sh )
+source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ii,ig,irt,im}.sh )
 # source "${iRCHOME}/bin/idisable.sh"
 
 # test -f /usr/local/bin/screenfetch     && /usr/local/bin/screenfetch

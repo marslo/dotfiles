@@ -91,8 +91,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   CLASSPATH=".:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar:$GROOVY_HOME/lib"
   # JAVA_OPTS+='-Dhttp.proxyHost=ipamunix.sample.com -Dhttp.proxyPort=8080'
 
-  # NODE_HOME='/usr/local/opt/node@12'
-  NODE_HOME='/usr/local/Cellar/node/21.1.0'
+  NODE_HOME='/usr/local/opt/node@21'                              # NODE_HOME='/usr/local/opt/node@12'
   MYSQL_HOME='/usr/local/mysql'
   ITERM2_ADDITIONAL="${HOME}/.iterm2"
 
@@ -103,8 +102,9 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   RUBY_CONFIGURE_OPTS="--with-openssl-dir=${OPENSSL_HOME}"
   ED_HOME='/usr/local/opt/ed'
 
-  PYTHON_HOME=$(brew --prefix python@3.12)
-  PYTHONPATH='/usr/local/lib/python3.12/site-packages'
+  PYTHON_VERSION='3.12'
+  PYTHON_HOME=$(brew --prefix python@${PYTHON_VERSION})
+  PYTHONPATH='/usr/local/lib/python${PYTHON_VERSION}/site-packages'
   PYTHONUSERBASE="$(${PYTHON_HOME}/libexec/bin/python -c 'import site; print(site.USER_BASE)')"   # PYTHONUSERBASE=$PYTHONPATH
   PYTHON_CONFIGURE_OPTS="--with-tcltk-includes='-I${TCLTK_HOME}/include' --with-tcltk-libs='-L${TCLTK_HOME}/lib -ltcl8.6 -ltk8.6'"
 
@@ -163,7 +163,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${TCLTK_HOME}"           && LDFLAGS+=" -L${TCLTK_HOME}/lib"
   test -d "${SQLITE_HOME}"          && LDFLAGS+=" -L${SQLITE_HOME}/lib"
   test -d "${OPENSSL_HOME}"         && LDFLAGS+=" -L${OPENSSL_HOME}/lib"
-  test -d "${NODE_HOME}"            && LDFLAGS+=" -L${NODE_HOME}/libexec/lib"
+  test -d "${NODE_HOME}"            && LDFLAGS+=" -L${NODE_HOME}/lib"                       # ${NODE_HOME}/libexec/lib for node@12
   test -d "${LIBRESSL_HOME}"        && LDFLAGS+=" -L${LIBRESSL_HOME}/lib"
   test -d "${ICU4C_711}"            && LDFLAGS+=" -L${ICU4C_711}/lib"
   test -d "${EXPAT_HOME}"           && LDFLAGS+=" -L${EXPAT_HOME}/lib"
