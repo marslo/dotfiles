@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2139,SC2034,SC2154
 # =============================================================================
-#   FileName: imarslo
-#     Author: marslo.jiao@gmail.com
-#    Created: 2017-10-30 19:07:45
-# LastChange: 2023-12-21 16:56:51
+#   FileName : imarslo
+#     Author : marslo.jiao@gmail.com
+#    Created : 2017-10-30 19:07:45
+# LastChange : 2023-12-21 16:56:51
 # =============================================================================
 
 MYWORKSPACE="$HOME/iMarslo"
 
-# alias v='vim -u ~/.vimrc.imarslo'
 alias vi="$(type -P vim)"
+# alias v='vim -u ~/.vimrc.imarslo'
 # alias vimdiff="$(type -P vim) -d"
 alias tmax='tmux at -t marslo'
 alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
@@ -29,8 +29,8 @@ alias ecd="cd $iRCHOME/utils/enhancd"
 alias prettypath='echo -e ${PATH//:/\\n}'
 
 alias mw="cd ${MYWORKSPACE}"
-alias jo="cd ${MYWORKSPACE}/job/"
-alias jc="cd ${MYWORKSPACE}/job/code/"
+alias jo="cd ${MYWORKSPACE}/job"
+alias jc="cd ${MYWORKSPACE}/job/code"
 alias dos="cd ${MYWORKSPACE}/job/code/devops"
 
 alias st="cd ${MYWORKSPACE}/study"
@@ -47,8 +47,8 @@ alias cdba="cd ${MYWORKSPACE}/study/code/backups"
 alias cdmac="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/mac"
 alias msp="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/belloMarslo/"
 
-alias to="cd ${MYWORKSPACE}/tools/"
-alias gi="cd ${MYWORKSPACE}/tools/git/marslo/"
+alias to="cd ${MYWORKSPACE}/tools"
+alias gi="cd ${MYWORKSPACE}/tools/git/marslo"
 alias ib="cd ${MYWORKSPACE}/tools/git/marslo/ibook/docs"
 alias ml="cd ${MYWORKSPACE}/tools/git/marslo/mylinux"
 alias dm="cd ${MYWORKSPACE}/tools/git/marslo/mylinux/confs/home/.marslo"
