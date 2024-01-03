@@ -4,7 +4,7 @@
 #     FileName : iweather
 #       Author : marslo
 #      Created : 2023-08-11 03:05:27
-#   LastChange : 2023-08-12 00:55:09
+#   LastChange : 2024-01-02 17:23:34
 # ===========================================================================
 
 shopt -s extglob
@@ -46,7 +46,7 @@ function windDirection() {
 function getLatLon() {
   ccity=$(echo "$*" | xargs | sed 's/ /%20/g')
   # ${CURL} -skg "${API_HOME}?q=${ccity,,}&appid=${OWM_API_TOKEN}&limit=5" | jq -r '.[] | select(.state == "California") | .lat ...'
-  ${CURL} -skg "${API_HOME}/geo/1.0/direct?q=${ccity,,}&limit=1&appid=${appid}" | jq -r '.[] | "lat=" + (.lat|tostring) + "&lon=" + (.lon|tostring)' > "${locFile}"
+  ${CURL} ${curlOpt} "${API_HOME}/geo/1.0/direct?q=${ccity,,}&limit=1&appid=${appid}" | jq -r '.[] | "lat=" + (.lat|tostring) + "&lon=" + (.lon|tostring)' > "${locFile}"
   if [[ ! -s ${locFile} ]] || [[ ! -f "${locFile}" ]]; then
     echo '-1'
   else
@@ -61,14 +61,15 @@ function getWeatherData() {
   units='metric'
   exclude='hourly,daily,minutely,alerts'
   # shellcheck disable=SC1111,SC1110,SC2086
-  ${CURL} -skg "${API_HOME}/data/3.0/onecall?${loc}&units=${units}&exclude=${exclude}&appid=${appid}" \
-       | jq -r .current > ${tempfile}
+  ${CURL} ${curlOpt} "${API_HOME}/data/3.0/onecall?${loc}&units=${units}&exclude=${exclude}&appid=${appid}" \
+          | jq -r .current > ${tempfile}
 }
 
 # shellcheck disable=SC2086,SC1091
 source "$(dirname $0)/iweather.icon"
-API_HOME="https://api.openweathermap.org"
+API_HOME='https://api.openweathermap.org'
 CURL='/usr/local/opt/curl/bin/curl'
+curlOpt='-skg -x http://sample.proxy.com:8080'
 tempfile='/tmp/open-weather-map.json'
 locFile='/tmp/omw-lat-lon'
 cname='San Jose'
