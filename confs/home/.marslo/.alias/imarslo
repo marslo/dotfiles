@@ -11,6 +11,7 @@ MYWORKSPACE="$HOME/iMarslo"
 
 alias vi="$(type -P vim)"
 # alias v='vim -u ~/.vimrc.imarslo'
+# alias v='vim -u ~/.vimrc.imarslo'
 # alias vimdiff="$(type -P vim) -d"
 alias tmax='tmux at -t marslo'
 alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
