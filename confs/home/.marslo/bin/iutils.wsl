@@ -94,13 +94,13 @@ function rcsync() {
   SITE="Jira Confluence Jenkins Gitlab Artifactory Sonar Slave"
   HNAME=$(hostname | tr '[:upper:]' '[:lower:]')
   for i in $SITE; do
-    CURNAME=$(echo $i | tr '[:upper:]' '[:lower:]')
-    if [ "$HNAME" != $CURNAME ]; then
-      echo ------------------- $i ---------------------;
-      pushd $PWD
-      cd /home/appadmin
-      rsync -avzrlpgoD --exclude=.marslo/Tools --exclude=.vim/view --exclude=.vim/cache --exclude=.vim/.netrwhist --exclude=.ssh/known_hosts -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' .marslo .vim .vimrc .inputrc .tmux.conf appadmin@$i:~/
-      popd
+    CURNAME=$(echo "$i" | tr '[:upper:]' '[:lower:]')
+    if [ "$HNAME" != "$CURNAME" ]; then
+      echo "------------------- $i ---------------------";
+      pushd "$PWD" || return
+      cd /home/appadmin || return
+      rsync -avzrlpgoD --exclude=.marslo/Tools --exclude=.vim/view --exclude=.vim/cache --exclude=.vim/.netrwhist --exclude=.ssh/known_hosts -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' .marslo .vim .vimrc .inputrc .tmux.conf appadmin@"$i":~/
+      popd || return
     fi
   done
 }
