@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1078,SC1079,SC2086,SC2155
 # =============================================================================
-#    FileName : g.sh
+#    FileName : ig.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2020-10-20 21:50:38
+#i  LastChange : 2024-01-07 01:22:35
 #        Desc : for git
 # =============================================================================
 
 # git fetch
+# shellcheck disable=SC2317
 function gf() {
   GITDIR=${1%%/}
   GITBRANCH=$2
@@ -26,7 +27,6 @@ function gf() {
       echo -e "$(c R)The current repo is in the rebase procedss. exit.$(c)"
       popd > /dev/null || return
       return 1 2>/dev/null
-      # shellcheck disable=SC2317
       exit 1
     fi
 
@@ -120,8 +120,8 @@ function gfall() {
   elif git rev-parse --git-dir > /dev/null 2>&1; then
     dir=$(dirname "$(git rev-parse --git-dir)")
   else
-    # shellcheck disable=SC2046
-    dir=$(dirname $(find . -type d \( -not -path "*archive/*" -not -path "*archives/*" \) -name '.git') | uniq)
+    # shellcheck disable=SC2046,SC2035
+    dir=$(dirname $(fd -uu --type d --glob *.git* --exclude *archive* --exclude *archives*) | uniq)
   fi
 
   for d in ${dir}; do
@@ -135,11 +135,11 @@ function gfall() {
   done
 }
 
+# shellcheck disable=SC2035
 function mybr() {
   myBranch=$1
   mainBranch="dev"
   set +H
-  # shellcheck disable=SC2035
   for i in $(${LS} -1d */); do
     pushd . > /dev/null
     cd "$i" || return
@@ -160,9 +160,9 @@ function mybr() {
   done
 }
 
+# shellcheck disable=SC2035,SC2155
 function gitclean() {
   set +H
-  # shellcheck disable=SC2035
   for i in $(${LS} -1d */); do
     GITDIR=${i%%/}
     echo -e "=== \\033[32m ${GITDIR} \\033[0m ==="
@@ -175,6 +175,7 @@ function gitclean() {
   done
 }
 
+# shellcheck disable=SC2155
 function grt() {
   usage="""\t$(c B)g$(c)it $(c M)r$(c)ename $(c R)t$(c)ag - rename tag with original committer and date
   \nSYNOPSIS$(c sY)
