@@ -7,7 +7,7 @@ set convert-meta off                          # allow iso-latin1 characters to b
 set input-meta on                             # don't strip characters to 7 bits when reading
 set completion-ignore-case on
 set show-all-if-ambiguous on
-TAB:menu-complete
+# TAB:menu-complete
 set show-all-if-unmodified on
 set mark-symlinked-directories on
 set print-completions-horizontally on

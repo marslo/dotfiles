@@ -51,9 +51,9 @@ _fzf_compgen_dir() {
 #   - otherwise copy the content of parameter `$1` via `pbcopy` or `clip.exe`
 # shellcheck disable=SC2317
 function copy() {                          # smart copy
-  [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)"; exit 0
+  [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)";
   if [[ 0 -eq $# ]]; then
-    "${COPY}" < <(fzf --cycle --exit-0)
+    "${COPY}" < "$(fzf --cycle --exit-0)"
   else
     "${COPY}" < "$1"
   fi
@@ -107,6 +107,7 @@ function vim() {                           # magic vim - fzf list in most recent
         -h | --help ) voption+="$1 "    ; shift   ;;
           --version ) voption+="$1 "    ; shift   ;;
       --startuptime ) voption+="$1 $2 " ; shift 2 ;;
+                -Nu ) voption+="$1 $2 " ; shift 2 ;;
               --cmd ) voption+="$1 $2 " ; shift 2 ;;
                  -* ) foption+="$1 $2 " ; shift 2 ;;
                   * ) break                       ;;

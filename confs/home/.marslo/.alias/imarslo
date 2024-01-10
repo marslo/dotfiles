@@ -21,11 +21,12 @@ alias myaws='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i 
 alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_env/ubuntu/backups/ss/sslocal-config.json  -d start --log=/Users/marslo/.marslo/log/sslocal.log'
 alias sshmarslo='ssh marslo@118.193.233.78'
 alias nd='npm run deploy'
-alias rg='rg --hidden --follow --smart-case --vimgrep --ignore-file=$HOME/.rgignore --color=always'
+# alias rg='rg --hidden --follow --smart-case --vimgrep --ignore-file=$HOME/.rgignore --color=always'
+alias rg='rg --hidden --follow --smart-case --ignore-file=$HOME/.rgignore --color=always'
 alias as-tree='tree --fromfile'
 
-alias irc="cd ~/.marslo"
-alias desk="cd ~/Desktop"
+alias irc="cd $HOME/.marslo"
+alias desk="cd $HOME/Desktop"
 alias ecd="cd $iRCHOME/utils/enhancd"
 alias prettypath='echo -e ${PATH//:/\\n}'
 
@@ -49,11 +50,13 @@ alias cdmac="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/mac"
 alias msp="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/belloMarslo/"
 
 alias to="cd ${MYWORKSPACE}/tools"
+alias dl="cd ${MYWORKSPACE}/tools/download"
 alias gi="cd ${MYWORKSPACE}/tools/git/marslo"
 alias ib="cd ${MYWORKSPACE}/tools/git/marslo/ibook/docs"
 alias ml="cd ${MYWORKSPACE}/tools/git/marslo/mylinux"
 alias dm="cd ${MYWORKSPACE}/tools/git/marslo/mylinux/confs/home/.marslo"
 alias mt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"
+alias mi="cd ${MYWORKSPACE}/tools/git/marslo/myvim"
 alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs >/dev/null"
 
 alias gc='/usr/local/bin/groovyConsole'
