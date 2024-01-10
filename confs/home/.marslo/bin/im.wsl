@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2164,SC2086
 # =============================================================================
-#     FileName : im.wsl
-#       Author : marslo.jiao@gmail.com
-#      Created : 2012
-#   LastChange : 2023-12-18 16:26:52
+#    FileName : im.wsl
+#      Author : marslo.jiao@gmail.com
+#     Created : 2012
+#  LastChange : 2023-12-23 15:19:41
 # =============================================================================
 
+function exitOnError() { echo -e "$1"; }
 function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
 # shellcheck disable=SC2154,SC2086,SC1091
 function mrc() { source "${iRCHOME}"/.marslorc; }

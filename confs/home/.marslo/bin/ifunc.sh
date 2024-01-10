@@ -186,4 +186,16 @@ function _showcolor_bg() {
   echo -ne "\033[0m"
 }
 
+# shellcheck disable=SC2068
+function showLsColors() {
+  dircolors -b >/dev/null
+  IFS=:
+  for ls_color in ${LS_COLORS[@]}; do # For all colors
+    color=${ls_color##*=}
+    ext=${ls_color%%=*}
+    echo -en "\E[${color}m${ext}\E[0m " # echo color and extension
+  done
+  echo
+}
+
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************

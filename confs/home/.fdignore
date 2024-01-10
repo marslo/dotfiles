@@ -5,6 +5,17 @@
 .gitbook/
 .lsp/
 .Trash/
+.archive/
+.npm/
+.beacon/
+.gradle/
+.orcal_jre_usage/
+Pictures/
+Music/
+Movies/
+cache/
+undo/
+Library/
 
 ## **/.marslo/.completion/*
 **/devops/archive
@@ -23,3 +34,7 @@
 *.gif
 *.jpeg
 *.jpg
+*.gifcask
+.CFUserTextEncoding
+.vim_mru_files
+.DS_Store

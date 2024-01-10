@@ -208,7 +208,7 @@ function ffs() {
     if [[ "${opt}}" =~ .*-t.* ]] || [[ "${opt}" =~ .*--type.* ]]; then
       option="${option//--type\ f/}"
     fi
-    option="${opt} ${option} --hidden --follow --unrestricted --ignore-file ~/.fdignore"
+    option="${opt} ${option} --hidden --follow --unrestricted --ignore-file ~/.fdignore --exclude .Trash"
     [[ -n "${depth}"    ]] && option="--max-depth ${depth} ${option}"
     [[ '.' != "${path}" ]] && option="${path} ${option}"
     # shellcheck disable=SC2086,SC2027
