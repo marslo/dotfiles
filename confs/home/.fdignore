@@ -9,7 +9,14 @@
 .npm/
 .beacon/
 .gradle/
-.orcal_jre_usage/
+.oracle_jre_usage/
+.bash_sessions/
+.vnc/ViewerStore/
+.vim/?undo/
+.docker/cli-plugins/
+.rbenv/shims/
+.eclipse/org.eclipse.oomph.*/
+.groovy/grapes/
 Pictures/
 Music/
 Movies/
@@ -38,3 +45,5 @@ Library/
 .CFUserTextEncoding
 .vim_mru_files
 .DS_Store
+.*history
+.localized
