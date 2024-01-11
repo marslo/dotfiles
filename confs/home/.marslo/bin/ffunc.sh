@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2023-12-29 03:57:05
+#   LastChange : 2024-01-11 11:41:31
 #=============================================================================
 
 # /**************************************************************
@@ -94,13 +94,16 @@ function cat() {                           # smart cat
 #       - if single paramters and parameters is directlry, then call fzf in target directory and using vim to open selected file
 #       - otherwise call regular vim to open file(s)
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vim`
+# shellcheck disable=SC2155
 function vim() {                           # magic vim - fzf list in most recent modified order
   local voption
   local target
+  local VIM="$(type -P vim)"
   local foption='--multi --cycle '
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore --exclude Music"
   [[ "$(pwd)" = "$HOME" ]] && fdOpt+=' --max-depth 3'
   if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
+  command -v nvim >/dev/null && VIM="$(type -P nvim)"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -115,13 +118,13 @@ function vim() {                           # magic vim - fzf list in most recent
   done
 
   if [[ 0 -eq $# ]] && [[ -z "${voption}" ]]; then
-    fd . ${fdOpt} | fzf ${foption} --bind="enter:become($(type -P vim) {+})"
+    fd . ${fdOpt} | fzf ${foption} --bind="enter:become(${VIM} {+})"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
     [[ '.' = "${1}" ]] && target="${1}" || target=". ${1}"
-    fd ${target} ${fdOpt} | fzf ${foption} --bind="enter:become($(type -P vim) {+})"
+    fd ${target} ${fdOpt} | fzf ${foption} --bind="enter:become(${VIM} {+})"
   else
     # shellcheck disable=SC2068
-    $(type -P vim) -u $HOME/.vimrc ${voption} $@
+    "${VIM}" ${voption} $@
   fi
 }
 
