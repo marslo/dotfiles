@@ -17,11 +17,14 @@
 .rbenv/shims/
 .eclipse/org.eclipse.oomph.*/
 .groovy/grapes/
+.gnupg/
+snipaste/
 Pictures/
 Music/
 Movies/
 cache/
 undo/
+nundo/
 Library/
 
 ## **/.marslo/.completion/*
