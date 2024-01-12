@@ -9,8 +9,8 @@
 
 MYWORKSPACE="$HOME/iMarslo"
 
-alias vv="$(type -P vim) -u $HOME/.vimrc"
-alias vi="$(type -P nvim) -u $HOME/.config/nvim/init.vim"
+alias vv="$(type -P  vim) -Nu $HOME/.vimrc"
+alias vi="$(type -P nvim) -Nu $HOME/.config/nvim/init.vim"
 # alias v='vim -u ~/.vimrc.imarslo'
 # alias vimdiff="$(type -P vim) -d"
 alias tmax='tmux at -t marslo'
