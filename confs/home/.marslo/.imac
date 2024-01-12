@@ -46,6 +46,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
 
   KW_BUILD_TOOLS='/opt/kwbuildtools'
   MACVIM_HOME='/Applications/MacVim.app'
+  NVIM_HOME="/usr/local/nvim"
   # vim-tabnine
   LLVM_HOME="$(brew --prefix llvm)"
 
@@ -54,6 +55,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${KW_BUILD_TOOLS}" && TOOLS_PATH+=":${KW_BUILD_TOOLS}/bin"
   test -d "$HOME/.docker"     && TOOLS_PATH+=":$HOME/.docker/bin"
   test -d "${MACVIM_HOME}"    && TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"
+  test -d "${NVIM_HOME}"      && TOOLS_PATH+=":$NVIM_HOME/bin"
   test -d "${LLVM_HOME}"      && TOOLS_PATH+=":${LLVM_HOME}/bin"
 
   GNU_PATH="${GNU_PATH:-}"
@@ -104,12 +106,14 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
 
   PYTHON_VERSION='3.12'
   PYTHON_HOME=$(brew --prefix python@${PYTHON_VERSION})
-  PYTHONPATH='/usr/local/lib/python${PYTHON_VERSION}/site-packages'
+  PYTHONPATH="/usr/local/lib/python${PYTHON_VERSION}/site-packages"
   PYTHONUSERBASE="$(${PYTHON_HOME}/libexec/bin/python -c 'import site; print(site.USER_BASE)')"   # PYTHONUSERBASE=$PYTHONPATH
   PYTHON_CONFIGURE_OPTS="--with-tcltk-includes='-I${TCLTK_HOME}/include' --with-tcltk-libs='-L${TCLTK_HOME}/lib -ltcl8.6 -ltk8.6'"
+  RUBY_HOME=$(brew --prefix ruby)
 
   SCRIPT_BINS="${SCRIPT_BINS:-}"
   test -d "${PYTHON_HOME}"    && SCRIPT_BINS+=":${PYTHON_HOME}/libexec/bin"
+  test -d "${RUBY_HOME}"      && SCRIPT_BINS+=":${RUBY_HOME}/bin"
   test -d "${TCLTK_HOME}"     && SCRIPT_BINS+=":${TCLTK_HOME}/bin"
   test -d "${PYTHONUSERBASE}" && SCRIPT_BINS+=":${PYTHONUSERBASE}/bin"
   test -d "${NODE_HOME}"      && SCRIPT_BINS+=":${NODE_HOME}/bin"

@@ -1,96 +1,87 @@
-####################
-# \e : Meta        #
-# \C : Control     #
-####################
+#=============================================================================
+#     FileName : .inputrc
+#       Author : marslo.jiao@gmail.com
+#      Created : 2020-08-25 15:22:56
+#   LastChange : 2024-01-11 20:28:49
+#=============================================================================
+# https://tiswww.case.edu/php/chet/readline/rluserman.html
 
-set convert-meta off                          # allow iso-latin1 characters to be inserted
-set input-meta on                             # don't strip characters to 7 bits when reading
-set completion-ignore-case on
-set show-all-if-ambiguous on
-set show-all-if-unmodified on
-set mark-symlinked-directories on
+# PS1: https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/.env#L225
+set show-mode-in-prompt on
+set emacs-mode-string   ╰╶ ᓆ
+set vi-ins-mode-string  ╰╶ ᓎ
+set vi-cmd-mode-string  ╰╶ ᓏ
+set emacs-mode-string   \1\e[38;5;240;1m\2╰╶ ᓆ \1\e[0m\2
+set vi-ins-mode-string  \1\e[38;5;240;1m\2╰╶ \1\e[33;1m\2ᓎ \1\e[0m\2
+set vi-cmd-mode-string  \1\e[38;5;240;1m\2╰╶ \1\e[34;1m\2ᓏ \1\e[0m\2
+
+# allow iso-latin1 characters to be inserted
+set convert-meta                   off
+# don't strip characters to 7 bits when reading
+set input-meta                     on
+set completion-ignore-case         on
+set show-all-if-ambiguous          on
+set show-all-if-unmodified         on
+set mark-symlinked-directories     on
 set print-completions-horizontally on
-set enable-bracketed-paste off                # https://groups.google.com/g/iterm2-discuss/c/K6YazwKUvjQ/m/7eqeT-AvBgAJ
+# https://github.com/scop/bash-completion
+set visible-stats                  on
+set enable-bracketed-paste         off
+# https://groups.google.com/g/iterm2-discuss/c/K6YazwKUvjQ/m/7eqeT-AvBgAJ
+
 # TAB: menu-complete
 # set colored-completion-prefix on
-# set colored-stats on
-set skip-completed-text on
-# set completion-query-items 100              # ask if more than 100 candidates
-# set show-mode-in-prompt on                  # https://github.com/calid/bash#usage
-
-set vi-ins-mode-string \1\e[34;1m\2(ins)\1\e[0m\2
-set vi-cmd-mode-string \1\e[35;1m\2(cmd)\1\e[0m\2
+set colored-stats                  on
+set skip-completed-text            on
+# ask if more than 100 candidates
+# set completion-query-items       100
 
 set keymap emacs
 "\ee": vi-editing-mode
 
+# https://www.usenix.org.uk/content/bash.html#input
 set keymap vi-command
 "\ee": emacs-editing-mode
-
 # key bindings to get out of vi-editing-mode
-set keymap vi-insert
-"\ee": vi-movement-mode
-
-##### emacs #####
-$if mode=emacs
-"\ee": vi-editing-mode                       # `Esc-e`:vi-insert. https://unix.stackexchange.com/a/409866/29178
-# "\e\e": vi-movement-mode
-"\e~": complete-username
-"\e_": yank-last-arg
-"\e?": possible-completions
-Meta-Control-h: backward-kill-word
-$endif
-
-##### vi #####
-$if mode=vi
-"\ee": emacs-editing-mode
-$endif
-
-##### command mode #####
-$if mode=vi-command
-"\ee": emacs-editing-mode
-
-v: ""
-Control-a: beginning-of-line
-Control-b: backward-char
-Control-d: delete-char
-Control-e: end-of-line
-Control-f: forward-char
-Control-k: kill-line
-Control-n: next-history
-Control-p: previous-history
-$endif
-
-
-##### insert mode #####
-$if mode=vi-insert
-"\ee": emacs-editing-mode
-
-"\C-k": kill-line
-"\C-u": unix-line-discard
-"\C-p": previous-history
-"\C-n": next-history
+"v"  : ''
+"dw": kill-word
+"dd": kill-whole-line
+"db": backward-kill-word
+"D":kill-line
+"\C-_": undo
 "\C-a": beginning-of-line
+"\C-b": backward-char
+"\C-d": delete-char
 "\C-e": end-of-line
 "\C-f": forward-char
-"\C-b": backward-char
+"\C-g": abort
+"\C-k": kill-line
 "\C-l": clear-screen
-"\C-d": delete-char
-"\C-h": backward-delete-char
+"\C-p": previous-history
+"\C-n": next-history
 "\C-w": unix-word-rubout
+"\C-q": quoted-insert
+"\C-x\C-r": re-read-init-file
+"\e#": insert-comment
+"\e.": insert-last-argument
+"\e.": yank-last-arg
 
-"\et": transpose-words
-"\ef": forward-word
-"\eb": backward-word
-"\ed": kill-word
-"\e.":yank-last-arg
-"\e_": yank-last-arg
+set keymap vi-insert
+"\ee": emacs-editing-mode
 "\C-_": undo
-$endif
-
-$if Bash
-# edit the path
-"\C-xp": "PATH=${PATH}\e\C-e\C-a\ef\C-f"
-# Quote the current or previous word
-"\C-xq": "\eb\"\ef\""
-$endif
+"\C-a": beginning-of-line
+"\C-b": backward-char
+"\C-d": delete-char
+"\C-e": end-of-line
+"\C-f": forward-char
+"\C-g": abort
+"\C-k": kill-line
+"\C-l": clear-screen
+"\C-p": previous-history
+"\C-n": next-history
+"\C-w": unix-word-rubout
+"\C-q": quoted-insert
+"\C-x\C-r": re-read-init-file
+"\e#": insert-comment
+"\e.": insert-last-argument
+"\e.": yank-last-arg
