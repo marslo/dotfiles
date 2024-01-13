@@ -1,19 +1,31 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2015,SC2290
 # =============================================================================
 #   FileName: utils
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2020-12-16 20:32:47
+# LastChange: 2024-01-12 17:00:29
 # =============================================================================
+
+if [[ 'Darwin' = $(uname --operating-system) ]]; then
+  alias which='alias | which -a --tty-only --read-alias --show-dot --show-tilde'
+  alias ping='/sbin/ping --apple-time -v'
+  alias sping='/sbin/ping -c1 -t1 -W0'
+  alias dropcache='sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
+else
+  alias lvim="vim -c \"normal '0\""
+  alias lgvim="gvim -c \"normal '0\""
+  alias dropcache='sudo echo 3 > /proc/sys/vm/drop_caches'
+  alias flushdns="sudo /etc/init.d/nscd restart"
+fi
+
+command -v trash >/dev/null && alias rm='trash' || alias rm='rm -i'
 
 # https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#Aliases
 # https://askubuntu.com/a/22043/92979
 alias sudo='sudo '
-# alias rm='rm -i'
-alias rm='trash'
 alias cp='cp -i'
 alias cpa='cp --parents'
-# alias mv='mv -i'
 
 # operation of files and directory
 alias cx='chmod u+x'
@@ -57,11 +69,6 @@ alias l='\ls -lvthr --color=always'
 alias la='ls -Alvthr --color=always'
 alias l.='ls -dv .* --color=always'
 alias LS='find -mount -maxdepth 1 -printf "%.5m %10M %#9u:%-9g %#5U:%-5G %TF_%TR %CF_%CR %AF_%AR %#15s [%Y] %p\n" 2>/dev/null'
-alias o='open .'
-
-alias lvim="vim -c \"normal '0\""
-alias lgvim="gvim -c \"normal '0\""
-# alias tig="tig 2> /dev/null"
 
 alias ud='du -h --max-depth=1 --exclude="\./\.*"'
 alias ud.='du -h --max-depth=1'
@@ -69,11 +76,7 @@ alias udf='du -skh'
 alias uds='du --block-size=MiB --max-depth=1 --exclude="\./\.*" | sort -nr'
 alias uds.='du --block-size=MiB --max-depth=1 | sort -nr'
 alias df='df -kTh'
-alias which='alias | which -a --tty-only --read-alias --show-dot --show-tilde'
-# alias which='alias | /usr/bin/which -a'
-alias ping='/sbin/ping --apple-time -v'
-alias sping='/sbin/ping -c1 -t1 -W0'
-alias gerrit='ssh -p 29418 vgitcentral.mycompany.com gerrit'
+alias gerrit='ssh -p 29418 sample.gerrit.com gerrit'
 
 alias chown='sudo chown'
 alias chmod='sudo chmod'
@@ -84,42 +87,34 @@ alias locate='sudo locate'
 alias ports='sudo netstat -tunplea | grep'
 alias reboot='sudo shutdown -r now'
 # alias howold="sudo tune2fs -l $(df -h / |(read; awk '{print $1; exit}')) | grep -i created"
-alias dropcache='sudo echo 3 > /proc/sys/vm/drop_caches'
 alias lgout='read ans; kill -HUP $PPID'
 alias showpath='echo -e ${PATH//:/\\n}'
+alias showmanpath="manpath | tr ':' '\n'"
 alias cmount='mount | column -t'
 alias dstat='dstat -cdgilmnprsy'
 alias ta='tmux at -t '
 alias tls='tmux ls'
 
 alias wget='wget --no-cookies --no-check-certificate'
-alias curl='/usr/local/opt/curl/bin/curl --netrc-file ~/.marslo/.netrc'
-# alias curl='/usr/bin/curl --netrc-file ~/.marslo/.netrc'
-alias clear-dns-cache='sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
-# alias myip='/usr/bin/curl ip.appspot.com'
-alias myip='curl -sS https://ipecho.net/plain'
+alias curl='command curl --insecure --globoff --netrc-file ~/.marslo/.netrc'
+alias myip='command curl --insecure --globoff -sS https://ipecho.net/plain'
 
 alias lsock='sudo /usr/sbin/lsof -i -P'             # lsock:        Display open sockets
 alias lsockU='sudo /usr/sbin/lsof -nP | grep UDP'   # lsockU:       Display only open UDP sockets
 alias lsockT='sudo /usr/sbin/lsof -nP | grep TCP'   # lsockT:       Display only open TCP sockets
 alias openPorts='sudo lsof -i | grep LISTEN'        # openPorts:    All listening connections
 alias allowedports='sudo /sbin/iptables -L -n'
-alias flushdns="sudo /etc/init.d/nscd restart"
 
 alias scp='scp -O -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '
 alias sshrsa="ssh -i ${MYWORKSPACE}/tools/remoteaccess/rsa/marslo@devops/marslo@devops"
+alias sshpwd='ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no'
 alias rsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '"
 alias sudorsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' --rsync-path='sudo rsync'"
-# alias ssh="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "
 
 alias imbusy='cat /dev/urandom | hexdump -C | grep "ca fe"'
 
 alias weekno='date +"%V"'
 alias daysleft='echo "There are $(($(date +%j -d"Dec 31, $(date +%Y)")-$(date +%j))) left in year $(date +%Y)."'
 alias weather='curl wttr.in/sanjose?mMFn'
-
-# bat ( for zsh )
-alias -- -h='-h 2>&1 | bat --language=help --style=plain'
-alias -- --help='--help 2>&1 | bat --language=help --style=plain'
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
