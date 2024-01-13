@@ -146,18 +146,10 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${SQLITE_HOME}"       && TEMP_PATH+=":${SQLITE_HOME}/bin"
   test -d "${ITERM2_ADDITIONAL}" && TEMP_PATH+=":${ITERM2_ADDITIONAL}"
 
-  TEMP_MANPATH="$GNUMANHOME"
-  test -d '/usr/local/share/man' && TEMP_MANPATH+=':/usr/local/share/man'
-  test -d '/usr/share/man'       && TEMP_MANPATH+=':/usr/share/man'
-  test -d '/usr/local/man'       && TEMP_MANPATH+=':/usr/local/man'
-  test -d '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/share/man' && TEMP_MANPATH+=':/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/share/man'
-
   PATH="$SPECIAL_TOOLS:$TEMP_PATH:$PATH"
-  MANPATH="$TEMP_MANPATH:$MANPATH"
-  MANPATH=$( echo "$MANPATH" | tr ':' '\n' | uniq | sed '/^$/d' | paste -s -d: )
 
   # eval "$(/usr/libexec/path_helper)"
-  export JAVA_HOME GROOVY_HOME PATH MANPATH
+  export JAVA_HOME GROOVY_HOME PATH
   export GUILE_TLS_CERTIFICATE_DIRECTORY PYTHONPATH PYTHONUSERBASE CLASSPATH RUBY_CONFIGURE_OPTS
   # export JAVA_OPTS
 fi
