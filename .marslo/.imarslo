@@ -1,0 +1,207 @@
+#!/usr/bin/env bash
+
+# Dangerous operation needs confirm
+alias rm='rm -i'
+alias cp='cp -i'
+alias cpa='cp --parents'
+alias mv='mv -i'
+
+# Operation of files and directory
+alias cx='chmod u+x'
+alias cw='chmod u+w'
+alias c='clear'
+alias totalclear='clear;printf %b "\033[3J"'
+
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias d='cd -'
+alias dc='cd'
+alias sl='ls'
+
+alias :q='exit'
+alias :x='exit'
+
+alias -- +='pushd .'
+alias -- ++='pushd +1'
+alias -- +++='pushd +2'
+alias -- -='popd'
+alias -- --='pushd -0'
+alias -- ---='pushd -1'
+alias dv='dirs -v'
+
+# Show colorful
+alias grep='grep -i -n --color=always'
+alias egrep='egrep -i -n --color=always'
+alias egp='egrep -v "(#|^$)"'
+alias h='history | grep'
+alias his='history'
+
+alias ld='\ls -Nald --color=always */'
+alias ls='ls -NF --color=always'
+alias l='\ls -lthrNF --color=always'
+alias la='\ls -AlthrNF --color=always'
+alias l.='\ls -d .* --color=always'
+alias LS='find -mount -maxdepth 1 -printf "%.5m %10M %#9u:%-9g %#5U:%-5G %TF_%TR %CF_%CR %AF_%AR %#15s [%Y] %p\n" 2>/dev/null'
+
+alias lvim="vim -c \"normal '0\""
+alias lgvim="gvim -c \"normal '0\""
+alias tig="tig 2> /dev/null"
+
+alias c='clear'
+alias ff=firefox
+alias ud='du -h --max-depth=1 --exclude='\./\.*''
+alias ud.='du -h --max-depth=1'
+alias udf='du -skh'
+alias uds='du --block-size=MiB --max-depth=1 --exclude='\./\.*' | sort -nr'
+alias uds.='du --block-size=MiB --max-depth=1 | sort -nr'
+alias df='df -kTh'
+# alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
+alias which='alias | /usr/bin/which -a'
+
+alias chown="sudo chown"
+alias chmod="sudo chmod"
+alias iptables="sudo iptables"
+alias dpkg="sudo dpkg"
+alias service="sudo service"
+alias systemctl="sudo systemctl"
+alias updatedb="sudo updatedb"
+alias locate="sudo locate"
+alias ports='sudo netstat -tunplea | grep $@'
+alias reboot='sudo shutdown -r now'
+alias howold="sudo tune2fs -l $(df -h / |(read; awk '{print $1; exit}')) | grep -i created"
+alias dropcache='sudo echo 3 > /proc/sys/vm/drop_caches'
+alias lgout='read ans; kill -HUP $PPID'
+alias showpath='echo -e ${PATH//:/\\n}'
+alias cmount='mount | column -t'
+alias dstat='dstat -cdgilmnprsy'
+alias tmax='tmux at -t marslo'
+alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
+alias tmcx='tmux at -t cdc'
+alias ctmcx='tmux new -s cdc -d && tmux at -t cdc'
+alias ta='tmux at -t '
+alias tls='tmux ls'
+
+alias wget='wget --no-cookies --no-check-certificate'
+alias clear-dns-cache="sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder"
+alias myip='curl ip.appspot.com'
+alias lsock='sudo /usr/sbin/lsof -i -P'             # lsock:        Display open sockets
+alias lsockU='sudo /usr/sbin/lsof -nP | grep UDP'   # lsockU:       Display only open UDP sockets
+alias lsockT='sudo /usr/sbin/lsof -nP | grep TCP'   # lsockT:       Display only open TCP sockets
+alias openPorts='sudo lsof -i | grep LISTEN'        # openPorts:    All listening connections
+
+alias pip='pip --trusted-hosts pww.artifactory.cdi.philips.com'
+
+alias ssh="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "
+alias scp="scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "
+alias rsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '"
+alias myaws="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${HOME}/.marslo/Marslo/Tools/Softwares/sshkey/marslo-aws.pem ec2-user@ec2-54-193-78-97.us-west-1.compute.amazonaws.com"
+
+alias fdiff="diff --old-group-format=$'\\e[0;31m%<\\e[0m' --new-group-format=$'\\e[0;31m%>\\e[0m' --unchanged-group-format=$'\\e[0;32m%=\\e[0m'"
+
+# Color configure in ls
+export LS_COLORS='no=00:fi=00:di=01;31:ln=01;36:pi=40;33:so=01;35:bd=40;33;01:cd=40;33;01:or=01;05;37;41:mi=01;05;37;41:ex=01;32:*.cmd=01;32:*.exe=01;32:*.com=01;32:*.btm=01;32:*.bat=01;32:*.sh=01;32:*.csh=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.bz=01;31:*.tz=01;31:*.rpm=01;31:*.cpio=01;31:*.jpg=01;35:*.gif=01;35:*.bmp=01;35:*.xbm=01;35:*.xpm=01;35:*.png=01;35:*.tif=01;35:'
+
+# The color of man page
+export LESS_TERMCAP_mb=$(printf "\\e[1;31m")         # begin blinding
+export LESS_TERMCAP_md=$(printf "\\e[1;31m")         # begin bold
+export LESS_TERMCAP_me=$(printf "\\e[0m")            # end mode
+export LESS_TERMCAP_se=$(printf "\\e[0m")            # end stadout-mode
+export LESS_TERMCAP_so=$(printf "\\e[1;44;33m")      # begin stadout-mode - info box
+export LESS_TERMCAP_ue=$(printf "\\e[0m")            # end underline
+export LESS_TERMCAP_us=$(printf "\\e[1;32m")         # begin underline
+export LESS="-eirMX"
+# export LESS="-eirMXR"
+
+
+# The setting about history
+export HISTTIMEFORMAT='%F %T '
+export HISTFILESIZE=10000
+export HISTSIZE=10000
+export HISTCONTROL=ignoreboth:erasedups
+
+export LANG=en_US.UTF-8
+export LANGUAGE=$LANG
+export LC_COLLATE=$LANG
+export LC_CTYPE=$LANG
+export LC_MESSAGES=$LANG
+export LC_MONETARY=$LANG
+export LC_NUMERIC=$LANG
+export LC_TIME=$LANG
+export LC_ALL=$LANG
+
+# ┌─ (USERNAME@HOSTNAME PATH) ->
+# └─ $
+
+# if [ -z "$DISPLAY" ]
+# then
+#   export PS1="\n${DBLACK}┌─ (\u@\h ${COLRESET} ${DRED}\w${COLRESET}${DBLACK}) ->${COLRESET}\n${DBLACK}└─ ${COLRESET}\`if [ \$? = 0 ]; then echo ${SDBLACK}\\$ ${COLRESET}; else echo ${SDRED}\\$ ${COLRESET}; fi\`${COLNONE}"
+#   export PS2="${DBLACK} -> ${COLRESET}${COLNONE}"
+# else
+  # export PS1="\n${DBLACK}${UMARK}${LMARK} (\u@\h ${COLRESET} ${DRED}\w${COLRESET}${DBLACK}) ->${COLRESET}\n${DBLACK}${DMARK}${LMARK} ${COLRESET}\`if [ \$? = 0 ]; then echo ${SDBLACK}\\$ ${COLRESET}; else echo ${SDRED}\\$ ${COLRESET}; fi\`${COLNONE}"
+  # export PS2="${DBLACK} ->${LMARK} ${COLRESET}${COLNONE}"
+# fi
+
+UMARK='\[\033(0\]l\[\033(B\]'
+DMARK='\[\033(0\]m\[\033(B\]'
+LMARK='\[\033(0\]q\[\033(B\]'
+
+# \[\e[xx;0m]\]:    system color
+# \[\e[xx\;0m]\]:   system color in ``
+
+# \[\e[0;xxm]\]:    profile color (solarized)
+# \[\e[0\;xxm]\]:   profile color (solarized) in ``
+#   0\;xxm;         Normal
+#   1\;xxm:         Bright
+
+SLGREEN='\[\e[32;0m\]'
+SDGREEN='\[\e[32;2m\]'
+# SDGREEN='\[\e[2;32m\]'
+SDYELLOW='\[\e[2;33m\]'
+SLYELLOW='\[\e[0;33m\]'
+
+DBLACK='\[\033[30;1m\]'
+LBLACK='\[\033[30;0m\]'
+SDBLACK='\[\033[1;30m\]'
+SLBLACK='\[\033[0;30m\]'
+SDRED='\[\033[1;31m\]'
+SLRED='\[\033[0;31m\]'
+SDBLUE='\[\033[1;34m\]'
+SLBLUE='\[\033[0;34m\]'
+LRED='\[\033[31;0m\]'
+DRED='\[\033[31;1m\]'
+
+ifDBLACK='\[\033[30\;1m\]'
+ifLBLACK='\[\033[30\;0m\]'
+ifSDBLACK='\[\033[1\;30m\]'
+ifSLBLACK='\[\033[0\;30m\]'
+ifDRED='\[\033[31\;1m\]'
+ifSDRED='\[\033[1\;31m\]'
+ifSLRED='\[\033[0\;31m\]'
+ifSLGREEN='\[\033[0\;32m\]'
+ifSDGREEN='\[\033[1\;32m\]'
+ifSLBLUE='\[\033[0\;34m\]'
+ifSDBLUE='\[\033[1\;34m\]'
+
+COLDEFAULT="${SDGREEN}"
+COLIFDEFAULT="${ifSDGREEN}"
+# COLDEFAULT="${SLBLACK}"
+# COLIFDEFAULT="${ifSLBLACK}"
+COLRESET='\[\033[1m\]'
+COLNONE='\[\033[0m\]'
+# export PS1="\n${LBLACK}${UMARK}${LMARK} (\u@\h ${COLRESET} ${DRED}\w${COLRESET}${LBLACK}) ->${COLRESET}\n${LBLACK}${DMARK}${LMARK} ${COLRESET}\`if [ \$? = 0 ]; then echo ${SLBLACK}\\$ ${COLRESET}; else echo ${SDRED}\\$ ${COLRESET}; fi\`${COLNONE}"
+# export PS2="${LBLACK} ->${LMARK} ${COLRESET}${COLNONE}"
+
+# For Mac os -> Solarized Dark
+# export PS1="\n${COLDEFAULT}┌─ (\u@\h${COLRESET} ${SDRED}\w${COLRESET}${COLDEFAULT}) ->${COLRESET}\n${COLDEFAULT}└─ ${COLRESET}\`if [ \$? = 0 ]; then echo ${COLIFDEFAULT}\\$ ${COLRESET}; else echo ${ifSLRED}\\$ ${COLRESET}; fi\`${COLNONE}"
+
+PS1="\\n${COLRESET}${COLDEFAULT}┌─ (\\u@\\h${COLRESET} "
+PS1+="${SLRED}\\w${COLRESET}${COLDEFAULT}) "
+PS1+="\$(__git_ps1 '- (%s) ')${COLRESET}"
+PS1+="${COLDEFAULT}->${COLRESET}"
+PS1+="\\n${COLDEFAULT}└─ ${COLRESET}"
+PS1+="\`if [ \$? = 0 ]; then echo ${COLIFDEFAULT}\\$; else echo ${ifSLRED}\\$; fi\` ${COLRESET}"
+PS1+="${COLNONE}"
+export PS1
+export PS2="${COLDEFAULT}  -> ${COLRESET}${COLNONE}"
+
