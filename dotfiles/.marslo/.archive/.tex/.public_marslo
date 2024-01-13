@@ -1,0 +1,5 @@
+#!/bin/bash
+
+alias vim='vim -u ~/.lijiao/.vimrc'
+alias is='irb --simple-prompt'
+alias vnccreate='vncserver :99 -name marslo -geometry 1280x1024'

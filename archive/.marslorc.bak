@@ -1,0 +1,737 @@
+#!/bin/bash
+# shellcheck disable=SC1090,SC2045,SC2035,SC2236,SC2164,SC2086,SC1078,SC1079
+# =============================================================================
+#   FileName: .marslorc
+#     Author: marslo.jiao@gmail.com
+#    Created: 2012
+# LastChange: 2020-06-05 16:54:52
+# =============================================================================
+
+export iRCHOME='/Users/marslo/.marslo'
+
+bashComp="$(brew --prefix)/etc/bash_completion.d"
+bashComp2="$(brew --prefix)/etc/profile.d/bash_completion.sh"
+rtComp="/Users/marslo/.jfrog/jfrog_bash_completion"
+gitComp="$(brew --prefix)/etc/bash_completion.d/git-prompt.sh"
+maccliComp='/usr/local/bin/mac-cli/completion/bash_completion'
+# bashComp2=$(pkg-config --variable=completionsdir bash-completion)
+
+if command -v brew > /dev/null; then
+  # bash-completion
+  [ -f "${bashComp}" ] && export BASH_COMPLETION_COMPAT_DIR="${bashComp}" && source "${bashComp}"
+  # bash-completion@2
+  [ -f "${bashComp2}" ] && source "${bashComp2}";
+  [ -f "${rtComp}" ] && source "${rtComp}"
+  [ -f "${gitComp}" ] && source "${gitComp}"
+  [ -f "${maccliComp}" ] && source "${maccliComp}"
+  # if [ -d "${GROOVY_HOME}/bin" ]; then
+    # find ${GROOVY_HOME}/bin -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
+  # fi
+fi
+
+source "${iRCHOME}/others/bash_completion.sh"
+source "${iRCHOME}/.imac"
+source "${iRCHOME}/.env"
+source "${iRCHOME}/.gitrc"
+eval "$(rbenv init -)"
+
+# source $HOME/.tmux-session
+shopt -s cdspell
+shopt -s cmdhist
+shopt -s histappend
+
+# Disable ctrl+s lock putty
+# stty -echo
+# stty stop undef
+stty ixany
+stty ixoff -ixon
+# stty start undef
+
+export TERM='xterm-color'
+# CentOS or RHEL
+[ -e /usr/share/terminfo/x/xterm-256color ] && export TERM='xterm-256color'
+# Ubuntu
+[ -e /lib/terminfo/x/xterm-256color ] && export TERM='xterm-256color'
+# cygwin
+[ -e /usr/share/terminfo/78/xterm-256color ] && export TERM='xterm-256color'
+# MacOS
+[ -e /usr/share/terminfo/78/xterm-256color ] && export TERM='xterm-256color'
+
+# iTerm2 shell integration
+test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
+
+[ -f /usr/local/bin/screenfetch ] && /usr/local/bin/screenfetch
+
+# for linux
+# LS="/bin/ls"
+# GREP="/bin/grep"
+
+# for MacOS
+LS="/usr/local/opt/coreutils/libexec/gnubin/ls"
+GREP="/usr/local/opt/grep/libexec/gnubin/grep"
+
+# For public server (use common account)
+function bello()
+{
+
+  # For Public account server
+  source "${iRCHOME}/.imac"
+  # set -o vi
+}
+
+function bye()
+{
+  # For Public account server
+  source "${iRCHOME}/.bye_marslo"
+  # set -o vi
+}
+
+# ┌───────┬─────────┬──────────────────┐   ┌──────┬─────────────────┬──────────┐
+# │ Fg/Bg │ Style   │ Octal            │   │ Code │ Style           │ Octal    │
+# ├───────┼─────────┼──────────────────┤   ├──────┼─────────────────┼──────────┤
+# │  K/k  │ Black   │ \033[ + 3/4 + 0m │   │   s  │ Bold (strong)   │ \033[1m  │
+# │  R/r  │ Red     │ \033[ + 3/4 + 1m │   │   u  │ Underline       │ \033[4m  │
+# │  G/g  │ Green   │ \033[ + 3/4 + 2m │   │   f  │ Blink (flash)   │ \033[5m  │
+# │  Y/y  │ Yellow  │ \033[ + 3/4 + 3m │   │   n  │ Negative        │ \033[7m  │
+# │  B/b  │ Blue    │ \033[ + 3/4 + 4m │   ├──────┼─────────────────┼──────────┤
+# │  M/m  │ Magenta │ \033[ + 3/4 + 5m │   │   S  │ Normal (unbold) │ \033[22m │
+# │  C/c  │ Cyan    │ \033[ + 3/4 + 6m │   │   0  │ Reset           │ \033[0m  │
+# │  W/w  │ White   │ \033[ + 3/4 + 7m │   └──────┴─────────────────┴──────────┘
+# └───────┴─────────┴──────────────────┘
+#
+# References:
+#  - [WAOW! Complete explanations](https://stackoverflow.com/a/28938235/101831)
+#  - [coloring functions](https://gist.github.com/inexorabletash/9122583)
+# credit belongs to https://raw.githubusercontent.com/ppo/bash-colors/master/bash-colors.sh
+c() {
+  [ $# -eq 0 ] && echo "\033[0m" || echo "$1" | sed -E "s/(.)/‹\1›/g;s/([KRGYBMCW])/3\1/g;s/([krgybmcw])/4\1/g;s/S/22/;y/sufnKRGYBMCWkrgybmcw›/14570123456701234567m/;s/‹/\\\033[/g";
+}
+
+function mkcd()
+{
+  mkdir -p "$1" && cd "$1" || return
+}
+
+function cdls()
+{
+  cd "$1" && ls
+}
+
+function cdla()
+{
+  cd "$1" && la
+}
+
+function chmv()
+{
+  sudo mv "$1" "$2"
+  sudo chown -R "$(whoami)":"$(whoami)" "$2"
+}
+
+function chcp()
+{
+  sudo cp -r "$1" "$2"
+  sudo chown -R "$(whoami)":"$(whoami)" "$2"
+}
+
+function cha()
+{
+  sudo chown -R "$(whoami)":"$(whoami)" "$1"
+}
+
+# Inspired from http://www.earthinfo.org/linux-disk-usage-sorted-by-size-and-human-readable/
+function udfs {
+  v='*'
+  [ 1 -le $# ] && v="$@"
+  du -sk ${v} | sort -nr | while read -r size fname;
+  do
+    for unit in k M G T P E Z Y;
+    do
+      if [ "$size" -lt 1024 ];
+      then
+        echo -e "${size}${unit}\\t${fname}";
+        break;
+      fi;
+      size=$((size/1024));
+    done;
+  done
+}
+
+# For ssh agent
+# start the ssh-agent
+function start_agent {
+  echo "Initializing new SSH agent..."
+  # spawn ssh-agent
+  /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
+  echo succeeded
+  chmod 600 "${SSH_ENV}"
+  . "${SSH_ENV}" > /dev/null
+  /usr/bin/ssh-add
+}
+
+function ssh_agent() {
+  if [ -f "${SSH_ENV}" ]; then
+    . "${SSH_ENV}" > /dev/null
+    # pgrep -f ${SSH_AGENT_PID}
+    # shellcheck disable=SC2009
+    ps -ef | ${GREP} "${SSH_AGENT_PID}" | ${GREP} ssh-agent$ > /dev/null || {
+    start_agent;
+  }
+  else
+    start_agent;
+  fi
+}
+
+function pydict() {
+  currentDir=$(pwd)
+  cd "$HOME/.vim/bundle/pydiction" || return
+  python pydiction.py "$@"
+  cd "$currentDir" || return
+}
+
+# marslo grep
+function mg() {
+  usage="""mg - marslo grep - combined find and grep to quick find keywords
+  \nUSAGE:
+  \n\t$(c sY)\$ mg [OPT] [NUM] KEYWORD [<PATHA>]$(c)
+  \nExample:
+  \n\t$(c G)\$ mg 'hello'
+  \t\$ mg i 'hello' ~/.marslo
+  \t\$ mg ic 3 'hello' ~/.marslo$(c)
+  \nOPT:
+  \n\t$(c B)i$(c) : ignore case
+  \t$(c B)f$(c) : find file name only
+  \t$(c B)a <num>$(c) : print <num> lines of trailing context after matching lines
+  \t$(c B)b <num>$(c) : print <num> lines of leading context before matching lines
+  \t$(c B)c <num>$(c) : print <num> lines of output context
+  """
+
+  kw=''
+  p='.'
+  opt='-n -H -E --color=always'
+
+  if [ 0 -eq $# ]; then
+    echo -e "${usage}"
+  else
+    case $1 in
+      [wW] | [iI] )
+        opt="${opt} -$(echo $1 | tr '[:upper:]' '[:lower:]')"
+        [ 2 -le $# ] && kw="$2"
+        [ 3 -eq $# ] && p="$3"
+        ;;
+      [fF] )
+        opt="${opt} -l"
+        [ 2 -le $# ] && kw="$2"
+        [ 3 -eq $# ] && p="$3"
+        ;;
+      [iI][fF] | [fF][iI] )
+        opt="${opt} -i -l"
+        [ 2 -le $# ] && kw="$2"
+        [ 3 -eq $# ] && p="$3"
+        ;;
+      [aA] | [bB] | [cC] | [iI][aA] | [iI][bB] | [iI][cC] | [aA][iI] | [bB][iI] | [cC][iI] )
+        # line = -A $2 | -B $2 | -C $2
+        line="-$(echo $1 | awk -F'[iI]' '{print $1,$2}' | sed -e 's/^[[:space:]]*//' | tr '[:lower:]' '[:upper:]') $2"
+        opt="${opt} -i ${line}"
+        [ 3 -le $# ] && kw="$3"
+        [ 4 -eq $# ] && p="$4"
+        ;;
+      * )
+        kw="$1"
+        [ 2 -le $# ] && p="$2"
+        ;;
+    esac
+
+    if [ -n "${kw}" ]; then
+      # or using + instead of ; details: https://unix.stackexchange.com/a/43743/29178
+      cmd="""find "${p}" -type f -not -path "*git/*" -exec ${GREP} ${opt} "${kw}" {} ;"""
+      find "${p}" -type f -not -path "*git/*" -exec ${GREP} ${opt} "${kw}" {} \; \
+        || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
+    else
+      echo -e "${usage}"
+    fi
+  fi
+}
+
+# find file
+ff() {
+  usage="""USAGE:
+  \n\t$(c sY)\$ ff <FILENAME> [<PATH>]$(c)
+  \nExample:
+  \n\t$(c G)\$ ff myfile.txt
+  \t\$ ff myfile.txt ~/.marslo$(c)
+  """
+
+  if [ 0 -eq $# ]; then
+    echo -e "${usage}"
+  else
+    p='.'
+    [ 2 -eq $# ] && p="$2"
+    find "${p}" -type f -not -path "\'*git/*\'" -iname "*${1}*"
+  fi
+}
+
+# marslo sed
+function ms() {
+  usage="""msed - marslo sed - sed all key words in the path
+  \n$(c s)USAGE:$(c)
+  \n\t$(c sY)\$ msed [OPT] <ORIGIN_STRING> <NEW_STRING> [PATH]$(c)
+  \nExample:
+  \n\t$(c G)\$ msed mystr MY_STR
+  \t$(c G)\$ msed re '^.*\(.*\).*$' 'MY_STR'
+  \t\$ msed mystr MY_STR ~/.marslo$(c)
+  \nOPT:
+  \n\t$(c B)r$(c) : use extended regular expressions in the script
+  \t$(c B)e$(c) : add the script to the commands to be executed
+  """
+
+  p='.'
+  sw=''     # source word
+  tw=''     # target word
+  opt='-i'
+
+  if [ 2 -le $# ]; then
+    case $1 in
+      [rR] )
+        opt="${opt} -r"
+        [ 3 -le $# ] && sw="$2" && tw="$3"
+        [ 4 -eq $# ] && p="$4"
+        ;;
+      [rR][eE] | [eE][rR] )
+        opt="${opt} -r -e"
+        [ 3 -le $# ] && sw="$2" && tw="$3"
+        [ 4 -eq $# ] && p="$4"
+        ;;
+      * )
+        [ 2 -le $# ] && sw="$1" && tw="$2"
+        [ 3 -le $# ] && p="$3"
+        ;;
+    esac
+  fi
+
+  if [ -n "${sw}" ] && [ -n "${tw}" ]; then
+    cmd="""find "${p}" -type f -not -path "*git/*" -exec sed ${opt} "s,${sw},${tw},g" {} ;"""
+    ${cmd} \
+      || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
+  else
+    echo -e "${usage}"
+  fi
+}
+
+function mydiff() {
+  echo -e " [${1##*/}]\\t\\t\\t\\t\\t\\t\\t[${2##*/}]"
+  diff -y --suppress-common-lines "$1" "$2"
+}
+
+function dir()
+{
+  find . -iname "$@" -print0 | xargs -r0 ${LS} -altr | awk '{print; total += $5}; END {print "total size: ", total}';
+}
+
+function dir-h()
+{
+  find . -iname "$@" -exec ${LS} -lthrNF --color=always {} \;
+  find . -iname "$@" -print0 | xargs -r0 du -csh| tail -n 1
+}
+
+function ccker()
+{
+  pushd .
+  cd "$HOME/myworks/appliance/automation/robot/branches/dev_main" || return
+  python utility/checkers/CodeChecker.py --check_all
+  popd
+}
+
+function rcsync()
+{
+  SITE="Jira Confluence Jenkins Gitlab Artifactory Sonar Slave"
+  HNAME=$(hostname | tr '[:upper:]' '[:lower:]')
+  for i in $SITE; do
+    CURNAME=$(echo "$i" | tr '[:upper:]' '[:lower:]')
+    if [ "$HNAME" != "$CURNAME" ]; then
+      echo ------------------- "$i" ---------------------;
+      pushd "$PWD"
+      cd "/home/appadmin"
+      rsync \
+        -avzrlpgoD \
+        --exclude=Tools \
+        --exclude=.vim/view \
+        --exclude=.vim/vimsrc \
+        --exclude=.vim/cache \
+        --exclude=.vim/.netrwhist \
+        --exclude=.ssh/known_hosts \
+        -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' \
+        .marslo .vim .vimrc .inputrc .tmux.conf .pip appadmin@"$i":~/
+      popd
+    fi
+  done
+}
+
+function mrc()
+{
+  source "${iRCHOME}/.marslorc"
+}
+
+function erc()
+{
+  /usr/local/bin/vim "${iRCHOME}/.marslorc"
+}
+
+
+function getperm()
+{
+  find "$1" -printf '%m\t%u\t%g\t%p\n'
+}
+
+function riff()
+{
+  rsync -rv --size-only --dry-run "$1" "$2"
+}
+
+function getcomputerversion()
+{
+  sudo dmidecode | ${GREP} -i prod
+}
+
+function mybr()
+{
+  myBranch=$1
+  mainBranch="dev"
+  set +H
+  for i in $(${LS} -1d */); do
+    pushd . > /dev/null
+    cd "$i"
+    dirPath=${i%%/}
+    if git rev-parse --git-dir > /dev/null 2>&1; then
+      cBranch=$(git rev-parse --abbrev-ref HEAD)
+      if [ -z "${myBranch}" ]; then
+        echo "${cBranch}" | ${GREP} -v -i "${mainBranch}" > /dev/null 2>&1 && echo -e "\\033[34m${dirPath}\\t: ${cBranch} \\033[0m"
+      else
+        if echo "${cBranch}" | ${GREP} -i "${myBranch}" > /dev/null 2>&1; then
+          echo -e "\\033[33m** ${dirPath}\\t: ${cBranch} \\033[0m"
+        elif [ ! "${cBranch}" = "${mainBranch}" ]; then
+          echo -e "\\033[34m${dirPath}\\t: NOT ${mainBranch} : ${cBranch} !!\\033[0m"
+        fi
+      fi
+    fi
+    popd > /dev/null
+  done
+}
+
+function gitclean() {
+  set +H
+  for i in $(${LS} -1d */); do
+    GITDIR=${i%%/}
+    echo -e "=== \\033[32m ${GITDIR} \\033[0m ==="
+    pushd . > /dev/null
+    cd "${GITDIR}"
+    git clean -dfx
+    git checkout -- *
+    git reset --hard
+    popd > /dev/null
+  done
+}
+
+function gradleClean(){
+  set +H
+  pushd . > /dev/null
+  for i in $(${LS} -1d */); do
+    gradleRootDir="./"
+    SUBDIR=${i%%/}
+    echo -e "\\033[34m=== ${SUBDIR} ===\\033[0m"
+    if [ ! -e "${gradleRootDir}/build.gradle" ]; then
+      gradleRootDir=$(find "${WORKSPACE}" -name "build.gradle" -printf "%h\\n" | awk '{print length()"\t"$0 | "sort -n"}' | cut -f2 - | head -1)
+      echo "gradleRootDir is ${gradleRootDir}"
+    fi
+    gradle clean
+    gitclean
+  done
+  popd > /dev/null
+}
+
+function gitFetch() {
+  GITDIR=${1%%/}
+  GITBRANCH=$2
+  ISStashed=false
+  pushd . > /dev/null
+  cd "${GITDIR}"
+  echo -e "\\033[34m=== ${GITDIR} ===\\033[0m"
+
+  if git rev-parse --git-dir > /dev/null 2>&1; then
+    utFiles=$(git ls-files --others --exclude-standard)
+    mdFiles=$(git ls-files --modified)
+    cBranch=$(git rev-parse --abbrev-ref HEAD)
+    [ ! -z "${utFiles}" ] && echo -e "\\033[35mUNTRACKED FILES in ${cBranch}: ${utFiles}\\033[0m"
+
+    if ! git branch -a | ${GREP} "${GITBRANCH}" > /dev/null 2>&1; then
+      GITBRANCH=master
+    fi
+    echo -e "\\033[33m~> ${GITBRANCH}\\033[0m"
+
+    # checkout branch to $GITBRANCH
+    if [ ! "${cBranch}" = "${GITBRANCH}" ]; then
+      if [ ! -z "${mdFiles}" ]; then
+        echo -e "\\033[31mGIT STASH: ${GITDIR} : ${cBranch} !!\\033[0m"
+        git stash save "auto-stashed by gitFetch command"
+        ISStashed=true
+      fi
+      git checkout "${GITBRANCH}"
+    fi
+
+    # remove the local branch if the branch has been deleted in remote
+    if git remote prune origin --dry-run | ${GREP} prune; then
+      prBranch=$(git remote prune origin --dry-run | ${GREP} prune | awk -F'origin/' '{print $NF}')
+      if [ "${cBranch}" = "${prBranch}" ] && [ -z "${mdFiles}" ]; then
+        echo -e "\\033[32mThe current branch ${cBranch} has been rmeoved in remote. And the current branch has no modified files!\\033[0m"
+        ISStashed=false
+      fi
+
+      if git branch | ${GREP} "${prBranch}"; then
+        echo -e "\\033[35mREMOVE LOCAL BRNACH ${prBranch}, due to ${prBranch} has been rmeoved in remote.\\033[0m"
+        if ! git branch -D "${prBranch}"; then
+          echo -e "\\033[32mWARNING: REMOVE LOCAL BRANCH ${prBranch} failed!!\\033[0m"
+        fi
+      fi
+    fi
+
+    # git fetchall on ${GITBRANCH}
+    git fetch origin --prune
+    git fetch --all --force
+    git rebase -v --all refs/remotes/origin/${GITBRANCH}
+    git merge --all --progress refs/remotes/origin/${GITBRANCH}
+    git remote prune origin
+
+    if git --no-pager config --file "$(git rev-parse --show-toplevel)/.gitmodules" --get-regexp url; then
+      git submodule sync --recursive
+      git submodule update --init --recursive
+    fi
+
+    # restore the current working branch
+    if ${ISStashed}; then
+      git checkout "${cBranch}"
+      git stash pop
+      echo -e "\\033[35mGIT STASH POP: ${GITDIR} : ${cBranch}\\033[0m"
+    fi
+  else
+    echo -e "\\033[33mNOT Git Repo!!\\033[0m"
+  fi
+  popd > /dev/null
+}
+
+function fetchdir()
+{
+  myDir="$1"
+  for i in $(${LS} -1d "${myDir%%/}"/); do
+    gitFetch "$i" "dev"
+  done
+}
+
+function fetchall()
+{
+  if [ 1 -eq $# ]; then
+    brName=$1
+  else
+    brName="development"
+  fi
+  for i in $(${LS} -1d */); do
+    gitFetch "$i" "$brName"
+  done
+}
+
+function proxydefault() {
+  myssproxy="socks5://127.0.0.1:1880"
+  myppproxy="http://127.0.0.1:8123"
+
+  socks_proxy=${myssproxy}
+  SOCKS_PROXY=${myssproxy}
+
+  all_proxy=${myppproxy}
+  ALL_PROXY=${myppproxy}
+
+  http_proxy=${myppproxy}
+  HTTP_PROXY=${myppproxy}
+  https_proxy=${myppproxy}
+  HTTPS_PROXY=${myppproxy}
+  ftp_proxy=${myppproxy}
+  FTP_PROXY=${myppproxy}
+
+  # kubeIP=""
+  flannelIP="$(echo 10.244.0.{0..255} | sed 's: :,:g')"
+  privIP=$(echo 192.168.10.{0..255} | sed 's: :,:g')
+  compDomain=".cdi.philips.com,.philips.com,pww.*.cdi.philips.com,pww.artifactory.cdi.philips.com,healthyliving.cn-132.lan.philips.com,*.cn-132.lan.philips.com,pww.sonar.cdi.philips.com,pww.gitlab.cdi.philips.com,pww.slave01.cdi.philips.com,pww.confluence.cdi.philips.com,pww.jira.cdi.philips.com,bdhub.pic.philips.com,tfsemea1.ta.philips.com,pww.jenkins.cdi.philips.com,blackduck.philips.com,fortify.philips.com"
+  no_proxy="localhost,127.0.0.1,127.0.1.1,130.147.182.57,192.168.10.235,172.17.0.1,10.244.0.0,10.244.0.1,${compDomain},${flannelIP},${privIP}"
+  NO_PROXY=$no_proxy
+
+  export socks_proxy SOCKS_PROXY all_proxy ALL_PROXY
+  export http_proxy HTTP_PROXY https_proxy HTTPS_PROXY ftp_proxy FTP_PROXY
+  export no_proxy NO_PROXY
+}
+
+function rget(){
+  route -nv get "$@"
+}
+
+function cleanview(){
+  rm -rf ~/.vim/view/*
+}
+
+function envUpdate() {
+  for i in $(seq 1 9); do
+    ssh slave0"${i}" "cd ~/env; git clean -dfx; git reset --hard; git pull --all";
+  done
+}
+
+# for itmer2
+function msh {
+  echo -e "\\033]6;1;bg;red;brightness;176\\a"
+  echo -e "\\033]6;1;bg;green;brightness;181\\a"
+  echo -e "\\033]6;1;bg;blue;brightness;175\\a"
+  command ssh  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$@"
+}
+
+function color {
+  case $1 in
+    green)
+      echo -e "\\033]6;1;bg;red;brightness;57\\a"
+      echo -e "\\033]6;1;bg;green;brightness;197\\a"
+      echo -e "\\033]6;1;bg;blue;brightness;77\\a"
+      ;;
+    red)
+      echo -e "\\033]6;1;bg;red;brightness;270\\a"
+      echo -e "\\033]6;1;bg;green;brightness;60\\a"
+      echo -e "\\033]6;1;bg;blue;brightness;83\\a"
+      ;;
+    orange)
+      echo -e "\\033]6;1;bg;red;brightness;227\\a"
+      echo -e "\\033]6;1;bg;green;brightness;143\\a"
+      echo -e "\\033]6;1;bg;blue;brightness;10\\a"
+      ;;
+  esac
+ }
+
+# iTerm2 tab titles
+function itit {
+  if [ "$1" ]; then
+    # export PROMPT_COMMAND='__bp_precmd_invoke_cmd'
+    unset PROMPT_COMMAND
+    echo -ne "\\033]0;${1}\\007"
+
+    if [ 2 -eq $# ]; then
+      case $2 in
+        [cC] )
+          it2setcolor tab $(shuf -n 1 ~/.marslo/.it2colors) || echo
+          ;;
+        [bB] )
+          # https://iterm2.com/documentation-badges.html
+          printf "\e]1337;SetBadgeFormat=%s\a" "$(echo -n "${1} \(user.gitBranch)" | base64)"
+          ;;
+        [bB][cC] | [cC][bB] )
+          printf "\e]1337;SetBadgeFormat=%s\a" "$(echo -n "${1}" | base64)"
+          it2setcolor tab $(shuf -n 1 ~/.marslo/.it2colors) || echo
+          ;;
+      esac
+    fi
+
+  else
+    export PROMPT_COMMAND='echo -ne "\033]0;${PWD/#$HOME/\~}\007";'
+    printf "\e]1337;SetBadgeFormat=%s\a" "$(echo -n "" | base64)"
+    it2setcolor tab default
+  fi
+}
+
+function forget() {
+  history -d $(( $(history | tail -n 1 | ${GREP} -oP '^ \d+') - 1 ));
+}
+
+function dir755() {
+  find . -type d -perm 0777 \( -not -path "*.git" -a -not -path "*.git/*" \) -exec sudo chmod 755 {} \; -print
+}
+
+function file644() {
+  find . -type f -perm 0777 \( -not -path "*.git" -a -not -path "*.git/*" \) -exec sudo chmod 644 {} \; -print
+}
+
+function clrproxy(){
+  PROXY_ENV="http_proxy ftp_proxy https_proxy all_proxy socks_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY SOCKS_PROXY"
+  for envvar in $PROXY_ENV; do
+    unset "$envvar"
+  done
+  echo -e "Proxy environment variable removed."
+}
+
+function exportpx(){
+  # myproxy=$(echo $1 | sed -n 's/\([0-9]\{1,3\}.\)\{4\}:\([0-9]\+\)/&/p')
+  myproxy=$*
+  PROXY_ENV="http_proxy ftp_proxy https_proxy all_proxy socks_proxy HTTP_PROXY HTTPS_PROXY FTP_PROXY ALL_PROXY SOCKS_PROXY"
+  for envvar in $PROXY_ENV; do
+    export "$envvar"="$myproxy"
+  done
+  echo -e "Proxy environment variable set as $myproxy."
+}
+
+function mergeAV() {
+  ffmpeg -i "$1" -i "$2" -c copy -map 0:0 -map 1:0 -shortest -strict -2 "$3"
+}
+
+function zh() {
+  zipinfo "$1" | head
+}
+
+function 256color() {
+  for i in {0..255}; do
+    echo -e "\e[38;05;${i}m${i}";
+  done | column -c 80 -s ' '; echo -e "\e[m"
+}
+
+function rtclean() {
+  usage="""USAGE:
+  \n\t\$ rtclean [repo] [build-id]
+  \nExample:
+  \n\t\$ rtclean integration 1234
+  """
+     user='marslo'
+   passwd='APAe81WJT9G7adFHPAanqnXnbeo'
+    rtUrl='https://ssdfw-repo.marvell.com/artifactory'
+
+  if [ 2 -ne $# ]; then
+    echo -e "${usage}"
+  else
+       repo="wukong-$1-local"
+      build="wukong - $1"
+    buildId="$2"
+    curlOpt="-s -g -u${user}:${passwd}"
+
+    if curl -X GET ${curlOpt} "${rtUrl}/api/repositories" | jq .[].key | grep "${repo}" > /dev/null 2>&1; then
+      echo """
+            repo : ${repo}
+           build : ${build}
+        build id : ${buildId}
+      """
+      curl -X DELETE ${curlOpt} "${rtUrl}/${repo}/${buildId}"
+      curl -X DELETE ${curlOpt} "${rtUrl}/api/build/${build}?buildNumbers=${buildId}&artifacts=1"
+      # curl -X DELETE ${curlOpt} "${rtUrl}/api/trash/clean/${repo}/${buildId}"
+      # curl -X DELETE ${curlOpt} "${rtUrl}/api/trash/clean/artifactory-build-info"
+    else
+      echo -e "${usage}"
+    fi
+  fi
+}
+
+# how may days == ddiff YYYY-MM-DD now
+hmdays() {
+  usage="""USAGE:
+  \n\t\$ hmdays YYYY-MM-DD
+  \nExample:
+  \n\t\$ hmdays 1987-03-08
+  """
+
+  if [ 1 -ne $# ]; then
+    echo -e "${usage}"
+  else
+    if date +%s --date "$1" > /dev/null 2>&1; then
+      echo $((($(date +%s)-$(date +%s --date "$1"))/(3600*24))) days
+    else
+      echo -e "${usage}"
+    fi
+  fi
+}

@@ -1,0 +1,39 @@
+machine ewiki.marvell.com
+login marslo
+password Go0gle#7
+
+machine ssdfw-wukong-jenkins.marvell.com
+login marslo password Go0gle#7
+
+machine ssdfw-vega-jenkins.marvell.com
+login marslo
+password Go0gle#7
+
+machine ssdfw-repo.marvell.com
+login marslo
+password Go0gle#7
+
+machine ssdfw-repo-dev.marvell.com
+login marslo
+password Go0gle#7
+
+machine ssdfw-repo.marvell.com-ste
+login srv-ssdfte
+password e2P7IY57j=t$
+
+machine essjira.marvell.com
+login marslo
+password Go0gle#7
+
+machine jenkins.marslo.com
+login marslo
+password marslo
+
+machine vgitcentral.marvell.com
+login marslo
+password Go0gle#7
+
+
+machine ssdfw-devops-jenkins.marvell.com
+login marslo
+password Go0gle#7

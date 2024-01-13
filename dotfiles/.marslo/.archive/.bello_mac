@@ -1,0 +1,293 @@
+#!/bin/bash
+# shellcheck disable=SC2155,SC2034,SC1091,SC1090,SC2046
+# =============================================================================
+#   FileName: .bello_mac
+#     Author: marslo.jiao@gmail.com
+#    Created: 2019-05-20 12:13:15
+# LastChange: 2019-09-12 19:13:48
+# =============================================================================
+
+export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
+
+# Dangerous operation needs confirm
+alias rm='rm -i'
+alias cp='cp -i'
+alias cpa='cp --parents'
+alias mv='mv -i'
+
+# Operation of files and directory
+alias cx='chmod u+x'
+alias cw='chmod u+w'
+alias clr='clear'
+alias totalclear='clear;printf %b "\033[3J"'
+
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias d='cd -'
+alias dc='cd'
+alias sl='ls'
+
+alias :q='exit'
+alias :x='exit'
+
+alias -- +='pushd .'
+alias -- ++='pushd +1'
+alias -- +++='pushd +2'
+alias -- -='popd'
+alias -- --='pushd -0'
+alias -- ---='pushd -1'
+alias dv='dirs -v'
+
+# Show colorful
+alias grep='grep -i -n --color=always'
+alias lgrep='grep -i -n --color=always'
+alias egrep='egrep -i -n --color=always'
+alias egp='egrep -v "(#|^$)"'
+alias h='history | grep -i --color=always'
+alias his='history'
+alias more='more -r'
+alias diff='diff --color=auto'
+
+alias ld='\ls -Nald --color=always */'
+alias ls='ls -NF --color=always'
+alias l='\ls -lthrNF --color=always'
+alias la='\ls -AlthrNF --color=always'
+alias l.='\ls -d .* --color=always'
+alias LS='find -mount -maxdepth 1 -printf "%.5m %10M %#9u:%-9g %#5U:%-5G %TF_%TR %CF_%CR %AF_%AR %#15s [%Y] %p\n" 2>/dev/null'
+alias o='open .'
+
+alias lvim="vim -c \"normal '0\""
+alias lgvim="gvim -c \"normal '0\""
+# alias tig="tig 2> /dev/null"
+
+alias ff=firefox
+alias ud='du -h --max-depth=1 --exclude="\./\.*"'
+alias ud.='du -h --max-depth=1'
+alias udf='du -skh'
+alias uds='du --block-size=MiB --max-depth=1 --exclude="\./\.*" | sort -nr'
+alias uds.='du --block-size=MiB --max-depth=1 | sort -nr'
+alias df='df -kTh'
+alias which='alias | which -a --tty-only --read-alias --show-dot --show-tilde'
+# alias which='alias | /usr/bin/which -a'
+alias ping='/sbin/ping --apple-time -v'
+alias gerrit='ssh -p 29418 vgitcentral.mycompany.com gerrit'
+
+alias chown='sudo chown'
+alias chmod='sudo chmod'
+alias service='sudo service'
+alias systemctl='sudo systemctl'
+# alias updatedb='sudo updatedb'
+alias locate='sudo locate'
+alias ports='sudo netstat -tunplea | grep'
+alias reboot='sudo shutdown -r now'
+# alias howold="sudo tune2fs -l $(df -h / |(read; awk '{print $1; exit}')) | grep -i created"
+alias dropcache='sudo echo 3 > /proc/sys/vm/drop_caches'
+alias lgout='read ans; kill -HUP $PPID'
+alias showpath='echo -e ${PATH//:/\\n}'
+alias cmount='mount | column -t'
+alias dstat='dstat -cdgilmnprsy'
+alias tmax='tmux at -t marslo'
+alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
+alias ta='tmux at -t '
+alias tls='tmux ls'
+
+alias wget='wget --no-cookies --no-check-certificate'
+alias clear-dns-cache='sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
+alias myip='curl ip.appspot.com'
+alias lsock='sudo /usr/sbin/lsof -i -P'             # lsock:        Display open sockets
+alias lsockU='sudo /usr/sbin/lsof -nP | grep UDP'   # lsockU:       Display only open UDP sockets
+alias lsockT='sudo /usr/sbin/lsof -nP | grep TCP'   # lsockT:       Display only open TCP sockets
+alias openPorts='sudo lsof -i | grep LISTEN'        # openPorts:    All listening connections
+
+# alias pip='pip --trusted-hosts pww.artifactory.cdi.philips.com'
+
+# alias ssh="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "
+
+alias sshrsa='ssh -i ~/mywork/tools/remoteaccess/rsa/marslo@devops/marslo@devops'
+alias scp='scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '
+alias rsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '"
+alias sudorsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' --rsync-path='sudo rsync'"
+alias myaws="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.marslo/Marslo/Tools/Softwares/sshkey/marslo-aws.pem ec2-user@ec2-54-193-78-97.us-west-1.compute.amazonaws.com"
+
+alias fdiff="diff --old-group-format=$'\\e[0;31m%<\\e[0m' --new-group-format=$'\\e[0;31m%>\\e[0m' --unchanged-group-format=$'\\e[0;32m%=\\e[0m'"
+
+alias sxcode92='sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer/'
+alias sxcode833='sudo xcode-select -switch /Applications/Xcode8.3.3.app/Contents/Developer/'
+alias cdwda='cd /usr/local/lib/node_modules/appium/node_modules/appium-xcuitest-driver/WebDriverAgent'
+alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_env/ubuntu/backups/ss/sslocal-config.json  -d start --log=/Users/marslo/.marslo/log/sslocal.log'
+
+alias polipo='polipo -c $HOME/.marslo/polipo/config >/dev/null 2>&1 &'
+# alias polipo='polipo -c $HOME/.marslo/polipo/config daemonise=true >/dev/null 2>&1 &'
+
+alias imbusy='cat /dev/urandom | hexdump -C | grep "ca fe"'
+alias weekno='date +"%V"'
+alias mych='export GOOGLE_API_KEY="AIzaSyD8DXLV9vSEbghG84Sje37ZuhltkWUr7dA"; export GOOGLE_DEFAULT_CLIENT_ID="173627079645-o03bgep57m3hj0s3l47smp2jqekd60sq.apps.googleusercontent.com"; export GOOGLE_DEFAULT_CLIENT_SECRET="nkj-6z3Wew6FLvkUgjDCUohz"; /Applications/Chromium.app/Contents/MacOS/Chromium >/dev/null 2>&1 &'
+alias removeDS='find . -name .DS_Store -print0 | xargs -0 git rm -f --ignore-unmatch'
+alias daysleft='echo "There are $(($(date +%j -d"Dec 31, $(date +%Y)")-$(date +%j))) left in year $(date +%Y)."'
+alias weather='curl -x http://127.0.0.1:1087 wttr.in/chengdu'
+
+# Color configure in ls
+export CLICOLOR=1
+export LSCOLORS=GxFxCxDxBxegedabagaced
+export LS_COLORS='no=00:fi=00:di=01;31:ln=01;36:pi=40;33:so=01;35:bd=40;33;01:cd=40;33;01:or=01;05;37;41:mi=01;05;37;41:ex=01;32:*.cmd=01;32:*.exe=01;32:*.com=01;32:*.btm=01;32:*.bat=01;32:*.sh=01;32:*.csh=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.bz=01;31:*.tz=01;31:*.rpm=01;31:*.cpio=01;31:*.jpg=01;35:*.gif=01;35:*.bmp=01;35:*.xbm=01;35:*.xpm=01;35:*.png=01;35:*.tif=01;35:'
+
+# The color of man page
+export LESS_TERMCAP_mb=$(printf "\\e[1;31m")         # begin blinding
+export LESS_TERMCAP_md=$(printf "\\e[1;31m")         # begin bold
+export LESS_TERMCAP_me=$(printf "\\e[0m")            # end mode
+export LESS_TERMCAP_se=$(printf "\\e[0m")            # end stadout-mode
+export LESS_TERMCAP_so=$(printf "\\e[1;44;33m")      # begin stadout-mode - info box
+export LESS_TERMCAP_ue=$(printf "\\e[0m")            # end underline
+export LESS_TERMCAP_us=$(printf "\\e[1;32m")         # begin underline
+export LESS='-eirMXR'
+# export LESS="-eirMX"
+export SYSTEMD_LESS=FRXMK
+
+# The setting about history
+export HISTTIMEFORMAT='%F %T '
+export HISTFILESIZE=10000
+export HISTSIZE=10000
+export HISTCONTROL=ignoreboth:erasedups
+
+# for bash-complication@2 & gradle-complication
+export GRADLE_COMPLETION_EXCLUDE_PATTERN='/(integTest|samples|smokeTest|testFixtures|templates|out|features)/'
+
+export LANG=en_US.UTF-8
+export LANGUAGE=$LANG
+export LC_COLLATE=$LANG
+export LC_CTYPE=$LANG
+export LC_MESSAGES=$LANG
+export LC_MONETARY=$LANG
+export LC_NUMERIC=$LANG
+export LC_TIME=$LANG
+export LC_ALL=$LANG
+
+GRADLE_HOME='/opt/gradle/gradle-4.8'
+M2_HOME='/opt/maven/apache-maven-3.5.0'
+M2=$M2_HOME/bin
+MAVEN_OPTS='-Xms512m -Xmx1G'
+ANDROID_HOME='/opt/android'
+ANDROID_NDK_HOME="$ANDROID_HOME/android-ndk"
+JAVA_HOME=$(/usr/libexec/java_home)
+CLASSPATH=".:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar"
+GROOVY_HOME='/usr/local/opt/groovy/libexec'
+TCLTK_HOME='/usr/local/opt/tcl-tk'
+HOMEBREW_SBIN='/usr/local/sbin'
+PYTHONPATH="/usr/local/lib/python2.7/site-packages/:$PYTHONPATH"
+MYSQL_HOME='/usr/local/mysql'
+
+GNUBINHOME='/usr/local/opt/coreutils/libexec/gnubin'
+GNUMANHOME='/usr/local/opt/coreutils/libexec/gnuman'
+GNUWHICH='/usr/local/opt/gnu-which/libexec/gnubin'
+GNUGREP='/usr/local/opt/grep/libexec/gnubin'
+GNUGETOPT='/usr/local/opt/gnu-getopt/bin'
+GNUTAR='/usr/local/opt/gnu-tar/libexec/gnubin'
+GNUFIND='/usr/local/opt/findutils/libexec/gnubin'
+GNUINDENT='/usr/local/opt/gnu-indent/libexec/gnubin'
+GNUSED='/usr/local/opt/gnu-sed/libexec/gnubin'
+PYTHON3='/usr/local/opt/python/libexec/bin'
+
+OPENSSL='/usr/local/opt/openssl/bin'
+INETUTILS='/usr/local/opt/inetutils/libexec/gnubin'
+GNUPATH="$GNUWHICH:$GNUGETOPT:$GNUGREP:$GNUTAR:$GNUFIND:$GNUINDENT:$GNUSED:$INETUTILS"
+
+# PATH=$MYSQL_HOME/bin:$HOMEBREW_SBIN:$GNUBINHOME:$M2:$GRADLE_HOME/bin:"/Applications/Visual Studio Code.app/Contents/Resources/app/bin":/usr/local/opt/file-formula/bin:/usr/local/opt/gettext/bin:$TCLTK_HOME/bin:$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$GROOVY_HOME
+# export MYSQL_HOME JAVA_HOME CLASSPATH GROOVY_HOME GRADLE_HOME M2_HOME M2 MAVEN_OPTS ANDROID_HOME ANDROID_NDK_HOME PATH MANPATH PYTHONPATH
+
+PATH=$OPENSSL:$PYTHON3:$GNUPATH:$HOMEBREW_SBIN:$GNUBINHOME:/usr/local/opt/file-formula/bin:/usr/local/opt/gettext/bin:$PATH
+MANPATH=$GNUMANHOME:$MANPATH
+export JAVA_HOME CLASSPATH M2_HOME M2 MAVEN_OPTS PATH MANPATH
+
+# GROOVY_HOME="/opt/groovy/groovy-3.0.0-alpha-1"
+# PATH=$GROOVY_HOME/bin:$PATH
+
+export GOOGLE_API_KEY='AIzaSyD8DXLV9vSEbghG84Sje37ZuhltkWUr7dA'
+export GOOGLE_DEFAULT_CLIENT_ID='173627079645-o03bgep57m3hj0s3l47smp2jqekd60sq.apps.googleusercontent.com'
+export GOOGLE_DEFAULT_CLIENT_SECRET='nkj-6z3Wew6FLvkUgjDCUohz'
+# export HOMEBREW_GITHUB_API_TOKEN="80cf3215764805c0d385ecb7ac7c6c87df799424"
+export HOMEBREW_INSTALL_BADGE='☕️ 🐸'
+
+# ┌─ (USERNAME@HOSTNAME PATH) ->
+# └─ $
+
+# if [ -z "$DISPLAY" ]
+# then
+#   export PS1="\n${DBLACK}┌─ (\u@\h ${COLRESET} ${DRED}\w${COLRESET}${DBLACK}) ->${COLRESET}\n${DBLACK}└─ ${COLRESET}\`if [ \$? = 0 ]; then echo ${SDBLACK}\\$ ${COLRESET}; else echo ${SDRED}\\$ ${COLRESET}; fi\`${COLNONE}"
+#   export PS2="${DBLACK} -> ${COLRESET}${COLNONE}"
+# else
+  # export PS1="\n${DBLACK}${UMARK}${LMARK} (\u@\h ${COLRESET} ${DRED}\w${COLRESET}${DBLACK}) ->${COLRESET}\n${DBLACK}${DMARK}${LMARK} ${COLRESET}\`if [ \$? = 0 ]; then echo ${SDBLACK}\\$ ${COLRESET}; else echo ${SDRED}\\$ ${COLRESET}; fi\`${COLNONE}"
+  # export PS2="${DBLACK} ->${LMARK} ${COLRESET}${COLNONE}"
+# fi
+
+UMARK='\[\033(0\]l\[\033(B\]'
+DMARK='\[\033(0\]m\[\033(B\]'
+LMARK='\[\033(0\]q\[\033(B\]'
+
+# \[\e[xx;0m]\]:    system color
+# \[\e[xx\;0m]\]:   system color in ``
+
+# \[\e[0;xxm]\]:    profile color (solarized)
+# \[\e[0\;xxm]\]:   profile color (solarized) in ``
+#   0\;xxm;         Normal
+#   1\;xxm:         Bright
+
+SLGREEN='\[\e[32;0m\]'
+SDGREEN='\[\e[32;2m\]'
+# SDGREEN='\[\e[2;32m\]'
+SDYELLOW='\[\e[2;33m\]'
+SLYELLOW='\[\e[0;33m\]'
+
+DBLACK='\[\033[30;1m\]'
+LBLACK='\[\033[30;0m\]'
+SDBLACK='\[\033[1;30m\]'
+SLBLACK='\[\033[0;30m\]'
+SDRED='\[\033[1;31m\]'
+SLRED='\[\033[0;31m\]'
+SDBLUE='\[\033[1;34m\]'
+SLBLUE='\[\033[0;34m\]'
+LRED='\[\033[31;0m\]'
+DRED='\[\033[31;1m\]'
+
+ifDBLACK='\[\033[30\;1m\]'
+ifLBLACK='\[\033[30\;0m\]'
+ifSDBLACK='\[\033[1\;30m\]'
+ifSLBLACK='\[\033[0\;30m\]'
+ifDRED='\[\033[31\;1m\]'
+ifSDRED='\[\033[1\;31m\]'
+ifSLRED='\[\033[0\;31m\]'
+ifSLGREEN='\[\033[0\;32m\]'
+ifSDGREEN='\[\033[1\;32m\]'
+ifSLBLUE='\[\033[0\;34m\]'
+ifSDBLUE='\[\033[1\;34m\]'
+
+COLDEFAULT="${SDGREEN}"
+COLIFDEFAULT="${ifSDGREEN}"
+# COLDEFAULT="${SLBLACK}"
+# COLIFDEFAULT="${ifSLBLACK}"
+COLRESET='\[\033[1m\]'
+COLNONE='\[\033[0m\]'
+
+if which kubectl > /dev/null; then
+  source <(kubectl completion bash)
+fi
+
+# source $(brew --prefix)/Cellar/git/$(git --version | awk -F" " '{print $3}')/etc/bash_completion.d/git-prompt.sh
+source $(brew --prefix)/etc/bash_completion.d/git-prompt.sh
+if [ -f $(brew --prefix)/etc/bash_completion.d/git-completion.bash ]; then
+  source $(brew --prefix)/etc/bash_completion.d/git-completion.bash
+fi
+# source /usr/local/etc/bash_completion.d/git-prompt.sh
+
+# For Mac os -> Solarized Dark
+# export PS1="\n${COLDEFAULT}┌─ (\u@\h${COLRESET} ${SDRED}\w${COLRESET}${COLDEFAULT}) ->${COLRESET}\n${COLDEFAULT}└─ ${COLRESET}\`if [ \$? = 0 ]; then echo ${COLIFDEFAULT}\\$ ${COLRESET}; else echo ${ifSLRED}\\$ ${COLRESET}; fi\`${COLNONE}"
+
+PS1="\\n${COLRESET}${COLDEFAULT}┌─ (\\u@\\h${COLRESET} "
+PS1+="${SLRED}\\w${COLRESET}${COLDEFAULT}) "
+PS1+="\$(__git_ps1 '- (%s) ')${COLRESET}"
+PS1+="${COLDEFAULT}->${COLRESET}"
+PS1+="\\n${COLDEFAULT}└─ ${COLRESET}"
+PS1+="\`if [ \$? = 0 ]; then echo ${COLIFDEFAULT}\\$; else echo ${ifSLRED}\\$; fi\` ${COLRESET}"
+PS1+="${COLNONE}"
+export PS1
+export PS2="${COLDEFAULT}  -> ${COLRESET}${COLNONE}"
