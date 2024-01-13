@@ -7,22 +7,28 @@
 .Trash/
 .archive/
 .npm/
+.cargo
+.sdkman
+.cache
 .beacon/
 .gradle/
 .oracle_jre_usage/
 .bash_sessions/
 .vnc/ViewerStore/
-.vim/?undo/
 .docker/cli-plugins/
 .rbenv/shims/
 .eclipse/org.eclipse.oomph.*/
 .groovy/grapes/
 .gnupg/
+.local/bin
+.config/pulse
+snap
 snipaste/
 Pictures/
 Music/
 Movies/
 cache/
+.vim/?undo/
 undo/
 nundo/
 Library/
@@ -40,6 +46,11 @@ Library/
 **/.ssh/known_hosts*
 **/.marslo/.password-store
 
+.*history
+.vim_mru_files
+.git-credentials
+.*history
+
 *.png
 *.gif
 *.jpeg
@@ -48,5 +59,4 @@ Library/
 .CFUserTextEncoding
 .vim_mru_files
 .DS_Store
-.*history
 .localized

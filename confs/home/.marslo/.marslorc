@@ -159,14 +159,7 @@ else
 fi
 
 # for public server (use common account)
-function bello() {
-  source <( cat "${iRCHOME}"/.{completion/.bash_completion.sh,imac,env,.gitrc}; )
-  source <( cat "${iRCHOME}"/bin/{ifunc,ii,ig,irt,im}.sh; )
-  source <( cat "${iRCHOME}"/.alias/{imarslo,mac,utils,devops,kubernetes,docker}; )
-  # set -o vi
-}
-
-# for public account server
+function bello() { source ~/.marslo/.marslorc; set -o vi; }
 function bye() { source "${iRCHOME}"/.bye; set -o emacs; }
 
 # /--------------------------------------------------------------
@@ -183,7 +176,6 @@ source <( cat "${iRCHOME}"/.gitrc )
 source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ii,ig,irt,im}.sh )
 # source "${iRCHOME}/bin/idisable.sh"
 
-# test -f /usr/local/bin/screenfetch     && /usr/local/bin/screenfetch
 test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
 test -f "${iRCHOME}"/bin/now             && bash "${iRCHOME}"/bin/now
 test -f "${iRCHOME}"/.tmux-session       && source "${iRCHOME}"/.tmux-session
