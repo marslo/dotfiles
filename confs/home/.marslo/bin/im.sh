@@ -4,7 +4,7 @@
 #    FileName : im.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2023-12-23 15:19:41
+#  LastChange : 2024-01-12 18:26:00
 # =============================================================================
 
 function exitOnError() { echo -e "$1"; }
@@ -479,22 +479,6 @@ function fcf() {
     echo 'Error : provide a function name'
   fi
   shopt -s extdebug; declare -F "$1"; shopt -u extdebug
-}
-
-# yum whatprovides
-brew-whatprovides() {
-  if [[ 0 -ne $# ]]; then
-    _p="$*";
-    # shellcheck disable=SC2086
-    _realp="$(realpath ${_p})";
-    while read -r pkg; do
-      echo -ne "\r$(tput el)>> searching in ${pkg} ..."
-      if brew list --verbose "${pkg}" 2>/dev/null | grep "${_realp}" >/dev/null 2>&1; then
-        echo -ne "\r$(tput el)>> \033[0;32m${_p}\033[0m ( \033[0;37m${_realp}\033[0m ) provided by \033[0;33m${pkg}\033[0m";
-        break;
-      fi;
-    done < <(brew leaves);
-  fi
 }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

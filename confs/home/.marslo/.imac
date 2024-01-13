@@ -150,11 +150,30 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   export JAVA_HOME GROOVY_HOME PATH
   export GUILE_TLS_CERTIFICATE_DIRECTORY PYTHONPATH PYTHONUSERBASE CLASSPATH RUBY_CONFIGURE_OPTS
   # export JAVA_OPTS
+
+  # export HOMEBREW_GITHUB_API_TOKEN="80cf3215764805c0d385ecb7ac7c6c87df799424"
+  export HOMEBREW_INSTALL_BADGE='☕️ 🐸'
 fi
 
 # alias after PATH
 for _i in $( /bin/ls -1 ${iRCHOME}/.alias ); do
   source "${iRCHOME}/.alias/${_i}"
 done
+
+# yum whatprovides
+brew-whatprovides() {
+  if [[ 0 -ne $# ]]; then
+    _p="$*";
+    # shellcheck disable=SC2086
+    _realp="$(realpath ${_p})";
+    while read -r pkg; do
+      echo -ne "\r$(tput el)>> searching in ${pkg} ..."
+      if brew list --verbose "${pkg}" 2>/dev/null | grep "${_realp}" >/dev/null 2>&1; then
+        echo -ne "\r$(tput el)>> \033[0;32m${_p}\033[0m ( \033[0;37m${_realp}\033[0m ) provided by \033[0;33m${pkg}\033[0m";
+        break;
+      fi;
+    done < <(brew leaves);
+  fi
+}
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
