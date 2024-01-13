@@ -46,7 +46,6 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
 
   KW_BUILD_TOOLS='/opt/kwbuildtools'
   MACVIM_HOME='/Applications/MacVim.app'
-  NVIM_HOME="/usr/local/nvim"
   # vim-tabnine
   LLVM_HOME="$(brew --prefix llvm)"
 
@@ -55,7 +54,6 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${KW_BUILD_TOOLS}" && TOOLS_PATH+=":${KW_BUILD_TOOLS}/bin"
   test -d "$HOME/.docker"     && TOOLS_PATH+=":$HOME/.docker/bin"
   test -d "${MACVIM_HOME}"    && TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"
-  test -d "${NVIM_HOME}"      && TOOLS_PATH+=":$NVIM_HOME/bin"
   test -d "${LLVM_HOME}"      && TOOLS_PATH+=":${LLVM_HOME}/bin"
 
   GNU_PATH="${GNU_PATH:-}"
