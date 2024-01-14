@@ -52,9 +52,15 @@ _fzf_compgen_dir() {
 #   - otherwise copy the content of parameter `$1` via `pbcopy` or `clip.exe`
 # shellcheck disable=SC2317
 function copy() {                          # smart copy
+  local fdOpt='--type f --hidden --follow --exclude .git --exclude node_modules'
   [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)" && return;
+
   if [[ 0 -eq $# ]]; then
     "${COPY}" < "$(fzf --cycle --exit-0)"
+  elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
+    local target=$1;
+    file=$( fd . "${target}" ${fdOpt} | fzf --cycle --exit-0 ) &&
+      "${COPY}" < "${file}"
   else
     "${COPY}" < "$1"
   fi
@@ -116,6 +122,7 @@ function vim() {                           # magic vim - fzf list in most recent
                  -v ) orgv=1            ; shift   ;;
         -h | --help ) voption+="$1 "    ; shift   ;;
           --version ) voption+="$1 "    ; shift   ;;
+                 -c ) voption+="$1 $2"  ; shift   ;;
       --startuptime ) voption+="$1 $2 " ; shift 2 ;;
                 -Nu ) voption+="$1 $2 " ; shift 2 ;;
               --cmd ) voption+="$1 $2 " ; shift 2 ;;
@@ -124,7 +131,7 @@ function vim() {                           # magic vim - fzf list in most recent
     esac
   done
 
-  [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="$(type -P nvim)"
+  [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="/usr/local/bin/nvim"
 
   if [[ 0 -eq $# ]] && [[ -z "${voption}" ]]; then
     fd . ${fdOpt} | fzf ${foption} --bind="enter:become(${VIM} {+})"

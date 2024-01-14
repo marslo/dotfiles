@@ -10,7 +10,7 @@
 MYWORKSPACE="$HOME/iMarslo"
 
 alias vv="$(type -P  vim) -Nu $HOME/.vimrc"
-alias vi="$(type -P nvim) -Nu $HOME/.config/nvim/init.vim"
+alias vi="/usr/local/bin/nvim -Nu $HOME/.config/nvim/init.lua"
 # alias v='vim -u ~/.vimrc.imarslo'
 # alias vimdiff="$(type -P vim) -d"
 alias tmax='tmux at -t marslo'
@@ -28,6 +28,10 @@ alias as-tree='tree --fromfile'
 alias irc="cd $HOME/.marslo"
 alias desk="cd $HOME/Desktop"
 alias prettypath='echo -e ${PATH//:/\\n}'
+
+alias cfg="cd ~/.config/"
+alias nvd="cd ~/.config/nvim"
+alias vimd="cd ~/.marslo/vimrc.d"
 
 alias mw="cd ${MYWORKSPACE}"
 alias jo="cd ${MYWORKSPACE}/job"
@@ -52,6 +56,7 @@ alias to="cd ${MYWORKSPACE}/tools"
 alias dl="cd ${MYWORKSPACE}/tools/download"
 alias sf="cd ${MYWORKSPACE}/tools/software"
 alias gi="cd ${MYWORKSPACE}/tools/git/marslo"
+alias cddp="cd ${MYWORKSPACE}/tools/git/marslo/deprecated"
 alias ib="cd ${MYWORKSPACE}/tools/git/marslo/ibook/docs"
 alias mi="cd ${MYWORKSPACE}/tools/git/marslo/myvim"
 alias ml="cd ${MYWORKSPACE}/tools/git/marslo/mylinux"
