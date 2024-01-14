@@ -4,11 +4,28 @@ irc="$HOME/.marslo"
 conf='./confs/home'
 file="$HOME/.profile"
 
-[ -d "${irc}" ] || mkdir -p "${irc}"
+[[ -d "${irc}"        ]] || mkdir -p "${irc}"
+[[ -d "${irc}/bin"    ]] || mkdir -p "${irc}/bin"
+[[ -d "${irc}/.alias" ]] || mkdir -p "${irc}/.alias"
 
 # shellcheck disable=SC1083
-cp -t "${irc}" "${conf}"/.marslo/{.marslorc,.imac,.gitalias,.env,.colors,.it2colors,.bye}
-cp -t "${irc}" -r "${conf}"/.marslo/{bin,.alias}
+function macOS() {
+  cp -t "${irc}"        "${conf}"/.marslo/.{marslorc,imac,gitalias,gitrc,env,colors,it2colors,bye}
+  cp -t "${irc}/.alias" "${conf}"/.marslo/.alias/{imarslo,mac,utils,devops,kubernetes,docker}
+}
+
+function unixGeneric() {
+  cp -t "${irc}"        "${conf}"/.marslo/.{marslorc,imac,gitalias,gitrc,env,colors,it2colors,bye}
+}
+
+function bins() {
+  cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{ifunc,ffunc,ii,ig,irt,im}.sh
+  cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{ff,gdoc,fman,ldapsearch}
+  cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{screenfetch-dev,now,iweather,iweather.icon,diff-highlight,git-info}
+  cp -t "${irc}/bin"    "${conf}"/.marslo/bin/git-*
+  cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{bash-color,show-color}.sh
+  cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{appify,ansi}
+}
 
 # shellcheck disable=SC2086
 cp -t $HOME "${conf}"/{.screenrc,tig/.tigrc,tmux/.tmux.conf,.tabset,git/.gitconfig,git/.gitignore,git/.gitattributes}
