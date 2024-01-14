@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-01-12 16:43:05
+#   LastChange : 2024-01-14 15:07:00
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -157,6 +157,45 @@ function v() {                             # v - open files in ~/.vim_mru_files
   vim ${files//\~/$HOME}
 }
 
+# vimrc - open rc files list from "${rcPaths}"
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @description :
+#   - default rcPaths: ~/.marslo ~/.config/nvim ~/.*rc ~/.*profile ~/.*ignore
+#   - using nvim if `command -v nvim` is true
+#   - using `-v` force using `command vim` instead of `command nvim`
+# shellcheck disable=SC2155
+function vimrc() {                         # magic vim - fzf list in most recent modified order
+  local orgv                               # force using vim instead of nvim
+  local rcPaths="$HOME/.config/nvim $HOME/.marslo"
+  local VIM="$(type -P vim)"
+  local foption='--multi --cycle '
+  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
+  if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -v ) orgv=1 ; shift ;;
+       * ) break          ;;
+    esac
+  done
+
+  [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="/usr/local/bin/nvim"
+  fzfInRC | fzf ${foption} --bind="enter:become(${VIM} {+})" \
+                           --bind "ctrl-y:execute-silent(echo -n {+} | ${COPY})+abort" \
+                           --header 'Press CTRL-Y to copy name into clipboard'
+}
+
+function fzfInRC() {
+  local rcPaths="$HOME/.config/nvim $HOME/.marslo"
+  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
+  if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec-batch ls -t'; fi
+  (
+    fd '.*rc|.*profile|.*ignore' $HOME --max-depth 1 ${fdOpt};
+    echo "${rcPaths}" | fmt -1 | xargs -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ ${fdOpt}" ;
+  )
+}
+
 function fzfInPath() {                   # return file name via fzf in particular folder
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec-batch ls -t'; fi
@@ -190,8 +229,7 @@ function vimdiff() {                       # smart vimdiff
 
   if [[ 0 -eq $# ]]; then
     lFile=$(fzfInPath '.' "${option}")
-    # shellcheck disable=SC2154
-    rFile=$(fzfInPath "${iRCHOME}" "${option}")
+    rFile=$(fzfInRC | fzf --cycle --multi "${option}" --header 'filter in rc paths:')
   elif [[ 1 -eq $# ]]; then
     lFile=$(fzfInPath '.' "${option}")
     [[ -d "$1" ]] && rFile=$(fzfInPath "$1" "${option}") || rFile="$1"
