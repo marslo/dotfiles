@@ -24,7 +24,7 @@ function unixGeneric() {
 }
 
 function bins() {
-  cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{ffunc,ii,ig,irt,im}.sh
+  cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{ifunc,ffunc,ii,ig}.sh
   cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{ff,gdoc,fman,ldapsearch}
   cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{screenfetch-dev,now,iweather.icon,diff-highlight,git-info}
   cp -t "${irc}/bin"    "${conf}"/.marslo/bin/git-*
@@ -33,16 +33,28 @@ function bins() {
 }
 
 function encryptFile() {
-  files='iweather ifunc.sh now gdoc ldapsearch'
-  if [[ 'true' = isWSL ]]; then
-    files+=' im.wsl.sh'
+  binFiles='iweather ifunc.sh now gdoc ldapsearch irt.sh'
+  rcFiles='.gitalias'
+  aliasFiles='deovps imarslo'
+  if [[ 'true' = $(isWSL) ]]; then
+    binFiles+=' im.wsl'
+    rcFiles+=' .imarslo.wsl .env.wsl'
   else
-    files+=' im.sh'
+    binFiles+=' im.sh'
+    rcFiles+=' .imarslo .env'
   fi
+
   while read -r _file; do
     cp -t "${irc}/bin/${_file}" "${conf}"/.marslo/bin/"${_file}".current
-  done < <( echo "" | fmt -1 )
+  done < <( echo "${binFiles}" | fmt -1 )
 
+  while read -r _file; do
+    cp -t "${irc}/${_file}" "${conf}"/.marslo/"${_file}".current
+  done < <( echo "${rcFiles}" | fmt -1 )
+
+  while read -r _file; do
+    cp -t "${irc}/.alias/${_file}" "${conf}"/.marslo/.alias/"${_file}".current
+  done < <( echo "${aliasFiles}" | fmt -1 )
 }
 
 function dotConfig() {

@@ -158,6 +158,7 @@ function mg() {
 }
 
 # [f]ind [f]ile and [s]ort
+# shellcheck disable=SC2089,SC2086,SC2090
 function ffs() {
   local opt=''
   while [[ $# -gt 0 ]]; do
@@ -178,7 +179,14 @@ function ffs() {
   depth=${depth//-/}
   local option='--type f'
 
-  if [[ "${opt}" =~ '-g ' ]]; then
+  if [[ 0 = "$#" ]] && [[ "$opt" == -* ]]; then
+    local rcPaths="$HOME/.config/nvim $HOME/.marslo"
+    option+=' --exec stat --printf="%y | %n\n"'
+    (
+      fd '.*rc|.*profile|.*ignore' $HOME --max-depth 1 ${option};
+      echo "${rcPaths}" | fmt -1 | xargs -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ ${option}" ;
+    ) | sort -r | head $opt
+  elif [[ "${opt}" =~ '-g ' ]]; then
     # git show --name-only --pretty="format:" -"${num}" | awk 'NF' | sort -u
     # references: https://stackoverflow.com/a/54677384/2940319
     git log --date=iso-local --first-parent --pretty=%cd --name-status --relative |
