@@ -281,12 +281,16 @@ nnoremap <leader>mp  :execute 'silent !git mp' \| redraw!<CR>
 nnoremap <Leader>ebb :<C-u>call gitblame#echo()<CR>
 " APZelos/blamer.nvim
 nnoremap <Leader>bb  :BlamerToggle<CR>
-let g:blamer_enabled              = 0
+if has( 'nvim' )
+  let g:blamer_enabled            = 1
+else
+  let g:blamer_enabled            = 0
+endif
 let g:blamer_delay                = 100
 let g:blamer_show_in_visual_modes = 0
 let g:blamer_show_in_insert_modes = 0
 let g:blamer_relative_time        = 1
-" let g:blamer_prefix             = ' » '
+let g:blamer_prefix               = '  '
 
 " airblade/vim-gitgutter
 set updatetime=250
@@ -298,8 +302,9 @@ highlight clear SignColumn
 
 " scrooloose/nerdtree
 map <C-S-n> :NERDTreeToggle<CR>
-let g:NERDTreeWinPos = 'left'
-let g:NERDTreeIgnore = [ '^node_modules$' ]
+let g:NERDTreeWinPos   = 'left'
+let g:NERDTreeIgnore   = [ '^node_modules$' ]
+let NERDTreeShowHidden = 1
 
 " RRethy/vim-hexokinase
 let g:Hexokinase_highlighters  = [ 'backgroundfull' ]
@@ -344,8 +349,8 @@ inoremap <silent><expr> <DOWN>
       \ CheckBackspace() ? "\<Tab>" :
       \ coc#refresh()
 inoremap <expr><UP> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
-" inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
-"                               \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+inoremap <silent><expr> <TAB> coc#pum#visible() ? coc#pum#confirm()
+                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 command! -nargs=0 OR   :call     CocActionAsync('runCommand', 'editor.action.organizeImport')
 nmap     <silent> [g  <Plug>(coc-diagnostic-prev)
 nmap     <silent> ]g  <Plug>(coc-diagnostic-next)
@@ -402,6 +407,7 @@ let g:fzf_vim                     = {}
 let g:fzf_vim.preview_window      = [ 'right,50%', 'ctrl-\' ]
 let g:fzf_vim.tags_command        = 'ctags -R'
 let g:fzf_vim.commits_log_options = '--graph --color=always --format="%C(auto)%h%d %s %C(black)%C(bold)%cr"'
+let $FZF_DEFAULT_COMMAND          = 'ag --hidden --ignore .git -l -g ""'
 command! -bang -nargs=? -complete=dir Files
     \ call fzf#vim#files(<q-args>, {'options': ['--layout=reverse', '--info=inline', '--preview', 'bat --color=always {}']}, <bang>0)
 command! -bang -complete=dir -nargs=? LS
