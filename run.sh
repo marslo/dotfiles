@@ -8,6 +8,10 @@ file="$HOME/.profile"
 [[ -d "${irc}/bin"    ]] || mkdir -p "${irc}/bin"
 [[ -d "${irc}/.alias" ]] || mkdir -p "${irc}/.alias"
 
+function isWSL() {
+  if ! uname -r | grep -q "Microsoft"; then echo true; fi
+}
+
 # shellcheck disable=SC1083
 function macOS() {
   cp -t "${irc}"        "${conf}"/.marslo/.{marslorc,imac,gitalias,gitrc,env,colors,it2colors,bye}
@@ -16,23 +20,39 @@ function macOS() {
 
 function unixGeneric() {
   cp -t "${irc}"        "${conf}"/.marslo/.{marslorc,imac,gitalias,gitrc,env,colors,it2colors,bye}
+  cp -rt "${irc}"       "${conf}"/.marslo/vimrc.d
 }
 
 function bins() {
-  cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{ifunc,ffunc,ii,ig,irt,im}.sh
+  cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{ffunc,ii,ig,irt,im}.sh
   cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{ff,gdoc,fman,ldapsearch}
-  cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{screenfetch-dev,now,iweather,iweather.icon,diff-highlight,git-info}
+  cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{screenfetch-dev,now,iweather.icon,diff-highlight,git-info}
   cp -t "${irc}/bin"    "${conf}"/.marslo/bin/git-*
   cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{bash-color,show-color}.sh
   cp -t "${irc}/bin"    "${conf}"/.marslo/bin/{appify,ansi}
 }
 
-# shellcheck disable=SC2086
-cp -t $HOME "${conf}"/{.screenrc,tig/.tigrc,tmux/.tmux.conf,.tabset,git/.gitconfig,git/.gitignore,git/.gitattributes}
-# shellcheck disable=SC2086
-cp -t $HOME/.inputrc "${conf}"/inputrc/.inputrc_bash
-# shellcheck disable=SC2086
-cp -t $HOME -r "${conf}"/{.iStats,.idlerc}
+function encryptFile() {
+  files='iweather ifunc.sh now gdoc ldapsearch'
+  if [[ 'true' = isWSL ]]; then
+    files+=' im.wsl.sh'
+  else
+    files+=' im.sh'
+  fi
+  while read -r _file; do
+    cp -t "${irc}/bin/${_file}" "${conf}"/.marslo/bin/"${_file}".current
+  done < <( echo "" | fmt -1 )
+
+}
+
+function dotConfig() {
+  # shellcheck disable=SC2086
+  cp -rt $HOME "${conf}"/{.config/nvim,tig/.tigrc,tmux/.tmux.conf,git/.gitconfig,git/.gitignore,git/.gitattributes}
+  # shellcheck disable=SC2086
+  cp -t $HOME/.inputrc "${conf}"/.inputrc
+  # shellcheck disable=SC2086
+  cp -t $HOME -r "${conf}"/.{screenrc,iStats,idlerc,fdignore,rgignore}
+}
 
 [ -f "$HOME/.gitconfig" ] && cat >> "$HOME/.gitconfig" << EOF
 [include]
@@ -48,4 +68,5 @@ elif [ -f '/etc/os-release' ]; then
 fi
 
 echo "[ -f \"${irc}\"/.marslorc ] && source \"${irc}\"/.marslorc" >> ~/.bashrc
+# shellcheck disable=SC1090
 source "${file}"

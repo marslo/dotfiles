@@ -23,7 +23,6 @@ source "${iRCHOME}/bin/bash-color.sh"
 # --------------------------------------------------------------/
 GROOVY_HOME='/opt/groovy/current'
 ANSIBLE_COMPLETION_PATH="${iRCHOME}/.completion/ansible-completion"            # https://github.com/dysosmus/ansible-completion
-ENHANCD_HOME="${iRCHOME}/utils/enhancd"
 FZF_HOME="${iRCHOME}"/utils/fzf
 RT_COMPLETION="$HOME/.jfrog/jfrog_bash_completion"
 # NPM_COMPLETION_PATH="/usr/local/lib/node_modules/npm-completion"             # https://github.com/Jephuff/npm-bash-completion
@@ -73,7 +72,6 @@ test -d "${GROOVY_HOME}/bin"                                   && source <( cat 
 test -d "${ANSIBLE_COMPLETION_PATH}"                           && source <( cat "${ANSIBLE_COMPLETION_PATH}"/*.bash )
 test -f "${iRCHOME}/.completion/.bash_completion.sh"           && source <( cat "${iRCHOME}/.completion/.bash_completion.sh" )
 test -f "${RT_COMPLETION}"                                     && source "${RT_COMPLETION}"
-# test -f "${ENHANCD_HOME}"/init.sh                            && source "${ENHANCD_HOME}"/init.sh
 command -v kubectl >/dev/null                                  && source <( $(/usr/bin/which kubectl) completion bash )
 command -v npm     >/dev/null                                  && source <( npm completion )
 command -v vault   >/dev/null                                  && complete -C /usr/local/bin/vault vault
