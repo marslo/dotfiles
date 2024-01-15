@@ -190,14 +190,15 @@ function vimrc() {                         # magic vim - fzf list in most recent
                            --header 'Press CTRL-Y to copy name into clipboard'
 }
 
+# shellcheck disable=SC2089,SC2090
 function fzfInRC() {
   local rcPaths="$HOME/.config/nvim $HOME/.marslo"
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
-  if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec-batch ls -t'; fi
+  if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec stat --printf="%y | %n\n"'; fi
   (
-    fd '.*rc|.*profile|.*ignore' $HOME --max-depth 1 ${fdOpt};
+    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore' $HOME ${fdOpt}"
     echo "${rcPaths}" | fmt -1 | xargs -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
-  )
+  ) |  sort -r | sed -rn 's/^[^|]* \| (.+)$/\1/p'
 }
 
 function fzfInPath() {                   # return file name via fzf in particular folder
