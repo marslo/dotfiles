@@ -1,0 +1,43 @@
+  # if [ -f /etc/bash_completion ]; then"
+    # . /etc/bash_completion"
+  # fi"
+
+test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
+
+# Setting PATH for Python 2.7
+# The original version is saved in .bash_profile.pysave
+# PATH="/Library/Frameworks/Python.framework/Versions/2.7/bin:${PATH}"
+# export PATH
+
+export GOOGLE_API_KEY="AIzaSyD8DXLV9vSEbghG84Sje37ZuhltkWUr7dA"
+export GOOGLE_DEFAULT_CLIENT_ID="173627079645-o03bgep57m3hj0s3l47smp2jqekd60sq.apps.googleusercontent.com"
+export GOOGLE_DEFAULT_CLIENT_SECRET="nkj-6z3Wew6FLvkUgjDCUohz"
+
+
+# https://iterm2.com/documentation-scripting-fundamentals.html
+# function iterm2_print_user_vars() {
+  # iterm2_set_user_var gitBranch $(git symbolic-ref --short HEAD)
+# }
+
+[ -f "/Users/marslo/.marslo/.marslorc" ] && source "/Users/marslo/.marslo/.marslorc"
+[ -d "/Users/marslo/mywork/tools/git/tools/depot_tools" ] && export PATH="$PATH:/Users/marslo/mywork/tools/git/tools/depot_tools"
+
+
+# HomeBrew
+export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
+export PATH="/usr/local/bin:$PATH"
+export PATH="/usr/local/sbin:$PATH"
+# HomeBrew END
+
+
+# HomeBrew
+export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
+export PATH="/usr/local/bin:$PATH"
+export PATH="/usr/local/sbin:$PATH"
+# HomeBrew END
+
+
+# Setting PATH for Python 3.9
+# The original version is saved in .bash_profile.pysave
+# PATH="/Library/Frameworks/Python.framework/Versions/3.9/bin:${PATH}"
+# export PATH
