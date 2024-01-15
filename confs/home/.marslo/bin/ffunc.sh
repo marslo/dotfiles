@@ -56,13 +56,17 @@ function copy() {                          # smart copy
   [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)" && return;
 
   if [[ 0 -eq $# ]]; then
-    "${COPY}" < "$(fzf --cycle --exit-0)"
+    file=$(fzf --cycle --exit-0) &&
+      "${COPY}" < "${file}" &&
+      echo -e "$(c Wd)>>$(c) $(c Gis)${file}$(c) $(c Wdi)has been copied ..$(c)"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
     local target=$1;
     file=$( fd . "${target}" ${fdOpt} | fzf --cycle --exit-0 ) &&
-      "${COPY}" < "${file}"
+      "${COPY}" < "${file}" &&
+      echo -e "$(c Wd)>>$(c) $(c Gis)${file}$(c) $(c Wdi)has been copied ..$(c)"
   else
-    "${COPY}" < "$1"
+    "${COPY}" < "$1" &&
+      echo -e "$(c Wd)>>$(c) $(c Gis)$1$(c) $(c Wdi)has been copied ..$(c)"
   fi
 }
 
@@ -192,7 +196,7 @@ function fzfInRC() {
   if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec-batch ls -t'; fi
   (
     fd '.*rc|.*profile|.*ignore' $HOME --max-depth 1 ${fdOpt};
-    echo "${rcPaths}" | fmt -1 | xargs -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ ${fdOpt}" ;
+    echo "${rcPaths}" | fmt -1 | xargs -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
   )
 }
 
