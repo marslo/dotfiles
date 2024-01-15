@@ -67,7 +67,7 @@ Plug 'pearofducks/ansible-vim'
 Plug 'morhetz/gruvbox'                                              " theme
 Plug 'marslo/marslo.vim'                                            " them for t_Co=16
 Plug 'luochen1990/rainbow'
-Plug 'NvChad/nvim-colorizer.lua'
+Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }           " color show
 Plug 'amadeus/vim-css'
 Plug 'stephpy/vim-yaml'                                             " ╮ yaml
 Plug 'pedrohdz/vim-yaml-folds'                                      " ╯
@@ -305,6 +305,18 @@ map <C-S-n> :NERDTreeToggle<CR>
 let g:NERDTreeWinPos   = 'left'
 let g:NERDTreeIgnore   = [ '^node_modules$' ]
 let NERDTreeShowHidden = 1
+
+" RRethy/vim-hexokinase
+let g:Hexokinase_highlighters  = [ 'backgroundfull' ]
+let g:Hexokinase_optInPatterns = [
+  \   'full_hex',
+  \   'triple_hex',
+  \   'rgb',
+  \   'rgba',
+  \   'hsl',
+  \   'hsla',
+  \   'colour_names'
+  \ ]
 
 " neoclide/coc.nvim
 set updatetime=300
