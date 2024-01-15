@@ -1,0 +1,22 @@
+set nocompatible hidden laststatus=2
+
+if !filereadable('/tmp/plug.vim')
+  silent !curl --insecure -fLo /tmp/plug.vim
+    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+endif
+
+source /tmp/plug.vim
+call plug#begin('/tmp/plugged')
+Plug 'junegunn/fzf', { 'do': './install --bin' }
+Plug 'junegunn/fzf.vim'
+call plug#end()
+
+autocmd VimEnter * PlugClean! | PlugUpdate --sync
+
+" let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+" let &t_SR = "\<Esc>]50;CursorShape=0\x7"
+" let &t_EI = "\<Esc>]50;CursorShape=2\x7"
+
+let &t_SI = "\<Esc>]50;CursorShape=4\x7"
+let &t_SR = "\<Esc>]50;CursorShape=2\x7"
+let &t_EI = "\<Esc>]50;CursorShape=3\x7"

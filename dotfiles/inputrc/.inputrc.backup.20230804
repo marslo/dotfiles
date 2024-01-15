@@ -1,0 +1,61 @@
+set convert-meta on
+set completion-ignore-case on
+set show-all-if-ambiguous on
+set show-all-if-unmodified on
+set mark-symlinked-directories on
+set print-completions-horizontally on
+# https://groups.google.com/g/iterm2-discuss/c/K6YazwKUvjQ/m/7eqeT-AvBgAJ
+set enable-bracketed-paste off
+# set show-mode-in-prompt on
+# TAB: menu-complete
+# set colored-completion-prefix on
+# set colored-stats on
+
+# https://unix.stackexchange.com/a/409866/29178
+set keymap emacs
+"\ee": vi-editing-mode
+
+set keymap vi-insert
+"\e": vi-movement-mode
+# "jk": vi-movement-mode
+# "kj": vi-movement-mode
+
+# set editing-mode vi
+
+# Command Mode
+set keymap vi-command
+"\ee": emacs-editing-mode
+
+v: ""
+Control-a: beginning-of-line
+Control-b: backward-char
+Control-d: delete-char
+Control-e: end-of-line
+Control-f: forward-char
+Control-k: kill-line
+Control-n: next-history
+Control-p: previous-history
+
+# Insert Mode
+set keymap vi-insert
+
+"\C-k": kill-line
+"\C-u": unix-line-discard
+"\C-p": previous-history
+"\C-n": next-history
+"\C-a": beginning-of-line
+"\C-e": end-of-line
+"\C-f": forward-char
+"\C-b": backward-char
+"\C-l": clear-screen
+"\C-d": delete-char
+"\C-h": backward-delete-char
+"\C-w": unix-word-rubout
+
+"\et": transpose-words
+"\ef": forward-word
+"\eb": backward-word
+"\ed": kill-word
+"\e.":yank-last-arg
+"\e_": yank-last-arg
+"\C-_": undo

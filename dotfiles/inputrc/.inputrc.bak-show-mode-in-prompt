@@ -1,0 +1,104 @@
+####################
+# \e : Meta        #
+# \C : Control     #
+####################
+
+# allow iso-latin1 characters to be inserted
+set convert-meta off
+# don't strip characters to 7 bits when reading
+set input-meta on
+set completion-ignore-case on
+set show-all-if-ambiguous on
+set show-all-if-unmodified on
+set mark-symlinked-directories on
+set print-completions-horizontally on
+# https://github.com/scop/bash-completion
+set visible-stats on
+# https://groups.google.com/g/iterm2-discuss/c/K6YazwKUvjQ/m/7eqeT-AvBgAJ
+set enable-bracketed-paste off
+
+# TAB: menu-complete
+# set colored-completion-prefix on
+set colored-stats on
+set skip-completed-text on
+# ask if more than 100 candidates
+# set completion-query-items 100
+
+# https://github.com/calid/bash#usage
+set show-mode-in-prompt on
+set vi-ins-mode-string \1\e[34;1m\2(ins)\1\e[0m\2
+set vi-cmd-mode-string \1\e[35;1m\2(cmd)\1\e[0m\2
+
+set keymap emacs
+"\ee": vi-editing-mode
+
+set keymap vi-command
+"\ee": emacs-editing-mode
+
+# key bindings to get out of vi-editing-mode
+set keymap vi-insert
+"\ee": vi-movement-mode
+
+##### emacs #####
+$if mode=emacs
+"\ee": vi-editing-mode                       # `Esc-e`:vi-insert. https://unix.stackexchange.com/a/409866/29178
+# "\e\e": vi-movement-mode
+"\e~": complete-username
+"\e_": yank-last-arg
+"\e?": possible-completions
+Meta-Control-h: backward-kill-word
+$endif
+
+##### vi #####
+$if mode=vi
+"\ee": emacs-editing-mode
+$endif
+
+##### command mode #####
+$if mode=vi-command
+"\ee": emacs-editing-mode
+
+v: ""
+Control-a: beginning-of-line
+Control-b: backward-char
+Control-d: delete-char
+Control-e: end-of-line
+Control-f: forward-char
+Control-k: kill-line
+Control-n: next-history
+Control-p: previous-history
+$endif
+
+
+##### insert mode #####
+$if mode=vi-insert
+"\ee": emacs-editing-mode
+
+"\C-k": kill-line
+"\C-u": unix-line-discard
+"\C-p": previous-history
+"\C-n": next-history
+"\C-a": beginning-of-line
+"\C-e": end-of-line
+"\C-f": forward-char
+"\C-b": backward-char
+"\C-l": clear-screen
+"\C-d": delete-char
+"\C-h": backward-delete-char
+"\C-w": unix-word-rubout
+
+"\et": transpose-words
+"\ef": forward-word
+"\eb": backward-word
+"\ed": kill-word
+"\e.":yank-last-arg
+"\e_": yank-last-arg
+"\C-_": undo
+$endif
+
+$if Bash
+# edit the path
+"\C-xp": "PATH=${PATH}\e\C-e\C-a\ef\C-f"
+# Quote the current or previous word
+"\C-xq": "\eb\"\ef\""
+$endif
