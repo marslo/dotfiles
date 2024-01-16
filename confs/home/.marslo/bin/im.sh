@@ -19,6 +19,7 @@ function kprod() { kubectl config use-context kubernetes-prod; }
 # shellcheck disable=SC2015
 function kx() { [ "$1" ] && kubectl config use-context "$1" || kubectl config current-context ; }
 function pipurl() { pip list --format=freeze | cut -d= -f1 | xargs pip show | awk '/^Name/{printf $2} /^Home-page/{print ": "$2}' | column -t; }
+function gbl() { git for-each-ref --sort=-committerdate --format='%(committerdate) %(authorname) %(refname)' refs/remotes/origin/ | grep -e ."$*" | head -n 10; }
 function getsum { awk '{ sum += $1 } END { print sum }' "$1"; }
 ## how many days since now https://tecadmin.net/calculate-difference-between-two-dates-in-bash/
 function hmdays() { usage="SYNOPSIS:\t\$ hmdays YYYY-MM-DD"; [[ 1 -ne $# ]] && echo -e "${usage}" || echo $(( ( $(date -d "$1" +%s) - $(date +%s))/(3600*24))) days; }
@@ -161,19 +162,22 @@ function mg() {
 # shellcheck disable=SC2089,SC2086,SC2090
 function ffs() {
   local opt=''
+  local num='-10'
+
   while [[ $# -gt 0 ]]; do
     case "$1" in
-          -g ) opt+="$1 "   ; shift   ;;
-         -fg ) opt+="$1 "   ; shift   ;;
-          -f ) opt+="$1 "   ; shift   ;;
-         --* ) opt+="$1 $2 "; shift 2 ;;
-          -* ) opt+="$1 "   ; shift   ;;
-           * ) break                  ;;
+      $(awk '{a=0}/-[0-9]+/{a=1}a' <<<$1) ) num="$1"     ; shift   ;;
+                                       -g ) opt+="$1 "   ; shift   ;;
+                                      -fg ) opt+="$1 "   ; shift   ;;
+                                       -f ) opt+="$1 "   ; shift   ;;
+                                      --* ) opt+="$1 $2 "; shift 2 ;;
+                                       -* ) opt+="$1 "   ; shift   ;;
+                                        * ) break                  ;;
     esac
   done
 
   local path=${1:-~/.marslo}
-  local num=${2:-10}
+  local num=${2:-$num}
   num=${num//-/}
   local depth=${3:-}
   depth=${depth//-/}
@@ -205,13 +209,8 @@ function ffs() {
                    -printf "%10T+ | %p\n" |
     sort -r |
     head -"${num}"
-  elif [[ 0 = "$#" ]] || [[ "${opt}" =~ -[0-9]+ ]]; then
-    local rcPaths="$HOME/.config/nvim $HOME/.marslo"
-    option+=' --exec stat --printf="%y | %n\n"'
-    (
-      fd '.*rc|.*profile|.*ignore' $HOME --max-depth 1 ${option};
-      echo "${rcPaths}" | fmt -1 | xargs -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${option}" ;
-    ) | sort -r | head $opt
+  elif [[ 0 = "$#" ]]; then
+    fzfInRC | head -"${num}"
   else
     if [[ "${opt}}" =~ .*-t.* ]] || [[ "${opt}" =~ .*--type.* ]]; then
       option="${option//--type\ f/}"
