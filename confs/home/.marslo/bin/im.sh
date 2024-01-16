@@ -179,14 +179,7 @@ function ffs() {
   depth=${depth//-/}
   local option='--type f'
 
-  if [[ 0 = "$#" ]] || [[ "$opt" == -* ]]; then
-    local rcPaths="$HOME/.config/nvim $HOME/.marslo"
-    option+=' --exec stat --printf="%y | %n\n"'
-    (
-      fd '.*rc|.*profile|.*ignore' $HOME --max-depth 1 ${option};
-      echo "${rcPaths}" | fmt -1 | xargs -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${option}" ;
-    ) | sort -r | head $opt
-  elif [[ "${opt}" =~ '-g ' ]]; then
+  if [[ "${opt}" =~ '-g ' ]]; then
     # git show --name-only --pretty="format:" -"${num}" | awk 'NF' | sort -u
     # references: https://stackoverflow.com/a/54677384/2940319
     git log --date=iso-local --first-parent --pretty=%cd --name-status --relative |
@@ -212,6 +205,13 @@ function ffs() {
                    -printf "%10T+ | %p\n" |
     sort -r |
     head -"${num}"
+  elif [[ 0 = "$#" ]] || [[ "${opt}" =~ -[0-9]+ ]]; then
+    local rcPaths="$HOME/.config/nvim $HOME/.marslo"
+    option+=' --exec stat --printf="%y | %n\n"'
+    (
+      fd '.*rc|.*profile|.*ignore' $HOME --max-depth 1 ${option};
+      echo "${rcPaths}" | fmt -1 | xargs -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${option}" ;
+    ) | sort -r | head $opt
   else
     if [[ "${opt}}" =~ .*-t.* ]] || [[ "${opt}" =~ .*--type.* ]]; then
       option="${option//--type\ f/}"
