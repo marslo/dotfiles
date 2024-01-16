@@ -135,7 +135,7 @@ function vim() {                           # magic vim - fzf list in most recent
     esac
   done
 
-  [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="/usr/local/bin/nvim"
+  [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="$(type -P nvim)"
 
   if [[ 0 -eq $# ]] && [[ -z "${voption}" ]]; then
     fd . ${fdOpt} | fzf ${foption} --bind="enter:become(${VIM} {+})"
@@ -184,19 +184,21 @@ function vimrc() {                         # magic vim - fzf list in most recent
     esac
   done
 
-  [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="/usr/local/bin/nvim"
+  [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="$(type -P nvim)"
   fzfInRC | fzf ${foption} --bind="enter:become(${VIM} {+})" \
                            --bind "ctrl-y:execute-silent(echo -n {+} | ${COPY})+abort" \
                            --header 'Press CTRL-Y to copy name into clipboard'
 }
 
+function isWSL() { if uname -r | grep -q 'Microsoft'; then echo 1; fi; }
+
 # shellcheck disable=SC2089,SC2090
 function fzfInRC() {
   local rcPaths="$HOME/.config/nvim $HOME/.marslo"
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
-  if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec stat --printf="%y | %n\n"'; fi
+  fdOpt+=' --exec stat --printf="%y | %n\n"'
   (
-    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore' $HOME ${fdOpt}"
+    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore' $HOME ${fdOpt}";
     echo "${rcPaths}" | fmt -1 | xargs -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
   ) |  sort -r | sed -rn 's/^[^|]* \| (.+)$/\1/p'
 }
