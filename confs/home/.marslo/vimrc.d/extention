@@ -392,7 +392,7 @@ set foldlevelstart=20
 
 " junegunn/fzf.vim
 nnoremap <C-S-p>            :Files<CR>
-nnoremap <C-g>              :GFiles<CR>
+nnoremap <C-S-g>            :GFiles<CR>
 nnoremap <C-s>              :Ag<CR>
 nnoremap <silent> <leader>l :Buffers<CR>
 nnoremap <silent> <Leader>H :Helptags<CR>
