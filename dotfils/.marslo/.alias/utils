@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2015,SC2290
+# shellcheck disable=SC2015,SC2290,SC2139
 # =============================================================================
 #   FileName: utils
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2024-01-12 17:00:29
+# LastChange: 2024-01-17 10:34:26
 # =============================================================================
 
 if [[ 'Darwin' = $(uname --operating-system) ]]; then
@@ -17,6 +17,8 @@ else
   alias lgvim="gvim -c \"normal '0\""
   alias dropcache='sudo echo 3 > /proc/sys/vm/drop_caches'
   alias flushdns="sudo /etc/init.d/nscd restart"
+  # shellcheck disable=SC2162
+  alias howold="sudo tune2fs -l $(df -h / |(read; awk '{print $1; exit}')) | grep -i created"
 fi
 
 command -v trash >/dev/null && alias rm='trash' || alias rm='rm -i'
@@ -26,6 +28,10 @@ command -v trash >/dev/null && alias rm='trash' || alias rm='rm -i'
 alias sudo='sudo '
 alias cp='cp -i'
 alias cpa='cp --parents'
+
+alias vv="$(type -P  vim) -Nu $HOME/.vimrc"
+alias vi="$(type -P nvim) -Nu $HOME/.config/nvim/init.lua"
+# alias vimdiff="$(type -P vim) -d"
 
 # operation of files and directory
 alias cx='chmod u+x'
@@ -70,6 +76,21 @@ alias la='ls -Alvthr --color=always'
 alias l.='ls -dv .* --color=always'
 alias LS='find -mount -maxdepth 1 -printf "%.5m %10M %#9u:%-9g %#5U:%-5G %TF_%TR %CF_%CR %AF_%AR %#15s [%Y] %p\n" 2>/dev/null'
 
+alias tmax='tmux at -t marslo'
+alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
+alias ta='tmux at -t '
+alias tls='tmux ls'
+
+# alias polipo='polipo -c $HOME/.marslo/polipo/config daemonise=true >/dev/null 2>&1 &'
+alias polipo='polipo -c $HOME/.marslo/polipo/config >/dev/null 2>&1 &'
+alias myaws='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.marslo/Marslo/Tools/Softwares/sshkey/marslo-aws.pem ec2-user@ec2-54-193-78-97.us-west-1.compute.amazonaws.com'
+alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_env/ubuntu/backups/ss/sslocal-config.json  -d start --log=/Users/marslo/.marslo/log/sslocal.log'
+alias sshmarslo='ssh marslo@118.193.233.78'
+alias nd='npm run deploy'
+# alias rg='rg --hidden --follow --smart-case --vimgrep --ignore-file=$HOME/.rgignore --color=always'
+alias rg='rg --hidden --follow --smart-case --ignore-file=$HOME/.rgignore --color=always'
+alias as-tree='tree --fromfile'
+
 alias ud='du -h --max-depth=1 --exclude="\./\.*"'
 alias ud.='du -h --max-depth=1'
 alias udf='du -skh'
@@ -86,18 +107,11 @@ alias systemctl='sudo systemctl'
 alias locate='sudo locate'
 alias ports='sudo netstat -tunplea | grep'
 alias reboot='sudo shutdown -r now'
-# alias howold="sudo tune2fs -l $(df -h / |(read; awk '{print $1; exit}')) | grep -i created"
 alias lgout='read ans; kill -HUP $PPID'
 alias showpath='echo -e ${PATH//:/\\n}'
 alias showmanpath="manpath | tr ':' '\n'"
 alias cmount='mount | column -t'
 alias dstat='dstat -cdgilmnprsy'
-alias ta='tmux at -t '
-alias tls='tmux ls'
-# alias rg='rg --hidden --follow --smart-case --vimgrep --ignore-file=$HOME/.rgignore --color=always'
-alias rg='rg --hidden --follow --smart-case --ignore-file=$HOME/.rgignore --color=always'
-alias as-tree='tree --fromfile'
-
 alias wget='wget --no-cookies --no-check-certificate'
 alias curl='command curl --insecure --globoff --netrc-file ~/.marslo/.netrc'
 alias myip='command curl --insecure --globoff -sS https://ipecho.net/plain'

@@ -4,11 +4,18 @@
 #   FileName : .marslorc.wsl
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2024-01-12 17:57:14
+# LastChange : 2024-01-17 11:05:30
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
 source "${iRCHOME}/bin/bash-color.sh"
+
+function isWSL()   { if uname -r | grep -q 'Microsoft'; then echo 1; fi; }
+function isOSX()   { [[ 'Darwin' = $(uname) ]] && echo 1; }
+function isLinux() { [[ '1' != "$(isWSL)" ]] && [[ 'Linux' = $(uname) ]] && echo 1; }
+# for public server (use common account)
+function bello()   { source ~/.marslo/.marslorc; set -o vi;  }
+function bye()     { source "${iRCHOME}"/.bye; set -o emacs; }
 
 # /--------------------------------------------------------------
 #                            _      _   _
@@ -110,10 +117,6 @@ LS="/usr/bin/ls"
 GREP="/usr/bin/grep"
 COPY='/mnt/c/Windows/System32/clip.exe'
 
-# for public server (use common account)
-function bello() { source ~/.marslo/.marslorc; set -o vi; }
-function bye()   { source "${iRCHOME}"/.bye; set -o emacs; }
-
 # /--------------------------------------------------------------
 #                   __
 #                  / _|
@@ -124,7 +127,6 @@ function bye()   { source "${iRCHOME}"/.bye; set -o emacs; }
 #             __/ |
 #            |___/
 # --------------------------------------------------------------/
-source <( cat "${iRCHOME}"/bin/iutils.wsl )
 source <( cat "${iRCHOME}"/bin/{ffunc,ifunc,ig,im}.sh )
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------

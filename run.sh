@@ -11,7 +11,7 @@
 source ./dotfils/.marslo/bin/bash-color.sh
 
 irc="$HOME/.marslo"
-dotfolder='./dotfils'
+dotfolder='./dotfiles'
 CP="$(type -P cp)"
 timestampe="$(date +%y%m%d%H%M%S)"
 
@@ -98,7 +98,7 @@ function bins() {
 
 function completion() {
   mkdir -p "${irc}/completion"
-  ln -sf $(realpath ./dotfils/.marslo/.completion) "${irc}/completion"
+  ln -sf "$(realpath ./dotfils/.marslo/.completion)" "${irc}/completion"
 }
 
 function special() {

@@ -4,11 +4,18 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2023-12-27 05:56:02
+# LastChange : 2024-01-17 11:05:30
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
 source "${iRCHOME}/bin/bash-color.sh"
+
+function isWSL()   { if uname -r | grep -q 'Microsoft'; then echo 1; fi; }
+function isOSX()   { [[ 'Darwin' = $(uname) ]] && echo 1; }
+function isLinux() { [[ '1' != "$(isWSL)" ]] && [[ 'Linux' = $(uname) ]] && echo 1; }
+# for public server (use common account)
+function bello()   { source ~/.marslo/.marslorc; set -o vi;  }
+function bye()     { source "${iRCHOME}"/.bye; set -o emacs; }
 
 # /--------------------------------------------------------------
 #                            _      _   _
@@ -27,7 +34,7 @@ FZF_HOME="${iRCHOME}"/utils/fzf
 RT_COMPLETION="$HOME/.jfrog/jfrog_bash_completion"
 # NPM_COMPLETION_PATH="/usr/local/lib/node_modules/npm-completion"             # https://github.com/Jephuff/npm-bash-completion
 
-if command -v brew >/dev/null; then                                            ## for osx
+if [[ '1' = "$(isOSX)" ]]; then
   HOMEBREW_PREFIX="$(brew --prefix)"
   GROOVY_HOME="${HOMEBREW_PREFIX}/opt/groovy"                                  # GROOVY_HOME="$(brew --prefix groovy)"
   BASH_COMPLETION_DIR="${HOMEBREW_PREFIX}/etc/bash_completion.d"               # BASH_COMPLETION="${HOMEBREW_PREFIX}/opt/bash-completion/etc/bash_completion"
@@ -155,10 +162,6 @@ elif [[ 'Darwin' = "$(uname)" ]]; then
 else
   COPY=''
 fi
-
-# for public server (use common account)
-function bello() { source ~/.marslo/.marslorc; set -o vi; }
-function bye() { source "${iRCHOME}"/.bye; set -o emacs; }
 
 # /--------------------------------------------------------------
 #                   __

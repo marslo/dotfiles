@@ -1,21 +1,12 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1090,SC2154
 # =============================================================================
 #     FileName : .iwsl
 #       Author : marslo.jiao@gmail.com
 #  Description : wsl specific settings
-#   LastChange : 2023-10-07 00:12:02
+#   LastChange : 2024-01-17 11:09:35
 # =============================================================================
 
-while read _i; do source "${iRCHOME}/.alias/$_i"; done < <( /bin/ls -1 "${iRCHOME}/.alias" )
-
-alias mw="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo'"
-alias dos="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo/job/devops'"
-alias clip='/mnt/c/Windows/System32/clip.exe'
-alias pbcopy='/mnt/c/Windows/System32/clip.exe'
-alias bcomp='/mnt/c/Program\ Files/Beyond\ Compare\ 4/BComp.exe'
-alias open='/mnt/c/Windows/explorer.exe'
-alias chrome='/mnt/c/Program\ Files/Google/Chrome/Application/chrome.exe'
-
-# test -f $HOME/iMarslo/tools/git/utils/enhancd/init.sh && source $HOME/iMarslo/tools/git/utils/enhancd/init.sh
+while read -r _i; do source "${iRCHOME}/.alias/$_i"; done < <( /bin/ls -1 "${iRCHOME}/.alias" )
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
