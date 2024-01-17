@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1090,SC1091,SC2034
+# =============================================================================
+#   FileName : .marslorc.wsl
+#     Author : marslo.jiao@gmail.com
+#    Created : 2012
+# LastChange : 2024-01-12 17:57:14
+# =============================================================================
+
+export iRCHOME="$HOME/.marslo"
+source "${iRCHOME}/bin/bash-color.sh"
+
+# /--------------------------------------------------------------
+#                            _      _   _
+#                           | |    | | (_)
+#   ___ ___  _ __ ___  _ __ | | ___| |_ _  ___  _ __
+#  / __/ _ \| '_ ` _ \| '_ \| |/ _ \ __| |/ _ \| '_ \
+# | (_| (_) | | | | | | |_) | |  __/ |_| | (_) | | | |
+#  \___\___/|_| |_| |_| .__/|_|\___|\__|_|\___/|_| |_|
+#                     | |
+#                     |_|
+#
+# --------------------------------------------------------------/
+ANSIBLE_COMPLETION_PATH="${iRCHOME}/.completion/ansible-completion"   # https://github.com/dysosmus/ansible-completion
+FZF_HOME="${iRCHOME}"/utils/fzf                                       # fzf: $ git clone git@github.com:junegunn/fzf.git ${iRCHOME}/utils
+test -d "${ANSIBLE_COMPLETION_PATH}"                 && source <( cat "${ANSIBLE_COMPLETION_PATH}"/*.bash )
+test -f "${iRCHOME}/.completion/.bash_completion.sh" && source "${iRCHOME}/.completion/.bash_completion.sh"
+command -v kubectl           > /dev/null             && source <( kubectl completion bash )
+command -v npm               > /dev/null             && source <( npm completion )
+command -v vault             > /dev/null             && complete -C /usr/local/bin/vault vault
+# install git from source
+test -f /usr/local/libexec/git-core/git-prompt.sh    && source /usr/local/libexec/git-core/git-prompt.sh
+test -f /usr/share/bash-completion/completions/git   && source /usr/share/bash-completion/completions/git
+command -v pipx              > /dev/null             && eval "$(register-python-argcomplete pipx)"
+test -f "${FZF_HOME}/shell/completion.bash"          && source "${FZF_HOME}/shell/completion.bash" 2> /dev/null
+test -f "${FZF_HOME}/shell/key-bindings.bash"        && source "${FZF_HOME}/shell/key-bindings.bash"
+type -t _fd                  >/dev/null 2>&1         && complete -F _fd -o nosort -o bashdefault -o default ff ffs
+type -t _fzf_opts_completion >/dev/null 2>&1         && complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
+test -f "$HOME/.fzf.bash"                            && source "$HOME/.fzf.bash"
+[[ -f "$HOME/.cargo/env" ]]                          && source "$HOME/.cargo/env"
+
+# /--------------------------------------------------------------
+#                   __ _
+#                  / _(_)
+#   ___ ___  _ __ | |_ _  __ _
+#  / __/ _ \| '_ \|  _| |/ _` |
+# | (_| (_) | | | | | | | (_| |
+#  \___\___/|_| |_|_| |_|\__, |
+#                         __/ |
+#                        |___/
+#
+# --------------------------------------------------------------/
+# $ set | grep -e SHELLOPTS -e BASHOPTS
+shopt -s cdspell
+shopt -s cmdhist
+shopt -s histappend
+# shopt -s extdebug
+
+### disable ctrl+s lock putty : # stty -echo; stty stop undef; stty start undef
+# - [here](https://stackoverflow.com/a/25391867/2940319)
+#   - tput : No value for $TERM and no -T specified
+#   - stty : 'standard input': Inappropriate ioctl for device
+if [[ $- == *i*  ]]; then
+  stty ixany
+  stty ixoff -ixon
+  test -f ~/.LESS_TERMCAP && source ~/.LESS_TERMCAP
+  # stty start undef
+fi
+
+# /--------------------------------------------------------------
+#  _                                     _
+# | |                                   | |
+# | |_ ___ _ __ _ __ ___ ______ ___ ___ | | ___  _ __
+# | __/ _ \ '__| '_ ` _ \______/ __/ _ \| |/ _ \| '__|
+# | ||  __/ |  | | | | | |    | (_| (_) | | (_) | |
+#  \__\___|_|  |_| |_| |_|     \___\___/|_|\___/|_|
+#
+#
+# --------------------------------------------------------------/
+export TERM='xterm-color'
+# centos/rhel
+test -e /usr/share/terminfo/x/xterm-256color  && export TERM='xterm-256color'
+# ubuntu
+test -e /lib/terminfo/x/xterm-256color        && export TERM='xterm-256color'
+# cygwin/osx
+test -e /usr/share/terminfo/78/xterm-256color && export TERM='xterm-256color'
+
+test -f "${iRCHOME}"/.env.wsl                 && source "${iRCHOME}"/.env.wsl
+test -f "${iRCHOME}"/.iwsl                    && source "${iRCHOME}"/.iwsl
+test -f "${iRCHOME}"/.tmux-session            && source "${iRCHOME}"/.tmux-session
+test -f "${iRCHOME}"/bin/screenfetch-dev      && bash   "${iRCHOME}"/bin/screenfetch-dev
+test -f "${iRCHOME}"/bin/now                  && bash   "${iRCHOME}"/bin/now
+
+# for open cygwin from totoalcommander/bat/vim
+if [[ -z "$STARTIN" ]]; then
+  cd "$HOME" || true
+elif [[ -d "$STARTIN" ]]; then
+  cd "$STARTIN" || true
+else
+  T=$( dirname "$STARTIN" )
+  if [ -d "$T" ]; then
+    cd "$T" || true
+  else
+    echo "$STARTIN is not a valid path."
+    cd "$HOME" || true
+  fi
+fi
+
+LS="/usr/bin/ls"
+GREP="/usr/bin/grep"
+COPY='/mnt/c/Windows/System32/clip.exe'
+
+# for public server (use common account)
+function bello() { source ~/.marslo/.marslorc; set -o vi; }
+function bye()   { source "${iRCHOME}"/.bye; set -o emacs; }
+
+# /--------------------------------------------------------------
+#                   __
+#                  / _|
+#  _ __ ___  _   _| |_ _   _ _ __   ___
+# | '_ ` _ \| | | |  _| | | | '_ \ / __|
+# | | | | | | |_| | | | |_| | | | | (__
+# |_| |_| |_|\__, |_|  \__,_|_| |_|\___|
+#             __/ |
+#            |___/
+# --------------------------------------------------------------/
+source <( cat "${iRCHOME}"/bin/iutils.wsl )
+source <( cat "${iRCHOME}"/bin/{ffunc,ifunc,ig,im}.sh )
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------
