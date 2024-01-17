@@ -190,8 +190,6 @@ function vimrc() {                         # magic vim - fzf list in most recent
                            --header 'Press CTRL-Y to copy name into clipboard'
 }
 
-function isWSL() { if uname -r | grep -q 'Microsoft'; then echo 1; fi; }
-
 # shellcheck disable=SC2089,SC2090
 function fzfInRC() {
   local rcPaths="$HOME/.config/nvim $HOME/.marslo $HOME/.idlerc $HOME/.ssh"
