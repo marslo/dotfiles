@@ -27,7 +27,6 @@ alias as-tree='tree --fromfile'
 
 alias irc="cd $HOME/.marslo"
 alias desk="cd $HOME/Desktop"
-alias prettypath='echo -e ${PATH//:/\\n}'
 
 alias cfg="cd ~/.config/"
 alias nvd="cd ~/.config/nvim"
@@ -59,8 +58,7 @@ alias gi="cd ${MYWORKSPACE}/tools/git/marslo"
 alias cddp="cd ${MYWORKSPACE}/tools/git/marslo/deprecated"
 alias ib="cd ${MYWORKSPACE}/tools/git/marslo/ibook/docs"
 alias mi="cd ${MYWORKSPACE}/tools/git/marslo/myvim"
-alias ml="cd ${MYWORKSPACE}/tools/git/marslo/mylinux"
-alias dm="cd ${MYWORKSPACE}/tools/git/marslo/mylinux/confs/home/.marslo"
+alias dm="cd ${MYWORKSPACE}/tools/git/marslo/dotfiles"
 alias mt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"
 alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs >/dev/null"
 
