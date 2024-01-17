@@ -1,9 +1,9 @@
 " =============================================================================
-"      FileName : vimrc.cmds
+"      FileName : highlight
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-01-10 22:58:58
+"    LastChange : 2024-01-16 20:35:51
 " =============================================================================
 
 " vim
@@ -26,6 +26,7 @@ highlight! DiffAdd     term=bold    cterm=reverse ctermfg=142 ctermbg=235 gui=re
 highlight! DiffChange  term=bold    cterm=reverse ctermfg=108 ctermbg=235 gui=reverse guifg=#8ec07c guibg=#282828
 highlight! DiffDelete  term=bold    cterm=reverse ctermfg=167 ctermbg=235 gui=reverse guifg=#fb4934 guibg=#282828
 highlight! DiffText    term=reverse cterm=reverse ctermfg=214 ctermbg=235 gui=reverse guifg=#fabd2f guibg=#282828
+highlight! link SpellBad  Underlined
 
 " markdown
 " highlight! htmlLink cterm=italic,underline ctermfg=245 gui=italic,underline guifg=#928374
