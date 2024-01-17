@@ -7,14 +7,19 @@ Life is short, make it easier!
 - Created: 2013-10-07 21:43:42
 - LastChange: 2024-01-17 01:19:06
 
-## content
+## table of content
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [setup](#setup)
-- [`~/.marslo/.marslorc`](#marslomarslorc)
-- [gitalias](#gitalias)
-- [tig](#tig)
+- [folder structure](#folder-structure)
+- [manual configure](#manual-configure)
+  - [`~/.marslo/.marslorc`](#marslomarslorc)
+  - [inputrc:](#inputrc)
+  - [nvim](#nvim)
+  - [gitalias](#gitalias)
+  - [tig](#tig)
+  - [python IDLE](#python-idle)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -22,13 +27,31 @@ Life is short, make it easier!
 
 ![LS_COLORS](./screenshot/LS_COLORS.png)
 
-### setup
+## setup
 ```bash
 $ bash run.sh
 ```
 
+## folder structure
+```bash
+dotfils                    # -> $HOME
+├── .config
+│   ├── nvim               # nvim/init.lua
+│   └── ...
+├── .marslo
+│   ├── .alias             # all alias
+│   ├── bin                # all bins/scripts
+│   └── vimrc.d            # all vimrc congiures
+├── .vimrc                 # source vimrc.d/*
+├── .marsorc               # ╮ source all in `.marslo/{.alias,bin}`
+├── .marsorc.wsl           # ╯
+├── .bashrc                # source ~/.marslorc or ~/.marslorc.wsl
+└── ...                    # rc/profile/ignore/...
+```
+
 ![bash](./screenshot/shell.png)
 
+## manual configure
 ### `~/.marslo/.marslorc`
 - add `source` as blow in `.bashrc` or `/etc/bashrc`(RHEL/CentOS) or `/etc/bash.bashrc`(Ubuntu) or `~/.bash_profile`(OSX)
   ```bash
@@ -38,48 +61,54 @@ $ bash run.sh
   [ -f "~/.marslo/.marslorc.wsl" ] && source "~/.marslo/.marslorc.wsl"
   ```
 
-- inputrc:
-  - Copy the `.inputrc` to `$HOME`
-    ```bash
-    $ cp mylinux/confs/home/inputrc/.inputrc_bash ~/.inputrc
-    ```
+### inputrc:
+- Copy the `.inputrc` to `$HOME`
+  ```bash
+  $ cp ./dotfils/.inputrc ~/.inputrc
+  ```
 
-  ![hybird mode for inputrc](https://marslo.github.io/ibook/screenshot/shell/bash-bind-mode-string-cursor-shape.gif)
+![hybird mode for inputrc](https://marslo.github.io/ibook/screenshot/shell/bash-bind-mode-string-cursor-shape.gif)
 
-- the vim in github:
+### nvim
 
   ![nvim](https://marslo.github.io/ibook/screenshot/vim/nvim-treesitter-coc-lspconfig.gif)
 
   ![nvim](./screenshot/nvim.png)
 
 ### gitalias
-- add `include` tag into `~/.gitconfig`
-  ```
-  [include]
-    path = ~/.marslo/.gitalias
-  ```
+```bash
+$ cp ./dotfils/.marslo/.gitalias ~/.marslo
 
-  ![gitalias](./screenshot/gitalias.gif)
+# included in .gitconfig
+$ echo "[include]"                    >> ~/.gitconfig
+$ echo "  path = ~/.marslo/.gitalias" >> ~/.gitconfig
+# or
+$ cat >> ~/.gitconfig << EOF
+[include]
+  path = ~/.marslo/.gitalias
+EOF
+```
+
+![gitalias](./screenshot/gitalias.gif)
 
 ### tig
 #### installation
-- ubuntu:
-  ```bash
-  $ sudo apt install tig
-  ```
-  - install
-    ```bash
-    $ git clone git@github.com:jonas/tig.git
-    $ make prefix=/usr/local/tig
-    $ sudo make prefix=/usr/local/tig install
-    ```
+```bash
+# ubuntu:
+$ sudo apt install tig
+
+# from source
+$ git clone git@github.com:jonas/tig.git
+$ make prefix=/usr/local/tig
+$ sudo make prefix=/usr/local/tig install
+```
 
 - config: copy `.tigrc` to `$HOME` folder
   ```bash
   $ cp ./dotfils/.tigrc ~
   ```
 
-### idle
+### python IDLE
 
 ![idle solarized dark](./screenshot/idle-solarized-dark.png)
 
