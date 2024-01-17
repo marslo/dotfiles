@@ -43,6 +43,7 @@ function windDirection() {
   fi
 }
 
+# shellcheck disable=SC2086
 function getLatLon() {
   ccity=$(echo "$*" | xargs | sed 's/ /%20/g')
   # ${CURL} -skg "${API_HOME}?q=${ccity,,}&appid=${OWM_API_TOKEN}&limit=5" | jq -r '.[] | select(.state == "California") | .lat ...'
@@ -68,7 +69,7 @@ function getWeatherData() {
 # shellcheck disable=SC2086,SC1091
 source "$(dirname $0)/iweather.icon"
 API_HOME='https://api.openweathermap.org'
-CURL='/usr/local/opt/curl/bin/curl'
+CURL="$(type -P curl)"
 curlOpt='-skg -x http://sample.proxy.com:8080'
 tempfile='/tmp/open-weather-map.json'
 locFile='/tmp/omw-lat-lon'
