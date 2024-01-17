@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2139,SC2034,SC2154
+# =============================================================================
+#   FileName : imarslo.wsl
+#     Author : marslo.jiao@gmail.com
+#    Created : 2017-10-30 19:07:45
+# LastChange : 2024-01-17 11:12:06
+# =============================================================================
+
+MYWORKSPACE="$HOME/iMarslo"
+
+if [[ '1' = "$(isWSL)" ]]; then
+  alias dsk="cd $HOME/userprofile/Desktop"
+  alias up="cd $HOME/userprofile"
+  alias proj="cd ${MYWORKSPACE}/myprogramfiles"
+  alias mw="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo'"
+  alias dos="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo/job/devops'"
+  alias clip='/mnt/c/Windows/System32/clip.exe'
+  alias pbcopy='/mnt/c/Windows/System32/clip.exe'
+  alias bcomp='/mnt/c/Program\ Files/Beyond\ Compare\ 4/BComp.exe'
+  alias open='/mnt/c/Windows/explorer.exe'
+  alias chrome='/mnt/c/Program\ Files/Google/Chrome/Application/chrome.exe'
+fi
+
+alias irc="cd $HOME/.marslo"
+alias desk="cd $HOME/Desktop"
+
+alias cfg="cd ~/.config/"
+alias vimd="cd ~/.marslo/vimrc.d"
+
+alias mw="cd ${MYWORKSPACE}"
+alias jo="cd ${MYWORKSPACE}/job"
+alias jc="cd ${MYWORKSPACE}/job/code"
+alias fw="cd ${MYWORKSPACE}/job/code/fw"
+alias ga="cd ${MYWORKSPACE}/job/code/fw/vega"
+alias wk="cd ${MYWORKSPACE}/job/code/fw/wukong"
+alias infra="cd ${MYWORKSPACE}/job/code/devops/eh/selenite/Build/Infrastructure"
+alias ds="cd ${MYWORKSPACE}/job/code/devops"
+alias dj="cd ${MYWORKSPACE}/job/code/devops/jenkins"
+alias ju="cd ${MYWORKSPACE}/job/code/devops/ju"
+alias jl="cd ${MYWORKSPACE}/job/code/devops/jl"
+alias asb="cd ${MYWORKSPACE}/job/code/devops/ansible"
+alias jsb="cd ${MYWORKSPACE}/job/code/devops/ansible/roles/kubernetes/jenkins"
+alias eng="cd ${MYWORKSPACE}/job/code/devops/eng"
+alias wj="cd ${MYWORKSPACE}/job/code/devops/eng/wukong"
+alias vj="cd ${MYWORKSPACE}/job/code/devops/eng/vega"
+alias hj="cd ${MYWORKSPACE}/job/code/devops/eng/hal"
+alias xj="cd ${MYWORKSPACE}/job/code/devops/eng/nevox"
+alias lj="cd ${MYWORKSPACE}/job/code/devops/eng/lion"
+alias zj="cd ${MYWORKSPACE}/job/code/devops/eng/zao"
+alias pj="cd ${MYWORKSPACE}/job/code/devops/eng/pegasus"
+alias ej="cd ${MYWORKSPACE}/job/code/devops/eng/ejenkins"
+alias bj="cd ${MYWORKSPACE}/job/code/devops/eng/hayabusa3"
+alias aj="cd ${MYWORKSPACE}/job/code/devops/eng/alpine"
+alias sj="cd ${MYWORKSPACE}/job/code/devops/eng/sip"
+alias dos="cd ${MYWORKSPACE}/job/code/devops"
+alias onf="cd ${MYWORKSPACE}/job/code/tool-config"
+
+alias st="cd ${MYWORKSPACE}/study"
+if [[ -d "${MYWORKSPACE}/study" ]]; then
+  alias sc="cd ${MYWORKSPACE}/study/code/marslo"
+
+  alias sg="cd ${MYWORKSPACE}/study/mystudy/groovy"
+  alias sp="cd ${MYWORKSPACE}/study/mystudy/python"
+  alias spc="cd ${MYWORKSPACE}/study/mystudy/python/leetcode"
+  alias sk="cd ${MYWORKSPACE}/study/mystudy/kubernetes"
+  alias cdjf="cd ${MYWORKSPACE}/study/mystudy/jenkinsfil"
+  alias cdku="cd ${MYWORKSPACE}/study/mystudy/kubernetes"
+
+  alias mco="cd ${MYWORKSPACE}/study/mycode"
+  alias cdj="cd ${MYWORKSPACE}/study/mycode/devops"
+  alias cdba="cd ${MYWORKSPACE}/study/code/backups"
+  alias cdmac="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/mac"
+  alias msp="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/belloMarslo/"
+fi
+
+alias to="cd ${MYWORKSPACE}/tools"
+alias dl="cd ${MYWORKSPACE}/tools/download"
+alias sf="cd ${MYWORKSPACE}/tools/software"
+alias gi="cd ${MYWORKSPACE}/tools/git/marslo"
+alias cddp="cd ${MYWORKSPACE}/tools/git/sandbox/deprecated"
+alias ib="cd ${MYWORKSPACE}/tools/git/marslo/ibook/docs"
+alias mi="cd ${MYWORKSPACE}/tools/git/marslo/myvim"
+alias dm="cd ${MYWORKSPACE}/tools/git/marslo/dotfiles"
+alias mt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"
+alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs >/dev/null"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

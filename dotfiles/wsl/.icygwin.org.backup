@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+
+# alias gvim="$HOME/marslo/myprogramfiles/Vim/vim74/gvim.exe $(cygpath -d $@)"
+alias vimdiff="vimdiff -u $HOME/.vimrc"
+alias gvim="$HOME/iMarslo/myprograms/Vim/vim90/gvim.exe -u $HOME/.vimrc"
+# alias vimdiff="vimdiff -u $HOME/.cygwin/.vimrc"
+alias buildvim="make -f Make_cyg.mak PYTHON=/cygdrive/c/marslo/myprogramfiles/Python27 DYNAMIC_PYTHON=yes PYTHON_VER=27 PYTHON3=/cygdrive/c/marslo/myprogramfiles/Python38 DYNAMIC_PYTHON3=yes PYTHON3_VER=38 FEATURES=huge IME=yes GIME=yes MBYTE=yes CSCOPE=yes USERNAME=marslo.Jiao USERDOMAIN=China GUI=yes"
+alias dp='cygpath -d $PWD'
+# '/usr/bin/cygpath.exe -d $PWD'
+# alias git='$HOME/marslo/myprogramfiles/Git/bin/git.exe'
+
+alias irc="cd ~/.marslo"
+alias up="cd $HOME"
+alias jo="cd $HOME/iMarslo/job"
+alias co="cd $HOME/iMarslo/job/code"
+alias ds="cd $HOME/iMarslo/job/code/devops"
+alias dj="cd $HOME/iMarslo/job/code/devops/jenkins"
+alias ju="cd $HOME/iMarslo/job/code/devops/ju"
+alias jl="cd $HOME/iMarslo/job/code/devops/jl"
+alias asb="cd $HOME/iMarslo/job/code/devops/ansible"
+alias jsb="cd $HOME/iMarslo/job/code/devops/ansible/roles/kubernetes/jenkins"
+alias infra="cd $HOME/iMarslo/job/code/devops/eh/selenite/Build/Infrastructure"
+alias ej="cd $HOME/iMarslo/job/code/devops/ejenkins"
+alias vj="cd $HOME/iMarslo/job/code/devops/eng/vega"
+alias wj="cd $HOME/iMarslo/job/code/devops/eng/wukong"
+alias hj="cd $HOME/iMarslo/job/code/devops/eng/hal"
+alias bj="cd $HOME/iMarslo/job/code/devops/eng/hayabusa3"
+alias aj="cd $HOME/iMarslo/job/code/devops/eng/alpine"
+alias fw="cd $HOME/iMarslo/job/code/fw"
+alias wk="cd $HOME/iMarslo/job/code/fw/wukong"
+alias ga="cd $HOME/iMarslo/job/code/fw/vega"
+alias onf="cd $HOME/iMarslo/job/code/tool-config"
+alias sc="cd $HOME/iMarslo/study/code/marslo"
+alias tl="cd $HOME/iMarslo/tools"
+alias gi="cd $HOME/iMarslo/tools/git/marslo"
+alias mb="cd $HOME/iMarslo/tools/git/marslo/ibook/docs"
+alias so="cd $HOME/iMarslo/study/code"
+alias dl="cd $HOME/iMarslo/tools/download"
+alias sf="cd $HOME/iMarslo/tools/software"
+alias to="cd $HOME/iMarslo/tools"
+alias desk="cd $HOME/Desktop"
+alias dsk="cd $HOME/userprofile/Desktop"
+alias proj="cd $HOME/iMarslo/myprogramfiles"
+
+alias gitinfo='source $HOME/.gitinfo'
+alias exp='explorer.exe .'
+# alias open='explorer.exe'
+# alias which='/usr/bin/which -a'
+# alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
+alias tree='$HOME/marslo/myprogramfiles/cygwin64/bin/tree.exe'
+
+# Dangerous operation needs confirm
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# alias ssh='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $HOME/marslo/tools/Software/System/RemoteConnection/AuthorizedKeys/marslo\@Appliance'
+# alias scp='scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/marslo/tools/Software/System/RemoteConnection/AuthorizedKeys/marslo\@Appliance'
+# alias ssh='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $HOME/marslo/tools/Software/System/RemoteConnection/AuthorizedKeys/marslo\@devops/marslo\@devops'
+# alias scp='scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $HOME/marslo/tools/Software/System/RemoteConnection/AuthorizedKeys/marslo\@devops/marslo\@devops'
+
+# Operation of files and directory
+alias cx='chmod u+x'
+alias c='clear'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias d='cd -'
+alias dc='cd $1'
+alias -- +='pushd .'
+alias -- ++='pushd +1'
+alias -- +++='pushd +2'
+alias -- -='popd'
+alias -- --='pushd -0'
+alias -- ---='pushd -1'
+alias dv='dirs -v'
+alias :q='exit'
+alias :x='exit'
+alias :qa='exit'
+
+# Show colorful
+alias grep='grep -i --color=auto'
+alias egrep='egrep -i --color=auto'
+alias h='history | grep $@'
+
+alias ls='ls -NF --color=always'
+alias l='ls -lthrNF --color=always'
+alias la='ls -AlthrNF --color=always'
+alias l.='ls -d .* --color=always'
+alias ld='\ls -NAld --color=always */'
+
+alias lvim="vim -c \"normal '0\""
+alias lgvim="gvim -c \"normal '0\""
+
+alias c='clear'
+alias ff=firefox
+alias ud.='du -h --max-depth=1 --exclude='\./\.*''
+alias ud='du -h --max-depth=1'
+alias df='df -kTh'
+alias shutdown='sudo shutdown -h now'
+alias reboot='sudo shutdown -r now'
+# alias chrome="$HOME/Program Files/Google/Chrome/Application/chrome.exe"
+
+# alias pbcopy='clip.exe'
+# alias pbcopy='xclip -selection clipboard'
+# alias pbpaste='xclip -selection clipboard -o'
+# alias curl="curl --netrc-file $HOME/.marslo/.netrc"
+
+alias kc='kubectl -n kube-system'
+alias ka='kubeadm -n kube-system'
+alias kl='kubelet -n kube-system'
+alias kcd="kubectl -n devops-ci"
+alias kw='kubectl -n wukong-ci'
+alias ke='kubectl -n dc5-elk-devops'
+alias k=kubectl
+alias d=docker
+
+while read -r _i; do
+  complete -F __start_kubectl "${_i}"
+done < <(alias | grep kubectl | sed '/^alias /!d;s/^alias //;s/=.*$//')
+
+function gvim() {
+  GVIM_CMD=$HOME/../../marslo/myprogramfiles/Vim/vim82/gvim.exe
+  if [[ -z "$@" ]]; then
+    arg=""
+  else
+    arg=$(/usr/bin/cygpath.exe -w $@)
+  fi
+  $GVIM_CMD ${arg}
+}
+
+# vim:ts=2:sts=2:sw=2:et:ft=sh
