@@ -20,6 +20,11 @@ function file644() { find . -type f -perm 0777 \( -not -path "*.git" -a -not -pa
 function cleanview() { rm -rf ~/.vim/view/*; }
 function zh() { zipinfo "$1" | head; }
 
+# export cl=`p4 change -o | sed 's/<enter description here>/"Change list description"/' | sed '/^#/d' | sed '/^$/d' | p4 change -i | cut -d ' ' -f 2`
+function p4nc() { p4 change -o | sed '/^#/d' | sed '/^$/d' | sed "s|Description: |Description: $*|" | sed "s|JIRA ID.*$|JIRA ID: APPSOL-00000|" | sed "s|Review.*$|Review: self-review|" | sed "s/+$//" | p4 change -i; }
+function p4blame() { FILE="$1"; LINE="$2"; p4 annotate -cq "${FILE}" | sed "${LINE}q;d" | cut -f1 -d: | xargs p4 describe -s | sed -e '/Affected files/,$d'; }
+function p4cd() { unset P4DIFF; p4 opened -c $1 | awk -F' ' '{print $1}' | p4 -x - -z tag diff -du > $1.diff; export P4DIFF=vimdiff; }
+
 function dir() {
   [[ 0 -eq $# ]] && _p='.' || _p="$*"
   find . -iname "${_p}" -print0 | xargs -r0 ${LS} -altr | awk '{print; total += $5}; END {print "total size: ", total}';
@@ -126,6 +131,71 @@ hmdays() {
   fi
 }
 
+# for git diff
+# Inspired from http://stackoverflow.com/questions/8259851/using-git-diff-how-can-i-get-added-and-modified-lines-numbers
+function diff-lines() {
+  local path=
+  local line=
+  while read; do
+    esc=$'\033'
+    if [[ $REPLY =~ ---\ (a/)?.* ]]; then
+      continue
+    elif [[ $REPLY =~ \+\+\+\ (b/)?([^[:blank:]$esc]+).* ]]; then
+      path=${BASH_REMATCH[2]}
+    elif [[ $REPLY =~ @@\ -[0-9]+(,[0-9]+)?\ \+([0-9]+)(,[0-9]+)?\ @@.* ]]; then
+      line=${BASH_REMATCH[2]}
+    elif [[ $REPLY =~ ^($esc\[[0-9;]+m)*([\ +-]) ]]; then
+      echo "$path:$line:$REPLY"
+      if [[ ${BASH_REMATCH[2]} != - ]]; then
+        ((line++))
+      fi
+    fi
+  done
+}
+
+# author: Duane Johnson
+# email: duane.johnson@gmail.com
+# date: 2008 Jun 12
+# license: MIT
+# Modified by marslo.vida@gmail.com
+# date: 2013-10-15 17:54:58
+# Based on discussion at http://kerneltrap.org/mailarchive/git/2007/11/12/406496
+# For get git infor
+function gitinfo() {
+  # pushd . >/dev/null
+  # Find base of git directory
+  # while [ ! -d .git ] && [ ! `pwd` = "/" ]; do cd ..; done
+
+  gittop=$(git rev-parse --show-toplevel 2>/dev/null)
+
+  # Show various information about this git directory
+  if [ ! -z "$gittop" ]; then
+    echo "== Remote URL: "
+    git remote -v
+    echo
+
+    echo "== Remote Branches: "
+    git branch -r
+    echo
+
+    echo "== Local Branches:"
+    git branch
+    echo
+
+    echo "== Configuration (.git/config)"
+    cat ${gittop}/.git/config
+    echo
+
+    echo "== Most Recent Commit"
+    git plog --max-count=3
+    echo
+
+    echo "Type 'git plog', 'git plogs' and 'git log' for more commits, or 'git show' for full commit details."
+  else
+    echo "Not a git repository."
+  fi
+  # popd >/dev/null
+}
 
 # For ssh agent
 # start the ssh-agent
@@ -212,5 +282,88 @@ function proxydefault() {
   export http_proxy HTTP_PROXY https_proxy HTTPS_PROXY ftp_proxy FTP_PROXY
   export no_proxy NO_PROXY
 }
+
+function gitFetch() {
+  GITDIR=${1%%/}
+  GITBRANCH=$2
+  ISStashed=false
+  pushd . > /dev/null
+  cd "${GITDIR}"
+  echo -e "\\033[34m=== ${GITDIR} ===\\033[0m"
+
+  if git rev-parse --git-dir > /dev/null 2>&1; then
+    utFiles=$(git ls-files --others --exclude-standard)
+    mdFiles=$(git ls-files --modified)
+    cBranch=$(git rev-parse --abbrev-ref HEAD)
+    [[ -n "${utFiles}" ]] && echo -e "\\033[35mUNTRACKED FILES in ${cBranch}: ${utFiles}\\033[0m"
+
+    if ! git branch -a | ${GREP} ${GITBRANCH} > /dev/null 2>&1; then
+      GITBRANCH=master
+    fi
+    echo -e "\\033[33m-> ${GITBRANCH}\\033[0m"
+
+    # checkout branch to $GITBRANCH
+    if [[ ! "${cBranch}" = "${GITBRANCH}" ]]; then
+      if [[ -n "${mdFiles}" ]]; then
+        echo -e "\\033[31mGIT STASH: ${GITDIR} : ${cBranch} !!\\033[0m"
+        git stash save "auto-stashed by gitFetch command"
+        ISStashed=true
+      fi
+      git checkout "${GITBRANCH}"
+    fi
+
+    # remove the local branch if the branch has been deleted in remote
+    if git remote prune origin --dry-run | ${GREP} prune; then
+      prBranch=$(git remote prune origin --dry-run | ${GREP} prune | awk -F'origin/' '{print $NF}')
+      if [ "${cBranch}" = "${prBranch}" ] && [ -z "${mdFiles}" ]; then
+        echo -e "\\033[32mThe current branch ${cBranch} has been rmeoved in remote. And the current branch has no modified files!\\033[0m"
+        ISStashed=false
+      fi
+
+      if git branch | ${GREP} "${prBranch}"; then
+        echo -e "\\033[35mREMOVE LOCAL BRNACH ${prBranch}, due to ${prBranch} has been rmeoved in remote.\\033[0m"
+        if ! git branch -D "${prBranch}"; then
+          echo -e "\\033[32mWARNING: REMOVE LOCAL BRANCH ${prBranch} failed!!\\033[0m"
+        fi
+      fi
+    fi
+
+    # git fetchall on ${GITBRANCH}
+    git remote prune origin
+    git fetch origin --prune
+    git fetch --all --force
+    git merge --all --progress
+
+    # restore the current working branch
+    if ${ISStashed}; then
+      git checkout "${cBranch}"
+      git stash pop
+      echo -e "\\033[35mGIT STASH POP: ${GITDIR} : ${cBranch}\\033[0m"
+    fi
+  else
+    echo -e "\\033[33mNOT Git Repo!!\\033[0m"
+  fi
+  popd > /dev/null
+}
+
+function fetchdir() {
+  myDir="$1"
+  for i in $(${LS} -1d ${myDir%%/}/); do
+    gitFetch "$i" "dev"
+  done
+}
+
+function fetchall() {
+  if [ 1 -eq $# ]; then
+    brName=$1
+  else
+    brName="dev"
+  fi
+  # shellcheck disable=SC2035
+  for i in $(${LS} -1d */); do
+    gitFetch "$i" "$brName"
+  done
+}
+
 
 # vim:ts=2:sts=2:sw=2:et:ft=sh
