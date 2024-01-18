@@ -23,9 +23,9 @@ Life is short, make it easier!
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-![ffunc.sh](./screenshot/ffunc.sh.gif)
+![ffunc.sh](https://github.com/marslo/dotfiles/raw/assets/screenshots/ffunc.sh.gif)
 
-![LS_COLORS](./screenshot/LS_COLORS.png)
+![LS_COLORS](https://github.com/marslo/dotfiles/raw/assets/screenshots/LS_COLORS.png)
 
 ## setup
 ```bash
@@ -49,7 +49,8 @@ dotfils                    # -> $HOME
 └── ...                    # rc/profile/ignore/...
 ```
 
-![bash](./screenshot/shell.png)
+![bash]
+(https://github.com/marslo/dotfiles/raw/assets/screenshots/shell.png)
 
 ## manual configure
 ### `~/.marslo/.marslorc`
@@ -73,7 +74,7 @@ dotfils                    # -> $HOME
 
   ![nvim](https://marslo.github.io/ibook/screenshot/vim/nvim-treesitter-coc-lspconfig.gif)
 
-  ![nvim](./screenshot/nvim.png)
+  ![nvim](https://github.com/marslo/dotfiles/raw/assets/screenshots/nvim.png)
 
 ### gitalias
 ```bash
@@ -89,7 +90,7 @@ $ cat >> ~/.gitconfig << EOF
 EOF
 ```
 
-![gitalias](./screenshot/gitalias.gif)
+![gitalias](https://github.com/marslo/dotfiles/raw/assets/screenshots/gitalias.gif)
 
 ### tig
 #### installation
@@ -110,6 +111,6 @@ $ sudo make prefix=/usr/local/tig install
 
 ### python IDLE
 
-![idle solarized dark](./screenshot/idle-solarized-dark.png)
+![idle solarized dark](https://github.com/marslo/dotfiles/raw/assets/screenshots/idle-solarized-dark.png)
 
-![idle gruvbox](./screenshot/idle-gruvbox.png)
+![idle gruvbox](https://github.com/marslo/dotfiles/raw/assets/screenshots/idle-gruvbox.png)
