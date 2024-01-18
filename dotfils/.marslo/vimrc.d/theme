@@ -32,12 +32,7 @@ set termguicolors
 if has( 'gui_running' ) || 'xterm-256color' == $TERM
   set background=dark
 
-  if has('macunix')
-    colorscheme gruvbox-material                                    " sainnhe/gruvbox-material
-  else
-    colorscheme gruvbox                                             " morhetz/gruvbox
-  endif
-
+  colorscheme gruvbox-material                                      " sainnhe/gruvbox-material
   " colorscheme habamax
 
   """ terminal : `:help terminal-info`

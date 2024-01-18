@@ -30,8 +30,12 @@ function bye()     { source "${iRCHOME}"/.bye; set -o emacs; }
 # --------------------------------------------------------------/
 ANSIBLE_COMPLETION_PATH="${iRCHOME}/.completion/ansible-completion"   # https://github.com/dysosmus/ansible-completion
 FZF_HOME="${iRCHOME}"/utils/fzf                                       # fzf: $ git clone git@github.com:junegunn/fzf.git ${iRCHOME}/utils
+test -f "$HOME/.fzf.bash"                            && source "$HOME/.fzf.bash"
 test -d "${ANSIBLE_COMPLETION_PATH}"                 && source <( cat "${ANSIBLE_COMPLETION_PATH}"/*.bash )
 test -f "${iRCHOME}/.completion/.bash_completion.sh" && source "${iRCHOME}/.completion/.bash_completion.sh"
+test -f "${iRCHOME}/.completion/cht.sh"              && source <( cat "${iRCHOME}/.completion/cht.sh" )
+test -f "$HOME/.cargo/env"                           && source "$HOME/.cargo/env"
+test -s "$HOME/.sdkman/bin/sdkman-init.sh"           && source "$HOME/.sdkman/bin/sdkman-init.sh"
 command -v kubectl           > /dev/null             && source <( kubectl completion bash )
 command -v npm               > /dev/null             && source <( npm completion )
 command -v vault             > /dev/null             && complete -C /usr/local/bin/vault vault
@@ -43,8 +47,6 @@ test -f "${FZF_HOME}/shell/completion.bash"          && source "${FZF_HOME}/shel
 test -f "${FZF_HOME}/shell/key-bindings.bash"        && source "${FZF_HOME}/shell/key-bindings.bash"
 type -t _fd                  >/dev/null 2>&1         && complete -F _fd -o nosort -o bashdefault -o default ff ffs
 type -t _fzf_opts_completion >/dev/null 2>&1         && complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
-test -f "$HOME/.fzf.bash"                            && source "$HOME/.fzf.bash"
-[[ -f "$HOME/.cargo/env" ]]                          && source "$HOME/.cargo/env"
 
 # /--------------------------------------------------------------
 #                   __ _
@@ -92,11 +94,10 @@ test -e /lib/terminfo/x/xterm-256color        && export TERM='xterm-256color'
 # cygwin/osx
 test -e /usr/share/terminfo/78/xterm-256color && export TERM='xterm-256color'
 
-test -f "${iRCHOME}"/.env.wsl                 && source "${iRCHOME}"/.env.wsl
+test -f "${iRCHOME}"/.env                     && source "${iRCHOME}"/.env
+test -f "${iRCHOME}"/.token                   && source "${iRCHOME}"/.token
 test -f "${iRCHOME}"/.iwsl                    && source "${iRCHOME}"/.iwsl
 test -f "${iRCHOME}"/.tmux-session            && source "${iRCHOME}"/.tmux-session
-test -f "${iRCHOME}"/bin/screenfetch-dev      && bash   "${iRCHOME}"/bin/screenfetch-dev
-test -f "${iRCHOME}"/bin/now                  && bash   "${iRCHOME}"/bin/now
 
 # for open cygwin from totoalcommander/bat/vim
 if [[ -z "$STARTIN" ]]; then
@@ -128,5 +129,7 @@ COPY='/mnt/c/Windows/System32/clip.exe'
 #            |___/
 # --------------------------------------------------------------/
 source <( cat "${iRCHOME}"/bin/{ffunc,ifunc,ig,im}.sh )
+test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
+test -f "${iRCHOME}"/bin/now             && bash "${iRCHOME}"/bin/now
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------
