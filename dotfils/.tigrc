@@ -58,7 +58,6 @@ bind generic <C-w><C-w> view-next
 bind generic L  scroll-right
 bind generic H  scroll-left
 bind main    H  scroll-left
-bind generic ve view-reflog
 
 # bind generic xf +sh -c "echo -n %(file) | xclip -sel c && echo File Clipped"
 bind generic xf +sh -c "cat %(file) | pbcopy && echo File Copied Into The Cliboard (paste with Cmd-V)"
@@ -116,6 +115,7 @@ set blame-options          = -C -C -C
 set mouse-scroll           = 3
 set wrap-lines             = false
 set diff-highlight         = true
+# set git-colors           = yes
 
 # Colors
 # ------
