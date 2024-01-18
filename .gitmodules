@@ -1,4 +1,4 @@
 [submodule "ansible-completion"]
-	path = confs/home/.marslo/.completion/ansible-completion
+	path = dotfils/.marslo/.completion/ansible-completion
 	url = https://github.com/dysosmus/ansible-completion.git
 	branch = master
