@@ -1,9 +1,9 @@
 " =============================================================================
-"      FileName : vimrc.autocmd
+"      FileName : autocmd
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-01-10 22:58:58
+"    LastChange : 2024-01-18 03:12:30
 " =============================================================================
 
 " /**************************************************************
@@ -53,8 +53,6 @@ if has( "autocmd" )
           \ *.git/config,.gitconfig,.gitmodules,gitconfig
           \,~/.marslo/.gitalias
           \ setfiletype gitconfig
-    if did_filetype()                     | finish      | endif
-    if getline(1) =~ '^#!.*[/\\]groovy\>' | setf groovy | endif               " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
   augroup END
 
   augroup ShellScript
@@ -64,7 +62,7 @@ if has( "autocmd" )
     autocmd   FileType     sh,bash,shell  set tabstop=2 softtabstop=2 shiftwidth=2
     autocmd!  BufWritePre  *.sh           silent :retab!                      " automatic retab
     autocmd!  BufWritePost *.sh           silent :redraw!                     " automatic redraw for shellcheck
-    " autocmd BufWritePost *.sh           !chmod +x %
+    " autocmd BufWritePost *.sh           silent !chmod +x %
   augroup END
 
   augroup Groovy
@@ -75,12 +73,13 @@ if has( "autocmd" )
     autocmd FileType   Jenkinsfile           setlocal commentstring=//\ %s
     " https://vim.fandom.com/wiki/Syntax_folding_for_Java
     autocmd FileType   java                  setlocal foldmarker=/**,**/ foldmethod=marker foldcolumn=1
-    autocmd FileType   javascript            syntax clear jsFuncBlock         " rainbow issue #2
+    " autocmd FileType   javascript            syntax clear jsFuncBlock       " rainbow issue #2
     " autocmd FileType Jenkinsfile           setlocal filetype=groovy syntax=groovy foldmethod=indent
     " autocmd FileType Jenkinsfile           set syntax=groovy filetype=groovy
     " autocmd BufNewFile,BufRead             Jenkinsfile setf groovy
     " autocmd BufNewFile,BufRead,BufReadPost Jenkinsfile setlocal foldmethod=indent
-    if getline(1) =~ '^#!.*[/\\]groovy\>' |  setf groovy | endif              " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
+    if did_filetype()                     |  finish      | endif
+    if getline(1) =~ '^#!.*[/\\]groovy\>' |  setf groovy | endif               " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
   augroup END
 
   augroup Python
@@ -94,12 +93,11 @@ if has( "autocmd" )
     autocmd Syntax   python normal zM
   augroup END
 
-  augroup vimrc
+  augroup Vimrc
     if index( ['.vimrc', 'init.lua', 'cmds', 'extention', 'extra-extention', 'functions', 'highlight', 'interface', 'settings', 'shortcuts', 'unix'], expand("%:r") ) == 0
-      autocmd! BufWritePost * if &filetype == "vim" | silent! source ~/.vimrc | endif
+      autocmd! BufWritePost * silent! source ~/.vimrc | echo '~/.vimrc sourced!'
     endif
-    autocmd  Filetype     vim      let g:ycm_complete_in_strings = 3
-    autocmd  Syntax       vim      normal zM
+    autocmd Syntax vim normal zM
   augroup END
 
   augroup CustomTabularize
@@ -132,11 +130,5 @@ if has( "autocmd" )
     autocmd CmdwinLeave * let &eventignore = b:ei_save
   endif
 endif
-
-highlight SpellBad        term=underline   cterm=underline     ctermbg=0
-highlight ExtraWhitespace ctermbg=red      guibg=red
-highlight DiffText        term=reverse     cterm=reverse       ctermfg=109      ctermbg=235 gui=reverse guifg=#fabd2f guibg=#458588
-" highlight Cursor        guifg=white      guibg=gray          gui=bold
-" highlight iCursor       guifg=white      guibg=steelblue     gui=underline
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************

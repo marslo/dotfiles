@@ -186,7 +186,8 @@ function ffs() {
   if [[ "${opt}" =~ '-g ' ]]; then
     # git show --name-only --pretty="format:" -"${num}" | awk 'NF' | sort -u
     # references: https://stackoverflow.com/a/54677384/2940319
-    git log --date=iso-local --first-parent --pretty=%cd --name-status --relative |
+    ! [[ "${opt}" =~ '-a ' ]] && filter='--diff-filter=d' || filter=''
+    git log --date=iso-local --first-parent --pretty=%cd --name-status --relative ${filter} |
         awk 'NF==1{date=$1}NF>1 && !seen[$2]++{print date,$0}' FS=$'\t' |
         head -"${num}"
   elif [[ "${opt}" =~ '-fg ' ]]; then

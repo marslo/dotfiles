@@ -83,7 +83,7 @@ function dotConfig() {
 
 function generic() {
   doCopy "${irc}"        "${dotfolder}"/.marslo/vimrc.d
-  doCopy "${irc}"        "${dotfolder}"/.marslo/.{gitalias,gitrc,colors,bye}
+  doCopy "${irc}"        "${dotfolder}"/.marslo/.{env,gitalias,gitrc,colors,bye}
   doCopy "${irc}"        "${dotfolder}"/.marslo/.{it2colors,it2colors.css,.it2colorname}
   doCopy "${irc}/.alias" "${dotfolder}"/.marslo/.alias/{utils,kubernetes,docker}
 }
@@ -118,7 +118,6 @@ function encryptFiles() {
   aliasFiles='deovps imarslo'
   homeRC='.bash_profile .profile'
   confFiles='.pip/pip.config .docker/config.json .ssh/config'
-  [[ 'true' = $(isWSL) ]] && rcFiles+=' .env.wsl' || rcFiles+=' .env'
 
   while read -r _file; do
     dir=$(dirname "${_file}")

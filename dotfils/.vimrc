@@ -45,6 +45,7 @@ endif
 if empty( glob('~/.vim/cache/') )   | execute 'silent !mkdir -p ~/.vim/cache' | endif
 
 source ~/.marslo/vimrc.d/extention
+if has( 'vim' ) | source ~/.marslo/vimrc.d/extra-extention | endif
 source ~/.marslo/vimrc.d/functions
 source ~/.marslo/vimrc.d/cmds
 source ~/.marslo/vimrc.d/theme
@@ -53,8 +54,7 @@ source ~/.marslo/vimrc.d/shortcuts
 source ~/.marslo/vimrc.d/autocmd
 source ~/.marslo/vimrc.d/highlight
 
-if has( 'vim' )                     | source ~/.marslo/vimrc.d/extra-extention | endif
-if IsWSL() != 1 && ! has('macunix') | source ~/.marslo/vimrc.d/unix            | endif
+if IsWSL() != 1 && ! has('macunix') | source ~/.marslo/vimrc.d/unix | endif
 if IsWSL() == 1
   set clipboard^=unnamed
   set clipboard^=unnamedplus

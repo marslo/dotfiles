@@ -4,7 +4,7 @@
 #   FileName : imarslo
 #     Author : marslo.jiao@gmail.com
 #    Created : 2017-10-30 19:07:45
-# LastChange : 2024-01-17 01:48:04
+# LastChange : 2024-01-18 01:55:37
 # =============================================================================
 
 MYWORKSPACE="$HOME/iMarslo"
@@ -58,7 +58,7 @@ alias gi="cd ${MYWORKSPACE}/tools/git/marslo"
 alias cddp="cd ${MYWORKSPACE}/tools/git/sandbox/deprecated"
 alias ib="cd ${MYWORKSPACE}/tools/git/marslo/ibook/docs"
 alias mi="cd ${MYWORKSPACE}/tools/git/marslo/myvim"
-alias dm="cd ${MYWORKSPACE}/tools/git/marslo/dotfiles"
+alias dm="cd ${MYWORKSPACE}/tools/git/marslo/dotfiles/dotfiles"
 alias mt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"
 alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs >/dev/null"
 
