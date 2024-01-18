@@ -1,0 +1,9 @@
+#!/usr/bin/expect -f
+
+set timeout 1
+stty -echo
+spawn su 
+stty echo
+expect "password:" 
+send "arthur\r"
+interact
