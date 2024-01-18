@@ -620,6 +620,7 @@
   # others
   #-----------------------#
   # {{{
+  prepo      = "! bash -c \"git config credential.helper store; git config user.name marslo; git config user.email marslo.jiao@gmail.com; git config alias.ro 'pull --rebase'\""
   task        = grep -EI \"TODO|FIXME\"
   search      = ! git rev-list --all | xargs git grep -F
   # debug git aliases - 'git debug <alias>'
