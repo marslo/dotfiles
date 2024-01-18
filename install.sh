@@ -11,12 +11,13 @@
 source ./dotfils/.marslo/bin/bash-color.sh
 
 irc="$HOME/.marslo"
-dotfolder='./dotfiles'
+dotfolder='.'
 CP="$(type -P cp)"
 timestampe="$(date +%y%m%d%H%M%S)"
 
-function isWSL() { if ! uname -r | grep -q "Microsoft"; then echo true; fi; }
-function isMac() { [[ 'Darwin' = $(uname) ]] && echo true; }
+function isWSL()   { if ! uname -r | grep -q "Microsoft"; then echo true; fi; }
+function isMac()   { [[ 'Darwin' = $(uname) ]] && echo true; }
+function isLinux() { [[ '1' != "$(isWSL)" ]] && [[ 'Linux' = $(uname) ]] && echo true; }
 
 function message() {
   [[ 2 != "$#" ]] && echo -e "$(c Rs)ERROR: must provide two parameters to message function$(s). Exit .." && exit 1
@@ -98,7 +99,7 @@ function bins() {
 
 function completion() {
   mkdir -p "${irc}/completion"
-  ln -sf "$(realpath ./dotfils/.marslo/.completion)" "${irc}/completion"
+  ln -sf "$(realpath "${dotfolder}"/.marslo/.completion)" "${irc}/completion"
 }
 
 function special() {
@@ -108,13 +109,15 @@ function special() {
     doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/appify
   elif [[ true = $(isWSL) ]]; then
     doCopy "${irc}"        "${dotfolder}"/.marslo/.iwsl
+  elif [[ true = $(isLinux) ]]; then
+    doCopy "${irc}"        "${dotfolder}"/.marslo/.irhel
   fi
 }
 
 # shellcheck disable=SC2086
 function encryptFiles() {
   binFiles='iweather ifunc.sh now gdoc ldapsearch irt.sh'
-  rcFiles='.gitalias'
+  rcFiles='.gitalias .token .netrc'
   aliasFiles='deovps imarslo'
   homeRC='.bash_profile .profile'
   confFiles='.pip/pip.config .docker/config.json .ssh/config'
@@ -130,7 +133,7 @@ function encryptFiles() {
   done < <( echo "${homeRC}" | fmt -1 )
 
   while read -r _file; do
-    doCopy "${irc}/${_file}" "${dotfolder}"/.marslo/"${_file}".current
+    doCopy "${irc}/${_file}" "${dotfolder}"/.marslo/"${_file}"
   done < <( echo "${rcFiles}" | fmt -1 )
 
   while read -r _file; do

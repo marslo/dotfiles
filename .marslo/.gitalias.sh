@@ -1,3 +1,7 @@
+#-----------------------#
+# .gitalias for git built with sh ( default git package ) instead of bash
+#-----------------------#
+
 [alias]
   aa          = add --all
   st          = status -sb

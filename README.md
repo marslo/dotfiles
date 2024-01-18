@@ -29,7 +29,7 @@ Life is short, make it easier!
 
 ## setup
 ```bash
-$ bash run.sh
+$ bash install.sh
 ```
 
 ## folder structure
