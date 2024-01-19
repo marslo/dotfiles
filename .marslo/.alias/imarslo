@@ -58,7 +58,7 @@ alias gi="cd ${MYWORKSPACE}/tools/git/marslo"
 alias cddp="cd ${MYWORKSPACE}/tools/git/sandbox/deprecated"
 alias ib="cd ${MYWORKSPACE}/tools/git/marslo/ibook/docs"
 alias mi="cd ${MYWORKSPACE}/tools/git/marslo/myvim"
-alias dm="cd ${MYWORKSPACE}/tools/git/marslo/dotfiles/dotfiles"
+alias dm="cd ${MYWORKSPACE}/tools/git/marslo/dotfiles"
 alias mt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"
 alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs >/dev/null"
 

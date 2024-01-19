@@ -177,7 +177,7 @@ fi
 #            |___/
 # --------------------------------------------------------------/
 source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im}.sh )
-[[ '1' = "$(isOSX)"    ]] && source <( cat "${iRCHOME}"/bin/ii )
+[[ '1' = "$(isOSX)"    ]] && source <( cat "${iRCHOME}"/bin/ii.sh )
 
 [[ '1' != "$(isLinux)" ]] && test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
 test -f "${iRCHOME}"/bin/now       && bash   "${iRCHOME}"/bin/now
