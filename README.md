@@ -27,6 +27,8 @@ Life is short, make it easier!
 
 ![LS_COLORS](https://github.com/marslo/dotfiles/raw/assets/screenshots/LS_COLORS.png)
 
+![LS_COLORS_ALL](https://github.com/marslo/dotfiles/raw/assets/screenshots/LS_COLORS_ALL.png)
+
 ## setup
 ```bash
 $ bash install.sh
