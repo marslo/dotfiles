@@ -185,20 +185,21 @@ function vimrc() {                         # magic vim - fzf list in most recent
   done
 
   [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="$(type -P nvim)"
-  fzfInRC | fzf ${foption} --bind="enter:become(${VIM} {+})" \
+  fdInRC | sed -rn 's/^[^|]* \| (.+)$/\1/p' \
+          | fzf ${foption} --bind="enter:become(${VIM} {+})" \
                            --bind "ctrl-y:execute-silent(echo -n {+} | ${COPY})+abort" \
                            --header 'Press CTRL-Y to copy name into clipboard'
 }
 
 # shellcheck disable=SC2089,SC2090
-function fzfInRC() {
+function fdInRC() {
   local rcPaths="$HOME/.config/nvim $HOME/.marslo $HOME/.idlerc $HOME/.ssh"
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   fdOpt+=' --exec stat --printf="%y | %n\n"'
   (
     eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore' $HOME ${fdOpt}";
     echo "${rcPaths}" | fmt -1 | xargs -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
-  ) |  sort -r | sed -rn 's/^[^|]* \| (.+)$/\1/p'
+  ) |  sort -r
 }
 
 function fzfInPath() {                   # return file name via fzf in particular folder
@@ -234,7 +235,7 @@ function vimdiff() {                       # smart vimdiff
 
   if [[ 0 -eq $# ]]; then
     lFile=$(fzfInPath '.' "${option}")
-    rFile=$(fzfInRC | fzf --cycle --multi "${option}" --header 'filter in rc paths:')
+    rFile=$(fdInRC | sed -rn 's/^[^|]* \| (.+)$/\1/p' | fzf --cycle --multi "${option}" --header 'filter in rc paths:')
   elif [[ 1 -eq $# ]]; then
     lFile=$(fzfInPath '.' "${option}")
     [[ -d "$1" ]] && rFile=$(fzfInPath "$1" "${option}") || rFile="$1"

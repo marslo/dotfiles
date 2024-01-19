@@ -53,7 +53,7 @@ function doCopy() {
       message 'warn' "source: '${source}' CANNOT be found"
     fi
 
-  done < <(echo "${sources}" | fmt -1)
+  done < <( echo "${sources}" | fmt -1 )
 }
 
 function backup() {
@@ -90,8 +90,8 @@ function generic() {
 }
 
 function bins() {
-  doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/{ifunc,ffunc,ii,ig,im}.sh
-  doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/{ff,gdoc,fman,ldapsearch}
+  doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/{ifunc,ffunc,ig}.sh
+  doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/{ff,gdoc,fman}
   doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/{screenfetch-dev,now,iweather.icon,diff-highlight,git-info,ansi}
   doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/git-*
   doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/{bash-color,show-color}.sh
@@ -106,7 +106,7 @@ function special() {
   if [[ true = $(isMac) ]]; then
     doCopy "${irc}"        "${dotfolder}"/.marslo/.imac
     doCopy "${irc}/.alias" "${dotfolder}"/.marslo/.alias/mac
-    doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/appify
+    doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/{appify,ii.sh}
   elif [[ true = $(isWSL) ]]; then
     doCopy "${irc}"        "${dotfolder}"/.marslo/.iwsl
   elif [[ true = $(isLinux) ]]; then
@@ -116,11 +116,22 @@ function special() {
 
 # shellcheck disable=SC2086
 function encryptFiles() {
-  binFiles='iweather ifunc.sh now gdoc ldapsearch irt.sh'
-  rcFiles='.gitalias .token .netrc'
-  aliasFiles='deovps imarslo'
-  homeRC='.bash_profile .profile'
-  confFiles='.pip/pip.config .docker/config.json .ssh/config'
+  local binCurrent='iweather ifunc.sh now gdoc ldapsearch irt.sh im.sh'
+  local aliasCurrent='deovps imarslo'
+  local rcCurrent='.bash_profile .profile'
+  local rcFiles='.gitalias .token .netrc'
+  local confFiles='.pip/pip.config .docker/config.json .ssh/config'
+
+  while read -r _file; do
+    doCopy "$HOME/${_file}" "${dotfolder}"/"${_file}".current
+  done < <( echo "${rcCurrent}" | fmt -1 )
+  while read -r _file; do
+    doCopy "${irc}/bin/${_file}" "${dotfolder}"/.marslo/bin/"${_file}".current
+  done < <( echo "${binCurrent}" | fmt -1 )
+
+  while read -r _file; do
+    doCopy "${irc}/.alias/${_file}" "${dotfolder}"/.marslo/.alias/"${_file}".current
+  done < <( echo "${aliasCurrent}" | fmt -1 )
 
   while read -r _file; do
     dir=$(dirname "${_file}")
@@ -129,34 +140,22 @@ function encryptFiles() {
   done < <( echo "${confFiles}" | fmt -1 )
 
   while read -r _file; do
-    doCopy "$HOME/${_file}" "${dotfolder}"/"${_file}".current
-  done < <( echo "${homeRC}" | fmt -1 )
-
-  while read -r _file; do
     doCopy "${irc}/${_file}" "${dotfolder}"/.marslo/"${_file}"
   done < <( echo "${rcFiles}" | fmt -1 )
 
-  while read -r _file; do
-    doCopy "${irc}/bin/${_file}" "${dotfolder}"/.marslo/bin/"${_file}".current
-  done < <( echo "${binFiles}" | fmt -1 )
-
-  while read -r _file; do
-    doCopy "${irc}/.alias/${_file}" "${dotfolder}"/.marslo/.alias/"${_file}".current
-  done < <( echo "${aliasFiles}" | fmt -1 )
-
   echo -e "$(c Ms)>> decrypt following files manually $(c) :"
-  echo -e "$(c Msi)$ command vim $(echo ${confFiles}  | fmt -1 | xargs -I{} bash -c "echo $HOME/{}"         | xargs )$(c)"
-  echo -e "$(c Msi)$ command vim $(echo ${homeRC}     | fmt -1 | xargs -I{} bash -c "echo $HOME/{}"         | xargs )$(c)"
-  echo -e "$(c Msi)$ command vim $(echo ${rcFiles}    | fmt -1 | xargs -I{} bash -c "echo ${irc}/{}"        | xargs )$(c)"
-  echo -e "$(c Msi)$ command vim $(echo ${binFiles}   | fmt -1 | xargs -I{} bash -c "echo ${irc}/bin/{}"    | xargs )$(c)"
-  echo -e "$(c Msi)$ command vim $(echo ${aliasFiles} | fmt -1 | xargs -I{} bash -c "echo ${irc}/.alias/{}" | xargs )$(c)"
+  echo -e "$(c Msi)$ command vim $(echo ${confFiles}    | fmt -1 | xargs -I{} bash -c "echo $HOME/{}"         | xargs )$(c)"
+  echo -e "$(c Msi)$ command vim $(echo ${rcFiles}      | fmt -1 | xargs -I{} bash -c "echo ${irc}/{}"        | xargs )$(c)"
+  echo -e "$(c Msi)$ command vim $(echo ${rcCurrent}    | fmt -1 | xargs -I{} bash -c "echo $HOME/{}"         | xargs )$(c)"
+  echo -e "$(c Msi)$ command vim $(echo ${binCurrent}   | fmt -1 | xargs -I{} bash -c "echo ${irc}/bin/{}"    | xargs )$(c)"
+  echo -e "$(c Msi)$ command vim $(echo ${aliasCurrent} | fmt -1 | xargs -I{} bash -c "echo ${irc}/.alias/{}" | xargs )$(c)"
 }
 
 while true; do
-  read -p "Do you want backup folders to avoid replaced [Y/N]" yn
+  read -r -p "Do you want backup folders to avoid replaced [Y/N]: " yn
   case $yn in
-      [Yy]* ) backit=1                                  ;;
-      [Nn]* ) backit=0                                  ;;
+      [Yy]* ) backit=1 ; break                          ;;
+      [Nn]* ) backit=0 ; break                          ;;
           * ) echo "only allows Y or N, ctrl-c to exit" ;;
   esac
 done

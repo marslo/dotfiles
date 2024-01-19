@@ -176,11 +176,11 @@ fi
 #             __/ |
 #            |___/
 # --------------------------------------------------------------/
-source <( cat "${iRCHOME}"/.gitrc )
-source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ii,ig,irt,im}.sh )
+source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im}.sh )
+[[ '1' = "$(isOSX)"    ]] && source <( cat "${iRCHOME}"/bin/ii )
 
-test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
-test -f "${iRCHOME}"/bin/now             && bash "${iRCHOME}"/bin/now
-test -f "${iRCHOME}"/.tmux-session       && source "${iRCHOME}"/.tmux-session
+[[ '1' != "$(isLinux)" ]] && test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
+test -f "${iRCHOME}"/bin/now       && bash   "${iRCHOME}"/bin/now
+test -f "${iRCHOME}"/.tmux-session && source "${iRCHOME}"/.tmux-session
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------

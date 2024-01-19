@@ -13,7 +13,7 @@ function msh {
   echo -e "\\033]6;1;bg;red;brightness;176\\a"
   echo -e "\\033]6;1;bg;green;brightness;181\\a"
   echo -e "\\033]6;1;bg;blue;brightness;175\\a"
-  command ssh  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$@"
+  command ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$@"
 }
 
 function tabcolor {

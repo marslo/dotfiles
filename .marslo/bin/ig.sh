@@ -4,11 +4,11 @@
 #    FileName : ig.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#i  LastChange : 2024-01-07 01:22:35
+#  LastChange : 2024-01-18 18:01:56
 #        Desc : for git
 # =============================================================================
 
-# git fetch
+# [g]it [f]etch
 # shellcheck disable=SC2317
 function gf() {
   GITDIR=${1%%/}
@@ -120,8 +120,13 @@ function gfall() {
   elif git rev-parse --git-dir > /dev/null 2>&1; then
     dir=$(dirname "$(git rev-parse --git-dir)")
   else
-    # shellcheck disable=SC2046,SC2035
-    dir=$(dirname $(fd -uu --type d --glob *.git* --exclude *archive* --exclude *archives*) | uniq)
+    if command -v fd >/dev/null; then
+      # shellcheck disable=SC2046,SC2035
+      dir=$(dirname $(fd -uu --type d --glob *.git* --exclude *archive* --exclude *archives*) | uniq)
+    else
+      # shellcheck disable=SC2046
+      dir=$(dirname $(find . -type d \( -not -path "*archive/*" -not -path "*archives/*" \) -name '.git') | uniq)
+    fi
   fi
 
   for d in ${dir}; do
@@ -137,8 +142,8 @@ function gfall() {
 
 # shellcheck disable=SC2035
 function mybr() {
-  myBranch=$1
-  mainBranch="dev"
+  local myBranch=$1
+  local mainBranch="dev"
   set +H
   for i in $(${LS} -1d */); do
     pushd . > /dev/null
@@ -222,6 +227,80 @@ function grt() {
     git push origin "${newTag}" ":${sourceTag}"
     git pull --prune --tags
   fi
+}
+
+# for git diff
+# Inspired from http://stackoverflow.com/questions/8259851/using-git-diff-how-can-i-get-added-and-modified-lines-numbers
+function diff-lines() {
+  local path=
+  local line=
+  while read -r; do
+    esc=$'\033'
+    if [[ $REPLY =~ ---\ (a/)?.* ]]; then
+      continue
+    elif [[ $REPLY =~ \+\+\+\ (b/)?([^[:blank:]$esc]+).* ]]; then
+      path=${BASH_REMATCH[2]}
+    elif [[ $REPLY =~ @@\ -[0-9]+(,[0-9]+)?\ \+([0-9]+)(,[0-9]+)?\ @@.* ]]; then
+      line=${BASH_REMATCH[2]}
+    elif [[ $REPLY =~ ^($esc\[[0-9;]+m)*([\ +-]) ]]; then
+      echo "$path:$line:$REPLY"
+      if [[ ${BASH_REMATCH[2]} != - ]]; then
+        ((line++))
+      fi
+    fi
+  done
+}
+
+
+# For get git infor
+# author: Duane Johnson
+# email: duane.johnson@gmail.com
+# date: 2008 Jun 12
+# license: MIT
+# Modified by Marslo
+# Email: marslo.vida@gmail.com
+# date: 2013-10-15 17:54:58
+
+# based on discussion at http://kerneltrap.org/mailarchive/git/2007/11/12/406496
+function gitinfo() {
+  pushd . >/dev/null
+
+  # Find base of git directory
+  while [ ! -d .git ] && [ ! "$(pwd)" = "/" ]; do cd ..; done
+
+  # Show various information about this git directory
+  if [ -d .git ]; then
+    echo "== Remote URL: "
+    git remote -v
+    echo
+
+    echo "== Remote Branches: "
+    git branch -r
+    echo
+
+    echo "== Local Branches:"
+    git branch
+    echo
+
+    echo "== Configuration (.git/config)"
+    cat .git/config
+    echo
+
+    echo "== Most Recent Commit"
+    git plog --max-count=3
+    echo
+
+    echo "Type 'git plog', 'git plogs' and 'git log' for more commits, or 'git show' for full commit details."
+  else
+    echo "Not a git repository."
+  fi
+  popd >/dev/null || return
+}
+
+function gbl() {
+  git for-each-ref --sort=-committerdate --format='%(committerdate) %(authorname) %(refname)' refs/remotes/origin/ |
+      ${GREP} -e ".$*" |
+      head -n 10;
 }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

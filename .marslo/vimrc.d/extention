@@ -402,16 +402,12 @@ let g:baan_fold                       = 1
 set foldlevelstart=20
 
 " junegunn/fzf.vim
-nnoremap <C-S-p>            :Files<CR>
-if has('macunix')
-  nnoremap <C-S-g>          :GFiles<CR>
-else
-  nnoremap <C-g>            :GFiles<CR>
-endif
-nnoremap <C-s>              :Ag<CR>
-nnoremap <silent> <leader>l :Buffers<CR>
-nnoremap <silent> <Leader>H :Helptags<CR>
-nnoremap <silent> <Leader>g :Commits<CR>
+nnoremap <silent> <leader>ff :Files<CR>
+nnoremap <silent> <leader>fg :GFiles<CR>
+nnoremap <silent> <leader>ag :Ag<CR>
+nnoremap <silent> <leader>l  :Buffers<CR>
+nnoremap <silent> <Leader>H  :Helptags<CR>
+nnoremap <silent> <Leader>g  :Commits<CR>
 inoremap <expr> <c-x><c-l> fzf#vim#complete(fzf#wrap({
   \ 'prefix': '^.*$',
   \ 'source': 'rg -n ^ --color always',
