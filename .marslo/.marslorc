@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2024-01-17 11:05:30
+# LastChange : 2024-01-19 21:00:04
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -158,12 +158,22 @@ else
   GREP="$(type -P grep)"
 fi
 
-if uname -r | grep -q 'Microsoft'; then
+if [[ '1' = "$(isWSL)" ]]; then
   COPY='/mnt/c/Windows/System32/clip.exe'
 elif [[ 'Darwin' = "$(uname)" ]]; then
   COPY='/usr/bin/pbcopy'
 else
   COPY=''
+fi
+
+if [[ '1' = $(isOSX) ]]; then
+  if [[ -x '/usr/local/opt/util-linux/bin/column' ]]; then
+    COLUMN='/usr/local/opt/util-linux/bin/column'
+  elif [[ -x '/usr/bin/column' ]]; then
+    COLUMN='/usr/local/opt/util-linux/bin/column'
+  fi
+else
+  COLUMN=$(type -P column)
 fi
 
 # /--------------------------------------------------------------

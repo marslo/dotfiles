@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-01-14 01:50:24
+"    LastChange : 2024-01-19 21:01:59
 " =============================================================================
 
 " /**************************************************************
@@ -351,15 +351,13 @@ function! ShowDocumentation()
 endfunction
 autocmd FileType   json syntax match Comment +\/\/.\+$+
 autocmd FileType   html let b:coc_root_patterns = ['.git', '.env', 'tailwind.config.js', 'tailwind.config.cjs']
-inoremap <silent><expr> <S-C-space> coc#refresh()
 inoremap <silent><expr> <DOWN>
-      \ coc#pum#visible() ? coc#pum#next(1) :
-      \ CheckBackspace()  ? "\<Tab>" :
-      \ coc#refresh()
+      \ coc#pum#visible() ? coc#pum#next(1) : CheckBackspace()
+      \                   ? "\<DOWN>" : coc#refresh()
 inoremap <expr><UP> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
-inoremap <silent><expr> <TAB> coc#pum#visible() ? coc#pum#confirm()
-                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
-command! -nargs=0 OR   :call CocActionAsync('runCommand', 'editor.action.organizeImport')
+inoremap <silent><expr> <C-J>
+      \ coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+command! -nargs=0 OR  :call CocActionAsync('runCommand', 'editor.action.organizeImport')
 nmap     <silent> [g  <Plug>(coc-diagnostic-prev)
 nmap     <silent> ]g  <Plug>(coc-diagnostic-next)
 nmap     <silent> gd  <Plug>(coc-definition)
