@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-01-14 15:07:00
+#   LastChange : 2024-01-19 20:59:24
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -322,21 +322,6 @@ function killps() {                        # [kill] [p]roces[s]
   xargs kill -9
 }
 
-# kns - kubectl set default namesapce
-# @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
-# @description : using `fzf` to list all available namespaces and use the selected namespace as default
-# [k]ubectl [n]ame[s]pace
-function kns() {                           # [k]ubectl [n]ame[s]pace
-  echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania' |
-        fmt -1 |
-        fzf -1 -0 --no-sort --no-multi --prompt='namespace> ' |
-        xargs -i bash -c "echo -e \"\033[1;33m~~> {}\\033[0m\";
-                          kubectl config set-context --current --namespace {};
-                          kubecolor config get-contexts;
-                         "
-}
-
 # eclr - environment variable clear, support multiple select
 # @author      : marslo
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
@@ -572,6 +557,112 @@ function fman() {
       --bind='ctrl-/:toggle-preview' \
       --header 'CTRL-N/P or SHIFT-↑/↓ to view preview contents; ENTER/Q to maximize/normal preview window' \
       --exit-0
+}
+
+# kns - kubectl set default namesapce
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @description : using `fzf` to list all available namespaces and use the selected namespace as default
+# [k]ubectl [n]ame[s]pace
+function kns() {                           # [k]ubectl [n]ame[s]pace
+  echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania' |
+        fmt -1 |
+        fzf -1 -0 --no-sort --no-multi --prompt='namespace> ' \
+            --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
+            --header 'Press CTRL-Y to copy name into clipboard' |
+        xargs -i bash -c "echo -e \"\033[1;33m~~> {}\\033[0m\";
+                          kubectl config set-context --current --namespace {};
+                          kubecolor config get-contexts;
+                         "
+}
+
+# kcani - kubectl check permission (auth can-i)
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @description : check whether an action is allowed in given namespaces. support multiple selection
+# [k]ubectl [can]-[i]
+function kcani() {                         # [k]ubectl [can]-[i]
+  local namespaces=''
+  local actions='list get watch create update delete'
+  local components='sts deploy secrets configmap ingressroute ingressroutetcp'
+
+  namespaces=$( echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania' |
+                    fmt -1 |
+                    fzf -1 -0 --no-sort --prompt='namespace> ' \
+                        --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
+                        --header 'Press CTRL-Y to copy name into clipboard'
+             )
+  [[ -z "${namespaces}" ]] && echo "$(c Rs)ERROR: select at least one namespace !$(c)" && return
+
+  while read -r namespace; do
+    echo -e "\n>> $(c Ys)${namespace}$(c)"
+    k-p-cani ${namespace}                  # for pods component
+
+    for _c in ${components}; do
+      local res=''
+      echo -e ".. $(c Ms)${_c}$(c) :"
+      for _a in ${actions}; do
+        r=$(_can_i -n "${namespace}" "${_a}" "${_c}")
+        res+="${r} ";
+      done;                                # in actions
+      echo -e "${actions}\n${res}" | "${COLUMN}" -t | sed 's/^/\t/g'
+    done;                                  # in components
+
+  done< <(echo "${namespaces}" | fmt -1)
+}
+
+# _can_i - kubectl check permission (auth can-i) for pods component
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @description : check whether given action is allowed in given namespaces; if namespace not provide, using default namespace
+function _can_i() {
+  local namespace
+  namespace=$(command kubectl config view --minify -o jsonpath='{..namespace}')
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -n | --namespace ) namespace="$2" ; shift 2 ;;
+                     * ) break                    ;;
+    esac
+  done
+
+  [[ 0 = "$#" ]] && echo -e "$(c Rs)>> ERROR: must provide action to check with$(c)\n\nUSAGE$(c Gis)\n\t\$ $0 list pod\n\t\$ $0 -n <namespace> create deploy$(c)" && return
+  checker=$*
+  r="$(kubectl auth can-i ${checker} -n ${namespace})";
+  [[ 'yes' = "${r}" ]] && r="$(c Gs)${r}$(c)" || r="$(c Rs)${r}$(c)";
+  echo -e "${r}";
+}
+
+# k-p-cani - kubectl check permission (auth can-i) for pods component
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @description : check whether certain action is allowed in given namespaces
+# [k]ubectl [can]-[i]
+function k-p-cani() {
+  local components='pods'
+  declare -A pactions
+  pactions=(
+             ['0_get']="get ${components}"
+             ['1_get/exec']="get ${components}/exec"
+             ['2_get/sub/exec']="get ${components} --subresource=exec"
+             ['2_get/sub/log']="get ${components} --subresource=log"
+             ['3_list']="list ${components}"
+             ['4_create']="create ${components}"
+             ['5_create/exec']="create ${components}/exec"
+             ['6_get/sub/exec']="get ${components} --subresource=exec"
+           )
+
+  while read -r pnamespace; do
+    local headers=''
+    local pres=''
+    while read -r _a; do
+      headers+="$(sed -rn 's/^[0-9]+_(.+)$/\1/p' <<< ${_a}) "
+      r=$(_can_i -n "${pnamespace}" "${pactions[${_a}]}")
+      pres+="${r} "
+    done < <( for _act in "${!pactions[@]}"; do echo "${_act}"; done | sort -h )
+    echo -e ".. $(c Ms)pods$(c) :"
+    echo -e "${headers}\n${pres}" | "${COLUMN}" -t | sed 's/^/\t/g'
+  done< <(echo "$*" | fmt -1)
 }
 
 # /**************************************************************

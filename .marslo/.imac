@@ -41,8 +41,10 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   GNUFIND='/usr/local/opt/findutils/libexec/gnubin'
   GNUINDENT='/usr/local/opt/gnu-indent/libexec/gnubin'
   GNUSED='/usr/local/opt/gnu-sed/libexec/gnubin'
+  GNUMAKE='/usr/local/opt/make/libexec/gnubin'
   INETUTILS='/usr/local/opt/inetutils/libexec/gnubin'
   GUILE_TLS_CERTIFICATE_DIRECTORY='/usr/local/etc/gnutls/'
+  UTIL_LINUX_HOME='/usr/local/opt/util-linux'
 
   KW_BUILD_TOOLS='/opt/kwbuildtools'
   MACVIM_HOME='/Applications/MacVim.app'
@@ -50,11 +52,13 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   LLVM_HOME="$(brew --prefix llvm)"
 
   TOOLS_PATH="${TOOLS_PATH:-}"
-  test -d '/usr/local/vim'    && TOOLS_PATH+=':/usr/local/vim/bin'
-  test -d "${KW_BUILD_TOOLS}" && TOOLS_PATH+=":${KW_BUILD_TOOLS}/bin"
-  test -d "$HOME/.docker"     && TOOLS_PATH+=":$HOME/.docker/bin"
-  test -d "${MACVIM_HOME}"    && TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"
-  test -d "${LLVM_HOME}"      && TOOLS_PATH+=":${LLVM_HOME}/bin"
+  test -d '/usr/local/vim'     && TOOLS_PATH+=':/usr/local/vim/bin'
+  test -d "${KW_BUILD_TOOLS}"  && TOOLS_PATH+=":${KW_BUILD_TOOLS}/bin"
+  test -d "$HOME/.docker"      && TOOLS_PATH+=":$HOME/.docker/bin"
+  test -d "${MACVIM_HOME}"     && TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"
+  test -d "${LLVM_HOME}"       && TOOLS_PATH+=":${LLVM_HOME}/bin"
+  test -d "${UTIL_LINUX_HOME}" && TOOLS_PATH+=":${UTIL_LINUX_HOME}/bin"
+  test -d "${UTIL_LINUX_HOME}" && TOOLS_PATH+=":${UTIL_LINUX_HOME}/sbin"
 
   GNU_PATH="${GNU_PATH:-}"
   test -d "${GNUBINHOME}" && GNU_PATH+=":${GNUBINHOME}"
@@ -118,6 +122,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${RUBY_HOME}"      && SCRIPT_BINS+=":${RUBY_HOME}/bin"
   test -d "${ED_HOME}"        && SCRIPT_BINS+=":${ED_HOME}/libexec/gnubin"
   test -d "${ED_HOME}"        && SCRIPT_BINS+=":${ED_HOME}/bin"
+  test -d "${RUBYGEM}"        && SCRIPT_BINS+=":${RUBYGEM}"
   test -d "${GIT_EXTRAS}"     && SCRIPT_BINS+=":${GIT_EXTRAS}/bin"
   # SCRIPT_BINS+=":${PYENV_ROOT}/bin"                             # shell: bash 3.2.57
 
