@@ -35,11 +35,11 @@ endif
 
 if has( 'nvim' )
   set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.nviminfo
-  if empty( glob('~/.vim/undo/')  ) | execute 'silent !mkdir -p ~/.vim/nundo' | endif
+  if empty( glob('~/.vim/undo/nundo')  ) | execute 'silent !mkdir -p ~/.vim/undo/nundo' | endif
 else
   if version > 74399 | set cryptmethod=blowfish2 | endif
   set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.viminfo
-  if empty( glob('~/.vim/undo/')  ) | execute 'silent !mkdir -p ~/.vim/undo'  | endif
+  if empty( glob('~/.vim/undo/undo' )  ) | execute 'silent !mkdir -p ~/.vim/undo/undo'  | endif
   set ttymouse=xterm2
 endif
 if empty( glob('~/.vim/cache/') )   | execute 'silent !mkdir -p ~/.vim/cache' | endif
