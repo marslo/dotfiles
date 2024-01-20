@@ -59,7 +59,6 @@ if [[ '1' = "$(isOSX)" ]]; then
   # test -f "${ADDITIONAL_COMPLETION}"  && source "${ADDITIONAL_COMPLETION}"
   # test -f "${MACCLI_COMPLETION}"      && source "${MACCLI_COMPLETION}"
   # test -f "${VBOX_COMPLETION}"        && source "${VBOX_COMPLETION}"
-  test -e "${ITERM2_INTEGRATION}"       && source "${ITERM2_INTEGRATION}"      # iTerm2 shell integration
   test -f "$HOME/.docker/init-bash.sh"  && source "$HOME/.docker/init-bash.sh" # docker desktop
   test -f "${iRCHOME}"/.imac            && source "${iRCHOME}"/.imac
 elif [ '1' = "$(isLinux)" ]; then                                              ## for Ubuntu/RHEL/CentOS
@@ -188,8 +187,9 @@ fi
 # --------------------------------------------------------------/
 source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im}.sh )
 [[ '1' = "$(isOSX)"    ]] && source <( cat "${iRCHOME}"/bin/ii.sh )
-
+[[ '1' = "$(isOSX)"    ]] && test -e "${ITERM2_INTEGRATION}" && source "${ITERM2_INTEGRATION}"      # iTerm2 shell integration
 [[ '1' != "$(isLinux)" ]] && test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
+
 test -f "${iRCHOME}"/bin/now       && bash   "${iRCHOME}"/bin/now
 test -f "${iRCHOME}"/.tmux-session && source "${iRCHOME}"/.tmux-session
 
