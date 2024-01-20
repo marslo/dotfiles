@@ -33,7 +33,7 @@ Plug 'tpope/vim-repeat'
 Plug 'Yggdroot/indentLine'
 Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf.vim'
-Plug 'sjl/gundo.vim'
+Plug 'simnalamburt/vim-mundo'
 Plug 'preservim/tagbar'
 Plug 'marslo/vim-devicons', { 'branch': 'sandbox/marslo' }
 Plug 'marslo/authorinfo'
@@ -44,7 +44,6 @@ Plug 'fracpete/vim-large-files'
 Plug 'Konfekt/FastFold'
 Plug 'dhruvasagar/vim-table-mode'
 Plug 'vim-autoformat/vim-autoformat'
-Plug 'mbbill/undotree'
 Plug 'marslo/MarsloFunc'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
@@ -139,9 +138,21 @@ let MRU_Auto_Close    = 1
 let MRU_Max_Entries   = 10
 let MRU_Exclude_Files = '^/tmp/.*\|^/temp/.*\|^/media/.*\|^/mnt/.*\|^/private/.*'
 
-noremap <Leader>u :GundoToggle<CR>
-if has('nvim') | set undodir=~/.vim/nundo/ | else | set undodir=~/.vim/undo/ | endif
-set undofile
+noremap <Leader>u :MundoToggle<CR>
+let g:mundo_prefer_python3 = 1
+let g:mundo_width          = 26
+if has( 'persistent_undo' )
+  if has('nvim')
+    let target_path = expand('~/.vim/undo/nundo')
+  else
+    let target_path = expand('~/.vim/undo/undo')
+  endif
+  if !isdirectory(target_path)
+    call system('mkdir -p ' . target_path)
+  endif
+  let &undodir = target_path
+  set undofile
+endif
 
 " luochen1990/rainbow
 " for i in '75' '147' '108' '196' '208' '66' '106' '172' '115' '129'; do echo -e "\e[38;05;${i}m${i}"; done | column -c 250 -s ' '; echo -e "\e[m"

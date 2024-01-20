@@ -58,7 +58,6 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${MACVIM_HOME}"     && TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"
   test -d "${LLVM_HOME}"       && TOOLS_PATH+=":${LLVM_HOME}/bin"
   test -d "${UTIL_LINUX_HOME}" && TOOLS_PATH+=":${UTIL_LINUX_HOME}/bin"
-  test -d "${UTIL_LINUX_HOME}" && TOOLS_PATH+=":${UTIL_LINUX_HOME}/sbin"
 
   GNU_PATH="${GNU_PATH:-}"
   test -d "${GNUBINHOME}" && GNU_PATH+=":${GNUBINHOME}"
