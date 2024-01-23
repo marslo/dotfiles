@@ -6,3 +6,4 @@ vim.opt.undodir = vim.fn.stdpath('config') .. '/undo'
 
 -- require('config/nvim-treesitter')
 -- require('config/lsp')
+-- require('undotree').setup()
