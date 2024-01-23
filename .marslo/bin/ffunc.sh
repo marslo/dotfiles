@@ -26,10 +26,10 @@ _fzf_comprun() {
   shift
 
   case "$command" in
-            tree ) fd . --type d --hidden --follow | fzf --preview 'tree -C {}' "$@" ;;
-              cd ) fzf --height 60% --preview 'tree -C {} | head -200'          "$@" ;;
-    export|unset ) fzf --height 60% --preview "eval 'echo \$'{}"                "$@" ;;
-               * ) fzf                                                          "$@" ;;
+            tree ) fd . --type d --hidden --follow | fzf --height 60% --preview 'tree -C {}' "$@" ;;
+              cd ) fzf --height 60% --preview 'tree -C {} | head -200' "$@" ;;
+    export|unset ) fzf --height 60% --preview "eval 'echo \$'{}"       "$@" ;;
+               * ) fzf                                                 "$@" ;;
   esac
 }
 
@@ -161,6 +161,23 @@ function v() {                             # v - open files in ~/.vim_mru_files
   vim ${files//\~/$HOME}
 }
 
+# vimr - open files by [vim] in whole [r]epository - similar with [`:Gfiles`](https://github.com/junegunn/fzf.vim?tab=readme-ov-file#commands)
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @description : filter all files within current git repository via data modified and open by vim
+function vimr() {                          # vimr - open file(s) via [vim] in whole [r]epository
+  local repodir
+  repodir="$(git rev-parse --show-toplevel)"
+  # shellcheck disable=SC2164
+  files=$( fd . "${repodir}" --type f --hidden --ignore-file ~/.fdignore --exec-batch ls -t |
+                xargs -I{} bash -c "echo {} | sed \"s|${repodir}/||g\"" |
+                fzf --multi -0 |
+                xargs -I{} bash -c "echo ${repodir}/{}"
+         )
+  # shellcheck disable=SC2046
+  [[ -z "${files}" ]] || vim $(xargs <<< "${files}")
+}
+
 # vimrc - open rc files list from "${rcPaths}"
 # @author      : marslo
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
@@ -169,7 +186,7 @@ function v() {                             # v - open files in ~/.vim_mru_files
 #   - using nvim if `command -v nvim` is true
 #   - using `-v` force using `command vim` instead of `command nvim`
 # shellcheck disable=SC2155
-function vimrc() {                         # magic vim - fzf list in most recent modified order
+function vimrc() {                         # vimrc - fzf list in most recent modified order
   local orgv                               # force using vim instead of nvim
   local rcPaths="$HOME/.config/nvim $HOME/.marslo"
   local VIM="$(type -P vim)"
