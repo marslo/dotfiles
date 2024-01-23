@@ -27,8 +27,8 @@ _fzf_comprun() {
 
   case "$command" in
             tree ) fd . --type d --hidden --follow | fzf --preview 'tree -C {}' "$@" ;;
-              cd ) fzf --preview 'tree -C {} | head -200'                       "$@" ;;
-    export|unset ) fzf --preview "eval 'echo \$'{}"                             "$@" ;;
+              cd ) fzf --height 60% --preview 'tree -C {} | head -200'          "$@" ;;
+    export|unset ) fzf --height 60% --preview "eval 'echo \$'{}"                "$@" ;;
                * ) fzf                                                          "$@" ;;
   esac
 }
@@ -310,7 +310,8 @@ function cdf() {                           # [c][d] into the directory of the se
 function fif() {                           # [f]ind-[i]n-[f]ile
   if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
   $(type -P rg) --files-with-matches --no-messages --hidden --follow --smart-case "$1" |
-  fzf --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
+  fzf --height 80% \
+      --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
       --bind "enter:become($(type -P vim) {+})" \
       --header 'CTRL-N/CTRL-P or CTRL-↑/CTRL-↓ to view contents' \
       --preview "bat --color=always --style=plain {} |
@@ -706,7 +707,7 @@ function b() {                             # chrome [b]ookmarks browser with jq
              | cut -d$'\t' -f2
         )
   # shellcheck disable=SC2046
-  [[ -z "${urls}" ]] || "${open}" $(echo "${urls}" | xargs)
+  [[ -z "${urls}" ]] || "${open}" $(xargs <<< "${urls}")
 }
 
 # /**************************************************************
