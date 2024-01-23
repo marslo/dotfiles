@@ -284,6 +284,22 @@ function cdp() {                           # cdp - [c][d] to selected [p]arent d
   cd "$DIR" || return
 }
 
+function cdd() {                           # cdd - [c][d] to selected [d]irectory
+  local dir
+  # shellcheck disable=SC2164
+  dir=$(fd --type d --hidden --ignore-file ~/.fdignore | fzf --no-multi -0) && cd "${dir}"
+}
+
+function cdr() {                           # cdd - [c][d] to selected [r]epo directory
+  local repodir
+  repodir="$(git rev-parse --show-toplevel)"
+  # shellcheck disable=SC2164
+  dir=$( ( echo './'; fd . "${repodir}" --type d --hidden --ignore-file ~/.fdignore |
+                     xargs -I{} bash -c "echo {} | sed \"s|${repodir}/||g\""
+         ) | fzf --no-multi -0
+       ) && cd "${repodir}/${dir}"
+}
+
 function cdf() {                           # [c][d] into the directory of the selected [f]ile
   local file
   local dir

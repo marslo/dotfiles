@@ -28,10 +28,10 @@ fi
 
 # was valid weather report found or an error message?
 if grep '°C' /tmp/now-weather >/dev/null 2>&1; then
-  WeatherSuccess=true
+  weatherDone=true
   cat /tmp/now-weather
 else
-  WeatherSuccess=false
+  weatherDone=false
   echo "                              "
   echo "                              "
   echo "                              "
@@ -54,13 +54,13 @@ tput sc                                 # save cursor position.
 tput cuu 7                              # move up 9 lines
 # i=0; while [ $((++i)) -lt 10 ]; do tput cuu1; done
 
-if [[ "$WeatherSuccess" == true ]] ; then
+if [[ "$weatherDone" == true ]] ; then
     # depending on length of your city name and country name you will:
     #   1. comment out next three lines of code. uncomment fourth code line.
     #   2. change subtraction value and set number of print spaces to match
     #      subtraction value. then place comment on fourth code line.
-    Column=$((dateColumn - 10))
-    tput cuf $Column                    # move x column number
+    column=$((dateColumn - 10))
+    tput cuf $column                    # move x column number
     printf "          "                 # blank out ", country" with x spaces
 else
     tput cuf $dateColumn                # position to column 27 for date display
@@ -71,19 +71,19 @@ fi
 cal | tr -cd '\11\12\15\40\60-\136\140-\176' > /tmp/terminal
 
 calLineCnt=1
-Today=$(date +"%e")
+today=$(date +"%e")
 
 printf "\033[32m"                       # color green -- see list above.
 
-while IFS= read -r Cal; do
-  printf "%s" "$Cal"
+while IFS= read -r cal; do
+  printf "%s" "$cal"
   if [[ $calLineCnt -gt 2 ]] ; then
     tput cub 22                         # see if today is on current line & invert background
     for (( j=0 ; j <= 18 ; j += 3 )) ; do
-      Test=${Cal:$j:2}                  # current day on calendar line
-      if [[ "$Test" == "$Today" ]] ; then
+      Test=${cal:$j:2}                  # current day on calendar line
+      if [[ "$Test" == "$today" ]] ; then
         printf "\033[7m"                # reverse: [7m
-        printf "%s" "$Today"
+        printf "%s" "$today"
         printf "\033[0m"                # normal: [0m
         printf "\033[32m"               # color green -- see list above.
         tput cuf 1
@@ -112,16 +112,16 @@ tput cuu 7                              # move up 9 lines
 tput cuf $timeColumn                    # move 49 columns right
 
 if hash toilet 2>/dev/null; then        # if has toilet
-   date +"%I:%M %P" | toilet -f future  > /tmp/terminal
+   date +"%I:%M %P" | toilet -f future > /tmp/terminal
 elif hash figlet 2>/dev/null; then      # if has figlet
    date +"%I:%M %P" | figlet -f /usr/local/share/figlet/future.tlf > /tmp/terminal
 else
    date +"%I:%M %P" > /tmp/terminal
 fi
 
-while IFS= read -r Time; do
+while IFS= read -r time; do
   printf "\033[01;36m"                  # color cyan
-  printf "%s" "$Time"
+  printf "%s" "$time"
   tput cud1                             # up one line
   tput cuf $timeColumn                  # move 49 columns right
 done < /tmp/terminal
