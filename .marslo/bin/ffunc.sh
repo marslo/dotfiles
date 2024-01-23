@@ -284,7 +284,7 @@ function cdp() {                           # cdp - [c][d] to selected [p]arent d
   cd "$DIR" || return
 }
 
-function cdd() {                           # cdd - [c][d] to selected [d]irectory
+function cdd() {                           # cdd - [c][d] to selected sub [d]irectory;
   local dir
   # shellcheck disable=SC2164
   dir=$(fd --type d --hidden --ignore-file ~/.fdignore | fzf --no-multi -0) && cd "${dir}"
@@ -681,6 +681,34 @@ function k-p-cani() {
   done< <(echo "$*" | fmt -1)
 }
 
+# https://github.com/junegunn/fzf/wiki/Examples#bookmarks
+# shellcheck disable=SC2016
+function b() {                             # chrome [b]ookmarks browser with jq
+  if [ "$(uname)" = "Darwin" ]; then
+    if [[ -e "$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks" ]]; then
+      bookmarks_path="$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks"
+    else
+      bookmarks_path="$HOME/Library/Application Support/Google/Chrome/Default/Bookmarks"
+    fi
+    open=open
+  else
+    bookmarks_path="$HOME/.config/google-chrome/Default/Bookmarks"
+    open=xdg-open
+  fi
+
+  jq_script='
+     def ancestors: while(. | length >= 2; del(.[-1,-2]));
+     . as $in | paths(.url?) as $key | $in | getpath($key) | {name,url, path: [$key[0:-2] | ancestors as $a | $in | getpath($a) | .name?] | reverse | join("/") } | .path + "/" + .name + "\t" + .url'
+
+  urls=$( jq -r "${jq_script}" < "${bookmarks_path}" \
+             | sed -E $'s/(.*)\t(.*)/\\1\t\x1b[36m\\2\x1b[m/g' \
+             | fzf --ansi \
+             | cut -d$'\t' -f2
+        )
+  # shellcheck disable=SC2046
+  [[ -z "${urls}" ]] || "${open}" $(echo "${urls}" | xargs)
+}
+
 # /**************************************************************
 #  _           _
 # | |         | |
@@ -692,6 +720,6 @@ function k-p-cani() {
 # **************************************************************/
 
 # bat
-help() { "$@" --help 2>&1 | bat --plain --language=help ; }
+function help() { "$@" --help 2>&1 | bat --plain --language=help ; }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************
