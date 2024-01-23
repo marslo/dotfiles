@@ -4,17 +4,17 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-01-19 20:59:24
+#   LastChange : 2024-01-23 15:44:44
 #  Description : [f]zf [func]tion
 #=============================================================================
 
 # /**************************************************************
-#  __      __
-#  / _|    / _|
-# | |_ ___| |_
-# |  _|_  /  _|
-# | |  / /| |
-# |_| /___|_|
+#  ___        ___
+#  / __)      / __)
+# | |__ _____| |__
+# |  __|___  )  __)
+# | |   / __/| |
+# |_|  (_____)_|
 #
 # **************************************************************/
 
@@ -40,6 +40,14 @@ _fzf_compgen_path() {
 _fzf_compgen_dir() {
   fd --type d --hidden --follow --exclude ".git" . "$1"
 }
+
+# /**************************************************************
+#   __     __              _   _ _ _ _
+#  / _|___/ _|  ___   _  _| |_(_) (_) |_ _  _
+# |  _|_ /  _| |___| | || |  _| | | |  _| || |
+# |_| /__|_|          \_,_|\__|_|_|_|\__|\_, |
+#                                        |__/
+# **************************************************************/
 
 # smart copy - using `fzf` to list files and copy the selected file
 # @author      : marslo
@@ -98,6 +106,98 @@ function cat() {                           # smart cat
     "${CAT}" --theme='gruvbox-dark' "${@:1:$#-1}" "${@: -1}"
   fi
 }
+
+# shellcheck disable=SC2089,SC2090
+function fdInRC() {
+  local rcPaths="$HOME/.config/nvim $HOME/.marslo $HOME/.idlerc $HOME/.ssh"
+  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
+  fdOpt+=' --exec stat --printf="%y | %n\n"'
+  (
+    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore' $HOME ${fdOpt}";
+    echo "${rcPaths}" | fmt -1 | xargs -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
+  ) |  sort -r
+}
+
+function fzfInPath() {                   # return file name via fzf in particular folder
+  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
+  if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec-batch ls -t'; fi
+  [[ '.' = "${1}" ]] && path="${1}" || path=". ${1}"
+  eval "fd ${path} ${fdOpt} | fzf --cycle --multi ${*:2} --header 'filter in ${1} :'"
+}
+
+# fman - fzf list and preview for manpage:
+# @source      : https://github.com/junegunn/fzf/wiki/examples#fzf-man-pages-widget-for-zsh
+# @description :
+#   - CTRL-N/CTRL-P or SHIFT-↑/↓ for view preview content
+#   - ENTER/Q to toggle maximize/normal preview window
+#   - CTRL+O  to toggle tldr in preview window
+#   - CTRL+I  to toggle man in preview window
+#   - CTRL+/  to toggle preview window hidden/show
+#   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default fman`
+# shellcheck disable=SC2046
+function fman() {
+  unset MANPATH
+  local option
+  local batman="man {1} | col -bx | bat --language=man --plain --color always --theme='gruvbox-dark'"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+          -* ) option+="$1 $2 "; shift 2 ;;
+           * ) break                     ;;
+    esac
+  done
+
+  man -k . |
+  sort -u |
+  sed -r 's/(\(.+\))//g' |
+  grep -v -E '::' |
+  awk -v cyan=$(tput setaf 6) -v blue=$(tput setaf 4) -v res=$(tput sgr0) -v bld=$(tput bold) '{ $1=cyan bld $1; $2=res blue $2;} 1' |
+  fzf ${option:-} \
+      -d ' ' \
+      --nth 1 \
+      --height 100% \
+      --ansi \
+      --no-multi \
+      --tiebreak=begin \
+      --prompt='ᓆ > ' \
+      --color='prompt:#0099BD' \
+      --preview-window 'up,70%,wrap,rounded,<50(up,85%,border-bottom)' \
+      --preview "${batman}" \
+      --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
+      --bind "ctrl-o:+change-preview(tldr --color {1})+change-prompt(ﳁ tldr > )" \
+      --bind "ctrl-i:+change-preview(${batman})+change-prompt(ᓆ  man > )" \
+      --bind "enter:execute(${batman})+change-preview(${batman})+change-prompt(ᓆ > )" \
+      --bind='ctrl-/:toggle-preview' \
+      --header 'CTRL-N/P or SHIFT-↑/↓ to view preview contents; ENTER/Q to maximize/normal preview window' \
+      --exit-0
+}
+
+# imgview - fzf list and preview images
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @description :
+#   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default imgview`
+#   - disable `gif` due to imgcat performance issue
+# shellcheck disable=SC2215
+function imgview() {                       # view image via [imgcat](https://github.com/eddieantonio/imgcat)
+  fd --unrestricted --type f --exclude .git --exclude node_modules '^*\.(png|jpeg|jpg|xpm|bmp)$' |
+  fzf "$@" --height 100% \
+           --preview "imgcat -W \$FZF_PREVIEW_COLUMNS -H \$FZF_PREVIEW_LINES {}" \
+           --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
+           --header 'Press CTRL-Y to copy name into clipboard' \
+           --preview-window 'down:80%:nowrap' \
+           --exit-0 \
+  >/dev/null || true
+}
+
+# /**************************************************************
+#   __     __                               __ _ _
+#  / _|___/ _|  ___   ___ _ __  ___ _ _    / _(_) |___
+# |  _|_ /  _| |___| / _ \ '_ \/ -_) ' \  |  _| | / -_)
+# |_| /__|_|         \___/ .__/\___|_||_| |_| |_|_\___|
+#                        |_|
+#
+# **************************************************************/
 
 # magic vim - fzf list in recent modified order
 # @author      : marslo
@@ -161,24 +261,33 @@ function v() {                             # v - open files in ~/.vim_mru_files
   vim ${files//\~/$HOME}
 }
 
-# vimr - open files by [vim] in whole [r]epository - similar with [`:Gfiles`](https://github.com/junegunn/fzf.vim?tab=readme-ov-file#commands)
+# vimr - open files by [vim] in whole [r]epository
+#        same series: [`cdr`](https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh#L411-L419)
+#        similar with [`:Gfiles`](https://github.com/junegunn/fzf.vim?tab=readme-ov-file#commands)
 # @author      : marslo
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
-# @description : filter all files within current git repository via data modified and open by vim
+# @description :
+#   - if pwd inside the repo, then filter all files within current git repository via data modified and open by vim
+#   - if pwd not inside the repo, then call `vim`
 function vimr() {                          # vimr - open file(s) via [vim] in whole [r]epository
   local repodir
-  repodir="$(git rev-parse --show-toplevel)"
-  # shellcheck disable=SC2164
-  files=$( fd . "${repodir}" --type f --hidden --ignore-file ~/.fdignore --exec-batch ls -t |
-                xargs -I{} bash -c "echo {} | sed \"s|${repodir}/||g\"" |
-                fzf --multi -0 |
-                xargs -I{} bash -c "echo ${repodir}/{}"
-         )
-  # shellcheck disable=SC2046
-  [[ -z "${files}" ]] || vim $(xargs <<< "${files}")
+  isrepo=$(git rev-parse --is-inside-work-tree >/dev/null 2>&1; echo $?)
+  if [[ 0 = "${isrepo}" ]]; then
+    repodir="$(git rev-parse --show-toplevel)"
+    # shellcheck disable=SC2164
+    files=$( fd . "${repodir}" --type f --hidden --ignore-file ~/.fdignore --exec-batch ls -t |
+                  xargs -I{} bash -c "echo {} | sed \"s|${repodir}/||g\"" |
+                  fzf --multi -0 |
+                  xargs -I{} bash -c "echo ${repodir}/{}"
+           )
+    # shellcheck disable=SC2046
+    [[ -z "${files}" ]] || vim $(xargs <<< "${files}")
+  else
+    vim
+  fi
 }
 
-# vimrc - open rc files list from "${rcPaths}"
+# vimrc - open rc files list from "${rcPaths}" to quick update/modify rc files
 # @author      : marslo
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
 # @description :
@@ -186,7 +295,7 @@ function vimr() {                          # vimr - open file(s) via [vim] in wh
 #   - using nvim if `command -v nvim` is true
 #   - using `-v` force using `command vim` instead of `command nvim`
 # shellcheck disable=SC2155
-function vimrc() {                         # vimrc - fzf list in most recent modified order
+function vimrc() {                         # vimrc - fzf list all rc files in data modified order
   local orgv                               # force using vim instead of nvim
   local rcPaths="$HOME/.config/nvim $HOME/.marslo"
   local VIM="$(type -P vim)"
@@ -206,24 +315,6 @@ function vimrc() {                         # vimrc - fzf list in most recent mod
           | fzf ${foption} --bind="enter:become(${VIM} {+})" \
                            --bind "ctrl-y:execute-silent(echo -n {+} | ${COPY})+abort" \
                            --header 'Press CTRL-Y to copy name into clipboard'
-}
-
-# shellcheck disable=SC2089,SC2090
-function fdInRC() {
-  local rcPaths="$HOME/.config/nvim $HOME/.marslo $HOME/.idlerc $HOME/.ssh"
-  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
-  fdOpt+=' --exec stat --printf="%y | %n\n"'
-  (
-    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore' $HOME ${fdOpt}";
-    echo "${rcPaths}" | fmt -1 | xargs -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
-  ) |  sort -r
-}
-
-function fzfInPath() {                   # return file name via fzf in particular folder
-  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
-  if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec-batch ls -t'; fi
-  [[ '.' = "${1}" ]] && path="${1}" || path=". ${1}"
-  eval "fd ${path} ${fdOpt} | fzf --cycle --multi ${*:2} --header 'filter in ${1} :'"
 }
 
 # magic vimdiff - using fzf list in recent modified order
@@ -284,6 +375,16 @@ function vd() {                            # vd - open vimdiff loaded files from
   vimdiff $(xargs <<< "${files}")
 }
 
+
+# /**************************************************************
+#   __     __                    _                    _   _
+#  / _|___/ _|  ___   __ _ ___  | |_ ___   _ __  __ _| |_| |_
+# |  _|_ /  _| |___| / _` / _ \ |  _/ _ \ | '_ \/ _` |  _| ' \
+# |_| /__|_|         \__, \___/  \__\___/ | .__/\__,_|\__|_||_|
+#                    |___/                |_|
+#
+# **************************************************************/
+
 # shellcheck disable=SC2034,SC2316
 function cdp() {                           # cdp - [c][d] to selected [p]arent directory
   local declare dirs=()
@@ -301,13 +402,13 @@ function cdp() {                           # cdp - [c][d] to selected [p]arent d
   cd "$DIR" || return
 }
 
-function cdd() {                           # cdd - [c][d] to selected sub [d]irectory;
+function cdd() {                           # cdd - [c][d] to selected sub [d]irectory
   local dir
   # shellcheck disable=SC2164
   dir=$(fd --type d --hidden --ignore-file ~/.fdignore | fzf --no-multi -0) && cd "${dir}"
 }
 
-function cdr() {                           # cdd - [c][d] to selected [r]epo directory
+function cdr() {                           # cdd - [c][d] to selected [r]epo directory - same series: `vimr`
   local repodir
   repodir="$(git rev-parse --show-toplevel)"
   # shellcheck disable=SC2164
@@ -337,6 +438,14 @@ function fif() {                           # [f]ind-[i]n-[f]ile
                 "
 }
 
+# /**************************************************************
+#   __     __
+#  / _|___/ _|  ___   _ __ _ _ ___  __ ___ ______
+# |  _|_ /  _| |___| | '_ \ '_/ _ \/ _/ -_|_-<_-<
+# |_| /__|_|         | .__/_| \___/\__\___/__/__/
+#                    |_|
+#
+# **************************************************************/
 function lsps() {                          # [l]i[s]t [p]roces[s]
   (date; ps -ef) |
   fzf --bind='ctrl-r:reload(date; ps -ef)' \
@@ -355,6 +464,14 @@ function killps() {                        # [kill] [p]roces[s]
   awk '{print $2}' |
   xargs kill -9
 }
+
+# /**************************************************************
+#   __     __
+#  / _|___/ _|  ___   ___ _ ___ __ __ ____ _ _ _
+# |  _|_ /  _| |___| / -_) ' \ V / \ V / _` | '_|
+# |_| /__|_|         \___|_||_\_/   \_/\__,_|_|
+#
+# **************************************************************/
 
 # eclr - environment variable clear, support multiple select
 # @author      : marslo
@@ -528,70 +645,13 @@ function mkexp() {                         # [m]a[k]e environment variable [e][x
           )
 }
 
-# imgview - fzf list and preview images
-# @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
-# @description :
-#   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default imgview`
-#   - disable `gif` due to imgcat performance issue
-# shellcheck disable=SC2215
-function imgview() {                       # view image via [imgcat](https://github.com/eddieantonio/imgcat)
-  fd --unrestricted --type f --exclude .git --exclude node_modules '^*\.(png|jpeg|jpg|xpm|bmp)$' |
-  fzf "$@" --height 100% \
-           --preview "imgcat -W \$FZF_PREVIEW_COLUMNS -H \$FZF_PREVIEW_LINES {}" \
-           --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
-           --header 'Press CTRL-Y to copy name into clipboard' \
-           --preview-window 'down:80%:nowrap' \
-           --exit-0 \
-  >/dev/null || true
-}
-
-# fman - fzf list and preview for manpage:
-# @source      : https://github.com/junegunn/fzf/wiki/examples#fzf-man-pages-widget-for-zsh
-# @description :
-#   - CTRL-N/CTRL-P or SHIFT-↑/↓ for view preview content
-#   - ENTER/Q to toggle maximize/normal preview window
-#   - CTRL+O  to toggle tldr in preview window
-#   - CTRL+I  to toggle man in preview window
-#   - CTRL+/  to toggle preview window hidden/show
-#   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default fman`
-# shellcheck disable=SC2046
-function fman() {
-  unset MANPATH
-  local option
-  local batman="man {1} | col -bx | bat --language=man --plain --color always --theme='gruvbox-dark'"
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-          -* ) option+="$1 $2 "; shift 2 ;;
-           * ) break                     ;;
-    esac
-  done
-
-  man -k . |
-  sort -u |
-  sed -r 's/(\(.+\))//g' |
-  grep -v -E '::' |
-  awk -v cyan=$(tput setaf 6) -v blue=$(tput setaf 4) -v res=$(tput sgr0) -v bld=$(tput bold) '{ $1=cyan bld $1; $2=res blue $2;} 1' |
-  fzf ${option:-} \
-      -d ' ' \
-      --nth 1 \
-      --height 100% \
-      --ansi \
-      --no-multi \
-      --tiebreak=begin \
-      --prompt='ᓆ > ' \
-      --color='prompt:#0099BD' \
-      --preview-window 'up,70%,wrap,rounded,<50(up,85%,border-bottom)' \
-      --preview "${batman}" \
-      --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
-      --bind "ctrl-o:+change-preview(tldr --color {1})+change-prompt(ﳁ tldr > )" \
-      --bind "ctrl-i:+change-preview(${batman})+change-prompt(ᓆ  man > )" \
-      --bind "enter:execute(${batman})+change-preview(${batman})+change-prompt(ᓆ > )" \
-      --bind='ctrl-/:toggle-preview' \
-      --header 'CTRL-N/P or SHIFT-↑/↓ to view preview contents; ENTER/Q to maximize/normal preview window' \
-      --exit-0
-}
+# /**************************************************************
+#   __     __         _        _                      _
+#  / _|___/ _|  ___  | |___  _| |__  ___ _ _ _ _  ___| |_ ___ ___
+# |  _|_ /  _| |___| | / / || | '_ \/ -_) '_| ' \/ -_)  _/ -_|_-<
+# |_| /__|_|         |_\_\\_,_|_.__/\___|_| |_||_\___|\__\___/__/
+#
+# **************************************************************/
 
 # kns - kubectl set default namesapce
 # @author      : marslo
@@ -728,12 +788,12 @@ function b() {                             # chrome [b]ookmarks browser with jq
 }
 
 # /**************************************************************
-#  _           _
-# | |         | |
-# | |__   __ _| |_
-# | '_ \ / _` | __|
-# | |_) | (_| | |_
-# |_.__/ \__,_|\__|
+#  _
+# | |          _
+# | | _   ____| |_
+# | || \ / _  |  _)
+# | |_) | ( | | |__
+# |____/ \_||_|\___)
 #
 # **************************************************************/
 
