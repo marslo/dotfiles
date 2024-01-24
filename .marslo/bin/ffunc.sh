@@ -118,11 +118,28 @@ function fdInRC() {
   ) |  sort -r
 }
 
-function fzfInPath() {                   # return file name via fzf in particular folder
+function fzfInPath() {                     # return file name via fzf in particular folder
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec-batch ls -t'; fi
   [[ '.' = "${1}" ]] && path="${1}" || path=". ${1}"
   eval "fd ${path} ${fdOpt} | fzf --cycle --multi ${*:2} --header 'filter in ${1} :'"
+}
+
+# sourcerc - filter rc files from "${rcPaths}" and source the selected item(s)
+#         same series: vimrc
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @description : default rcPaths: ~/.marslo ~/.config/nvim ~/.*rc ~/.*profile ~/.*ignore
+# shellcheck disable=SC2046,SC1090
+function sourcerc() {                      # source rc files
+  local files
+  files=$( fdInRC |
+           sed -rn 's/^[^|]* \| (.+)$/\1/p' |
+           fzf --multi --cycle \
+               --bind "ctrl-y:execute-silent(echo -n {+} | ${COPY})+abort" \
+               --header 'Press CTRL-Y to copy name into clipboard'
+         )
+  [[ -z "${files}" ]] || source $(xargs <<< "${files}")
 }
 
 # fman - fzf list and preview for manpage:
@@ -316,6 +333,7 @@ function vimr() {                          # vimr - open file(s) via [vim] in wh
 }
 
 # vimrc - open rc files list from "${rcPaths}" to quick update/modify rc files
+#         same series: sourcerc
 # @author      : marslo
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
 # @description :
