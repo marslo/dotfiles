@@ -1,11 +1,25 @@
-Life is short, make it easier!
+🛠 dotfiles for Vim/CMD enthusiast
 ==========
+
+>
+> 为者常成, 成难成之事; 行者常至, 至难至之地. 与君共勉之! <br>
+>                                           - [晏子春秋](https://web.archive.org/web/20061018194424/http://www.chinapage.com/big5/classic/yj0.htm)
+>
+>
+> Whoever will eventually shake the world will remain silent for a long time;<br>
+> Whoever will eventually light the lightning will be drifting like clouds for a long time.<br>
+>                                           - [Nietzsche](https://www.aphorismen.de/zitat/5992)
+
+<br>
+
+Life is short, make it easier!
+--------------
 
 ## version
 - Author: marslo
 - Email: marslo.jiao@gmail.com
 - Created: 2013-10-07 21:43:42
-- LastChange: 2024-01-17 01:19:06
+- LastChange: 2024-01-24 00:43:55
 
 ## table of content
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -22,6 +36,8 @@ Life is short, make it easier!
   - [python IDLE](#python-idle)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+<br>
 
 ![ffunc.sh](https://github.com/marslo/dotfiles/raw/assets/screenshots/ffunc.sh.gif)
 
