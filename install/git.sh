@@ -7,14 +7,7 @@
 
 source ./utils.sh
 
-function preSetupOSX() {
-  brew install gcc autoconf automake openssl@3 expat gettext zlib libtool libiconv ncurses
-  brew install asciidoc xmlto docbook2x docbook-xsl hunspell
-  brew install gnu-getopt libao
-  sudo ln -sf /usr/local/bin/docbook2texi /usr/local/bin/docbook2x-texi
-}
-
-function preSetupLinux() {
+function preInstall() {
   if [[ 1 = "$(isCentOS)" ]] || [[ 1 = "$(isRHEL)" ]]; then
     # git-core
     sudo dnf config-manager --set-enabled powertools
@@ -35,6 +28,11 @@ function preSetupLinux() {
     sudo apt install -y asciidoc xmlto docbook2x hunspell libhunspell-dev
     # git-info
     sudo apt install -y install-info libao-dev
+  elif [[ 1 = "$(isOSX)" ]]; then
+    brew install gcc autoconf automake openssl@3 expat gettext zlib libtool libiconv ncurses
+    brew install asciidoc xmlto docbook2x docbook-xsl hunspell
+    brew install gnu-getopt libao
+    sudo ln -sf /usr/local/bin/docbook2texi /usr/local/bin/docbook2x-texi
   fi
 }
 
@@ -47,12 +45,13 @@ function doInstall() {
 
 gitdir='/opt/git'
 gitver='2.43.0'
+
+[[ -d "${gitdir}" ]] || mkdir -p "${gitdir}"
 curl -fsSL https://mirrors.edge.kernel.org/pub/software/scm/git/git-${gitver}.tar.gz |
-     tar -zxf -C "${gitdir}" && cd "${gitdir}"
+     tar xzf - -C "${gitdir}" &&
+     cd "${gitdir}/git-${gitver}"
 
-[[ '1' = "$(isOSX)"   ]] && preSetupOSX
-[[ '1' = "$(isLinux)" ]] && preSetupLinux
-
+preInstall
 doInstall
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=indent
