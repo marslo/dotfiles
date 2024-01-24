@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1090
 #=============================================================================
-#     FileName : run.sh
+#     FileName : install.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2021-08-11 22:13:38
-#   LastChange : 2024-01-17 00:37:53
+#   LastChange : 2024-01-24 00:54:46
 #=============================================================================
 
 # shellcheck disable=SC1091
@@ -156,6 +156,15 @@ function others(){
   [[ -d "${irc}"/utils/fzf-plugins/fzf-git.sh ]] || mkdir -p "${irc}"/utils/fzf-plugins/fzf-git.sh
   git clone https://github.com/junegunn/fzf-git.sh.git    "${irc}"/utils/fzf-plugins/fzf-git.sh
   ln -sf "${irc}"/utils/fzf-plugins/fzf-git.sh/fzf-git.sh "${irc}"/bin/fzf-git.sh
+
+  # for bash-colors.sh
+  [[ -d "${irc}"/utils/bash-colors ]] &&  mkdir -p "${irc}"/utils/bash-colors
+  git clone https://github.com/ppo/bash-colors.git "${irc}"/utils/bash-colors
+  chmod +x "${irc}"/utils/bash-colors/*.sh
+  [[ -f "${irc}"/bin/bash-colors.sh ]] ||
+  ln -sf "${irc}"/utils/bash-color/bash-colors.sh  "${irc}"/bin/bash-colors.sh
+  [[ -f "${irc}"/bin/show-colors.sh ]] ||
+  ln -sf "${irc}"/utils/bash-color/demo.sh         "${irc}"/bin/show-colors.sh
 }
 
 while true; do
