@@ -101,4 +101,6 @@ eval "${cmd}"
   $(c Wdi)>> [ALSO]  :$(c)  $(c Yi)/usr/local/bin/rg --hidden --smart-case --files \"${path}\" ${opt} ${params}$(c)
 """
 
+unset cmd
+
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

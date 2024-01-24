@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-01-23 19:46:28
+#   LastChange : 2024-01-23 23:06:03
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -159,7 +159,7 @@ function fman() {
       --ansi \
       --no-multi \
       --tiebreak=begin \
-      --prompt='ᓆ > ' \
+      --prompt='ᓆ ‣ ' \
       --color='prompt:#0099BD' \
       --preview-window 'up,70%,wrap,rounded,<50(up,85%,border-bottom)' \
       --preview "${batman}" \
@@ -188,6 +188,34 @@ function imgview() {                       # view image via [imgcat](https://git
            --preview-window 'down:80%:nowrap' \
            --exit-0 \
   >/dev/null || true
+}
+
+# https://github.com/junegunn/fzf/wiki/Examples#bookmarks
+# shellcheck disable=SC2016
+function b() {                             # chrome [b]ookmarks browser with jq
+  if [ "$(uname)" = "Darwin" ]; then
+    if [[ -e "$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks" ]]; then
+      bookmarks_path="$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks"
+    else
+      bookmarks_path="$HOME/Library/Application Support/Google/Chrome/Default/Bookmarks"
+    fi
+    open=open
+  else
+    bookmarks_path="$HOME/.config/google-chrome/Default/Bookmarks"
+    open=xdg-open
+  fi
+
+  jq_script='
+     def ancestors: while(. | length >= 2; del(.[-1,-2]));
+     . as $in | paths(.url?) as $key | $in | getpath($key) | {name,url, path: [$key[0:-2] | ancestors as $a | $in | getpath($a) | .name?] | reverse | join("/") } | .path + "/" + .name + "\t" + .url'
+
+  urls=$( jq -r "${jq_script}" < "${bookmarks_path}" \
+             | sed -E $'s/(.*)\t(.*)/\\1\t\x1b[36m\\2\x1b[m/g' \
+             | fzf --ansi \
+             | cut -d$'\t' -f2
+        )
+  # shellcheck disable=SC2046
+  [[ -z "${urls}" ]] || "${open}" $(xargs <<< "${urls}")
 }
 
 # /**************************************************************
@@ -430,16 +458,19 @@ function cdf() {                           # [c][d] into the directory of the se
 # - https://github.com/junegunn/fzf/issues/3572#issuecomment-1887735150
 # shellcheck disable=SC2154
 function fif() {                           # [f]ind-[i]n-[f]ile
-  if [ ! "$#" -gt 0 ]; then bash "${iRCHOME}"/bin/rfv; fi
-  $(type -P rg) --files-with-matches --no-messages --hidden --follow --smart-case "$1" |
-  fzf --height 80% \
-      --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
-      --bind "enter:become($(type -P vim) {+})" \
-      --header 'CTRL-N/CTRL-P or CTRL-↑/CTRL-↓ to view contents' \
-      --preview "bat --color=always --style=plain {} |
-                 rg --no-line-number --colors 'match:bg:yellow' --ignore-case --pretty --context 10 \"$1\" ||
-                 rg --no-line-number --ignore-case --pretty --context 10 \"$1\" {} \
-                "
+  if [ ! "$#" -gt 0 ]; then
+    bash "${iRCHOME}"/bin/rfv
+  else
+    $(type -P rg) --files-with-matches --no-messages --hidden --follow --smart-case "$1" |
+    fzf --height 80% \
+        --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
+        --bind "enter:become($(type -P vim) {+})" \
+        --header 'CTRL-N/CTRL-P or CTRL-↑/CTRL-↓ to view contents' \
+        --preview "bat --color=always --style=plain {} |
+                   rg --no-line-number --colors 'match:bg:yellow' --ignore-case --pretty --context 10 \"$1\" ||
+                   rg --no-line-number --ignore-case --pretty --context 10 \"$1\" {} \
+                  "
+  fi
 }
 
 # /**************************************************************
@@ -482,13 +513,23 @@ function killps() {                        # [kill] [p]roces[s]
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
 # @description : list all environment variable via `fzf`, and unset selected items
 # @alternative : `$ unset ,,<TAB>`
+# shellcheck disable=SC2016
 function eclr() {                          # [e]nvironment variable [c][l]ea[r]
   while read -r _env; do
     echo -e "$(c Ys)>> unset ${_env}$(c)\n$(c Wdi).. $(eval echo \$${_env})$(c)"
     unset "${_env}"
   done < <( env |
-            sed -rn 's/^([a-zA-Z0-9]+)=.*$/\1/p' |
-            fzf -1 --exit-0 --no-sort --multi --prompt='env> ' --header 'TAB to select multiple items'
+            sed -r 's/^([a-zA-Z0-9_-]+)=.*$/\1/' |
+            fzf -1 \
+                --exit-0 \
+                --layout default \
+                --no-sort \
+                --multi \
+                --height '50%' \
+                --prompt 'env> ' \
+                --preview-window 'top,30%,wrap,rounded' \
+                --preview 'source ~/.marslo/bin/bash-color.sh; _env={}; echo -e "$(c Gs)${_env}=${!_env}$(c)"' \
+                --header 'TAB to select multiple items'
           )
 }
 
@@ -523,10 +564,11 @@ function penv() {                          # [p]rint [env]ironment variable
   done < <( env |
             sed -r 's/^([a-zA-Z0-9_-]+)=.*$/\1/' |
             fzf ${option//-c\ /} \
+                --layout default \
                 --prompt 'env> ' \
                 --height '50%' \
-                --preview-window 'top,30%,wrap,rounded' \
-                --preview='source ~/.marslo/bin/bash-color.sh; _env={}; echo -e "$(c Gs)${_env}=${!_env}$(c)"' \
+                --preview-window 'top,50%,wrap,rounded' \
+                --preview 'source ~/.marslo/bin/bash-color.sh; _env={}; echo -e "$(c Gs)${_env}=${!_env}$(c)"' \
                 --header 'TAB/SHIFT-TAB to select multiple items, CTRL-D to deselect-all, CTRL-S to select-all'
           )
   [[ "${option}" == *-c\ * ]] && [[ -n "${COPY}" ]] && "${COPY}" < <( printf '%s\n' "${array[@]}" | head -c-1 )
@@ -536,6 +578,7 @@ function penv() {                          # [p]rint [env]ironment variable
 # @author      : marslo
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
 # @description : list compilation environment variable via `fzf`, and unset for selected items
+# shellcheck disable=SC2016
 function mkclr() {                         # [m]a[k]e environment variable [c][l]ea[r]
   while read -r _env; do
     echo -e "$(c Ys)>> unset ${_env}$(c)\n$(c Wdi).. $(eval echo \$${_env})$(c)"
@@ -543,10 +586,14 @@ function mkclr() {                         # [m]a[k]e environment variable [c][l
   done < <( echo 'LDFLAGS CFLAGS CPPFLAGS PKG_CONFIG_PATH LIBRARY_PATH LD_LIBRARY_PATH' |
                   fmt -1 |
                   fzf -1 --exit-0 \
+                         --layout default \
                          --no-sort \
                          --multi \
                          --cycle \
                          --prompt 'env> ' \
+                         --height '50%' \
+                         --preview-window 'top,50%,wrap,rounded' \
+                         --preview 'source ~/.marslo/bin/bash-color.sh; _env={}; echo -e "$(c Gs)${_env}=${!_env}$(c)"' \
                          --header 'TAB/SHIFT-TAB to select multiple items, CTRL-D to deselect-all, CTRL-S to select-all'
           )
   # echo -e "\n$(c Wdi)[TIP]>> to list all env via $(c)$(c Wdiu)\$ env | sed -rn 's/^([a-zA-Z0-9]+)=.*$/\1/p'$(c)"
@@ -681,41 +728,6 @@ function kns() {                           # [k]ubectl [n]ame[s]pace
                          "
 }
 
-# kcani - kubectl check permission (auth can-i)
-# @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
-# @description : check whether an action is allowed in given namespaces. support multiple selection
-# [k]ubectl [can]-[i]
-function kcani() {                         # [k]ubectl [can]-[i]
-  local namespaces=''
-  local actions='list get watch create update delete'
-  local components='sts deploy secrets configmap ingressroute ingressroutetcp'
-
-  namespaces=$( echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania' |
-                    fmt -1 |
-                    fzf -1 -0 --no-sort --prompt='namespace> ' \
-                        --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
-                        --header 'Press CTRL-Y to copy name into clipboard'
-             )
-  [[ -z "${namespaces}" ]] && echo "$(c Rs)ERROR: select at least one namespace !$(c)" && return
-
-  while read -r namespace; do
-    echo -e "\n>> $(c Ys)${namespace}$(c)"
-    k-p-cani ${namespace}                  # for pods component
-
-    for _c in ${components}; do
-      local res=''
-      echo -e ".. $(c Ms)${_c}$(c) :"
-      for _a in ${actions}; do
-        r=$(_can_i -n "${namespace}" "${_a}" "${_c}")
-        res+="${r} ";
-      done;                                # in actions
-      echo -e "${actions}\n${res}" | "${COLUMN}" -t | sed 's/^/\t/g'
-    done;                                  # in components
-
-  done< <(echo "${namespaces}" | fmt -1)
-}
-
 # _can_i - kubectl check permission (auth can-i) for pods component
 # @author      : marslo
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
@@ -738,12 +750,47 @@ function _can_i() {
   echo -e "${r}";
 }
 
-# k-p-cani - kubectl check permission (auth can-i) for pods component
+# kcani - kubectl check permission (auth can-i)
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @description : check whether an action is allowed in given namespaces. support multiple selection
+# [k]ubectl [can]-[i]
+function kcani() {                         # [k]ubectl [can]-[i]
+  local namespaces=''
+  local actions='list get watch create update delete'
+  local components='sts deploy secrets configmap ingressroute ingressroutetcp'
+
+  namespaces=$( echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania' |
+                    fmt -1 |
+                    fzf -1 -0 --no-sort --prompt='namespace> ' \
+                        --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
+                        --header 'Press CTRL-Y to copy name into clipboard'
+             )
+  [[ -z "${namespaces}" ]] && echo "$(c Rs)ERROR: select at least one namespace !$(c)" && return
+
+  while read -r namespace; do
+    echo -e "\n>> $(c Ys)${namespace}$(c)"
+    kpcani ${namespace}                  # for pods component
+
+    for _c in ${components}; do
+      local res=''
+      echo -e ".. $(c Ms)${_c}$(c) :"
+      for _a in ${actions}; do
+        r=$(_can_i -n "${namespace}" "${_a}" "${_c}")
+        res+="${r} ";
+      done;                                # in actions
+      echo -e "${actions}\n${res}" | "${COLUMN}" -t | sed 's/^/\t/g'
+    done;                                  # in components
+
+  done< <(echo "${namespaces}" | fmt -1)
+}
+
+# kpcani - kubectl check permission (auth can-i) for pods component
 # @author      : marslo
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
 # @description : check whether certain action is allowed in given namespaces
-# [k]ubectl [can]-[i]
-function k-p-cani() {
+# [k]ubectl [p]od [can]-[i]
+function kpcani() {                        # [k]ubectl [p]od [can]-[i]
   local components='pods'
   declare -A pactions
   pactions=(
@@ -768,34 +815,6 @@ function k-p-cani() {
     echo -e ".. $(c Ms)pods$(c) :"
     echo -e "${headers}\n${pres}" | "${COLUMN}" -t | sed 's/^/\t/g'
   done< <(echo "$*" | fmt -1)
-}
-
-# https://github.com/junegunn/fzf/wiki/Examples#bookmarks
-# shellcheck disable=SC2016
-function b() {                             # chrome [b]ookmarks browser with jq
-  if [ "$(uname)" = "Darwin" ]; then
-    if [[ -e "$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks" ]]; then
-      bookmarks_path="$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks"
-    else
-      bookmarks_path="$HOME/Library/Application Support/Google/Chrome/Default/Bookmarks"
-    fi
-    open=open
-  else
-    bookmarks_path="$HOME/.config/google-chrome/Default/Bookmarks"
-    open=xdg-open
-  fi
-
-  jq_script='
-     def ancestors: while(. | length >= 2; del(.[-1,-2]));
-     . as $in | paths(.url?) as $key | $in | getpath($key) | {name,url, path: [$key[0:-2] | ancestors as $a | $in | getpath($a) | .name?] | reverse | join("/") } | .path + "/" + .name + "\t" + .url'
-
-  urls=$( jq -r "${jq_script}" < "${bookmarks_path}" \
-             | sed -E $'s/(.*)\t(.*)/\\1\t\x1b[36m\\2\x1b[m/g' \
-             | fzf --ansi \
-             | cut -d$'\t' -f2
-        )
-  # shellcheck disable=SC2046
-  [[ -z "${urls}" ]] || "${open}" $(xargs <<< "${urls}")
 }
 
 # /**************************************************************
