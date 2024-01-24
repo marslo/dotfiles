@@ -51,8 +51,7 @@ dotfils                    # -> $HOME
 └── ...                    # rc/profile/ignore/...
 ```
 
-![bash]
-(https://github.com/marslo/dotfiles/raw/assets/screenshots/shell.png)
+![bash](https://github.com/marslo/dotfiles/raw/assets/screenshots/shell.png)
 
 ## manual configure
 ### `~/.marslo/.marslorc`

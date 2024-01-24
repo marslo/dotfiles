@@ -203,6 +203,6 @@ test -f "${iRCHOME}"/.tmux-session && source "${iRCHOME}"/.tmux-session
 #               | |             __/ |
 #               |_|            |___/
 # --------------------------------------------------------------/
-test -f ${iRCHOME}/utils/fzf-plugins/fzf-git.sh/fzf-git.sh && source ${iRCHOME}/utils/fzf-plugins/fzf-git.sh/fzf-git.sh
+test -f "${iRCHOME}"/bin/fzf-git.sh && source "${iRCHOME}"/bin/fzf-git.sh
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------
