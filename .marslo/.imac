@@ -163,6 +163,7 @@ fi
 for _i in $( /bin/ls -1 ${iRCHOME}/.alias ); do
   source "${iRCHOME}/.alias/${_i}"
 done
+unset _i
 
 # yum whatprovides
 brew-whatprovides() {
