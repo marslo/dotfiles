@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-01-23 15:44:44
+#   LastChange : 2024-01-23 19:46:28
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -425,8 +425,12 @@ function cdf() {                           # [c][d] into the directory of the se
   file=$(fzf --multi --query "$1") && dir=$(dirname "${file}") && cd "${dir}"
 }
 
+# references:
+# - https://github.com/junegunn/fzf/blob/master/ADVANCED.md#using-fzf-as-the-secondary-filter
+# - https://github.com/junegunn/fzf/issues/3572#issuecomment-1887735150
+# shellcheck disable=SC2154
 function fif() {                           # [f]ind-[i]n-[f]ile
-  if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
+  if [ ! "$#" -gt 0 ]; then bash "${iRCHOME}"/bin/rfv; fi
   $(type -P rg) --files-with-matches --no-messages --hidden --follow --smart-case "$1" |
   fzf --height 80% \
       --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
