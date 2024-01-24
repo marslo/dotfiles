@@ -193,4 +193,16 @@ source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im}.sh )
 test -f "${iRCHOME}"/bin/now       && bash   "${iRCHOME}"/bin/now
 test -f "${iRCHOME}"/.tmux-session && source "${iRCHOME}"/.tmux-session
 
+# /--------------------------------------------------------------
+#   __      __         _             _
+#  / _|    / _|       | |           (_)
+# | |_ ___| |_   _ __ | |_   _  __ _ _ _ __  ___
+# |  _|_  /  _| | '_ \| | | | |/ _` | | '_ \/ __|
+# | |  / /| |   | |_) | | |_| | (_| | | | | \__ \
+# |_| /___|_|   | .__/|_|\__,_|\__, |_|_| |_|___/
+#               | |             __/ |
+#               |_|            |___/
+# --------------------------------------------------------------/
+test -f ${iRCHOME}/utils/fzf-plugins/fzf-git.sh/fzf-git.sh && source ${iRCHOME}/utils/fzf-plugins/fzf-git.sh/fzf-git.sh
+
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------

@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
-#####################################################################################
-##  references:                                                                    ##
-##  - https://github.com/junegunn/fzf/blob/master/ADVANCED.md#ripgrep-integration  ##
-##  - https://github.com/junegunn/fzf/issues/3572#issuecomment-1887735150          ##
-#####################################################################################
+############################################################################################################
+##  references:                                                                                           ##
+##  - https://github.com/junegunn/fzf/blob/master/ADVANCED.md#ripgrep-integration                         ##
+##  - https://github.com/junegunn/fzf/issues/3572#issuecomment-1887735150                                 ##
+##  - https://github.com/junegunn/fzf/blob/master/ADVANCED.md#switching-between-ripgrep-mode-and-fzf-mode ##
+############################################################################################################
 
 set -o allexport -o errexit -o nounset -o pipefail
 # https://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin
@@ -43,7 +44,8 @@ spin_me() {
     )"
     # If new size is different from old size, update the preview window size and header
     if [ "$new_size" != "$old_size" ]; then
-      curl_fzf POST "change-header(Preview Window Size: $new_size/ ∑ Rows: $rows)+change-preview-window:$new_size"
+      curl_fzf POST "change-preview-window:$new_size"
+      # curl_fzf POST "change-header(Preview Window Size: $new_size/ ∑ Rows: $rows)+change-preview-window:$new_size"
       old_size=$new_size
     fi
     sleep 0.5
@@ -67,14 +69,23 @@ done
 # https://github.com/junegunn/fzf/blob/master/ADVANCED.md#ripgrep-integration
 declare fdOpt=''
 [[ "$(pwd)" = "$HOME" ]] && fdOpt=' --max-depth 3'
+RG_PREFIX="rg --color=always --line-number --hidden --no-heading --smart-case --column --ignore-file $HOME/.fdignore ${fdOpt} "
 # shellcheck disable=SC2086
-rg --color=always --line-number --hidden --no-heading --smart-case "${*:-}" --ignore-file "$HOME"/.fdignore ${fdOpt} |
+rg --color=always --line-number --hidden --no-heading --smart-case --column  --ignore-file "$HOME"/.fdignore ${fdOpt} "${*:-}" |
   FZF_DEFAULT_OPTS="" fzf \
     --ansi \
-    --bind 'start:execute-silent:spin_me &' \
-    --color "hl:-1:underline,hl+:-1:underline:reverse" \
+    --height 100% \
+    --layout default \
+    --disabled \
+    --bind "start:reload($RG_PREFIX {q})+unbind(ctrl-r)+execute-silent(spin_me &)" \
+    --bind "ctrl-f:unbind(change,ctrl-f)+change-prompt(⍨ ‣ )+enable-search+rebind(ctrl-r)+transform-query(echo {q} > /tmp/rg-fzf-r; cat /tmp/rg-fzf-f)" \
+    --bind "ctrl-r:unbind(ctrl-r)+change-prompt(ᓙ ‣ )+disable-search+reload($RG_PREFIX {q} || true)+rebind(change,ctrl-f)+transform-query(echo {q} > /tmp/rg-fzf-f; cat /tmp/rg-fzf-r)" \
+    --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+    --color "hl:-1:underline,hl+:-1:underline:reverse,prompt:#404945,header:italic:#928374" \
     --delimiter : \
     --listen \
+    --prompt 'ᓙ ‣ ' \
+    --header 'CTRL-R ( ripgrep mode ); CTRL-F ( fzf mode )' \
     --preview 'bat --color=always {1} --highlight-line {2}' \
     --preview-window 'up,border-bottom,+{2}+3/3,~3' \
     --bind 'enter:become(vim {1} +{2})'
