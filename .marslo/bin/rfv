@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+#####################################################################################
+##  references:                                                                    ##
+##  - https://github.com/junegunn/fzf/blob/master/ADVANCED.md#ripgrep-integration  ##
+##  - https://github.com/junegunn/fzf/issues/3572#issuecomment-1887735150          ##
+#####################################################################################
+
+set -o allexport -o errexit -o nounset -o pipefail
+# https://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin
+
+SHELL=$(which bash)
+
+# Set rows to the number of lines in the terminal
+rows=$(tput lines)
+buffer_space="5"
+
+# =================== helper functions ====================
+
+die() {
+  echo ERROR: "$*" >&2
+  exit 1
+}
+
+# Function to send GET/POST request to fzf with optional data load
+curl_fzf() {
+  command curl --silent --request "$1" --data "${2-}" "localhost:$FZF_PORT"
+}
+
+spin_me() {
+  local old_size=""
+  # Loop as long 'fzf' (parent process) is alive
+  while command kill -0 "$PPID" 2>/dev/null; do
+    # Calculate the new size of the preview window based on the number of matches and rows in
+    # the terminal
+    new_size="$(
+      curl_fzf GET |
+        jq --raw-output --argjson rows "$rows" --argjson buffer_space "$buffer_space" \
+          '[
+          ([($rows/3), ($rows - .matchCount - $buffer_space) ] | max),
+          ($rows - $buffer_space)
+        ] | min | floor'
+    )"
+    # If new size is different from old size, update the preview window size and header
+    if [ "$new_size" != "$old_size" ]; then
+      curl_fzf POST "change-header(Preview Window Size: $new_size/ ∑ Rows: $rows)+change-preview-window:$new_size"
+      old_size=$new_size
+    fi
+    sleep 0.5
+  done
+}
+
+# =================== check requirements ====================
+
+if ((rows <= 1)); then
+  die "'rows' must be higher than 1."
+fi
+
+for tool in curl fzf jq; do
+  if ! type -p $tool >/dev/null; then
+    die "'$tool' was not found."
+  fi
+done
+
+# ===================== let's begin ========================
+
+# https://github.com/junegunn/fzf/blob/master/ADVANCED.md#ripgrep-integration
+declare fdOpt=''
+[[ "$(pwd)" = "$HOME" ]] && fdOpt=' --max-depth 3'
+# shellcheck disable=SC2086
+rg --color=always --line-number --hidden --no-heading --smart-case "${*:-}" --ignore-file "$HOME"/.fdignore ${fdOpt} |
+  FZF_DEFAULT_OPTS="" fzf \
+    --ansi \
+    --bind 'start:execute-silent:spin_me &' \
+    --color "hl:-1:underline,hl+:-1:underline:reverse" \
+    --delimiter : \
+    --listen \
+    --preview 'bat --color=always {1} --highlight-line {2}' \
+    --preview-window 'up,border-bottom,+{2}+3/3,~3' \
+    --bind 'enter:become(vim {1} +{2})'
