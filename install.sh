@@ -151,6 +151,13 @@ function encryptFiles() {
   echo -e "$(c Msi)$ command vim $(echo ${aliasCurrent} | fmt -1 | xargs -I{} bash -c "echo ${irc}/.alias/{}" | xargs )$(c)"
 }
 
+function others(){
+  # for fzf-git.sh
+  [[ -d "${irc}"/utils/fzf-plugins/fzf-git.sh ]] || mkdir -p "${irc}"/utils/fzf-plugins/fzf-git.sh
+  git clone https://github.com/junegunn/fzf-git.sh.git    "${irc}"/utils/fzf-plugins/fzf-git.sh
+  ln -sf "${irc}"/utils/fzf-plugins/fzf-git.sh/fzf-git.sh "${irc}"/bin/fzf-git.sh
+}
+
 while true; do
   read -r -p "Do you want backup folders to avoid replaced [Y/N]: " yn
   case $yn in
@@ -168,13 +175,16 @@ generic
 bins
 special
 encryptFiles
+others
 
-if [[ -f "$HOME/.bashrc" ]]; then
-  echo "[ -f \"${irc}/${mrc}\"] && source \"${irc}/${mrc}\"" >> ~/.bashrc
+localrc=''
+[[ 'true' = "$(isWSL)" ]] && localrc=".bashrc" || localrc=".bash_profile"
+if [[ -f "$HOME/${localrc}" ]]; then
+  echo "[ -f \"${irc}/${mrc}\"] && source \"${irc}/${mrc}\"" >> "$HOME/${localrc}"
 else
-  doCopy "$HOME" "${dotfolder}"/.bashrc
-  [[ true = "$(isWSL)" ]] && sed -r 's/\.marslorc/\.marslorc.wsl/g' -i ~/.bashrc
+  doCopy "$HOME" "${dotfolder}"/"${localrc}"
+  [[ true = "$(isWSL)" ]] && sed -r 's/\.marslorc/\.marslorc.wsl/g' -i "$HOME/${localrc}"
 fi
-source ~/.bashrc
+source "${localrc}"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************

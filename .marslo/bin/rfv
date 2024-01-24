@@ -88,4 +88,4 @@ rg --color=always --line-number --hidden --no-heading --smart-case --column  --i
     --header 'CTRL-R ( ripgrep mode ); CTRL-F ( fzf mode )' \
     --preview 'bat --color=always {1} --highlight-line {2}' \
     --preview-window 'up,border-bottom,+{2}+3/3,~3' \
-    --bind 'enter:become(vim {1} +{2})'
+    --bind 'enter:become(nvim {1} +{2})'
