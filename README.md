@@ -46,9 +46,20 @@ Life is short, make it easier!
 ![LS_COLORS_ALL](https://github.com/marslo/dotfiles/raw/assets/screenshots/LS_COLORS_ALL.png)
 
 ## setup
+### dotfiles
 ```bash
 $ bash install.sh
 ```
+
+### tools
+- [fzf](https://marslo.github.io/ibook/devops/awesomeShell.html#fzf)
+- [fd](https://marslo.github.io/ibook/devops/awesomeShell.html#fd)
+- [rg](https://marslo.github.io/ibook/devops/awesomeShell.html#rg-the-faster-mg)
+- [ag](https://marslo.github.io/ibook/devops/awesomeShell.html#ag-the-faster-mg)
+- [fzy](https://marslo.github.io/ibook/devops/awesomeShell.html#fzy)
+- [bat](https://marslo.github.io/ibook/devops/awesomeShell.html#bat)
+- [c](https://marslo.github.io/ibook/devops/awesomeShell.html#c-bash-color)
+- [devenv setup](https://marslo.github.io/ibook/linux/devenv.html)
 
 ## folder structure
 ```bash
