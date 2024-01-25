@@ -17,6 +17,54 @@ function isLinux() { [[ '1' != "$(isWSL)" ]] && [[ 'Linux' = $(uname) ]] && echo
 function bello()   { source ~/.marslo/.marslorc; set -o vi;  }
 function bye()     { source "${iRCHOME}"/.bye; set -o emacs; }
 
+
+# /--------------------------------------------------------------
+#      _       __            _ _     _              _
+#     | |     / _|          | | |   | |            | |
+#   __| | ___| |_ __ _ _   _| | |_  | |_ ___   ___ | |___
+#  / _` |/ _ \  _/ _` | | | | | __| | __/ _ \ / _ \| / __|
+# | (_| |  __/ || (_| | |_| | | |_  | || (_) | (_) | \__ \
+#  \__,_|\___|_| \__,_|\__,_|_|\__|  \__\___/ \___/|_|___/
+#
+# --------------------------------------------------------------/
+if test -f '/usr/local/opt/coreutils/libexec/gnubin/ls'; then
+  LS='/usr/local/opt/coreutils/libexec/gnubin/ls'
+elif test -f '/usr/bin/ls'; then
+  LS='/usr/bin/ls'
+elif test -f '/bin/ls'; then
+  LS='/bin/ls'
+else
+  LS="$(type -P ls)"
+fi
+
+if test -f '/usr/local/opt/grep/libexec/gnubin/grep'; then
+  GREP='/usr/local/opt/grep/libexec/gnubin/grep'
+elif test -f '/usr/bin/grep'; then
+  GREP='/usr/bin/grep'
+elif test -f '/bin/grep'; then
+  GREP='/bin/grep'
+else
+  GREP="$(type -P grep)"
+fi
+
+if [[ '1' = "$(isWSL)" ]]; then
+  COPY='/mnt/c/Windows/System32/clip.exe'
+elif [[ 'Darwin' = "$(uname)" ]]; then
+  COPY="$(type -P pbcopy)"
+else
+  COPY=''
+fi
+
+if [[ '1' = $(isOSX) ]]; then
+  if [[ -x '/usr/local/opt/util-linux/bin/column' ]]; then
+    COLUMN='/usr/local/opt/util-linux/bin/column'
+  elif [[ -x '/usr/bin/column' ]]; then
+    COLUMN='/usr/bin/column'
+  fi
+else
+  COLUMN=$(type -P column)
+fi
+
 # /--------------------------------------------------------------
 #                            _      _   _
 #                           | |    | | (_)
@@ -136,44 +184,6 @@ test -e /usr/share/terminfo/x/xterm-256color  && export TERM='xterm-256color'
 test -e /lib/terminfo/x/xterm-256color        && export TERM='xterm-256color'
 # cygwin/osx
 test -e /usr/share/terminfo/78/xterm-256color && export TERM='xterm-256color'
-
-if test -f '/usr/local/opt/coreutils/libexec/gnubin/ls'; then
-  LS='/usr/local/opt/coreutils/libexec/gnubin/ls'
-elif test -f '/usr/bin/ls'; then
-  LS='/usr/bin/ls'
-elif test -f '/bin/ls'; then
-  LS='/bin/ls'
-else
-  LS="$(type -P ls)"
-fi
-
-if test -f '/usr/local/opt/grep/libexec/gnubin/grep'; then
-  GREP='/usr/local/opt/grep/libexec/gnubin/grep'
-elif test -f '/usr/bin/grep'; then
-  GREP='/usr/bin/grep'
-elif test -f '/bin/grep'; then
-  GREP='/bin/grep'
-else
-  GREP="$(type -P grep)"
-fi
-
-if [[ '1' = "$(isWSL)" ]]; then
-  COPY='/mnt/c/Windows/System32/clip.exe'
-elif [[ 'Darwin' = "$(uname)" ]]; then
-  COPY='/usr/bin/pbcopy'
-else
-  COPY=''
-fi
-
-if [[ '1' = $(isOSX) ]]; then
-  if [[ -x '/usr/local/opt/util-linux/bin/column' ]]; then
-    COLUMN='/usr/local/opt/util-linux/bin/column'
-  elif [[ -x '/usr/bin/column' ]]; then
-    COLUMN='/usr/local/opt/util-linux/bin/column'
-  fi
-else
-  COLUMN=$(type -P column)
-fi
 
 # /--------------------------------------------------------------
 #                   __
