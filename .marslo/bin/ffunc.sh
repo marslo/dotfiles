@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-01-23 23:06:03
+#   LastChange : 2024-01-25 01:50:35
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -133,13 +133,25 @@ function fzfInPath() {                     # return file name via fzf in particu
 # shellcheck disable=SC2046,SC1090
 function runrc() {                         # source rc files
   local files
+  local option
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+          -* ) option+="$1 $2 "; shift 2 ;;
+           * ) break                     ;;
+    esac
+  done
+
   files=$( fdInRC |
            sed -rn 's/^[^|]* \| (.+)$/\1/p' |
-           fzf --multi --cycle \
+           fzf ${option:-} --multi --cycle \
+               --marker='✓' \
                --bind "ctrl-y:execute-silent(echo -n {+} | ${COPY})+abort" \
                --header 'Press CTRL-Y to copy name into clipboard'
          )
-  [[ -z "${files}" ]] || source $(xargs <<< "${files}")
+  [[ -n "${files}" ]] &&
+    source $(xargs <<< "${files}") &&
+    echo -e "$(c Wd)>>$(c) $(c Mis)$(xargs -I{} bash -c "basename {}" <<< ${files} | awk -v d=', ' '{s=(NR==1?s:s d)$0}END{print s}')$(c) $(c Wdi)have been sourced ..$(c)"
 }
 
 # fman - fzf list and preview for manpage:
@@ -729,21 +741,72 @@ function mkexp() {                         # [m]a[k]e environment variable [e][x
 #
 # **************************************************************/
 
-# kns - kubectl set default namesapce
+# kns - kubectl set default namespace, show pods and sts in preview window dynamically
 # @author      : marslo
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
 # @description : using `fzf` to list all available namespaces and use the selected namespace as default
+# @usage       : $ kns [-st] [pods | sts | ...]
 # [k]ubectl [n]ame[s]pace
 function kns() {                           # [k]ubectl [n]ame[s]pace
-  echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania' |
-        fmt -1 |
-        fzf -1 -0 --no-sort --no-multi --prompt='namespace> ' \
-            --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
-            --header 'Press CTRL-Y to copy name into clipboard' |
-        xargs -i bash -c "echo -e \"\033[1;33m~~> {}\\033[0m\";
-                          kubectl config set-context --current --namespace {};
-                          kubecolor config get-contexts;
-                         "
+  local outputSt
+  local resources
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --st | -st ) outputSt='true' ; shift 1 ;;
+               * ) break                     ;;
+    esac
+  done
+
+  resources=$*
+  namespace=$(command kubectl config view --minify -o jsonpath='{..namespace}')
+  context=$(command kubectl config current-context | sed 's/-context$//')
+  newns=$(echo 'namespace-1 namespace-2 namespace-3 namespace-4 namespace-5 namespace-6 namespace-7 namespace-8' |
+                fmt -1 |
+                rg --color=always --colors match:fg:142 --passthru "^${namespace}$" |
+                fzf -1 -0 \
+                    --no-sort \
+                    --no-multi \
+                    --layout default \
+                    --ansi \
+                    --height 60% \
+                    --prompt "${namespace}@${context} > " \
+                    --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)' \
+                    --preview-window up,60%,follow,rounded \
+                    --preview "kubecolor --force-colors --namespace {+} get ${resources:-pods,sts}" \
+                    --header 'Press CTRL-Y to copy namespace name into clipboard'
+         )
+
+  if [[ -n "${newns}" ]]; then
+    echo -e "\033[1;33m~~> ${newns}\033[0m"
+    kubectl config set-context --current --namespace "${newns}"
+    exitcode=$?
+    kubecolor config get-contexts
+    [[ 'true' = "${outputSt:-}" ]] &&
+      echo -e "\n\033[1;33m~~> status:\033[0m" &&
+      kubecolor -n "${newns}" get pods,sts,cm
+  fi
+  return ${exitcode:-0}
+}
+
+# kst - kubectl show pods status and container logs in current namespace
+# @inspired    : https://github.com/junegunn/fzf/blob/master/ADVANCED.md#log-tailing
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @description : using `fzf` to list all available pods in current namespace, and show pod and container logs
+# @usage       : $ kst po,sts,cm
+# [k]ubectl show provided resources [s][t]atus
+# shellcheck disable=SC2016
+function kpo() {
+  : | command="kubectl get pods --namespace $(command kubectl config view --minify -o jsonpath='{..namespace}')" fzf \
+    --info=inline --header-lines=1 \
+    --layout default \
+    --height 70% \
+    --prompt "$(kubectl config view --minify -o jsonpath='{..namespace}')@$(kubectl config current-context | sed 's/-context$//')> " \
+    --bind 'start:reload:$command' \
+    --bind 'ctrl-r:reload:$command' \
+    --preview-window up,70%,follow,rounded  \
+    --preview 'kubecolor --force-colors logs --follow --all-containers --tail=500 {1}' "$@"
 }
 
 # _can_i - kubectl check permission (auth can-i) for pods component
@@ -778,11 +841,12 @@ function kcani() {                         # [k]ubectl [can]-[i]
   local actions='list get watch create update delete'
   local components='sts deploy secrets configmap ingressroute ingressroutetcp'
 
-  namespaces=$( echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania' |
-                    fmt -1 |
-                    fzf -1 -0 --no-sort --prompt='namespace> ' \
-                        --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
-                        --header 'Press CTRL-Y to copy name into clipboard'
+  namespaces=$( echo 'namespace-1 namespace-2 namespace-3 namespace-4 namespace-5 namespace-6 namespace-7 namespace-8' |
+                      rg --color=always --colors match:fg:142 --passthru "${namespace}" |
+                      fmt -1 |
+                      fzf -1 -0 --no-sort --prompt='namespace> ' \
+                          --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
+                          --header 'Press CTRL-Y to copy name into clipboard'
              )
   [[ -z "${namespaces}" ]] && echo "$(c Rs)ERROR: select at least one namespace !$(c)" && return
 
