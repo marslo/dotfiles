@@ -35,7 +35,8 @@ alias dos="cd ${MYWORKSPACE}/job/code/devops"
 
 alias st="cd ${MYWORKSPACE}/study"
 if [[ -d "${MYWORKSPACE}/study" ]]; then
-  alias sc="cd ${MYWORKSPACE}/study/code/marslo"
+  alias sc="cd ${MYWORKSPACE}/study/code"
+  alias sts="cd ${MYWORKSPACE}/study/scripts"
 
   alias sg="cd ${MYWORKSPACE}/study/mystudy/groovy"
   alias sp="cd ${MYWORKSPACE}/study/mystudy/python"
