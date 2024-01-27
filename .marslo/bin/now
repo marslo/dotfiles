@@ -8,6 +8,7 @@
 # CREDIT : https://askubuntu.com/a/1020693/92979
 
 # UPDT   : 2019-05-24 If Weather unavailable nicely formatted error message.
+# UPDT   : 2024-01-26 fix the "today" position offset issue due to extra space in `cal`
 
 # NOTE   : to display all available toilet fonts use this one-liner:
 #          for i in ${TOILET_FONT_PATH:=/usr/share/figlet}/*.{t,f}lf; do j=${i##*/}; toilet -d "${i%/*}" -f "$j" "${j%.*}"; done
@@ -68,7 +69,9 @@ fi
 
 # -h needed to turn off formatting: https://askubuntu.com/questions/1013954/bash-substring-stringoffsetlength-error/1013960#1013960
 # -h not supported in Ubuntu 18.04. Use second answer: https://askubuntu.com/a/1028566/307523
-cal | tr -cd '\11\12\15\40\60-\136\140-\176' > /tmp/terminal
+#                    cal -h                 remove trailing spaces     remove empty line
+#                       v                              v                       v
+cal | tr -cd '\11\12\15\40\60-\136\140-\176' | sed 's/[ \t]*$//' | sed '/^[[:space:]]*$/d' > /tmp/terminal
 
 calLineCnt=1
 today=$(date +"%e")
@@ -78,14 +81,14 @@ printf "\033[32m"                       # color green -- see list above.
 while IFS= read -r cal; do
   printf "%s" "$cal"
   if [[ $calLineCnt -gt 2 ]] ; then
-    tput cub 22                         # see if today is on current line & invert background
-    for (( j=0 ; j <= 18 ; j += 3 )) ; do
-      Test=${cal:$j:2}                  # current day on calendar line
-      if [[ "$Test" == "$today" ]] ; then
-        printf "\033[7m"                # reverse: [7m
+    tput cub 20
+    for (( j=0 ; j <= 18 ; j += 3 )) ; do       # see if today is on current line & invert background
+      day=${cal:$j:2}                           # current day on calendar line
+      if [[ "$day" == "$today" ]] ; then
+        printf "\033[7m"                        # reverse: [7m
         printf "%s" "$today"
-        printf "\033[0m"                # normal: [0m
-        printf "\033[32m"               # color green -- see list above.
+        printf "\033[0m"                        # normal: [0m
+        printf "\033[32m"                       # color green -- see list above.
         tput cuf 1
       else
         tput cuf 3
@@ -93,14 +96,12 @@ while IFS= read -r cal; do
     done
   fi
 
-  tput cud1                             # down one line
+  tput cud1                             # move one line down
   tput cuf $dateColumn                  # move 27 columns right
   calLineCnt=$((++calLineCnt))
 done < /tmp/terminal
 
 printf "\033[00m"                       # color -- bright white (default)
-echo ""
-
 tput rc                                 # restore saved cursor position.
 
 #------------------------------- TIME ---------------------------------------
@@ -126,6 +127,7 @@ while IFS= read -r time; do
   tput cuf $timeColumn                  # move 49 columns right
 done < /tmp/terminal
 
+rm -rf /tmp/now-weather
 tput rc                                 # restore saved cursor position.
 
 exit 0

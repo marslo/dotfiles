@@ -90,7 +90,7 @@ function generic() {
 }
 
 function bins() {
-  doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/{ifunc,ffunc,ig}.sh
+  doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/{ifunc,ig}.sh
   doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/{ff,gdoc,fman}
   doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/{screenfetch-dev,now,iweather.icon,diff-highlight,git-info,ansi}
   doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/git-*
@@ -116,7 +116,7 @@ function special() {
 
 # shellcheck disable=SC2086
 function encryptFiles() {
-  local binCurrent='iweather ifunc.sh now gdoc ldapsearch irt.sh im.sh'
+  local binCurrent='iweather ffunc.sh now gdoc ldapsearch irt.sh im.sh'
   local aliasCurrent='deovps imarslo'
   local rcCurrent='.bash_profile .profile'
   local rcFiles='.gitalias .token .netrc'

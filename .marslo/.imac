@@ -17,7 +17,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   # https://cloud.tencent.com/developer/article/1614039
   # export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
   HOMEBREW_PREFIX="$(brew --prefix)"
-  HOMEBREW_BINS="/usr/local/bin"
+  # HOMEBREW_BINS="/usr/local/bin"
   HOMEBREW_BINS+=":/usr/local/sbin"
 
   OPENLDAP_HOME='/usr/local/opt/openldap'
@@ -141,7 +141,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${ICU4C_711}" && SPECIAL_TOOLS+=":${ICU4C_711}/sbin"
 
   TEMP_PATH="${TOOLS_PATH}"
-  TEMP_PATH+="${HOMEBREW_BINS}"
+  TEMP_PATH+=":${HOMEBREW_BINS}"
   TEMP_PATH+=":${GNU_PATH}"
   TEMP_PATH+=":${SCRIPT_BINS}"
   TEMP_PATH+=":${UTLS_PATH}"
