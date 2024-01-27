@@ -2,7 +2,7 @@
 # credit belongs to https://gist.github.com/ccw/6a43efb2468ac20ec4c19240c210e0e4
 # make a temporary file
 git_extra_mktemp() {
-    mktemp -t "$(basename "$0")".XXXXXXX
+    mktemp -q -t "$(basename "$0")".XXXXXXX
 }
 
 for param in $*
@@ -33,7 +33,7 @@ done
 
 cd "$(git-root)" # cd for git blame
 MERGED_LOG=$(git_extra_mktemp)
-echo "$MERGED_LOG"
+# echo "$MERGED_LOG"
 PATTERN='s/^filename //p'
 
 for file in $(git diff --name-only "$@")
@@ -47,16 +47,16 @@ do
 
     if [[ $MIME_TYPE == "charset=iso-8859-1" ]]; then
         # $1 - since $2 - until
-        git blame $NOT_WHITESPACE --line-porcelain "$1" -- "$file" 2> /dev/null | 
-            iconv -f ISO-8859-1 | sed -n "$PATTERN" | 
+        git blame $NOT_WHITESPACE --line-porcelain "$1" -- "$file" 2> /dev/null |
+            iconv -f ISO-8859-1 | sed -n "$PATTERN" |
             sort | uniq -c | sed -E "s@^(.*) (.*)@+ \1 ${file}@" >> $MERGED_LOG
         # if $2 not given, use current commit as "until"
         git blame $NOT_WHITESPACE --line-porcelain "${2-@}" -- "$file" 2> /dev/null |
-            iconv -f ISO-8859-1 | sed -n "$PATTERN" | 
+            iconv -f ISO-8859-1 | sed -n "$PATTERN" |
             sort | uniq -c | sed -E "s@^(.*) (.*)@- \1 ${file}@" >> $MERGED_LOG
     else
         # $1 - since $2 - until
-        git blame $NOT_WHITESPACE --line-porcelain "$1" -- "$file" 2> /dev/null | 
+        git blame $NOT_WHITESPACE --line-porcelain "$1" -- "$file" 2> /dev/null |
             sed -n "$PATTERN" | sort | uniq -c | sed -E "s@^(.*) (.*)@+ \1 ${file}@" >> $MERGED_LOG
         # if $2 not given, use current commit as "until"
         git blame $NOT_WHITESPACE --line-porcelain "${2-@}" -- "$file" 2> /dev/null |
@@ -84,7 +84,7 @@ END {
             printf("%d %s\n", changes[filename], filename)
         }
     }
-}' $MERGED_LOG | sort -nr | # only gawk supports built-in sort function 
+}' $MERGED_LOG | sort -nr | # only gawk supports built-in sort function
 while read line
 do
     filename=${line#* }
@@ -92,7 +92,7 @@ do
     len=${#num}
     sign="+"
     color="32m"
-   
+
     if [[ $num -lt 0 ]]
     then
         sign="-"
