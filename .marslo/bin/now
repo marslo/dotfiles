@@ -14,14 +14,15 @@
 #          for i in ${TOILET_FONT_PATH:=/usr/share/figlet}/*.{t,f}lf; do j=${i##*/}; toilet -d "${i%/*}" -f "$j" "${j%.*}"; done
 
 # setup for 92 character wide terminal
-dateColumn=34                           # default is 27 for 80 character line, 34 for 92 character line
-timeColumn=61                           # default is 49 for   "   "   "   "    61 "   "   "   "
+dateColumn=34                                   # default is 27 for 80 character line, 34 for 92 character line
+timeColumn=61                                   # default is 49 for   "   "   "   "    61 "   "   "   "
 curlOpt="-k"
 
 #------------------------------ WEATHER -------------------------------------
 
 # current weather, already in color so no need to override
 # replace edmonton with your city name, gps, etc. see: curl wttr.in/:help
+# shellcheck disable=SC2086
 if ! curl ${curlOpt} wttr.in/sanjose?QmM0 --fail --silent --max-time 3 > /tmp/now-weather; then
 #                          timeout #. increase for slow connection---^
   ~/.marslo/bin/iweather > /tmp/now-weather
@@ -37,12 +38,12 @@ else
   echo "                              "
   echo "                              "
   echo "                              "
-  echo "                              " # replace edmonton with your city
+  echo "                              "         # replace edmonton with your city
   echo "                              "
   echo "                              "
   echo " "
 fi
-echo " "                                # pad blank lines for calendar & time to fit
+echo " "                                        # pad blank lines for calendar & time to fit
 rm -rf /tmp/now-weather
 
 #------------------------------- DATA ---------------------------------------
@@ -51,8 +52,8 @@ rm -rf /tmp/now-weather
 # colors 00=bright white, 31=red, 32=green, 33=yellow, 34=blue, 35=purple,
 #        36=cyan, 37=white
 
-tput sc                                 # save cursor position.
-tput cuu 7                              # move up 9 lines
+tput sc                                         # save cursor position.
+tput cuu 7                                      # move up 9 lines
 # i=0; while [ $((++i)) -lt 10 ]; do tput cuu1; done
 
 if [[ "$weatherDone" == true ]] ; then
@@ -61,22 +62,24 @@ if [[ "$weatherDone" == true ]] ; then
     #   2. change subtraction value and set number of print spaces to match
     #      subtraction value. then place comment on fourth code line.
     column=$((dateColumn - 10))
-    tput cuf $column                    # move x column number
-    printf "          "                 # blank out ", country" with x spaces
+    tput cuf $column                            # move x column number
+    printf "          "                         # blank out ", country" with x spaces
 else
-    tput cuf $dateColumn                # position to column 27 for date display
+    tput cuf $dateColumn                        # position to column 27 for date display
 fi
 
 # -h needed to turn off formatting: https://askubuntu.com/questions/1013954/bash-substring-stringoffsetlength-error/1013960#1013960
 # -h not supported in Ubuntu 18.04. Use second answer: https://askubuntu.com/a/1028566/307523
-#                    cal -h                 remove trailing spaces     remove empty line
-#                       v                              v                       v
-cal | tr -cd '\11\12\15\40\60-\136\140-\176' | sed 's/[ \t]*$//' | sed '/^[[:space:]]*$/d' > /tmp/terminal
+cal |
+  tr -cd '\11\12\15\40\60-\136\140-\176' |      # cal -h
+  sed 's/[ \t]*$//' |                           # remove trailing spaces
+  sed '/^[[:space:]]*$/d' |                     # remove empty line
+  awk '{printf "%-20s\n", $0}' > /tmp/terminal  # append space to make sure each line has 20 chars
 
 calLineCnt=1
 today=$(date +"%e")
 
-printf "\033[32m"                       # color green -- see list above.
+printf "\033[32m"                               # color green -- see list above.
 
 while IFS= read -r cal; do
   printf "%s" "$cal"
@@ -96,40 +99,39 @@ while IFS= read -r cal; do
     done
   fi
 
-  tput cud1                             # move one line down
-  tput cuf $dateColumn                  # move 27 columns right
+  tput cud1                                     # move one line down
+  tput cuf $dateColumn                          # move 27 columns right
   calLineCnt=$((++calLineCnt))
 done < /tmp/terminal
 
-printf "\033[00m"                       # color -- bright white (default)
-tput rc                                 # restore saved cursor position.
+printf "\033[00m"                               # color -- bright white (default)
+tput rc                                         # restore saved cursor position.
 
 #------------------------------- TIME ---------------------------------------
 
-tput sc                                 # save cursor position.
-tput cuu 7                              # move up 9 lines
+tput sc                                         # save cursor position.
+tput cuu 7                                      # move up 9 lines
 # Move up 8 lines
 # i=0; while [ $((++i)) -lt 9 ]; do tput cuu1; done
-tput cuf $timeColumn                    # move 49 columns right
+tput cuf $timeColumn                            # move 49 columns right
 
-if hash toilet 2>/dev/null; then        # if has toilet
+if hash toilet 2>/dev/null; then                # if has toilet
    date +"%I:%M %P" | toilet -f future > /tmp/terminal
-elif hash figlet 2>/dev/null; then      # if has figlet
+elif hash figlet 2>/dev/null; then              # if has figlet
    date +"%I:%M %P" | figlet -f /usr/local/share/figlet/future.tlf > /tmp/terminal
 else
    date +"%I:%M %P" > /tmp/terminal
 fi
 
 while IFS= read -r time; do
-  printf "\033[01;36m"                  # color cyan
+  printf "\033[01;36m"                          # color cyan
   printf "%s" "$time"
-  tput cud1                             # up one line
-  tput cuf $timeColumn                  # move 49 columns right
+  tput cud1                                     # up one line
+  tput cuf $timeColumn                          # move 49 columns right
 done < /tmp/terminal
 
-rm -rf /tmp/now-weather
-tput rc                                 # restore saved cursor position.
-
+rm -rf /tmp/terminal
+tput rc                                         # restore saved cursor position.
 exit 0
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
