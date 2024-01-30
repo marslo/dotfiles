@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2024-01-19 21:00:04
+# LastChange : 2024-01-29 17:31:19
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -135,7 +135,7 @@ command -v vault   >/dev/null                                  && complete -C /u
 command -v pipx    >/dev/null                                  && eval "$(register-python-argcomplete pipx)"
 command -v pip     >/dev/null                                  && eval "$(pip completion --bash)"
 # command -v pipenv  >/dev/null                                && eval "$(pipenv --completion)"
-# command -v rbenv >/dev/null                                  && eval "$(rbenv init -)"
+test -f $HOME/.rbenv/bin/rbenv                                 && eval "$($HOME/.rbenv/bin/rbenv init - bash)"
 [[ $- == *i* ]] && test -f "${FZF_HOME}/shell/completion.bash" && source "${FZF_HOME}/shell/completion.bash" 2> /dev/null
 test -f "${FZF_HOME}/shell/key-bindings.bash"                  && source "${FZF_HOME}/shell/key-bindings.bash"
 type -t _fd >/dev/null 2>&1                                    && complete -F _fd -o nosort -o bashdefault -o default ff ffs
