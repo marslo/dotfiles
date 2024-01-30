@@ -70,11 +70,9 @@ fi
 
 # -h needed to turn off formatting: https://askubuntu.com/questions/1013954/bash-substring-stringoffsetlength-error/1013960#1013960
 # -h not supported in Ubuntu 18.04. Use second answer: https://askubuntu.com/a/1028566/307523
-cal |
-  tr -cd '\11\12\15\40\60-\136\140-\176' |      # cal -h
-  sed 's/[ \t]*$//' |                           # remove trailing spaces
-  sed '/^[[:space:]]*$/d' |                     # remove empty line
-  awk '{printf "%-20s\n", $0}' > /tmp/terminal  # append space to make sure each line has 20 chars
+#                    cal -h                 remove trailing spaces     remove empty line
+#                       v                              v                       v
+cal | tr -cd '\11\12\15\40\60-\136\140-\176' | sed 's/[ \t]*$//' | sed '/^[[:space:]]*$/d' > /tmp/terminal                     # remove empty line
 
 calLineCnt=1
 today=$(date +"%e")
@@ -84,7 +82,7 @@ printf "\033[32m"                               # color green -- see list above.
 while IFS= read -r cal; do
   printf "%s" "$cal"
   if [[ $calLineCnt -gt 2 ]] ; then
-    tput cub 20
+    tput cub "$(awk '{print length($0)}' <<< "${cal}")"
     for (( j=0 ; j <= 18 ; j += 3 )) ; do       # see if today is on current line & invert background
       day=${cal:$j:2}                           # current day on calendar line
       if [[ "$day" == "$today" ]] ; then
