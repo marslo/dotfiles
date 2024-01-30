@@ -31,6 +31,7 @@ fi
 # was valid weather report found or an error message?
 if grep '°C' /tmp/now-weather >/dev/null 2>&1; then
   weatherDone=true
+  echo ""                                       # 1 line down to show weather
   cat /tmp/now-weather
 else
   weatherDone=false
@@ -102,7 +103,7 @@ tput rc                                         # restore saved cursor position.
 #------------------------------- TIME ---------------------------------------
 
 tput sc                                         # save cursor position.
-tput cuu 7                                      # move up 9 lines
+tput cuu 6                                      # move up 9 lines
 # Move up 8 lines
 # i=0; while [ $((++i)) -lt 9 ]; do tput cuu1; done
 tput cuf $timeColumn                            # move 49 columns right
