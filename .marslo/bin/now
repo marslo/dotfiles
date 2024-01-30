@@ -34,17 +34,10 @@ if grep '°C' /tmp/now-weather >/dev/null 2>&1; then
   cat /tmp/now-weather
 else
   weatherDone=false
-  echo "                              "
-  echo "                              "
-  echo "                              "
-  echo "                              "
-  echo "                              "         # replace edmonton with your city
-  echo "                              "
-  echo "                              "
-  echo " "
+  dateColumn=1                                    # show data as first column if got weather failed
+  timeColumn=27                                   # move 34 column right if got weather failed
 fi
-echo " "                                        # pad blank lines for calendar & time to fit
-rm -rf /tmp/now-weather
+[[ -f /tmp/now-weather ]] && rm -rf /tmp/now-weather
 
 #------------------------------- DATA ---------------------------------------
 
@@ -53,30 +46,31 @@ rm -rf /tmp/now-weather
 #        36=cyan, 37=white
 
 tput sc                                         # save cursor position.
-tput cuu 7                                      # move up 9 lines
 # i=0; while [ $((++i)) -lt 10 ]; do tput cuu1; done
 
 if [[ "$weatherDone" == true ]] ; then
+    tput cuu 6                                  # move up 6 lines
     # depending on length of your city name and country name you will:
     #   1. comment out next three lines of code. uncomment fourth code line.
     #   2. change subtraction value and set number of print spaces to match
     #      subtraction value. then place comment on fourth code line.
     column=$((dateColumn - 10))
     tput cuf $column                            # move x column number
-    printf "          "                         # blank out ", country" with x spaces
+    printf '%10s' ''                            # blank out ", country" with 10 spaces
 else
     tput cuf $dateColumn                        # position to column 27 for date display
 fi
 
 # -h needed to turn off formatting: https://askubuntu.com/questions/1013954/bash-substring-stringoffsetlength-error/1013960#1013960
 # -h not supported in Ubuntu 18.04. Use second answer: https://askubuntu.com/a/1028566/307523
+# to fit for both macOS and Linux
+#   - linux: cal have 2 more extra whitespace in each line, 22 chars per line
+#   - osx: cal has no more extra whitespace in each line, 20 chars per line
 #                    cal -h                 remove trailing spaces     remove empty line
 #                       v                              v                       v
 cal | tr -cd '\11\12\15\40\60-\136\140-\176' | sed 's/[ \t]*$//' | sed '/^[[:space:]]*$/d' > /tmp/terminal                     # remove empty line
-
 calLineCnt=1
 today=$(date +"%e")
-
 printf "\033[32m"                               # color green -- see list above.
 
 while IFS= read -r cal; do
@@ -128,7 +122,7 @@ while IFS= read -r time; do
   tput cuf $timeColumn                          # move 49 columns right
 done < /tmp/terminal
 
-rm -rf /tmp/terminal
+[[ -f /tmp/terminal ]] && rm -rf /tmp/terminal
 tput rc                                         # restore saved cursor position.
 exit 0
 
