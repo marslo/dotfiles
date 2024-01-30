@@ -31,7 +31,6 @@ fi
 # was valid weather report found or an error message?
 if grep '°C' /tmp/now-weather >/dev/null 2>&1; then
   weatherDone=true
-  echo ""                                       # 1 line down to show weather
   cat /tmp/now-weather
 else
   weatherDone=false

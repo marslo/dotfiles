@@ -118,7 +118,6 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${NODE_HOME}"      && SCRIPT_BINS+=":${NODE_HOME}/bin"
   test -d "${JAVA_HOME}"      && SCRIPT_BINS+=":${JAVA_HOME}/bin"
   test -d "${GROOVY_HOME}"    && SCRIPT_BINS+=":${GROOVY_HOME}/bin"
-  test -d "${RUBY_HOME}"      && SCRIPT_BINS+=":${RUBY_HOME}/bin"
   test -d "${ED_HOME}"        && SCRIPT_BINS+=":${ED_HOME}/libexec/gnubin"
   test -d "${ED_HOME}"        && SCRIPT_BINS+=":${ED_HOME}/bin"
   test -d "${RUBYGEM}"        && SCRIPT_BINS+=":${RUBYGEM}"
