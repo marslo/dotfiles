@@ -8,6 +8,7 @@
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
+# credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
 source "${iRCHOME}/bin/bash-color.sh"
 
 function isWSL()   { if uname -r | command grep --color=never -q -i 'microsoft'; then echo 1; fi; }
@@ -135,7 +136,7 @@ command -v vault   >/dev/null                                  && complete -C /u
 command -v pipx    >/dev/null                                  && eval "$(register-python-argcomplete pipx)"
 command -v pip     >/dev/null                                  && eval "$(pip completion --bash)"
 # command -v pipenv  >/dev/null                                && eval "$(pipenv --completion)"
-test -f $HOME/.rbenv/bin/rbenv                                 && eval "$($HOME/.rbenv/bin/rbenv init - bash)"
+test -f "$HOME"/.rbenv/bin/rbenv                               && eval "$("$HOME"/.rbenv/bin/rbenv init - bash)"
 [[ $- == *i* ]] && test -f "${FZF_HOME}/shell/completion.bash" && source "${FZF_HOME}/shell/completion.bash" 2> /dev/null
 test -f "${FZF_HOME}/shell/key-bindings.bash"                  && source "${FZF_HOME}/shell/key-bindings.bash"
 type -t _fd >/dev/null 2>&1                                    && complete -F _fd -o nosort -o bashdefault -o default ff ffs

@@ -10,6 +10,7 @@
 #                  $ fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --glob '*\.DS_*' /Users/marslo | xargs -r rm
 #=============================================================================
 
+# credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
 source "${iRCHOME}/bin/bash-color.sh"
 
 declare opt=''

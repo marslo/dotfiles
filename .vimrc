@@ -44,8 +44,8 @@ else
 endif
 if empty( glob('~/.vim/cache/') )   | execute 'silent !mkdir -p ~/.vim/cache' | endif
 
-source ~/.marslo/vimrc.d/extention
-if has( 'vim' ) | source ~/.marslo/vimrc.d/extra-extention | endif
+source ~/.marslo/vimrc.d/extension
+if has( 'vim' ) | source ~/.marslo/vimrc.d/extra-extension | endif
 source ~/.marslo/vimrc.d/functions
 source ~/.marslo/vimrc.d/cmds
 source ~/.marslo/vimrc.d/theme

@@ -46,8 +46,6 @@ fi
 #        36=cyan, 37=white
 
 tput sc                                         # save cursor position.
-# i=0; while [ $((++i)) -lt 10 ]; do tput cuu1; done
-
 if [[ "$weatherDone" == true ]] ; then
     tput cuu 6                                  # move up 6 lines
     # depending on length of your city name and country name you will:
@@ -68,7 +66,7 @@ fi
 #   - osx: cal has no more extra whitespace in each line, 20 chars per line
 #                    cal -h                 remove trailing spaces     remove empty line
 #                       v                              v                       v
-cal | tr -cd '\11\12\15\40\60-\136\140-\176' | sed 's/[ \t]*$//' | sed '/^[[:space:]]*$/d' > /tmp/terminal                     # remove empty line
+cal | tr -cd '\11\12\15\40\60-\136\140-\176' | sed 's/[ \t]*$//' | sed '/^[[:space:]]*$/d' > /tmp/terminal
 calLineCnt=1
 today=$(date +"%e")
 printf "\033[32m"                               # color green -- see list above.
@@ -103,8 +101,6 @@ tput rc                                         # restore saved cursor position.
 
 tput sc                                         # save cursor position.
 tput cuu 6                                      # move up 9 lines
-# Move up 8 lines
-# i=0; while [ $((++i)) -lt 9 ]; do tput cuu1; done
 tput cuf $timeColumn                            # move 49 columns right
 
 if hash toilet 2>/dev/null; then                # if has toilet
