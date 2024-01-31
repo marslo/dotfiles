@@ -8,6 +8,7 @@
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
+# credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
 source "${iRCHOME}/bin/bash-color.sh"
 
 function isWSL()   { if uname -r | command grep --color=never -q -i 'microsoft'; then echo 1; fi; }
