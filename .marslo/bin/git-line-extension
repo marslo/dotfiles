@@ -1,0 +1,16 @@
+# total lines
+git ls-files | xargs wc -l | tail -1
+# lines by extension
+while read -r _file; do
+  echo "${_file}" |
+       rev |
+       sed -re 's/^\s*([^\.\/]+\.?)\S+\s*([0-9]+)\s*$/\1 \2/' |
+       rev
+  done< <( git ls-files |
+           xargs wc -l |
+           tac |
+           tail -n+2
+         ) |
+  sort -k2 |
+  awk '{a[$2]+=$1} END{for(i in a){print "\t",a[i],"\t",i}}' |
+  sort -k1 -nr
