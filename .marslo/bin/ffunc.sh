@@ -543,6 +543,7 @@ function killps() {                        # [kill] [p]roces[s]
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
 # @description : list all environment variable via `fzf`, and unset selected items
 # @alternative : `$ unset ,,<TAB>`
+# @dependency  : https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
 # shellcheck disable=SC2016
 function eclr() {                          # [e]nvironment variable [c][l]ea[r]
   while read -r _env; do
@@ -566,6 +567,7 @@ function eclr() {                          # [e]nvironment variable [c][l]ea[r]
 # penv - print environment variable, support multiple select
 # @author      : marslo
 # @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @dependency  : https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
 # @description : list all environment variable via `fzf`, and print values for selected items
 #   - to copy via `-c`
 #     - "${COPY}"

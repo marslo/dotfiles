@@ -17,7 +17,7 @@ csv=false
 total=$(git ls-files -z | wc -l --files0-from=- | tail -1 | awk '{print $1}')
 
 # lines by extension
-output=$( printf "%s,%s\n" 'NUMBER' 'EXTENSION';
+output=$( printf "%s,%s\n" 'LINES' 'EXTENSION';
           while IFS=$'\n' read -r _line; do
             num="$(awk '{print $1}'<<< "${_line}")"
             suffix="$(cut -d" " -f2- <<< "${_line}" | sed 's/,/./g' | rev | sed -re 's/^\s*([^\.\/]+\.?).*$/\1/' | rev)"
@@ -38,8 +38,8 @@ if [[ 'true' = "${csv}" ]]; then
   echo "TITLE,${total} lines total ${extensions} extensions total" | tr '[:lower:]' '[:upper:]' >> "${name}.csv"
   echo ">> csv file: $(realpath "${name}".csv)"
 else
-  echo -e ">> ${total} lines total, ${extensions} extensions in total"
-  awk -F',' '{printf ("%2s %-10s %s\n", " ", $1, $2)}' <<< "${output}"
+  echo ">> ${total} lines total, ${extensions} extensions in total <<" | tr '[:lower:]' '[:upper:]'
+  awk -F',' '{printf ("%4s %-6s %s\n", " ", $1, $2)}' <<< "${output}"
 fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

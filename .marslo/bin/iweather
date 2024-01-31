@@ -9,6 +9,7 @@
 
 shopt -s extglob
 
+# credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
 # shellcheck disable=SC2154,SC1091
 source "${iRCHOME}"/bin/bash-color.sh
 
@@ -46,7 +47,6 @@ function windDirection() {
 # shellcheck disable=SC2086
 function getLatLon() {
   ccity=$(echo "$*" | xargs | sed 's/ /%20/g')
-  # ${CURL} -skg "${API_HOME}?q=${ccity,,}&appid=${OWM_API_TOKEN}&limit=5" | jq -r '.[] | select(.state == "California") | .lat ...'
   ${CURL} ${curlOpt} "${API_HOME}/geo/1.0/direct?q=${ccity,,}&limit=1&appid=${appid}" | jq -r '.[] | "lat=" + (.lat|tostring) + "&lon=" + (.lon|tostring)' > "${locFile}"
   if [[ ! -s ${locFile} ]] || [[ ! -f "${locFile}" ]]; then
     echo '-1'
