@@ -3,16 +3,15 @@
 #     FileName : git-st
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-02-01 03:39:19
-#   LastChange : 2024-02-01 03:39:19
+#   LastChange : 2024-02-01 03:41:55
 #   references : https://stackoverflow.com/q/77919418/2940319
 #=============================================================================
 
 if [[ -z $(git --no-pager diff --stat --relative | head -n-1) ]]; then
   git status -sb
 else
-  awk 'FNR == NR { map[$1]=$2" "$3" "$4 }
-       FNR != NR { if ($2 in map) {print $0, map[$2]} else { print $0 } }
-      ' <(git --no-pager diff --stat --relative | head -n-1 ) <(git status -sb)
+  awk 'FNR==NR { k=$1; $1=""; map[k]=$0; next } { print $0 map[$2] }' \
+      <(git --no-pager diff --stat --relative | head -n-1 ) <(git status -sb)
 fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
