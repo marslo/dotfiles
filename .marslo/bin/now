@@ -16,7 +16,7 @@
 # setup for 92 character wide terminal
 dateColumn=34                                   # default is 27 for 80 character line, 34 for 92 character line
 timeColumn=61                                   # default is 49 for   "   "   "   "    61 "   "   "   "
-curlOpt="-k"
+curlOpt="-sgk -x http://proxy.sample.com:80"
 
 #------------------------------ WEATHER -------------------------------------
 

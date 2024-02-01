@@ -4,7 +4,6 @@
 
 [alias]
   aa          = add --all
-  st          = status -sb
   sts         = status
   rb          = rebase
   co          = checkout --force --recurse-submodules
@@ -22,7 +21,12 @@
   last        = cat-file commit HEAD
   undo        = reset HEAD~1 --mixed
   slap        = blame -s -w -C -M
-
+  # st        = status -sb
+  st          = "! bash -c 'while read branch; do \n\
+                              git status -sb | head -1 \n\
+                              git --no-pager diff --stat | head -n-1 \n\
+                            done < <(git rev-parse --abbrev-ref HEAD) \n\
+                           '"
 
   #-----------------------#
   # pretty show

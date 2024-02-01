@@ -84,7 +84,7 @@ function dotConfig() {
 
 function generic() {
   doCopy "${irc}"        "${dotfolder}"/.marslo/vimrc.d
-  doCopy "${irc}"        "${dotfolder}"/.marslo/.{env,gitalias,gitrc,colors,bye}
+  doCopy "${irc}"        "${dotfolder}"/.marslo/.{env,gitrc,colors,bye}
   doCopy "${irc}"        "${dotfolder}"/.marslo/.{it2colors,it2colors.css,.it2colorname}
   doCopy "${irc}/.alias" "${dotfolder}"/.marslo/.alias/{utils,kubernetes,docker}
 }
