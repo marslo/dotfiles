@@ -166,7 +166,7 @@ function runrc() {                         # source rc files
 # shellcheck disable=SC2046
 function fman() {
   unset MANPATH
-  local option
+  local option='-e '
   local batman="man {1} | col -bx | bat --language=man --plain --color always --theme='gruvbox-dark'"
 
   while [[ $# -gt 0 ]]; do
@@ -178,7 +178,7 @@ function fman() {
 
   man -k . |
   sort -u |
-  sed -r 's/(\(.+\))//g' |
+  awk -F"(\\\([0-9]\\\),?)" '{ for(i=1;i<NF;i++) { sub(/ +/, "", $i); sub(/ +-? +/, "", $NF); if (length($i) != 0) printf ("%s - %s\n", $i, $NF) } }' |
   grep -v -E '::' |
   awk -v cyan=$(tput setaf 6) -v blue=$(tput setaf 4) -v res=$(tput sgr0) -v bld=$(tput bold) '{ $1=cyan bld $1; $2=res blue $2;} 1' |
   fzf ${option:-} \
