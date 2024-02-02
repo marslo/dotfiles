@@ -78,7 +78,7 @@ function dotConfig() {
   fi
   doCopy "$HOME"         "${dotfolder}"/.idlerc
   doCopy "$HOME"         "${dotfolder}"/.{gitconfig,gitignore,gitattributes,fdignore,rgignore,ctags}
-  doCopy "$HOME"         "${dotfolder}"/.{screenrc.wgetrc,tigrc,curlrc,inputrc}
+  doCopy "$HOME"         "${dotfolder}"/.{screenrc.wgetrc,tigrc,curlrc,inputrc.shellcheckrc}
   doCopy "$HOME/.docker" "${dotfolder}"/.docker/daemon.json
 }
 
