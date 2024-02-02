@@ -9,7 +9,6 @@
 
 declare gdiff
 gdiff=$(git --no-pager diff --stat --relative | head -n-1)
-
 awk 'FNR==NR { k=$1; $1=""; map[k]=$0; next } { print $0 map[$2] }' \
     <(echo -e "${gdiff}") <(git status -sb)
 

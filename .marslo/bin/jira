@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null disable=SC2086
+
+source $HOME/.marslo/bin/bash-color.sh
+
+declare -a array
+declare project
+declare pattern
+declare issueType
+declare maxResults=100
+declare -i index=0
+declare condition='AND'
+declare url='https://jira.sample.com/rest/api/2'
+declare curlOpt='--silent --insecure --globoff --netrc-file ~/.marslo/.netrc'
+# shellcheck disable=SC2155
+declare usage="""
+\t jira - show Jira ID, Summary, IssueType, Created, Updated status
+\nSYNOPSIS:
+\n\t$(c sY)\$ jira [ -p   | --project <PROJECT_ID> ]
+\t       [ -t   | --type <ISSUE_TYPE> ]
+\t       [ -c   | --condition <AND|OR|IN> ] | [ -a ] | [ -o ]
+\t       [ -m   | --max <N> ]
+\t       [ -jql | --jql <'PATTERN'> ]
+\t       [ -i   | --index ]
+\t       [ -h   | --help ]$(c)
+\nEXAMPLE:
+\n\tget Release type in project ABC
+\t\t$(c G)\$ jira -p ABC -t Release -a$(c) | $(c G)jira -p ABC -t Release -c 'AND'$(c)
+\n\tget maximize 50 items from specific JQL pattern with index
+\t\t$(c G)\$ jira -i -m 50 -jql 'project=ABC AND resolution=Unresolved'$(c)
+"""
+
+# credit: https://stackoverflow.com/a/17841619/2940319
+function join_by {
+  local d=${1-} f=${2-}
+  if shift 2; then printf %s "$f" "${@/#/$d}"; fi
+}
+function showHelp() { echo -e "${usage}"; exit 0; }
+
+[[ 0 = "$#" ]] && showHelp
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -p   | --project   ) project="$2"     ; shift 2                ;;
+    -t   | --type      ) issueType="$2"   ; shift 2                ;;
+    -m   | --max       ) maxResults="$2"  ; shift 2                ;;
+    -c   | --condition ) condition="$2"   ; shift 2                ;;
+    -a   | --and       ) condition='AND'  ; shift                  ;;
+    -o   | --or        ) condition='OR'   ; shift                  ;;
+    -i   | --index     ) showIndex='true' ; shift                  ;;
+    -jql | --jql       ) pattern="$2"     ; shift 2                ;;
+    -h   | --help      ) showHelp                                  ;;
+    *                  ) echo 'invalid option, try -h' >&2; exit 1 ;;
+  esac
+done
+
+condition=$(tr '[:lower:]' '[:upper:]' <<< "${condition}")
+if [[ -z "${pattern}" ]]; then
+  [[ -n "${project}"   ]] && array+=( "project=${project}" )
+  [[ -n "${issueType}" ]] && array+=( "issuetype=${issueType}" )
+  pattern=$(join_by "${condition}" "${array[@]}")
+fi
+
+pattern="$(sed 's/ //g;s/AND/ AND /g;s/OR/ OR /g;s/IN/ IN /g;s/IS/ IS /g' <<< "${pattern}")"
+pattern="$(printf %s "${pattern}" | jq -sRr @uri)"
+cmd="curl ${curlOpt} -XGET '${url}/search?jql=${pattern}&maxResults=${maxResults}'"
+output=$(eval "${cmd} | jq -r '.issues[]'")
+idx=''
+
+echo "${output}" |
+  jq -r '. | [.key, .fields.summary, .fields.status.name, .fields.issuetype.name, .fields.updated, .fields.created] | join("|")' |
+  while IFS='|' read -r _key _summary _status _issuetype _updated _created; do
+    if [[ 'true' = "${showIndex}" ]]; then
+      index=$(( index+1 ))
+      idx="[${index}] - "
+    fi
+    echo ">> ${idx}[${_key}]: ${_summary}"
+    echo "..   status    : ${_status}"
+    echo "..   issuetype : ${_issuetype}"
+    echo "..   created   : ${_created}"
+    echo "..   updated   : ${_updated}"
+  done
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
