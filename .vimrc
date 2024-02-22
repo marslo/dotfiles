@@ -11,6 +11,8 @@ runtime defaults.vim
 let performance_mode = 1
 set nocompatible
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip
+
+if has('win32') || has('win64') | source $HOME\.vim\autoload\plug.vim | endif
 set runtimepath+=~/.vim/plugged
 
 if has('macunix') || has( 'win32' ) || has( 'win64' )
