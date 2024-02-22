@@ -316,6 +316,9 @@ let g:gitgutter_enabled        = 1
 let g:gitgutter_realtime       = 0
 let g:gitgutter_eager          = 0
 highlight clear SignColumn
+if has('win32') || has('win64')
+  let g:gitgutter_git_executable = 'c:\iMarslo\myprograms\Git\bin\git.exe'
+endif
 
 " scrooloose/nerdtree
 map <C-M-n> :NERDTreeToggle<CR>

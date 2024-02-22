@@ -8,7 +8,7 @@
 #=============================================================================
 
 # shellcheck disable=SC1091
-source ./dotfils/.marslo/bin/bash-color.sh
+source ./.marslo/bin/bash-color.sh
 
 irc="$HOME/.marslo"
 dotfolder='.'
@@ -21,7 +21,7 @@ function isLinux() { [[ '1' != "$(isWSL)" ]] && [[ 'Linux' = $(uname) ]] && echo
 
 function message() {
   [[ 2 != "$#" ]] && echo -e "$(c Rs)ERROR: must provide two parameters to message function$(s). Exit .." && exit 1
-  local type="$1"
+  
   local msg="$2"
   if [[ 'warn' = "${type}" ]]; then
     echo -e "$(c Rs)>> $(c Rsn)WARNING$(c) : $(c Rs)${msg}. SKIP ..$(c)"

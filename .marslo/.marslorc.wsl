@@ -37,6 +37,7 @@ test -f "${iRCHOME}/.completion/.bash_completion.sh" && source "${iRCHOME}/.comp
 test -f "${iRCHOME}/.completion/cht.sh"              && source <( cat "${iRCHOME}/.completion/cht.sh" )
 test -f "$HOME/.cargo/env"                           && source "$HOME/.cargo/env"
 test -s "$HOME/.sdkman/bin/sdkman-init.sh"           && source "$HOME/.sdkman/bin/sdkman-init.sh"
+test -f "$HOME"/.rbenv/bin/rbenv                     && eval "$("$HOME"/.rbenv/bin/rbenv init - bash)"
 command -v kubectl           > /dev/null             && source <( kubectl completion bash )
 command -v npm               > /dev/null             && source <( npm completion )
 command -v vault             > /dev/null             && complete -C /usr/local/bin/vault vault
