@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-01-14 03:38:18
+"    LastChange : 2024-02-22 15:29:33
 " =============================================================================
 
 runtime macros/matchit.vim
@@ -24,6 +24,9 @@ endif
 if has('macunix')
   set shell=/usr/local/bin/bash
   let g:gitgutter_git_executable = '/usr/local/bin/git'
+elseif has('win32') || has('win64')
+  set shell='c:\iMarslo\myprograms\Git\bin\bash.exe'
+  let g:gitgutter_git_executable = 'c:\iMarslo\myprograms\Git\bin\git.exe'
 else                                                                " linux/wsl
   set shell=/usr/bin/bash
   let g:gitgutter_git_executable = '/usr/bin/git'
@@ -41,10 +44,10 @@ if has( 'nvim' )
 else
   if version > 74399 | set cryptmethod=blowfish2 | endif
   set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.viminfo
-  if empty( glob('~/.vim/undo/undo' )  ) | execute 'silent !mkdir -p ~/.vim/undo/undo'  | endif
+  if empty( glob('$HOME/.vim/undo/undo' )  ) | execute 'silent !mkdir -p $HOME/.vim/undo/undo'  | endif
   set ttymouse=xterm2
 endif
-if empty( glob('~/.vim/cache/') )   | execute 'silent !mkdir -p ~/.vim/cache' | endif
+if empty( glob('$HOME/.vim/cache/') )   | execute 'silent !mkdir -p $HOME/.vim/cache' | endif
 
 source ~/.marslo/vimrc.d/extension
 if has( 'vim' ) | source ~/.marslo/vimrc.d/extra-extension | endif
@@ -65,7 +68,7 @@ else
   set clipboard+=unnamedplus
 endif
 
-if empty( glob('~/.vim/autoload/plug.vim') ) || empty( glob($VIM . 'autoload\plug.vim') )
+if empty( glob('$HOME/.vim/autoload/plug.vim') ) || empty( glob($VIM . 'autoload\plug.vim') )
   execute 'silent exec "GetPlug"'
 endif
 
