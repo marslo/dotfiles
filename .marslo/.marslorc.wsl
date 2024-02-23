@@ -39,7 +39,7 @@ test -f "$HOME/.cargo/env"                           && source "$HOME/.cargo/env
 test -s "$HOME/.sdkman/bin/sdkman-init.sh"           && source "$HOME/.sdkman/bin/sdkman-init.sh"
 test -f "$HOME"/.rbenv/bin/rbenv                     && eval "$("$HOME"/.rbenv/bin/rbenv init - bash)"
 command -v kubectl           > /dev/null             && source <( kubectl completion bash )
-command -v npm               > /dev/null             && source <( npm completion )
+# command -v npm             > /dev/null             && source <( npm completion )
 command -v vault             > /dev/null             && complete -C /usr/local/bin/vault vault
 # install git from source
 test -f /usr/local/libexec/git-core/git-prompt.sh    && source /usr/local/libexec/git-core/git-prompt.sh
@@ -100,6 +100,7 @@ test -f "${iRCHOME}"/.env                     && source "${iRCHOME}"/.env
 test -f "${iRCHOME}"/.token                   && source "${iRCHOME}"/.token
 test -f "${iRCHOME}"/.iwsl                    && source "${iRCHOME}"/.iwsl
 test -f "${iRCHOME}"/.tmux-session            && source "${iRCHOME}"/.tmux-session
+command -v npm > /dev/null                    && source <( npm completion )
 
 # for open cygwin from totoalcommander/bat/vim
 if [[ -z "$STARTIN" ]]; then

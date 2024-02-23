@@ -401,7 +401,7 @@ function vimdiff() {                       # smart vimdiff
 
   if [[ 0 -eq $# ]]; then
     lFile=$(fzfInPath '.' "${option}")
-    rFile=$(fdInRC | sed -rn 's/^[^|]* \| (.+)$/\1/p' | fzf --cycle --multi "${option}" --header 'filter in rc paths:')
+    rFile=$(fdInRC | sed -rn 's/^[^|]* \| (.+)$/\1/p' | fzf --cycle --multi ${option} --header 'filter in rc paths:')
   elif [[ 1 -eq $# ]]; then
     lFile=$(fzfInPath '.' "${option}")
     [[ -d "$1" ]] && rFile=$(fzfInPath "$1" "${option}") || rFile="$1"

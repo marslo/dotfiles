@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-01-15 16:41:12
+"    LastChange : 2024-02-22 22:33:58
 " =============================================================================
 
 " /**************************************************************
@@ -19,7 +19,7 @@ if has('gui_running')
   set cpoptions+=n
 
   if has('win32') || has('win64')
-    set guifont=Monaco\ Nerd\ Font\ Mono:h20
+    set guifont=Monaco\ Nerd\ Font\ Mono:h18
   else
     set guifont=OperatorMono\ Nerd\ Font:h29
   endif
@@ -36,9 +36,7 @@ set termguicolors
 
 if has( 'gui_running' ) || 'xterm-256color' == $TERM
   set background=dark
-
   colorscheme gruvbox-material                                      " sainnhe/gruvbox-material
-  " colorscheme habamax
 
   """ terminal : `:help terminal-info`
   let &t_AB = "\e[48;5;%dm"
@@ -48,6 +46,10 @@ if has( 'gui_running' ) || 'xterm-256color' == $TERM
   "" italic
   let &t_ZH = "\e[3m"
   let &t_ZR = "\e[23m"
+elseif has('win32') || has('win64')
+  set background=dark
+  colorscheme gruvbox
+  " colorscheme habamax
 else
   set t_Co=8
   set t_Sb=^[[4%dm

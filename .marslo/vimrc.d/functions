@@ -1,9 +1,9 @@
 " =============================================================================
-"      FileName : vimrc.functions
+"      FileName : functions
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-01-10 22:58:58
+"    LastChange : 2024-02-22 16:00:21
 " =============================================================================
 
 " /**************************************************************
@@ -15,14 +15,8 @@
 "
 " **************************************************************/
 function! GetPlug()                                                 " GetPlug() inspired by: http://pastebin.com/embed_iframe.php?i=C9fUE0M3
-  if has( 'win32' ) || has( 'win64' )
-    let pluginHome=$VIM . '\autoload'
-    let pluginFile=pluginHome . '\plug.vim'
-  else
-    let pluginHome=$HOME . '/.vim/autoload'
-    let pluginFile=pluginHome . '/plug.vim'
-  endif
-
+  let pluginHome=$HOME . '/.vim/autoload'
+  let pluginFile=pluginHome . '/plug.vim'
   if filereadable( pluginFile )
     echo "vim-plug has existed at " . expand( pluginFile )
   else
@@ -137,13 +131,16 @@ if exists( ":Tabularize" )                                          " 'godlygeek
   endfunction
 endif
 
+" to avoid `system('uname')` issue in powershell/gvim/cmd
+" previous solution: https://stackoverflow.com/a/57015339/2940319
+"   let uname = substitute(system('uname'),'\n','','')
+"   if uname == 'Linux'
 function! IsWSL()
-  let uname = substitute(system('uname'),'\n','','')
-  if uname == 'Linux'
-      let lines = readfile("/proc/version")
-      if lines[0] =~ "Microsoft"
-          return 1
-      endif
+  if has( 'unix' ) || has( 'linux' )
+    let lines = readfile( '/proc/version' )
+    if lines[0] =~ 'Microsoft'
+      return 1
+    endif
   endif
   return 0
 endfunction
