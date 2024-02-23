@@ -4,8 +4,16 @@
 #     FileName : .iwsl
 #       Author : marslo.jiao@gmail.com
 #  Description : wsl specific settings
-#   LastChange : 2024-01-17 11:09:35
+#   LastChange : 2024-02-22 05:59:41
 # =============================================================================
+
+# if [[ -d '/usr/local/ssl' ]]; then
+#   OPENSSL_HOME='/usr/local/ssl'
+#   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OPENSSL_HOME/lib64
+#   export OPENSSL_LDFLAGS='-L/usr/local/ssl/lib64'
+#   export OPENSSL_INCLUDES='-I /usr/local/ssl/include'
+#   export OPENSSL_LIBS='-L/usr/local/ssl/lib64'
+# fi
 
 while read -r _i; do source "${iRCHOME}/.alias/$_i"; done < <( /bin/ls -1 "${iRCHOME}/.alias" )
 
