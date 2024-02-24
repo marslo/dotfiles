@@ -4,7 +4,7 @@
 #   FileName : imarslo
 #     Author : marslo.jiao@gmail.com
 #    Created : 2017-10-30 19:07:45
-# LastChange : 2024-01-18 01:55:37
+# LastChange : 2024-01-29 17:44:26
 # =============================================================================
 
 MYWORKSPACE="$HOME/iMarslo"
@@ -20,6 +20,7 @@ if [[ '1' = "$(isWSL)" ]]; then
   alias bcomp='/mnt/c/Program\ Files/Beyond\ Compare\ 4/BComp.exe'
   alias open='/mnt/c/Windows/explorer.exe'
   alias chrome='/mnt/c/Program\ Files/Google/Chrome/Application/chrome.exe'
+  alias cygpath='/mnt/c/iMarslo/myprograms/Git/usr/bin/cygpath.exe'
 fi
 
 alias irc="cd $HOME/.marslo"
