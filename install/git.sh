@@ -23,7 +23,7 @@ function preInstall() {
     # git-core
     sudo apt install -y dh-autoreconf libexpat1-dev gettext libz-dev libssl-dev
     sudo apt install -y libcurl4-openssl-dev
-    sudo apt install -y libcurl4-gnutls-dev
+    # sudo apt install -y libcurl4-gnutls-dev
     # git-doc
     sudo apt install -y asciidoc xmlto docbook2x hunspell libhunspell-dev
     # git-info
@@ -38,7 +38,14 @@ function preInstall() {
 
 function doInstall() {
   make configure
-  ./configure --prefix=/usr/local --with-shell=/usr/local/bin/bash
+  ./configure --prefix=/usr/local --with-shell=$(command -v bash)
+  make -j all doc info
+  sudo make install install-doc install-html install-info
+}
+
+function doInstallWithOpenssl() {
+  make configure
+  ./configure --prefix=/usr/local --with-shell=$(command -v bash) --with-openssl=/usr/local/ssl
   make -j all doc info
   sudo make install install-doc install-html install-info
 }
