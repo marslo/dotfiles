@@ -57,7 +57,6 @@ _scc() {
      --sql-project
      -t --trace
      -v --verbose
-     --version
      -w --wide
      --version"
 
