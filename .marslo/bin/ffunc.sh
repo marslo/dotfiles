@@ -92,7 +92,7 @@ function cat() {                           # smart cat
   local fdOpt='--type f --hidden --follow --exclude .git --exclude node_modules'
   local CAT="$(type -P cat)"
   if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
-  command -v nvim >/dev/null && CAT="$(type -P bat)"
+  command -v bat >/dev/null && CAT="$(type -P bat)"
 
   if [[ 0 -eq $# ]]; then
     "${CAT}" --theme='gruvbox-dark' $(fd . ${fdOpt} | fzf --multi --cycle --exit-0)
