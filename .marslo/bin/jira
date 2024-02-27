@@ -28,6 +28,9 @@ declare usage="""
 \t\t$(c G)\$ jira -p ABC -t Release -a$(c) | $(c G)jira -p ABC -t Release -c 'AND'$(c)
 \n\tget maximize 50 items from specific JQL pattern with index
 \t\t$(c G)\$ jira -i -m 50 -jql 'project=ABC AND resolution=Unresolved'$(c)
+\n\tget Unresolved type in project ABC in recent 3 months
+\t\t$(c G)$ jira -jql 'project=ABC AND resolution=Unresolved AND created>startOfMonth(-2)'$(c)
+\t\t$(c G)$ jira -jql 'project=ABC AND resolution=Unresolved AND created>-90d'$(c)
 """
 
 # credit: https://stackoverflow.com/a/17841619/2940319

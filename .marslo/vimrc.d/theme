@@ -18,14 +18,14 @@ if has('gui_running')
   set go=                                                           " hide everything (go = guioptions)
   set cpoptions+=n
 
+  " set guifont=Agave\ Nerd\ Font\ Mono:h32
+  " set guifont=JetBrainsMono\ Nerd\ Font\ Mono:h26
   if has('win32') || has('win64')
     set guifont=Monaco\ Nerd\ Font\ Mono:h18
   else
     set guifont=OperatorMono\ Nerd\ Font:h29
-  endif
-  " set guifont=Agave\ Nerd\ Font\ Mono:h32
-  " set guifont=JetBrainsMono\ Nerd\ Font\ Mono:h26
   set renderoptions=type:directx,renmode:5
+  endif
   set lines=30                                                      " the initialize size
   set columns=106
 endif
