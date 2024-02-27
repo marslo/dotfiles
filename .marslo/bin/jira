@@ -65,6 +65,7 @@ fi
 
 pattern="$(sed 's/ //g;s/AND/ AND /g;s/OR/ OR /g;s/IN/ IN /g;s/IS/ IS /g' <<< "${pattern}")"
 pattern="$(printf %s "${pattern}" | jq -sRr @uri)"
+pattern="${pattern}%20ORDER%20BY%20updated%20DESC"
 cmd="curl ${curlOpt} -XGET '${url}/search?jql=${pattern}&maxResults=${maxResults}'"
 output=$(eval "${cmd} | jq -r '.issues[]'")
 idx=''
