@@ -60,3 +60,5 @@ make hexokinase
 
 # PowerToys Run
 # copy `_def` to `C:\ProgramData\Microsoft\Windows\Start Menu\Programs`
+
+npm install -g doctoc
