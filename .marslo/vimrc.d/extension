@@ -297,7 +297,7 @@ nnoremap <leader>mp  :execute 'silent !git mp' \| redraw!<CR>
 nnoremap <Leader>ebb :<C-u>call gitblame#echo()<CR>
 " APZelos/blamer.nvim
 nnoremap <Leader>bb  :BlamerToggle<CR>
-if has( 'nvim' )
+if has( 'nvim' ) && has( 'unix' )
   let g:blamer_enabled            = 1
 else
   let g:blamer_enabled            = 0
@@ -458,7 +458,9 @@ let g:fzf_colors                  = {
 
 " vim-syntastic/syntastic
 set statusline+=%#warningmsg#
-set statusline+=\ %{SyntasticStatuslineFlag()}
+if has('unix')
+  set statusline+=\ %{SyntasticStatuslineFlag()}
+endif
 set statusline+=\ %* |
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list            = 1
