@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-01-18 01:26:21
+"    LastChange : 2024-02-27 20:59:34
 " =============================================================================
 
 " vim
@@ -42,5 +42,9 @@ highlight! link mkdURL  htmlString
 
 " vim-syntastic/syntastic
 highlight! link SyntasticStyleWarningSign GruvboxPurpleSign
+
+" TermCursor for wsl
+highlight! Cursor   term=bold    cterm=reverse ctermfg=142 ctermbg=235 gui=underline guifg=White guibg=SteelBlue guisp=SteelBlue
+highlight! link TermCursor Cursor
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
