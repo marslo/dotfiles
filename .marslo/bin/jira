@@ -29,8 +29,8 @@ declare usage="""
 \n\tget maximize 50 items from specific JQL pattern with index
 \t\t$(c G)\$ jira -i -m 50 -jql 'project=ABC AND resolution=Unresolved'$(c)
 \n\tget Unresolved type in project ABC in recent 3 months
-\t\t$(c G)$ jira -jql 'project=ABC AND resolution=Unresolved AND created>startOfMonth(-2)'$(c)
-\t\t$(c G)$ jira -jql 'project=ABC AND resolution=Unresolved AND created>-90d'$(c)
+\t\t$(c G)$ jira -jql 'project = ABC AND resolution = Unresolved AND created > startOfMonth(-2)'$(c)
+\t\t$(c G)$ jira -jql 'project = ABC AND resolution = Unresolved AND created > -90d ORDER BY updated ASC'$(c)
 """
 
 # credit: https://stackoverflow.com/a/17841619/2940319
@@ -60,12 +60,11 @@ condition=$(tr '[:lower:]' '[:upper:]' <<< "${condition}")
 if [[ -z "${pattern}" ]]; then
   [[ -n "${project}"   ]] && array+=( "project=${project}" )
   [[ -n "${issueType}" ]] && array+=( "issuetype=${issueType}" )
-  pattern=$(join_by "${condition}" "${array[@]}")
+  pattern=$(join_by " ${condition} " "${array[@]}")
+  pattern="${pattern}%20ORDER%20BY%20updated%20DESC"
 fi
 
-pattern="$(sed 's/ //g;s/AND/ AND /g;s/OR/ OR /g;s/IN/ IN /g;s/IS/ IS /g' <<< "${pattern}")"
 pattern="$(printf %s "${pattern}" | jq -sRr @uri)"
-pattern="${pattern}%20ORDER%20BY%20updated%20DESC"
 cmd="curl ${curlOpt} -XGET '${url}/search?jql=${pattern}&maxResults=${maxResults}'"
 output=$(eval "${cmd} | jq -r '.issues[]'")
 idx=''

@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2024-01-18 17:11:38
+#  LastChange : 2024-02-27 20:59:57
 #  Description : Ifunctions
 # =============================================================================
 
@@ -103,7 +103,7 @@ ibtoc() {
 
 function 256colors() {
   local bar='█'                                          # ctrl+v -> u2588 ( full block )
-  if ! uname -r | grep -q "Microsoft"; then bar='▌'; fi  # ctrl+v -> u258c ( left half block )
+  if uname -r | grep -q "microsoft"; then bar='▌'; fi  # ctrl+v -> u258c ( left half block )
   for i in {0..255}; do
     echo -e "\e[38;05;${i}m${bar}${i}";
   done | column -c 180 -s ' ';
