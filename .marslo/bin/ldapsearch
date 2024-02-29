@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1078,SC1079
+# shellcheck source=/dev/null disable=SC1078,SC1079
 
 shopt -s extglob
 
-# shellcheck disable=SC2154,SC1091
+# shellcheck disable=SC2154
 source "${iRCHOME}"/bin/bash-color.sh
 
 usage="""TO SEARCH IN LDAP
