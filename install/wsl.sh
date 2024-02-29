@@ -48,6 +48,7 @@ sudo apt install -y bc \
                     figlet \
                     tig \
                     build-essential \
+                    moreutils \
                     libncurses-dev \           # ncdu
                     checkinstall \             # ╮
                     libbz2-dev \               # │
@@ -260,6 +261,7 @@ sudo ln -sf "${GIT_HOME}"/contrib/completion/git-completion.bash /usr/share/bash
 log -r setup neovim
 sudo npm install -g neovim
 sudo npm install -g doctoc
+sudo npm install -g gnomon
 python3 -m pip install --upgrade pip
 python3 -m pip install --upgrade pynvim
 python3 -m pip install --upgrade pylint

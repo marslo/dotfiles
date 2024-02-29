@@ -24,7 +24,7 @@ if has('gui_running')
     set guifont=Monaco\ Nerd\ Font\ Mono:h18
   else
     set guifont=OperatorMono\ Nerd\ Font:h29
-  set renderoptions=type:directx,renmode:5
+    set renderoptions=type:directx,renmode:5
   endif
   set lines=30                                                      " the initialize size
   set columns=106
