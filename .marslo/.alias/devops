@@ -4,17 +4,10 @@
 #   FileName: devops
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2020-07-21 19:15:36
+# LastChange: 2024-02-28 19:19:01
 # =============================================================================
 
-RTDOMAIN='pww.artifactory.cdi.philips.com'
-M2_HOME="/opt/apache-maven-3.6.1"
-if test -d "${M2_HOME}"; then
-  MAVEN_OPTS="-Xms256m -Xmx512m"
-  M2="${M2_HOME}/bin"
-  PATH=$PATH:$M2
-  export M2_HOME M2 MAVEN_OPTS PATH
-fi
+RTDOMAIN='artifactory.sample.com'
 
 # alias pip="pip --trusted-hosts ${RTDOMAIN}"
 # https://stackoverflow.com/a/18781512/2940319
