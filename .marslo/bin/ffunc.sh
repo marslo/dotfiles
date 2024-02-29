@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2086
+# shellcheck source=/dev/null disable=SC2086
 #=============================================================================
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-01-25 01:50:35
+#   LastChange : 2024-02-28 16:21:36
 #  Description : [f]zf [func]tion
 #=============================================================================
 

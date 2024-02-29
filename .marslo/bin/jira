@@ -70,17 +70,18 @@ output=$(eval "${cmd} | jq -r '.issues[]'")
 idx=''
 
 echo "${output}" |
-  jq -r '. | [.key, .fields.summary, .fields.status.name, .fields.issuetype.name, .fields.updated, .fields.created] | join("|")' |
-  while IFS='|' read -r _key _summary _status _issuetype _updated _created; do
+  jq -r '. | [.key, .fields.summary, .fields.status.name, .fields.issuetype.name, .fields.updated, .fields.created, .fields.customfield_10062] | join("|")' |
+  while IFS='|' read -r _key _summary _status _issuetype _updated _created _points; do
     if [[ 'true' = "${showIndex}" ]]; then
       index=$(( index+1 ))
       idx="[${index}] - "
     fi
     echo ">> ${idx}[${_key}]: ${_summary}"
-    echo "..   status    : ${_status}"
-    echo "..   issuetype : ${_issuetype}"
-    echo "..   created   : ${_created}"
-    echo "..   updated   : ${_updated}"
+    echo "..    status    : ${_status}"
+    echo "..    issuetype : ${_issuetype}"
+    echo "..    created   : ${_created}"
+    echo "..    updated   : ${_updated}"
+    echo ".. story points : ${_points}"
   done
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
