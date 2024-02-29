@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-
+# shellcheck source=/dev/null
 shopt -s extglob
 
-# shellcheck disable=SC2154,SC1091
+# credit belongs to https://raw.githubusercontent.com/ppo/bash-colors/master/bash-colors.sh
+# shellcheck disable=SC2154
 source "${iRCHOME}"/bin/bash-color.sh
 
 function die() { echo -e "$(c R)ERROR$(c) : $*" >&2; exit 2; }

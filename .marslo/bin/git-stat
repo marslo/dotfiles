@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2086,SC2124
+# shellcheck source=/dev/null disable=SC2086,SC2124
 
 # USAGE:
 # $ git stats --author="marslo" --after="2022-01-01"
@@ -14,7 +14,7 @@
 shopt -s extglob
 
 # credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
-# shellcheck disable=SC2154,SC1091
+# shellcheck disable=SC2154
 source "${iRCHOME}"/bin/bash-color.sh
 
 function die() { echo -e "$(c R)ERROR$(c) : $*" >&2; exit 2; }
@@ -81,13 +81,13 @@ function lineChangesStat() {
     echo ""
   fi
 
-  echo -e "${allChanges} ${userChanges}" |
+  echo "${allChanges} ${userChanges}" |
            awk '{
-                  userFiles=$4; userInserted=$5; userDeleted=$6; fileRate=$4*100/$1; insertRate=$5*100/$2; deleteRate=$6*100/$3
+                  files=$1; inserted=$2; deleted=$3; userFiles=$4; userInserted=$5; userDeleted=$6; fileRate=$4*100/$1; insertRate=$5*100/$2; deleteRate=$6*100/$3
                 } END {
-                  printf( "\tfiles changed : %s ( %s% ) \n" , userFiles    , fileRate   )
-                  printf( "\tline inserted : %s ( %s% ) \n" , userInserted , insertRate )
-                  printf( "\tline deleted : %s ( %s% ) \n"  , userDeleted  , deleteRate )
+                  printf( "\tfiles changed : %s/%s ( %s% ) \n" , userFiles    , files    , fileRate   )
+                  printf( "\tline inserted : %s/%s ( %s% ) \n" , userInserted , inserted , insertRate )
+                  printf( "\tline deleted  : %s/%s ( %s% ) \n" , userDeleted  , deleted  , deleteRate )
                 }' |
            padRight
 }
@@ -116,7 +116,7 @@ function commitsCount() {
 
   echo -e "${allCount} ${userCount}" |
            awk '{ aCount=$1; uCount=$2; countRate=$2*100/$1; } END \
-                { printf( "\tcommit submitted : %s ( %s% ) \n", uCount, countRate ) }' |
+                { printf( "\tcommit submitted : %s/%s ( %s% ) \n", uCount, aCount, countRate ) }' |
            padRight
 }
 

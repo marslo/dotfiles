@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+#
+# reputation belongs to https://stackoverflow.com/a/60328791/2940319
+#
+
+team_total=$(git shortlog -s -n |sed 's/\t/,/g'|cut -f1 -d, |bc -l|awk '{sum+=$1}END{print sum}');
+tmp_counter='/tmp/counter.txt';
+tmp_user='/tmp/users.txt';
+tmp_percentage='/tmp/counters_users'
+
+# if you are running this again it make the file empty or you can rm it
+[ -f $tmp_percent ] && rm $tmp_percentage
+[ -f $tmp_user    ] && rm $tmp_user
+[ -f $tmp_counter ] && rm $tmp_counter
+
+git shortlog -s -n | sed 's/\t/,/g' | cut -f2 -d, >> $tmp_user;
+git shortlog -s -n | sed 's/\t/,/g' | cut -f1 -d, >> $tmp_counter;
+
+cat $tmp_counter | while read LINE; do
+    printf '%.2f %%  \n' $(echo \($LINE/$team_total\)\*100 | bc -l) >> $tmp_percentage
+done
+echo 'commits %      | contributor     | # of commits';paste  $tmp_percentage $tmp_user $tmp_counter
