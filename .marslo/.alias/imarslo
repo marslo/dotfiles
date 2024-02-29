@@ -19,7 +19,7 @@ if [[ '1' = "$(isWSL)" ]]; then
   alias pbcopy='/mnt/c/Windows/System32/clip.exe'
   alias bcomp='/mnt/c/Program\ Files/Beyond\ Compare\ 4/BComp.exe'
   alias open='/mnt/c/Windows/explorer.exe'
-  alias chrome='/mnt/c/Program\ Files/Google/Chrome/Application/chrome.exe'
+  alias chrome='/mnt/c/Users/marslo/AppData/Local/Google/Chrome SxS/Application/chrome.exe'
   alias cygpath='/mnt/c/iMarslo/myprograms/Git/usr/bin/cygpath.exe'
 fi
 
