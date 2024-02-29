@@ -559,6 +559,7 @@ function pecho(){
 # TODO:
 # - with path parameter, and using $PWD by default: https://www.ghisler.ch/board/viewtopic.php?p=426544&sid=0476b6a32aac9c2f1810db0f65624825#p426544
 # - with Panel parameter, and using Left by default : `/O /S /L=<path>` or `/O /S /R=<path>`
+# shellcheck disable=SC2155
 function tcmd() {
   declare tc='/mnt/c/iMarslo/myprograms/totalcmd/TOTALCMD64.EXE'
   declare cygpath='/mnt/c/iMarslo/myprograms/Git/usr/bin/cygpath.exe'
