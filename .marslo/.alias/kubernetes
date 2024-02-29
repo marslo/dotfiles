@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1072,SC1127,SC2139,SC2142,SC2154
+# shellcheck disable=SC2139,SC2046,SC2142
 # =============================================================================
 #   FileName: kubernetes
 #     Author: marslo.jiao@gmail.com
@@ -50,9 +50,11 @@ alias kcn='kubecolor config set-context --current --namespace "$(kln | fzf -e | 
 complete -o default -F __start_kubectl kubecolor
 
 # for kubernetes
-while read -r _i; do
-  # complete -F _complete_alias "${_i}"
-  complete -o default -F __start_kubectl "${_i}"
-done < <(alias | sed -rn 's/^alias ([^=]+)=.+kubec.+$/\1/p')
+complete -o nosort -o bashdefault -o default -F __start_kubectl $(alias | sed -rn 's/^alias ([^=]+)=.+kubec.+$/\1/p' | xargs)
+
+# while read -r _i; do
+#   # complete -F _complete_alias "${_i}"
+#   complete -o default -F __start_kubectl "${_i}"
+# done < <(alias | sed -rn 's/^alias ([^=]+)=.+kubec.+$/\1/p')
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
