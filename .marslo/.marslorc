@@ -130,7 +130,7 @@ test -f "${iRCHOME}/.completion/cht.sh"                        && source <( cat 
 test -f "${RT_COMPLETION}"                                     && source "${RT_COMPLETION}"
 test -f "$HOME/.cargo/env"                                     && source "$HOME/.cargo/env"
 test -s "$HOME/.sdkman/bin/sdkman-init.sh"                     && source "$HOME/.sdkman/bin/sdkman-init.sh"
-command -v kubectl >/dev/null                                  && source <( $(/usr/bin/which kubectl) completion bash )
+command -v kubectl >/dev/null                                  && source <( command kubectl completion bash )
 command -v npm     >/dev/null                                  && source <( npm completion )
 command -v vault   >/dev/null                                  && complete -C /usr/local/bin/vault vault
 command -v pipx    >/dev/null                                  && eval "$(register-python-argcomplete pipx)"
