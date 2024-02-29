@@ -70,17 +70,6 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${GNUSED}"     && GNU_PATH+=":${GNUSED}"
   test -d "${BINUTILS}"   && GNU_PATH+=":${BINUTILS}/bin"
 
-  test -d '/opt/gradle/gradle-4.8' && GRADLE_HOME='/opt/gradle/gradle-4.8'
-  if test -d '/opt/maven/apache-maven-3.5.0'; then
-    M2_HOME='/opt/maven/apache-maven-3.5.0'
-    M2=$M2_HOME/bin
-    MAVEN_OPTS='-Xms512m -Xmx1G'
-  fi
-  if test -d '/opt/android'; then
-    ANDROID_HOME='/opt/android'
-    ANDROID_NDK_HOME="$ANDROID_HOME/android-ndk"
-  fi
-
   # java 8
   #   JAVA_HOME='/Library/Java/JavaVirtualMachines/jdk1.8.0_271.jdk/Contents/Home'
   # java 11                                                       # https://docs.oracle.com/en/java/javase/11/install/installation-jdk-macos.html
@@ -94,7 +83,9 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   CLASSPATH=".:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar:$GROOVY_HOME/lib"
   # JAVA_OPTS+='-Dhttp.proxyHost=ipamunix.sample.com -Dhttp.proxyPort=8080'
 
-  NODE_HOME='/usr/local/opt/node@21'                              # NODE_HOME='/usr/local/opt/node@12'
+  # NODE_HOME='/usr/local/opt/node@12'
+  # NODE_HOME='/usr/local/Cellar/node/21.1.0'
+  NODE_HOME="$(brew --prefix node)"
   MYSQL_HOME='/usr/local/mysql'
   ITERM2_ADDITIONAL="${HOME}/.iterm2"
 
