@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1090
+# shellcheck source=/dev/null disable=SC1090
 
 [[ -f /etc/bash_completion ]] && . /etc/bash_completion
 
