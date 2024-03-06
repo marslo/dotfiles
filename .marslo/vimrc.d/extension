@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-01-19 21:01:59
+"    LastChange : 2024-03-05 16:51:40
 " =============================================================================
 
 " /**************************************************************
@@ -69,6 +69,7 @@ Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }           " color show
 Plug 'amadeus/vim-css'
 Plug 'stephpy/vim-yaml'                                             " ╮ yaml
 Plug 'pedrohdz/vim-yaml-folds'                                      " ╯
+Plug 'dense-analysis/ale'
 Plug 'modille/groovy.vim'                                           " /usr/local/vim/share/vim/vim90/syntax/groovy.vim
 Plug 'vim-scripts/vim-gradle'
 Plug 'marslo/Jenkinsfile-vim-syntax'                                " Jenkinfile
@@ -84,8 +85,6 @@ endif
 if has('vim')
   Plug 'ycm-core/YouCompleteMe', { 'do': 'python3 install.py --all' }
   Plug 'ycm-core/lsp-examples',  { 'do': 'python3 install.py --all' }
-  Plug 'vim-syntastic/syntastic'
-  Plug 'dense-analysis/ale'
 endif
 
 call plug#end()
@@ -350,6 +349,7 @@ let g:coc_global_extensions = [
   \   'coc-css', 'coc-htmlhint', 'coc-html-css-support',
   \   'coc-pyright',
   \   'coc-snippets',
+  \   'coc-docker',
   \   'coc-emoji'
   \ ]
 function! CheckBackspace() abort
@@ -410,6 +410,25 @@ let g:baan_fold                       = 1
 " pedrohdz/vim-yaml-folds                                           " brew install yamllint; pipx install yamllint
 set foldlevelstart=20
 
+" dense-analysis/ale
+" error: ✘ 👾 💣  🙅 🤦; warning: ⚠ ⸮ ⸘ ☹ info: ⸚ ϔ 𐘿 𐰦 ; style_error: ᑹ ; style_warning: ᓏ
+let g:ale_echo_msg_format                 = '[%linter%] %code%: %s [%severity%] '
+let g:ale_virtualtext_prefix              = '%comment% %type% [%code%]: '
+let g:ale_sign_error                      = '💢'
+let g:ale_sign_warning                    = 'ᑹᑹ'
+let g:ale_sign_info                       = 'ᓆ'
+let g:ale_sign_style_error                = '⍥'
+let g:ale_sign_style_warning              = 'ᓍ'
+let g:ale_lint_on_text_changed            = 'never'
+let g:ale_fix_on_save                     = 0
+let g:ale_lint_on_save                    = 1
+let g:ale_warn_about_trailing_blank_lines = 1
+let g:ale_warn_about_trailing_whitespace  = 1
+let g:ale_set_balloons                    = 1
+let g:ale_hover_to_preview                = 1
+let g:ale_floating_preview                = 1
+let g:ale_close_preview_on_insert         = 1
+
 " junegunn/fzf.vim
 nnoremap <silent> <leader>ff :Files<CR>
 nnoremap <silent> <leader>fg :GFiles<CR>
@@ -457,6 +476,7 @@ let g:fzf_colors                  = {
 \ }
 
 " vim-syntastic/syntastic
+" info: ࠵ ೲ; error: ஓ ௐ ྾; warning ᓆ ᓍ 𐘿; style_warning: ⍤ ൠ
 set statusline+=%#warningmsg#
 if has('unix')
   set statusline+=\ %{SyntasticStatuslineFlag()}
@@ -470,11 +490,12 @@ let g:syntastic_loc_list_height          = 2
 let g:syntastic_ignore_files             = ['\.py$']
 let g:syntastic_html_tidy_ignore_errors  = [" proprietary attribute \"ng-"]
 let g:syntastic_enable_signs             = 1
-let g:syntastic_info_symbol              = 'ϊ'                      " ࠵ ೲ
-let g:syntastic_error_symbol             = '✗'                      " ஓ ௐ ྾
-let g:syntastic_warning_symbol           = '⍨'                      " ᓆ ᓍ 𐘿
+let g:syntastic_info_symbol              = 'ϊ'
+let g:syntastic_error_symbol             = '✗'
+let g:syntastic_warning_symbol           = '⍨'
 let g:syntastic_style_error_symbol       = '⍥'
-let g:syntastic_style_warning_symbol     = 'ఠ'                      " ⍤ ൠ
+let g:syntastic_style_warning_symbol     = 'ఠ'
+let g:syntastic_dockerfile_checkers      = [ 'hadolint' ]
 highlight link SyntasticErrorSign        Error
 highlight link SyntasticWarningSign      GruvboxYellow
 highlight link SyntasticStyleErrorSign   GruvboxRedSign
