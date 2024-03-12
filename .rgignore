@@ -6,7 +6,7 @@
 .lsp/
 
 **/devops/archive
-**/.marslo/utils
+**/.marslo/utils/*
 **/.marslo/bin/go/pkg
 **/.marslo/bin/bash-completion
 **/.marslo/bin/screenfetch-dev
