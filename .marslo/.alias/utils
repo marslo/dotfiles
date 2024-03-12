@@ -125,7 +125,7 @@ alias allowedports='sudo /sbin/iptables -L -n'
 
 alias scp='scp -O -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '
 alias sshrsa="ssh -i ${MYWORKSPACE}/tools/remoteaccess/rsa/marslo@devops/marslo@devops"
-alias sshpwd='ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no'
+alias sshpw='ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no'
 alias rsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '"
 alias sudorsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' --rsync-path='sudo rsync'"
 
