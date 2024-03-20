@@ -4,9 +4,11 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-02-28 16:21:36
+#   LastChange : 2024-03-19 23:55:03
 #  Description : [f]zf [func]tion
 #=============================================================================
+
+source /Users/marslo/.marslo/bin/bash-color.sh
 
 # /**************************************************************
 #  ___        ___
@@ -114,7 +116,7 @@ function fdInRC() {
   fdOpt+=' --exec stat --printf="%y | %n\n"'
   (
     eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore' $HOME ${fdOpt}";
-    echo "${rcPaths}" | fmt -1 | xargs -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
+    echo "${rcPaths}" | fmt -1 | xargs -r -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
   ) |  sort -r
 }
 
@@ -150,11 +152,11 @@ function runrc() {                         # source rc files
                --header 'Press CTRL-Y to copy name into clipboard'
          )
   [[ -n "${files}" ]] &&
-    source $(xargs <<< "${files}") &&
-    echo -e "$(c Wd)>>$(c) $(c Mis)$(xargs -I{} bash -c "basename {}" <<< ${files} | awk -v d=', ' '{s=(NR==1?s:s d)$0}END{print s}')$(c) $(c Wdi)have been sourced ..$(c)"
+    source $(xargs -r <<< "${files}") &&
+    echo -e "$(c Wd)>>$(c) $(c Mis)$(xargs -r -I{} bash -c "basename {}" <<< ${files} | awk -v d=', ' '{s=(NR==1?s:s d)$0}END{print s}')$(c) $(c Wdi)have been sourced ..$(c)"
 }
 
-# fman - fzf list and preview for manpage:
+# fman - fzf list and preview for manpage
 # @source      : https://github.com/junegunn/fzf/wiki/examples#fzf-man-pages-widget-for-zsh
 # @description :
 #   - CTRL-N/CTRL-P or SHIFT-↑/↓ for view preview content
@@ -244,7 +246,7 @@ function b() {                             # chrome [b]ookmarks browser with jq
              | cut -d$'\t' -f2
         )
   # shellcheck disable=SC2046
-  [[ -z "${urls}" ]] || "${open}" $(xargs <<< "${urls}")
+  [[ -z "${urls}" ]] || "${open}" $(xargs -r <<< "${urls}")
 }
 
 # /**************************************************************
@@ -333,12 +335,12 @@ function vimr() {                          # vimr - open file(s) via [vim] in wh
     repodir="$(git rev-parse --show-toplevel)"
     # shellcheck disable=SC2164
     files=$( fd . "${repodir}" --type f --hidden --ignore-file ~/.fdignore --exec-batch ls -t |
-                  xargs -I{} bash -c "echo {} | sed \"s|${repodir}/||g\"" |
+                  xargs -r -I{} bash -c "echo {} | sed \"s|${repodir}/||g\"" |
                   fzf --multi -0 |
-                  xargs -I{} bash -c "echo ${repodir}/{}"
+                  xargs -r -I{} bash -c "echo ${repodir}/{}"
            )
     # shellcheck disable=SC2046
-    [[ -z "${files}" ]] || vim $(xargs <<< "${files}")
+    [[ -z "${files}" ]] || vim $(xargs -r <<< "${files}")
   else
     vim
   fi
@@ -427,10 +429,10 @@ function vd() {                            # vd - open vimdiff loaded files from
   [[ 1 -eq $# ]] && [[ '-q' = "$1" ]] && opt='--bind start:select+down+select+accept' || opt=''
   # shellcheck disable=SC2046
   files=$( grep --color=none -v '^#' ~/.vim_mru_files |
-           xargs -d'\n' -I_ bash -c "sed 's:\~:$HOME:' <<< _" |
+           xargs -r -d'\n' -I_ bash -c "sed 's:\~:$HOME:' <<< _" |
            fzf --multi 3 --sync --cycle --reverse ${opt}
          ) &&
-  vimdiff $(xargs <<< "${files}")
+  vimdiff $(xargs -r <<< "${files}")
 }
 
 
@@ -471,7 +473,7 @@ function cdr() {                           # cdd - [c][d] to selected [r]epo dir
   repodir="$(git rev-parse --show-toplevel)"
   # shellcheck disable=SC2164
   dir=$( ( echo './'; fd . "${repodir}" --type d --hidden --ignore-file ~/.fdignore |
-                     xargs -I{} bash -c "echo {} | sed \"s|${repodir}/||g\""
+                     xargs -r -I{} bash -c "echo {} | sed \"s|${repodir}/||g\""
          ) | fzf --no-multi -0
        ) && cd "${repodir}/${dir}"
 }
@@ -527,7 +529,7 @@ function killps() {                        # [kill] [p]roces[s]
       --preview='echo {}' --preview-window=down,3,wrap \
       --layout=reverse --height=80% |
   awk '{print $2}' |
-  xargs kill -9
+  xargs -r kill -9
 }
 
 # /**************************************************************
@@ -763,7 +765,7 @@ function kns() {                           # [k]ubectl [n]ame[s]pace
   resources=$*
   namespace=$(command kubectl config view --minify -o jsonpath='{..namespace}')
   context=$(command kubectl config current-context | sed 's/-context$//')
-  newns=$(echo 'namespace-1 namespace-2 namespace-3 namespace-4 namespace-5 namespace-6 namespace-7 namespace-8' |
+  newns=$(echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania storage-ff sms-fw' |
                 fmt -1 |
                 rg --color=always --colors match:fg:142 --passthru "^${namespace}$" |
                 fzf -1 -0 \
@@ -809,6 +811,7 @@ function kpo() {
     --bind 'ctrl-r:reload:$command' \
     --preview-window up,70%,follow,rounded  \
     --preview 'kubecolor --force-colors logs --follow --all-containers --tail=500 {1}' "$@"
+    # --header $'╱ CTRL-R (reload) ╱\n' \
 }
 
 # _can_i - kubectl check permission (auth can-i) for pods component
@@ -843,7 +846,7 @@ function kcani() {                         # [k]ubectl [can]-[i]
   local actions='list get watch create update delete'
   local components='sts deploy secrets configmap ingressroute ingressroutetcp'
 
-  namespaces=$( echo 'namespace-1 namespace-2 namespace-3 namespace-4 namespace-5 namespace-6 namespace-7 namespace-8' |
+  namespaces=$( echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania storage-ff sms-fw' |
                       rg --color=always --colors match:fg:142 --passthru "${namespace}" |
                       fmt -1 |
                       fzf -1 -0 --no-sort --prompt='namespace> ' \
@@ -899,6 +902,86 @@ function kpcani() {                        # [k]ubectl [p]od [can]-[i]
     echo -e ".. $(c Ms)pods$(c) :"
     echo -e "${headers}\n${pres}" | "${COLUMN}" -t | sed 's/^/\t/g'
   done< <(echo "$*" | fmt -1)
+}
+
+# /**************************************************************
+#   __     __            _         _
+#  / _|___/ _|  ___   __| |___  __| |_____ _ _
+# |  _|_ /  _| |___| / _` / _ \/ _| / / -_) '_|
+# |_| /__|_|         \__,_\___/\__|_\_\___|_|
+#
+# **************************************************************/
+
+# drclr - docker remote clean images via keywords in tags
+# @author      : marslo
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# [d]ocker [r]emote [c][l]ea[r]
+function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
+  local username='devops'
+  local hostname='artifactory.sample.com'
+  local registry='storage-ff-devops-docker'
+  local delete=false
+  local dangling=false
+  local show=true
+  local name=''
+  local tag=''
+  local cmd=''
+  local usage
+  usage="$(c Cs)drclr$(c) - $(c Cis)d$(c)ocker $(c Cis)r$(c)emote $(c Cis)c$(c)$(c Cis)l$(c)ea$(c Cs)r$(c)
+  \nSYNOPSIS:
+  \n\t$(c Gs)\$ drclr [ -h  | --help     ]
+                [ -c  | --show     ]
+                [ -d  | --delete   ]
+                [ -dl | --dangling ]
+                [ -t  | --tag      ]
+                [ -n  | --name     ]
+                [ -r  | --registry ]$(c)
+  \nEXAMPLE:
+  \n\tshow docker images with pattern of \`HOSTNAME/docker-local/marslo/*\` with tag of \`v1.0.0\`:
+  \t\t$(c Ys)$ drclr -t 'v1.0.0' -r 'docker-local' -n 'marslo/*'$(c)
+  \n\tdelete docker images with pattern of \`HOSTNAME/docker-local/marslo/*\` with tag of \`v1.0.0\`:
+  \t\t$(c Ys)$ drclr -t 'v1.0.0' -r 'docker-local' -n 'marslo/*' -d$(c)
+  "
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -c  | --show     ) show=true     ; shift 1    ;;
+      -dl | --dangling ) dangling=true ; shift 1    ;;
+      -d  | --delete   ) delete=true   ; shift 1    ;;
+      -t  | --tag      ) tag="$2"      ; shift 2    ;;
+      -n  | --name     ) name="$2"     ; shift 2    ;;
+      -r  | --registry ) registry="$2" ; shift 2    ;;
+      -h  | --help     ) echo -e "${usage}"; return ;;
+      *                ) break                      ;;
+    esac
+  done
+
+  if [[ 'true' = "${dangling}" ]]; then
+    name='--filter dangling=true'
+    extraFormat='{{.Repository}}\\t'
+    extraCmd=''
+  else
+    [[ -z "${tag}"  ]] && echo -e "$(c Rs)ERROR$(c): \`tag\` cannot be empty. check more options via \`-h\` or \`--help\`. EXIT ..." && return;
+    [[ -n "${name}" ]] && name="${hostname}/${registry}/${name}"
+    [[ 'true' = "${show}" ]] && extraCmd=" | column -t | grep --fixed-string ${tag}" || extraCmd=''
+    extraFormat=''
+  fi
+
+  cmd="docker images ${name} --format \\\"${extraFormat}{{.Tag}}\\t{{.ID}}\\\" ${extraCmd}"
+  [[ 'true' = "${delete}" ]] && cmd+=" | awk '{print \\\$NF}' | uniq | xargs -r docker rmi -f"
+
+  hostnames=$(echo dc5-ssdfw{1,4,6,8,9,15,17,18,19,-vm1} |
+              fmt -1 |
+              fzf --cycle --exit-0 --prompt "hostname > " \
+             )
+
+  if [[ -n ${hostnames} ]]; then
+    while read -r _hostname; do
+      echo ">> ${_hostname} <<";
+      eval "ssh -n ${username}@${_hostname} \"docker images --filter dangling=true -q | xargs -r docker rmi -f\""
+      eval "ssh -n ${username}@${_hostname} \"${cmd}\""
+    done <<< "${hostnames}"
+  fi
 }
 
 # /**************************************************************
