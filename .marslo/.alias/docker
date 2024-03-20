@@ -13,7 +13,7 @@ alias dcleanc='docker rm $(docker ps -a -q)'
 alias dcleani='docker rmi $(docker images -q -f dangling=true)'
 alias dcleanall='dockercleanc || true && dockercleani'
 alias dcleanfull='docker system prune -a -f'
-alias dclr='docker system prune -a -f'
+alias dclraf='docker system prune -a -f'
 
 alias dls='docker ps -l -q'
 alias dps='docker ps -l -a'
