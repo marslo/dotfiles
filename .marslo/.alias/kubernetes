@@ -28,6 +28,7 @@ alias  kd='kubecolor --kubeconfig ~/.kube/config --namespace devops-ci'
 # alias kcEvicted="kubecolor -n devops-ci get pods -o json | jq '.items[] | select(.status.reason!=null) | select(.status.reason | contains("Evicted")) | "kubecolor delete pods \(.metadata.name) -n \(.metadata.namespace)"' | xargs -n 1 bash -c"
 alias kcEvicted="kubecolor get pods --all-namespaces --field-selector 'status.phase==Failed' -o json | kubecolor delete -f -"
 
+alias kgc='kubecolor config get-contexts'
 # get current context
 alias krc='kubecolor config current-context'
 # list all contexts
