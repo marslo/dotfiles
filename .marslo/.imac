@@ -46,14 +46,12 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   GUILE_TLS_CERTIFICATE_DIRECTORY='/usr/local/etc/gnutls/'
   UTIL_LINUX_HOME='/usr/local/opt/util-linux'
 
-  KW_BUILD_TOOLS='/opt/kwbuildtools'
   MACVIM_HOME='/Applications/MacVim.app'
   # vim-tabnine
   LLVM_HOME="$(brew --prefix llvm)"
 
   TOOLS_PATH="${TOOLS_PATH:-}"
   test -d '/usr/local/vim'     && TOOLS_PATH+=':/usr/local/vim/bin'
-  test -d "${KW_BUILD_TOOLS}"  && TOOLS_PATH+=":${KW_BUILD_TOOLS}/bin"
   test -d "$HOME/.docker"      && TOOLS_PATH+=":$HOME/.docker/bin"
   test -d "${MACVIM_HOME}"     && TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"
   test -d "${LLVM_HOME}"       && TOOLS_PATH+=":${LLVM_HOME}/bin"
