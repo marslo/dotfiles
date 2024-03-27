@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-03-19 23:55:03
+#   LastChange : 2024-03-27 02:04:32
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -115,7 +115,7 @@ function fdInRC() {
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   fdOpt+=' --exec stat --printf="%y | %n\n"'
   (
-    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore' $HOME ${fdOpt}";
+    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore|.*gitconfig' $HOME ${fdOpt}";
     echo "${rcPaths}" | fmt -1 | xargs -r -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
   ) |  sort -r
 }
@@ -977,7 +977,7 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
 
   if [[ -n ${hostnames} ]]; then
     while read -r _hostname; do
-      echo ">> ${_hostname} <<";
+      echo -e "$(c Wd)>>$(c) $(c Gis)${_hostname}$(c) $(c Wd)<<$(c)"
       eval "ssh -n ${username}@${_hostname} \"docker images --filter dangling=true -q | xargs -r docker rmi -f\""
       eval "ssh -n ${username}@${_hostname} \"${cmd}\""
     done <<< "${hostnames}"
