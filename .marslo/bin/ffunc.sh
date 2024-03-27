@@ -816,7 +816,7 @@ function kpo() {
 
 # _can_i - kubectl check permission (auth can-i) for pods component
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
 # @description : check whether given action is allowed in given namespaces; if namespace not provide, using default namespace
 function _can_i() {
   local namespace
@@ -874,7 +874,7 @@ function kcani() {                         # [k]ubectl [can]-[i]
 
 # kpcani - kubectl check permission (auth can-i) for pods component
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
 # @description : check whether certain action is allowed in given namespaces
 # [k]ubectl [p]od [can]-[i]
 function kpcani() {                        # [k]ubectl [p]od [can]-[i]
@@ -914,7 +914,7 @@ function kpcani() {                        # [k]ubectl [p]od [can]-[i]
 
 # drclr - docker remote clean images via keywords in tags
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ifunc.sh
+# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
 # [d]ocker [r]emote [c][l]ea[r]
 function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
   local username='devops'
@@ -978,8 +978,8 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
   if [[ -n ${hostnames} ]]; then
     while read -r _hostname; do
       echo -e "$(c Wd)>>$(c) $(c Gis)${_hostname}$(c) $(c Wd)<<$(c)"
-      eval "ssh -n ${username}@${_hostname} \"docker images --filter dangling=true -q | xargs -r docker rmi -f\""
       eval "ssh -n ${username}@${_hostname} \"${cmd}\""
+      eval "ssh -n ${username}@${_hostname} \"docker images --filter dangling=true -q | xargs -r docker rmi -f\""
     done <<< "${hostnames}"
   fi
 }
