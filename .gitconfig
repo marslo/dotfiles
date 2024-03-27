@@ -1,0 +1,132 @@
+[user]
+  name              = marslo
+  email             = marslo.jiao@gmail.com
+[push]
+  default           = matching
+  followTags        = true
+[log]
+  follow            = true
+[diff]
+  rename            = copy
+  submodule         = log
+  wsErrorHighlight  = all
+  renamelimit       = 10000
+# Inspired from tpope: https://github.com/tpope/tpope/blob/master/.gitconfig
+[diff "ruby"]
+  funcname          = \"^ */(/(def/) .*/)\"
+[diff "image"]
+  textconv          = identify
+[diff "bin"]
+  textconv          = hexdump -v -C
+[color]
+  ui                = true
+  log               = always
+  status            = always
+  add               = always
+  push              = always
+  pull              = always
+  diff              = always
+  branch            = always
+  interactive       = auto
+[color "branch"]
+  current           = green bold
+  local             = yellow
+  remote            = red
+[color "status"]
+  added             = yellow
+  changed           = red bold
+  untracked         = magenta normal dim
+[color "diff"]
+  meta              = blue bold
+  frag              = magenta
+  old               = red bold
+  new               = green bold
+  whitespace        = yellow reverse
+  commit            = cyan
+[color "status"]
+  updated           = green
+[color "blame"]
+  highlightRecent   = 239, 20 month ago, 240, 18 month ago, 241, 16 month ago, 242, 14 month ago, 243, 12 month ago, 244, 10 month ago, 245, 8 month ago, 246, 6 month ago, 247, 4 month ago, 131, 3 month ago, 137, 2 month ago, 172, 1 month ago, 167, 3 weeks ago, 166, 2 weeks ago, 203, 1 week ago, 202
+  repeatedLines     = 130
+[core]
+  editor            = vim
+  pager             = diff-highlight | less $LESS -F -x1,5 -X
+  whitespace        = fix,-indent-with-non-tab,trailing-space,cr-at-eol,tab-in-indent
+  autocrlf          = false
+  precomposeUnicode = true
+  ignorecase        = false
+  excludesfile      = /Users/marslo/.gitignore_global
+  eol               = lf
+  safecrlf          = warn
+  attributesfile    = /Users/marslo/.gitattributes
+  fileMode          = true
+  sshCommand        = ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa
+[pager]
+  branch            = less -FRXK
+  diff              = diff-highlight | less
+  log               = diff-highlight | less -FRXK
+  show              = diff-highlight | less -FRXK
+[gui]
+  fontdiff          = -family Consolas -size 11 -weight normal -slant roman -underline 0 -overstrike 0
+[pretty]
+  custom            = "%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
+  #                                │        │            │            │             └─ author name
+  #                                │        │            │            └─ message
+  #                                │        │            └─ date (relative)
+  #                                │        └─ decorations (branch, heads or tags)
+  #                                └─ hash (abbreviated)
+
+[status]
+  submoduleSummary  = true
+[fetch]
+  prune             = true
+  pruneTags         = true
+[branch]
+  autosetuprebase   = always
+  sort              = -committerdate
+[rerere]
+  enabled           = true
+[commit]
+  template          = /Users/marslo/.stCommitMsg
+[gitreview]
+  username          = marslo
+  remote            = origin
+[include]
+  path              = ~/.marslo/.gitalias
+
+[http]
+  sslVerify         = false
+  postBuffer        = 524288000
+  # sslBackend      = openssl
+[url "ssh://marslo@vgitcentral.marvell.com:29418/"]
+  insteadOf         = ssh://srv-ssd-fw-devops@vgitcentral.marvell.com:29418/
+# [url "git@ssh.github.com"]
+#   insteadOf       = git@github.com
+# [url "git@ssh.github.com:"]
+  # insteadOf       = https://github.com/
+[url "https://github.com/"]
+  insteadOf         = git@ssh.github.com:
+[url "https://github.com/"]
+  insteadOf         = git@github.com:
+[advice]
+  detachedHead      = false
+  objectNameWarning = false
+[pull]
+  rebase            = true
+[rebase]
+  autoStash         = true
+[init]
+  defaultBranch     = marslo
+  templatedir       = /Users/marslo/.git-templates
+[blame]
+  # https://gist.github.com/BuonOmo/ce45b51d0cefe949fd0c536a4a60f000
+  # date            = relative
+  date              ="format:%Y-%m-%d %H:%M:%S %p"
+  coloring          = highlightRecent
+  showRoot          = true
+[help]
+  autocorrect       = 20
+[merge]
+  renamelimit       = 10000
+[git-extras]
+  github-personal-access-token = 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
