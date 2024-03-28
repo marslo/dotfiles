@@ -62,11 +62,12 @@ _fzf_compgen_dir() {
 #   - otherwise copy the content of parameter `$1` via `pbcopy` or `clip.exe`
 # shellcheck disable=SC2317
 function copy() {                          # smart copy
-  local fdOpt='--type f --hidden --follow --exclude .git --exclude node_modules'
   [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)" && return;
+  local fdOpt='--type f --hidden --follow --exclude .git --exclude node_modules'
+  if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
 
   if [[ 0 -eq $# ]]; then
-    file=$(fzf --cycle --exit-0) &&
+    file=$( fd . ${fdOpt} | fzf --cycle --exit-0 ) &&
       "${COPY}" < "${file}" &&
       echo -e "$(c Wd)>>$(c) $(c Gis)${file}$(c) $(c Wdi)has been copied ..$(c)"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
