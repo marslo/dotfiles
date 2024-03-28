@@ -142,3 +142,4 @@ $ sudo make prefix=/usr/local/tig install
 ![idle solarized dark](https://github.com/marslo/dotfiles/raw/assets/screenshots/idle-solarized-dark.png)
 
 ![idle gruvbox](https://github.com/marslo/dotfiles/raw/assets/screenshots/idle-gruvbox.png)
+
