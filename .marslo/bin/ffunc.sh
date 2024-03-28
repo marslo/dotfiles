@@ -8,7 +8,7 @@
 #  Description : [f]zf [func]tion
 #=============================================================================
 
-source /Users/marslo/.marslo/bin/bash-color.sh
+source $HOME/.marslo/bin/bash-color.sh
 
 # /**************************************************************
 #  ___        ___
