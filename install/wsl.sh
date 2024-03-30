@@ -83,6 +83,7 @@ sudo apt install -y bc \
                     install-info \             # git-info
                     libao-dev \                # git-others
                     silversearcher-ag \        # ag
+                    libarchive-tools \         # bsdtar
                     diff-so-fancy \
                     yamllint \
                     libxml2-utils \            # xmllint
@@ -206,6 +207,30 @@ sudo make install_sw install_ssldirs
 sudo ln -sf /usr/local/ssl/lib64 /usr/local/ssl/lib
 /usr/local/ssl/bin/openssl version
 cd - || return
+
+# groovy
+log groovy install
+GROOVY_VERSION='4.0.20'
+GROOVY_PATH='/opt/groovy'
+[[ -d "${GROOVY_PATH}" ]] || mkdir -p "${GROOVY_HOME}"
+curl -fsSL https://groovy.jfrog.io/ui/native/dist-release-local/groovy-zips/apache-groovy-binary-${GROOVY_VERSION}.zip | bsdtar xzf - -C "${GROOVY_PATH}"
+ln -sf "${GROOVY_PATH}/groovy-${GROOVY_VERSION}" "${GROOVY_HOME}/current"
+log "export GROOVY_HOME=${GROOVY_HOME}/current"
+
+# java
+log java install
+JAVA_PATH='/opt/java'
+JAVA_VERSION='21.0.2'
+curl -fsSL https://download.oracle.com/java/${JAVA_VERSION%%.*}/latest/jdk-${JAVA_VERSION%%.*}_linux-x64_bin.tar.gz | tar xzf - -C ${JAVA_PATH}
+log "export JAVA_HOME=${JAVA_PATH}/jdk-${JAVA_VERSION}"
+log "export CLASSPATH=\".:\$JAVA_HOME/lib:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar\""
+
+# jenkins.war
+log download jenkins.war
+JENKINS_VERSION='2.451'
+curl --create-dirs /opt/classpath/jenkins.war -fsSL https://updates.jenkins.io/download/war/${JENKINS_VERSION}/jenkins.war
+log "export CLASSPATH=\"$CLASSATH:/opt/classpath/jenkins.war\""
+
 
 log 'LD_LIBRARY_PATH OPENSSL_LDFLAGS OPENSSL_INCLUDES OPENSSL_LIBS' environment setup
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/ssl/lib64
