@@ -15,6 +15,13 @@
 #   export OPENSSL_LIBS='-L/usr/local/ssl/lib64'
 # fi
 
+JAVA_HOME='/opt/java/jdk-21.0.2'
+CLASSPATH=".:$JAVA_HOME/lib:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar"
+GROOVY_HOME='/opt/groovy/current'
+CLASSPATH=":/opt/classpath/jenkins.war:$GROOVY_HOME/lib:$CLASSPATH"
+PATH="$JAVA_HOME/bin:$GROOVY_HOME/bin:$PATH"
+export JAVA_HOME GROOVY_HOME CLASSPATH
+
 while read -r _i; do source "${iRCHOME}/.alias/$_i"; done < <( /bin/ls -1 "${iRCHOME}/.alias" )
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
