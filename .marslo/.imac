@@ -31,6 +31,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   LIBICONV_HOME='/usr/local/opt/libiconv'
   NCURSES_HOME='/usr/local/opt/ncurses'
 
+  # https://stackoverflow.com/q/77849563/2940319
   BINUTILS='/usr/local/opt/binutils'
   GNUBINHOME='/usr/local/opt/coreutils/libexec/gnubin'
   GNUMANHOME='/usr/local/opt/coreutils/libexec/gnuman'
