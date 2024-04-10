@@ -766,7 +766,7 @@ function kns() {                           # [k]ubectl [n]ame[s]pace
   resources=$*
   namespace=$(command kubectl config view --minify -o jsonpath='{..namespace}')
   context=$(command kubectl config current-context | sed 's/-context$//')
-  newns=$(echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania storage-ff sms-fw' |
+  newns=$(echo 'namespace_1 namespace_2 namespace_3 namespace_4' |
                 fmt -1 |
                 rg --color=always --colors match:fg:142 --passthru "^${namespace}$" |
                 fzf -1 -0 \
@@ -847,7 +847,7 @@ function kcani() {                         # [k]ubectl [can]-[i]
   local actions='list get watch create update delete'
   local components='sts deploy secrets configmap ingressroute ingressroutetcp'
 
-  namespaces=$( echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania storage-ff sms-fw' |
+  namespaces=$( echo 'namespace_1 namespace_2 namespace_3 namespace_4' |
                       rg --color=always --colors match:fg:142 --passthru "${namespace}" |
                       fmt -1 |
                       fzf -1 -0 --no-sort --prompt='namespace> ' \
