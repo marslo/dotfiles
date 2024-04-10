@@ -102,8 +102,7 @@ function! BSkipQuickFix( command )                                  " switch avo
     execute a:command
   endwhile
 endfunction
-nnoremap <Tab>      :call BSkipQuickFix("bn")<CR>
-nnoremap <S-Tab>    :call BSkipQuickFix("bp")<CR>
+nnoremap <S-Tab>    :call BSkipQuickFix("bn")<CR>
 nnoremap <leader>bp :call BSkipQuickFix("bn")<CR>
 nnoremap <leader>bn :call BSkipQuickFix("bp")<CR>
 
