@@ -1,9 +1,9 @@
 " =============================================================================
-"      FileName : vimrc.cmds
+"      FileName : cmds
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-01-10 22:58:58
+"    LastChange : 2024-04-10 03:15:14
 " =============================================================================
 
 " /**************************************************************
@@ -27,10 +27,13 @@ command! -nargs=0 -bar -range=% Reverse
 nnoremap <Leader>r :Reverse <bar> nohlsearch<CR>
 xnoremap <Leader>r :Reverse <bar> nohlsearch<CR>
 
-command! -nargs=0 DocTocUpdate execute 'silent !/usr/local/bin/doctoc --notitle --update-only --github --maxlevel 3 %' | execute 'redraw!'
-command! -nargs=0 DocTocCreate execute 'silent !/usr/local/bin/doctoc --notitle --github --maxlevel 3 %' | execute 'redraw!'
-command! -nargs=1        First execute                           'Tabularize /^[^' . escape(<q-args>, '\^$.[?*~') . ']*\zs' . escape(<q-args>, '\^$.[?*~')
-command! -nargs=1 -range First execute <line1> . ',' . <line2> . 'Tabularize /^[^' . escape(<q-args>, '\^$.[?*~') . ']*\zs' . escape(<q-args>, '\^$.[?*~')
-command! -nargs=0        Iname execute 'echo expand("%:p")'
+" https://stackoverflow.com/a/2803985/2940319
+command! -nargs=1       Silent | execute ':silent !'.<q-args> | execute ':redraw!'
+
+command! -nargs=0 DocTocUpdate   execute 'silent !/usr/local/bin/doctoc --notitle --update-only --github --maxlevel 3 %' | execute 'redraw!'
+command! -nargs=0 DocTocCreate   execute 'silent !/usr/local/bin/doctoc --notitle --github --maxlevel 3 %' | execute 'redraw!'
+command! -nargs=1        First   execute                           'Tabularize /^[^' . escape(<q-args>, '\^$.[?*~') . ']*\zs' . escape(<q-args>, '\^$.[?*~')
+command! -nargs=1 -range First   execute <line1> . ',' . <line2> . 'Tabularize /^[^' . escape(<q-args>, '\^$.[?*~') . ']*\zs' . escape(<q-args>, '\^$.[?*~')
+command! -nargs=0        Iname   execute 'echo expand("%:p")'
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************

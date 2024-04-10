@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-03-05 16:51:40
+"    LastChange : 2024-04-10 05:10:40
 " =============================================================================
 
 " /**************************************************************
@@ -76,8 +76,9 @@ Plug 'marslo/Jenkinsfile-vim-syntax'                                " Jenkinfile
 Plug 'ekalinin/Dockerfile.vim'                                      " dockerfile
 Plug 'rizzatti/dash.vim'
 Plug 'vim-syntastic/syntastic'
-" Plug 'parkr/vim-jekyll'                                           " github page
-Plug 'github/copilot.vim'
+Plug 'github/copilot.vim'                                           " github copilot
+Plug 'honza/vim-snippets'                                           " coc-snippets
+Plug 'parkr/vim-jekyll'                                             " github page
 
 if !has('macunix')
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
@@ -122,12 +123,13 @@ let g:tagbar_type_groovy = {
     \ ]
 \ }
 
-" tpope/vim-commentary
-map  <C-/>     gcc
+" tomtom/tcomment_vim
 map  <leader>x gcc
-imap <C-/>     <Esc><Plug>CommentaryLineA
-xmap <C-/>     <Plug>Commentary
+nmap <C-/>     gcc
+imap <C-/>     <c-_><c-_>
+vmap <C-/>     <c-_>b
 
+" dantezhu/authorinfo
 noremap <leader>aid :AuthorInfoDetect<CR>
 let g:vimrc_author = 'marslo'
 let g:vimrc_email  = 'marslo.jiao@gmail.com'
@@ -360,7 +362,7 @@ inoremap <silent><expr> <DOWN>
       \                   ? "\<DOWN>" : coc#refresh()
 inoremap <expr><UP> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
 inoremap <silent><expr> <C-J>
-      \ coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+     \ coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 command! -nargs=0 OR  :call CocActionAsync('runCommand', 'editor.action.organizeImport')
 nmap     <silent>[g   <Plug>(coc-diagnostic-prev)
 nmap     <silent>]g   <Plug>(coc-diagnostic-next)
@@ -370,7 +372,22 @@ nmap     <silent>gi   <Plug>(coc-implementation)
 nmap     <silent>gr   <Plug>(coc-references)
 nnoremap <silent>K    :call ShowDocumentation()<CR>
 nmap     <leader>cl   <Plug>(coc-codelens-action)
-imap     <C-l>        <Plug>(coc-snippets-expand)
+" coc-snippets
+imap <c-l> <Plug>(coc-snippets-expand)
+vmap <C-j> <Plug>(coc-snippets-select)
+let g:coc_snippet_next = '<c-j>'
+let g:coc_snippet_prev = '<c-k>'
+imap <C-j> <Plug>(coc-snippets-expand-jump)
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? coc#_select_confirm() :
+      \ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
+      \ CheckBackSpace() ? "\<TAB>" :
+      \ coc#refresh()
+function! CheckBackSpace() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+let g:coc_snippet_next = '<tab>'
 
 " Konfekt/FastFold
 nnoremap zuz <Plug>(FastFoldUpdate)
