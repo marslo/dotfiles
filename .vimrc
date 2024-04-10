@@ -40,11 +40,9 @@ endif
 
 if has( 'nvim' )
   set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.nviminfo
-  if empty( glob('~/.vim/undo/nundo')  )     | execute 'silent !mkdir -p ~/.vim/undo/nundo'    | endif
 else
   if version > 74399 | set cryptmethod=blowfish2 | endif
   set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.viminfo
-  if empty( glob('$HOME/.vim/undo/undo' )  ) | execute 'silent !mkdir -p $HOME/.vim/undo/undo' | endif
   set ttymouse=xterm2
 endif
 if empty( glob('$HOME/.vim/cache/') )        | execute 'silent !mkdir -p $HOME/.vim/cache'     | endif
@@ -66,6 +64,20 @@ if IsWSL() == 1
 else
   set clipboard+=unnamed
   set clipboard+=unnamedplus
+endif
+
+if has( 'persistent_undo' )
+  if has('nvim')
+    let target_path = expand( '~/.vim/undo' )
+    set undodir=expand('~/.vim/undo')
+  else
+    let target_path = expand( '~/.vim/undo/vundo' )
+  endif
+  if !isdirectory( target_path )
+    call system( 'mkdir -p ' . target_path )
+  endif
+  set undofile
+  let &undodir=target_path
 endif
 
 if empty( glob('$HOME/.vim/autoload/plug.vim') ) || empty( glob($VIM . 'autoload\plug.vim') )

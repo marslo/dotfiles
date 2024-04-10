@@ -77,6 +77,7 @@ Plug 'ekalinin/Dockerfile.vim'                                      " dockerfile
 Plug 'rizzatti/dash.vim'
 Plug 'vim-syntastic/syntastic'
 " Plug 'parkr/vim-jekyll'                                           " github page
+Plug 'github/copilot.vim'
 
 if !has('macunix')
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
@@ -137,21 +138,10 @@ let MRU_Auto_Close    = 1
 let MRU_Max_Entries   = 10
 let MRU_Exclude_Files = '^/tmp/.*\|^/temp/.*\|^/media/.*\|^/mnt/.*\|^/private/.*'
 
+"simnalamburt/vim-mundo
 noremap <Leader>u :MundoToggle<CR>
 let g:mundo_prefer_python3 = 1
 let g:mundo_width          = 26
-if has( 'persistent_undo' )
-  if has('nvim')
-    let target_path = expand('~/.vim/undo/nundo')
-  else
-    let target_path = expand('~/.vim/undo/undo')
-  endif
-  if !isdirectory(target_path)
-    call system('mkdir -p ' . target_path)
-  endif
-  let &undodir = target_path
-  set undofile
-endif
 
 " luochen1990/rainbow
 " for i in '75' '147' '108' '196' '208' '66' '106' '172' '115' '129'; do echo -e "\e[38;05;${i}m${i}"; done | column -c 250 -s ' '; echo -e "\e[m"
@@ -431,11 +421,13 @@ let g:ale_close_preview_on_insert         = 1
 
 " junegunn/fzf.vim
 nnoremap <silent> <leader>ff :Files<CR>
-nnoremap <silent> <leader>fg :GFiles<CR>
+nnoremap <silent> <leader>gf :GFiles<CR>
 nnoremap <silent> <leader>ag :Ag<CR>
 nnoremap <silent> <leader>l  :Buffers<CR>
 nnoremap <silent> <Leader>H  :Helptags<CR>
 nnoremap <silent> <Leader>g  :Commits<CR>
+nnoremap <silent> <Leader>hh :History:<CR>
+inoremap <expr> <c-x><c-k> fzf#vim#complete('cat /usr/share/dict/words')
 inoremap <expr> <c-x><c-l> fzf#vim#complete(fzf#wrap({
   \ 'prefix': '^.*$',
   \ 'source': 'rg -n ^ --color always',
@@ -500,5 +492,22 @@ highlight link SyntasticErrorSign        Error
 highlight link SyntasticWarningSign      GruvboxYellow
 highlight link SyntasticStyleErrorSign   GruvboxRedSign
 highlight link SyntasticStyleWarningSign GruvboxPurpleSign
+
+" github/copilot.vim
+let g:Copilot_proxy_strict_ssl = v:false
+let g:copilot_filetypes = {
+    \ 'gitcommit': v:true,
+    \ 'markdown': v:true,
+    \ 'yaml': v:true,
+    \ 'groovy': v:true,
+    \ 'python': v:true
+    \ }
+" disable for extra large file
+autocmd BufReadPre *
+    \ let f=getfsize(expand("<afile>"))
+    \ | if f > 100000 || f == -2
+    \ | let b:copilot_enabled = v:false
+    \ | endif
+noremap <leader>pp  :set invpaste<cr>
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
