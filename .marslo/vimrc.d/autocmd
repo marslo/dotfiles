@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-01-18 03:12:30
+"    LastChange : 2024-04-10 03:00:50
 " =============================================================================
 
 " /**************************************************************
@@ -40,6 +40,7 @@ if has( "autocmd" )
     autocmd BufEnter           *\(.md\|.markdown\) exe 'noremap <F5> :!"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" %:p "--no-gpu"<CR>'
     autocmd BufRead,BufNewFile .*ignore            set filetype=ignore
     autocmd FileType           ignore,gitconfig    setlocal commentstring=#\ %s
+    autocmd FileType           json                setlocal commentstring=//\ %s
     autocmd FileType           markdown,html       let g:AutoPairsCompleteOnlyOnSpace = 0
     autocmd FileType           markdown,html       let b:AutoPairs = autopairs#AutoPairsDefine({
           \ '<div>':'</div>', '<font>':'</font>', '<a>':'</a>', '<p>':'</p>',
@@ -94,10 +95,21 @@ if has( "autocmd" )
   augroup END
 
   augroup Vimrc
-    if index( ['.vimrc', 'init.lua', 'cmds', 'extention', 'extra-extention', 'functions', 'highlight', 'interface', 'settings', 'shortcuts', 'unix'], expand("%:r") ) == 0
-      autocmd! BufWritePost * silent! source ~/.vimrc | echo '~/.vimrc sourced!'
+    if index( ['vimrc.d'], split(expand("%:p:h"), "/")[-1] ) >= 0
+      autocmd! BufWritePost ~/.marslo/vimrc.d/* silent! source $MYVIMRC
+            \| echohl WarningMsg
+            \| echom expand('%:p') . " changed! " . $MYVIMRC . " sourced!"
+            \| echohl None
+            \| silent !redraw
     endif
-    autocmd Syntax vim normal zM
+
+    if has('nvim') && '/'.join(split(expand('%:p'), '/')[0:3], '/') == stdpath('config')
+      autocmd! BufWritePost ~/.config/nvim/*    silent! source $MYVIMRC
+            \| echohl WarningMsg
+            \| echom expand('%:p') . " changed! " . $MYVIMRC . " sourced!"
+            \| echohl None
+            \| execute 'silent !redraw'
+    endif
   augroup END
 
   augroup CustomTabularize
