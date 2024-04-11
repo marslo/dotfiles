@@ -33,10 +33,10 @@ set ttimeoutlen=1
 set ttyfast                                                         " enable fast terminal connection.
 set iskeyword-=.
 set autochdir
-set encoding=utf-8                                                  " input chinese (=cp936)
-set termencoding=utf-8
+set encoding=UTF-8
+set termencoding=UTF-8
 let &termencoding=&encoding
-set fileencoding=utf-8
+set fileencoding=UTF-8
 set fileencodings=utf-8,latin1,ucs-bom,gbk,cp936,gb2312,gb18030     " code format
 set selection=exclusive                                             " mouse settings
 set selectmode=mouse,key

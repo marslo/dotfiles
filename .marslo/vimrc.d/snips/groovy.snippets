@@ -1,19 +1,19 @@
 # A valid snippet should starts with:
 #
-#   snippet trigger_word [ "description" [ options ] ]
+#       snippet trigger_word [ "description" [ options ] ]
 #
 # and end with:
 #
-#   endsnippet
+#       endsnippet
 #
 # Snippet options:
 #
-#   b - Beginning of line.
-#   i - In-word expansion.
-#   w - Word boundary.
-#   r - Regular expression
-#   e - Custom context snippet
-#   A - Snippet will be triggered automatically, when condition matches.
+#       b - Beginning of line.
+#       i - In-word expansion.
+#       w - Word boundary.
+#       r - Regular expression
+#       e - Custom context snippet
+#       A - Snippet will be triggered automatically, when condition matches.
 #
 # Basic example:
 # snippet emitter "emitter properties" b
@@ -25,12 +25,19 @@
 
 snippet shebang "shebnag" b
 #!/usr/bin/env ${1:groovy}
+
+import groovy.transform.Field
+
+${2://} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/\w+/\u$0/g}
 endsnippet
 
 snippet #! "shebnag" b
 #!/usr/bin/env ${1:groovy}
 
-${2}
+import groovy.transform.Field
+${4}
+
+${2://} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/\w+/\u$0/g}
 endsnippet
 
 snippet importall "import generic libs" b
@@ -44,3 +51,5 @@ endsnippet
 snippet importj "import jenkins.model.*" b
 import jenkins.model.*
 endsnippet
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=snippet

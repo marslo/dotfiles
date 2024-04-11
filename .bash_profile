@@ -3,7 +3,6 @@
 
 [[ -f /etc/bash_completion ]] && . /etc/bash_completion
 
-
 # https://iterm2.com/documentation-scripting-fundamentals.html
 # function iterm2_print_user_vars() { iterm2_set_user_var gitBranch $(git symbolic-ref --short HEAD); }
 # export LC_ALL=en_US.UTF-8

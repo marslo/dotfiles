@@ -29,6 +29,7 @@ if has( "autocmd" )
   autocmd QuickFixCmdPost    *grep*                 cwindow
   autocmd FileType           make,snippet,robot     setlocal tabstop=4 softtabstop=4 shiftwidth=4
   autocmd FileType           help                   set nofoldenable
+  autocmd FileType           snippets               set expandtab
   autocmd Syntax             c,cpp,xml,html,xhtml   normal zM
 
   augroup DevOps
@@ -41,6 +42,7 @@ if has( "autocmd" )
     autocmd BufRead,BufNewFile .*ignore            set filetype=ignore
     autocmd FileType           ignore,gitconfig    setlocal commentstring=#\ %s
     autocmd FileType           json                setlocal commentstring=//\ %s
+    autocmd FileType           snippets            setlocal commentstring=#\ %s
     autocmd FileType           markdown,html       let g:AutoPairsCompleteOnlyOnSpace = 0
     autocmd FileType           markdown,html       let b:AutoPairs = autopairs#AutoPairsDefine({
           \ '<div>':'</div>', '<font>':'</font>', '<a>':'</a>', '<p>':'</p>',
