@@ -25,7 +25,7 @@ if has('macunix')
   set shell=/usr/local/bin/bash
   let g:gitgutter_git_executable = '/usr/local/bin/git'
 elseif has('win32') || has('win64')
-  set shell='c:\iMarslo\myprograms\Git\bin\bash.exe'
+  set shell=c:\iMarslo\myprograms\Git\bin\bash.exe
   let g:gitgutter_git_executable = 'c:\iMarslo\myprograms\Git\bin\git.exe'
 else                                                                " linux/wsl
   set shell=/usr/bin/bash
@@ -45,7 +45,7 @@ else
   set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.viminfo
   set ttymouse=xterm2
 endif
-if empty( glob('$HOME/.vim/cache/') )        | execute 'silent !mkdir -p $HOME/.vim/cache'     | endif
+if empty( glob('~/.vim/cache/') )   | execute 'silent !mkdir -p ~/.vim/cache' | endif
 
 source ~/.marslo/vimrc.d/extension
 if has( 'vim' ) | source ~/.marslo/vimrc.d/extra-extension | endif
@@ -61,6 +61,7 @@ if IsWSL() != 1 && ! has('macunix') | source ~/.marslo/vimrc.d/unix | endif
 if IsWSL() == 1
   set clipboard^=unnamed
   set clipboard^=unnamedplus
+  let g:copilot_proxy = 'http://proxy.sample.com:8080'
 else
   set clipboard+=unnamed
   set clipboard+=unnamedplus
