@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-04-10 05:10:40
+"    LastChange : 2024-04-10 22:57:03
 " =============================================================================
 
 " /**************************************************************
@@ -35,6 +35,8 @@ Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf.vim'
 Plug 'simnalamburt/vim-mundo'
 Plug 'preservim/tagbar'
+Plug 'scrooloose/nerdtree'
+Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
 Plug 'marslo/vim-devicons', { 'branch': 'sandbox/marslo' }
 Plug 'marslo/authorinfo'
 Plug 'LunarWatcher/auto-pairs', { 'branch': 'develop' }
@@ -48,8 +50,8 @@ Plug 'marslo/MarsloFunc'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'neoclide/coc.nvim', { 'branch': 'release' }
+Plug 'honza/vim-snippets'                                           " coc-snippets
 Plug 'mfussenegger/nvim-lint'
-Plug 'scrooloose/nerdtree'
 Plug 'tpope/vim-commentary'
 Plug 'preservim/vim-markdown'                                       " markdown
 Plug 'valloric/MatchTagAlways'                                      " web design
@@ -77,7 +79,6 @@ Plug 'ekalinin/Dockerfile.vim'                                      " dockerfile
 Plug 'rizzatti/dash.vim'
 Plug 'vim-syntastic/syntastic'
 Plug 'github/copilot.vim'                                           " github copilot
-Plug 'honza/vim-snippets'                                           " coc-snippets
 Plug 'parkr/vim-jekyll'                                             " github page
 
 if !has('macunix')
@@ -124,6 +125,7 @@ let g:tagbar_type_groovy = {
 \ }
 
 " tomtom/tcomment_vim
+" g:tcomment_mapleader1 = ','
 map  <leader>x gcc
 nmap <C-/>     gcc
 imap <C-/>     <c-_><c-_>
@@ -150,28 +152,33 @@ let g:mundo_width          = 26
 let g:rainbow_active    = 1
 let g:rainbow_operators = 1
 let g:rainbow_conf      = {
-\   'guifgs' : [ '#6A5ACD', '#ff6347', '#b58900', '#9acd32', '#EEC900', '#9A32CD', '#EE7600', '#268bd2', '#183172' ],
-\   'ctermfgs' : 'xterm-256color' == $TERM ? [ '75', '147', '108', '196', '208', '66', '106', '172', '115', '129' ] : [ 'lightblue', 'lightgreen', 'yellow', 'red', 'magenta' ],
-\   'parentheses': [ ['(',')'], ['\[','\]'], ['{','}'] ],
-\   'separately': {
-\     '*': {},
-\     'markdown': {
-\       'parentheses_options': 'containedin=markdownCode contained',
-\     },
-\     'css': {
-\       'parentheses': [ ['(',')'], ['\[','\]'] ],
-\     },
-\     'scss': {
-\       'parentheses': [ ['(',')'], ['\[','\]'] ],
-\     },
-\     'html': {
-\       'parentheses': [ ['(',')'], ['\[','\]'], ['{','}'] ],
-\     },
-\     'stylus': {
-\       'parentheses': [ 'start=/{/ end=/}/ fold contains=@colorableGroup' ],
-\     }
-\   }
-\}
+  \ 'guifgs' : [ '#6A5ACD', '#ff6347', '#b58900', '#9acd32', '#EEC900', '#9A32CD', '#EE7600', '#268bd2', '#183172' ],
+  \ 'ctermfgs' : 'xterm-256color' == $TERM ? [ '75', '147', '108', '196', '208', '66', '106', '172', '115', '129' ] : [ 'lightblue', 'lightgreen', 'yellow', 'red', 'magenta' ],
+  \ 'parentheses': ['start=/(/ end=/)/ fold', 'start=/\[/ end=/\]/ fold', 'start=/{/ end=/}/ fold'],
+  \ 'operators': '_,_',
+  \ 'separately': {
+  \   '*': {},
+  \   'markdown': {
+  \     'parentheses_options': 'containedin=markdownCode contained',
+  \   },
+  \   'css': {
+  \     'parentheses': [ ['(',')'], ['\[','\]'] ],
+  \   },
+  \   'scss': {
+  \     'parentheses': [ ['(',')'], ['\[','\]'] ],
+  \   },
+  \   'stylus': {
+  \     'parentheses': [ 'start=/{/ end=/}/ fold contains=@colorableGroup' ],
+  \   },
+  \   'vim': {
+  \     'parentheses': ['start=/(/ end=/)/', 'start=/\[/ end=/\]/', 'start=/{/ end=/}/ fold', 'start=/(/ end=/)/ containedin=vimFuncBody', 'start=/\[/ end=/\]/ containedin=vimFuncBody', 'start=/{/ end=/}/ fold containedin=vimFuncBody'],
+  \   },
+  \   'html': {
+  \     'parentheses': ['start=/\v\<((area|base|br|col|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr)[ >])@!\z([-_:a-zA-Z0-9]+)(\s+[-_:a-zA-Z0-9]+(\=("[^"]*"|'."'".'[^'."'".']*'."'".'|[^ '."'".'"><=`]*))?)*\>/ end=#</\z1># fold'],
+  \   },
+ \    'nerdtree': 0
+ \  }
+ \}
 
 " Yggdroot/indentLine
 let g:indentLine_enabled              = 1
@@ -254,8 +261,55 @@ function! AirlineInit()
 endfunction
 autocmd User AirlineAfterInit call AirlineInit()
 
+" scrooloose/nerdtree
+map <C-A-n> :NERDTreeToggle<CR>
+nnoremap <silent> <leader>nt :NERDTreeToggle<CR>
+let g:NERDTreeWinPos    = 'left'
+let g:NERDTreeIgnore    = [ '^node_modules$', '^.git$' ]
+let NERDTreeShowHidden  = 1
+let g:NERDTreeWinSize   = 25
+let g:NERDTreeFileLines = 1
+let g:NERDTreeDirArrowExpandable = '+'
+let g:NERDTreeDirArrowCollapsible = '»'
+autocmd BufEnter * if winnr() == winnr('h') && bufname('#') =~ 'NERD_tree_\d\+' && bufname('%') !~ 'NERD_tree_\d\+' && winnr('$') > 1 |
+    \ let buf=bufnr() | buffer# | execute "normal! \<C-W>w" | execute 'buffer'.buf | endif
+autocmd BufEnter * if winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() | quit | endif
+
 " ryanoasis/vim-devicons
-" let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['cr'] = ''
+let g:WebDevIconsUnicodeDecorateFolderNodes = 1
+let g:WebDevIconsNerdTreeAfterGlyphPadding  = ' '
+if exists('g:loaded_webdevicons') | call webdevicons#refresh() | endif
+
+" tiagofumo/vim-nerdtree-syntax-highlight
+let s:brown       = "905532"
+let s:aqua        = "3AFFDB"
+let s:blue        = "689FB6"
+let s:darkBlue    = "44788E"
+let s:purple      = "834F79"
+let s:lightPurple = "834F79"
+let s:red         = "AE403F"
+let s:beige       = "F5C06F"
+let s:yellow      = "F09F17"
+let s:orange      = "D4843E"
+let s:darkOrange  = "F16529"
+let s:pink        = "CB6F6F"
+let s:salmon      = "EE6E73"
+let s:green       = "8FAA54"
+let s:lightGreen  = "31B53E"
+let s:white       = "FFFFFF"
+let s:rspec_red   = 'FE405F'
+let s:git_orange  = 'F54D27'
+let g:WebDevIconsDefaultFolderSymbolColor                = s:beige
+let g:WebDevIconsDefaultFileSymbolColor                  = s:blue
+let g:NERDTreeSyntaxEnabledExtensions                    = ['c', 'h', 'c++', 'cpp', 'php', 'rb', 'js', 'css', 'html']
+let g:NERDTreeSyntaxEnabledExactMatches                  = ['node_modules', 'favicon.ico']
+let g:NERDTreeHighlightCursorline                        = 1
+let g:NERDTreeExtensionHighlightColor                    = {}
+let g:NERDTreeExactMatchHighlightColor                   = {}
+let g:NERDTreePatternMatchHighlightColor                 = {}
+let g:NERDTreeExtensionHighlightColor['css']             = s:blue
+let g:NERDTreeExactMatchHighlightColor['.gitignore']     = s:git_orange
+let g:NERDTreePatternMatchHighlightColor['.*_spec\.rb$'] = s:rspec_red
 
 " preservim/vim-markdown
 let g:vim_markdown_toc_autofit          = 1
@@ -311,14 +365,6 @@ if has('win32') || has('win64')
   let g:gitgutter_git_executable = 'c:\iMarslo\myprograms\Git\bin\git.exe'
 endif
 
-" scrooloose/nerdtree
-map <C-M-n> :NERDTreeToggle<CR>
-nnoremap <silent> <leader>nt :NERDTreeToggle<CR>
-let g:NERDTreeWinPos   = 'left'
-let g:NERDTreeIgnore   = [ '^node_modules$' ]
-let NERDTreeShowHidden = 1
-let g:NERDTreeWinSize  = 25
-
 " RRethy/vim-hexokinase
 let g:Hexokinase_highlighters  = [ 'backgroundfull' ]
 let g:Hexokinase_optInPatterns = [
@@ -355,8 +401,8 @@ function! ShowDocumentation()
     call feedkeys('K', 'in')
   endif
 endfunction
-autocmd FileType   json syntax match Comment +\/\/.\+$+
-autocmd FileType   html let b:coc_root_patterns = ['.git', '.env', 'tailwind.config.js', 'tailwind.config.cjs']
+autocmd FileType json syntax match Comment +\/\/.\+$+
+autocmd FileType html let b:coc_root_patterns = ['.git', '.env', 'tailwind.config.js', 'tailwind.config.cjs']
 inoremap <silent><expr> <DOWN>
       \ coc#pum#visible() ? coc#pum#next(1) : CheckBackspace()
       \                   ? "\<DOWN>" : coc#refresh()
