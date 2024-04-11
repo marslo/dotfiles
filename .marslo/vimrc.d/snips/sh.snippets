@@ -26,20 +26,20 @@
 
 snippet #! "shebang" b
 #!/usr/bin/env ${1:bash}
+
+set -euo pipefail
+${2}
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/^ba(.*)/$1/}
+endsnippet
+
+snippet shebang "shebang" b
+#!/usr/bin/env ${1:bash}
+
+set -euo pipefail
 ${3}
-${2://} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/\w+/\u$0/g}
-endsnippet
 
-snippet :vim: "for vim format settings" b
-${1://} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${2:Groovy}
-endsnippet
-
-snippet today
-`date "+%Y-%m-%d"`
-endsnippet
-
-snippet now
-`date "+%Y-%m-%d %H:%M:%S"`
+${2:#} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/^ba(.*)/$1/}
 endsnippet
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=snippet
