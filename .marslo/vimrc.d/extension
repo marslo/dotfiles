@@ -206,6 +206,7 @@ let g:AutoPairsPrefix                       = '<M-j>'
 let g:AutoPairsShortcutJump                 = '<M-n>'
 let g:AutoPairsShortcutToggle               = '<M-j>'
 let g:AutoPairs                             = autopairs#AutoPairsDefine({ '<': '>' })
+let g:AutoPairsFiletypeBlacklist            = [ 'registers', 'nerdtree' ]
 
 " vim-airline/vim-airline
 let g:airline_powerline_fonts                      = 1
