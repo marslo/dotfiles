@@ -15,7 +15,7 @@ set wildignore+=*/tmp/*,*.so,*.swp,*.zip
 if has('win32') || has('win64') | source $HOME\.vim\autoload\plug.vim | endif
 set runtimepath+=~/.vim/plugged
 
-if has('macunix') || has( 'win32' ) || has( 'win64' )
+if has('macunix') || has('win32') || has('win64')
   set spellcapcheck=1
 else                                                                " if has('unix')
   set spellcapcheck=0
@@ -57,8 +57,8 @@ source ~/.marslo/vimrc.d/shortcuts
 source ~/.marslo/vimrc.d/autocmd
 source ~/.marslo/vimrc.d/highlight
 
-if IsWSL() != 1 && ! has('macunix') | source ~/.marslo/vimrc.d/unix | endif
-if IsWSL() == 1
+if ! IsWSL() && ! has('macunix') | source ~/.marslo/vimrc.d/unix | endif
+if IsWSL()
   set clipboard^=unnamed
   set clipboard^=unnamedplus
   let g:copilot_proxy = 'http://proxy.sample.com:8080'
