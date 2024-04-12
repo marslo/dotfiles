@@ -268,11 +268,13 @@ autocmd User AirlineAfterInit call AirlineInit()
 " scrooloose/nerdtree
 map <C-A-n> :NERDTreeToggle<CR>
 nnoremap <silent> <leader>nt :NERDTreeToggle<CR>
+let NERDTreeShowHidden            = 1
+let NERDTreeHighlightCursorline   = 0
 let g:NERDTreeWinPos              = 'left'
 let g:NERDTreeIgnore              = [ '^node_modules$', '^.git$' ]
-let NERDTreeShowHidden            = 1
 let g:NERDTreeWinSize             = 25
-let g:NERDTreeFileLines           = 1
+" cause devicon color issue
+" let g:NERDTreeFileLines         = 1
 let g:NERDTreeDirArrowExpandable  = '+'
 let g:NERDTreeDirArrowCollapsible = '⏵'
 autocmd BufEnter * if winnr() == winnr('h') && bufname('#') =~ 'NERD_tree_\d\+' && bufname('%') !~ 'NERD_tree_\d\+' && winnr('$') > 1 |
@@ -280,55 +282,39 @@ autocmd BufEnter * if winnr() == winnr('h') && bufname('#') =~ 'NERD_tree_\d\+' 
 autocmd BufEnter * if winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() | quit | endif
 
 " ryanoasis/vim-devicons
-let g:WebDevIconsOS                                               = 'Darwin'
-let g:WebDevIconsUnicodeDecorateFolderNodes                       = 1
-let g:WebDevIconsNerdTreeAfterGlyphPadding                        = ' '
-let g:webdevicons_enable_nerdtree                                 = 1
-let g:webdevicons_enable_unite                                    = 1
-let g:webdevicons_enable_vimfiler                                 = 1
-let g:webdevicons_conceal_nerdtree_brackets                       = 1
-let g:DevIconsEnableFoldersOpenClose                              = 1
-let g:DevIconsDefaultFolderOpenSymbol                             = ''
-let g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol          = ''
-let g:DevIconsEnableFolderExtensionPatternMatching                = 1
-let g:WebDevIconsNerdTreeGitPluginForceVAlign                     = 1
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols         = {}
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['log']  = ''
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['json'] = ''
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['md']   = ''
-let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols             = {}
-let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['src']      = ''
+let g:WebDevIconsOS                                                    = 'Darwin'
+let g:DevIconsEnableFoldersOpenClose                                   = 1
+let g:DevIconsEnableFolderExtensionPatternMatching                     = 0
+let g:DevIconsDefaultFolderOpenSymbol                                  = ''
+let g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol               = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols              = {}
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['log']       = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['json']      = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['md']        = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['perm']      = '󰌋'
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['groovy']    = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['sh']        = '󱆃'
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['yaml']      = '󱚥'
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['yml']       = '󱚥'
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['gitcommit'] = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols                  = {}
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['jenkinsfile']   = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['vimrc.d']       = '󰷺'
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['vars']          = '󱆃'
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['src']           = '󰵮'
 if exists('g:loaded_webdevicons') | call webdevicons#refresh() | endif
 
 " tiagofumo/vim-nerdtree-syntax-highlight
-let s:brown       = "905532"                                      " #905532
-let s:aqua        = "3AFFDB"                                      " #3AFFDB
-let s:blue        = "689FB6"                                      " #689FB6
-let s:darkBlue    = "44788E"                                      " #44788E
-let s:purple      = "834F79"                                      " #834F79
-let s:lightPurple = "834F79"                                      " #834F79
-let s:red         = "AE403F"                                      " #AE403F
-let s:beige       = "F5C06F"                                      " #F5C06F
-let s:yellow      = "F09F17"                                      " #F09F17
-let s:orange      = "D4843E"                                      " #D4843E
-let s:darkOrange  = "F16529"                                      " #F16529
-let s:pink        = "CB6F6F"                                      " #CB6F6F
-let s:salmon      = "EE6E73"                                      " #EE6E73
-let s:green       = "8FAA54"                                      " #8FAA54
-let s:lightGreen  = "31B53E"                                      " #31B53E
-let s:white       = "FFFFFF"                                      " #FFFFFF
-let s:rspec_red   = 'FE405F'                                      " #FE405F
-let s:git_orange  = 'F54D27'                                      " #F54D27
-let g:NERDTreeHighlightCursorline                        = 1
-let g:NERDTreeExtensionHighlightColor                    = {}
-let g:NERDTreeExtensionHighlightColor['groovy']          = s:beige
-let g:NERDTreeExtensionHighlightColor['md']              = "CC6666"
-let g:NERDTreeExactMatchHighlightColor                   = {}
-let g:NERDTreeExactMatchHighlightColor['.gitignore']     = s:git_orange
-let g:NERDTreePatternMatchHighlightColor                 = {}
-let g:NERDTreePatternMatchHighlightColor['.*\.md$']      = s:yellow
-let g:WebDevIconsDefaultFolderSymbolColor                = s:beige
-let g:WebDevIconsDefaultFileSymbolColor                  = s:darkBlue
+let g:NERDTreeSyntaxEnabledExtensions                = ['rb', 'lua', 'vim', 'sh', 'py', 'groovy', 'css', 'html', 'json', 'log']
+let g:NERDTreeSyntaxEnabledExactMatches              = ['.marslo', 'jenkins', 'virtualization', 'vimrc.d', 'devops', 'vars', 'jenkinsfile', '.vimrc']
+let g:NERDTreeExtensionHighlightColor                = {}
+let g:NERDTreeExtensionHighlightColor['groovy']      = '8FAA54'       " #8FAA54
+let g:NERDTreeExtensionHighlightColor['log']         = '44788E'       " #44788E
+let g:NERDTreeExtensionHighlightColor['yaml']        = '9370db'       " #9370db
+let g:NERDTreeExtensionHighlightColor['yml']         = '9370db'       " #9370db
+let g:NERDTreeExtensionHighlightColor['png']         = '719899'       " #719899
+let g:NERDTreeExactMatchHighlightColor               = {}
+let g:NERDTreeExactMatchHighlightColor['.gitignore'] = '3a346f'       " #3a346f
 
 " preservim/vim-markdown
 let g:vim_markdown_toc_autofit          = 1
@@ -426,7 +412,7 @@ inoremap <silent><expr> <DOWN>
       \ coc#pum#visible() ? coc#pum#next(1) : CheckBackspace()
       \                   ? "\<DOWN>" : coc#refresh()
 inoremap <expr><UP> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
-inoremap <silent><expr> <C-M>
+inoremap <silent><expr> <C-N>
      \ coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 command! -nargs=0 OR  :call CocActionAsync('runCommand', 'editor.action.organizeImport')
 nmap     <silent>[g   <Plug>(coc-diagnostic-prev)
@@ -440,6 +426,7 @@ nmap     <leader>cl   <Plug>(coc-codelens-action)
 " coc-snippets
 imap <c-l> <Plug>(coc-snippets-expand)
 vmap <C-j> <Plug>(coc-snippets-select)
+let g:coc_snippet_next = '<tab>'
 let g:coc_snippet_next = '<c-j>'
 let g:coc_snippet_prev = '<c-k>'
 imap <C-j> <Plug>(coc-snippets-expand-jump)
@@ -452,7 +439,6 @@ function! CheckBackSpace() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
-let g:coc_snippet_next = '<tab>'
 
 " Konfekt/FastFold
 nnoremap zuz <Plug>(FastFoldUpdate)
