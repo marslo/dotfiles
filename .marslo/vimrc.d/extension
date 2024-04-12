@@ -126,7 +126,8 @@ let g:tagbar_type_groovy = {
 
 " tomtom/tcomment_vim
 " g:tcomment_mapleader1 = ','
-map  <leader>x gcc
+imap <leader>x gcc
+vmap <leader>x <c-_>b
 nmap <C-/>     gcc
 imap <C-/>     <c-_><c-_>
 vmap <C-/>     <c-_>b
@@ -408,7 +409,7 @@ inoremap <silent><expr> <DOWN>
       \ coc#pum#visible() ? coc#pum#next(1) : CheckBackspace()
       \                   ? "\<DOWN>" : coc#refresh()
 inoremap <expr><UP> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
-inoremap <silent><expr> <C-J>
+inoremap <silent><expr> <C-M>
      \ coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 command! -nargs=0 OR  :call CocActionAsync('runCommand', 'editor.action.organizeImport')
 nmap     <silent>[g   <Plug>(coc-diagnostic-prev)

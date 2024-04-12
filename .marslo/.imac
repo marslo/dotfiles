@@ -48,12 +48,14 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   UTIL_LINUX_HOME='/usr/local/opt/util-linux'
 
   MACVIM_HOME='/Applications/MacVim.app'
+  NVIM_HOME='/usr/local/neovim'
   # vim-tabnine
   LLVM_HOME="$(brew --prefix llvm)"
 
   TOOLS_PATH="${TOOLS_PATH:-}"
   test -d '/usr/local/vim'     && TOOLS_PATH+=':/usr/local/vim/bin'
   test -d "$HOME/.docker"      && TOOLS_PATH+=":$HOME/.docker/bin"
+  test -d "${NVIM_HOME}"       && TOOLS_PATH+=":${NVIM_HOME}/bin"
   test -d "${MACVIM_HOME}"     && TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"
   test -d "${LLVM_HOME}"       && TOOLS_PATH+=":${LLVM_HOME}/bin"
   test -d "${UTIL_LINUX_HOME}" && TOOLS_PATH+=":${UTIL_LINUX_HOME}/bin"
