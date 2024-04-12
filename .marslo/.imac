@@ -146,8 +146,10 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   export GUILE_TLS_CERTIFICATE_DIRECTORY PYTHONPATH PYTHONUSERBASE CLASSPATH RUBY_CONFIGURE_OPTS
   # export JAVA_OPTS
 
-  # export HOMEBREW_GITHUB_API_TOKEN="80cf3215764805c0d385ecb7ac7c6c87df799424"
-  export HOMEBREW_INSTALL_BADGE='☕️ 🐸'
+  # export HOMEBREW_INSTALL_BADGE='☕️ 🐸'
+  export HOMEBREW_INSTALL_BADGE='🦍'
+  # for completion issue : https://github.com/orgs/Homebrew/discussions/4227#discussioncomment-5007112
+  export HOMEBREW_REPOSITORY=/usr/local/Homebrew
 fi
 
 # alias after PATH

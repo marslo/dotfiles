@@ -52,7 +52,7 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'neoclide/coc.nvim', { 'branch': 'release' }
 Plug 'honza/vim-snippets'                                           " coc-snippets
 Plug 'mfussenegger/nvim-lint'
-Plug 'tpope/vim-commentary'
+Plug 'tomtom/tcomment_vim'
 Plug 'preservim/vim-markdown'                                       " markdown
 Plug 'valloric/MatchTagAlways'                                      " web design
 Plug 'tpope/vim-fugitive'                                           " ╮
@@ -80,6 +80,7 @@ Plug 'rizzatti/dash.vim'
 Plug 'vim-syntastic/syntastic'
 Plug 'github/copilot.vim'                                           " github copilot
 Plug 'parkr/vim-jekyll'                                             " github page
+Plug 'xu-cheng/brew.vim'
 
 if !has('macunix')
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
@@ -127,6 +128,7 @@ let g:tagbar_type_groovy = {
 " tomtom/tcomment_vim
 " g:tcomment_mapleader1 = ','
 imap <leader>x gcc
+nmap <leader>x gcc
 vmap <leader>x <c-_>b
 nmap <C-/>     gcc
 imap <C-/>     <c-_><c-_>
