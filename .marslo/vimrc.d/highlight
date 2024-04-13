@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-02-29 15:27:14
+"    LastChange : 2024-04-13 02:11:20
 " =============================================================================
 
 " vim
@@ -45,5 +45,8 @@ highlight! link mkdURL  htmlString
 
 " vim-syntastic/syntastic
 highlight! link SyntasticStyleWarningSign GruvboxPurpleSign
+
+" coc-snippet
+highlight! link snipLeadingSpaces snipComment
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************

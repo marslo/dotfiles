@@ -24,4 +24,18 @@
 #
 # Online reference: https://github.com/SirVer/ultisnips/blob/master/doc/UltiSnips.txt
 
+snippet au "autocmd"
+autocmd ${1}
+endsnippet
+
+snippet au! "autocmd!"
+autocmd! #{1}
+endsnippet
+
+snippet aug "augroup"
+augroup ${1}
+  autocmd!
+  autocmd ${2}
+endsnippet
+
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=snippet

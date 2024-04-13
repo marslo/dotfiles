@@ -29,7 +29,7 @@ if has( "autocmd" )
   autocmd QuickFixCmdPost    *grep*                 cwindow
   autocmd FileType           make,snippet,robot     setlocal tabstop=4 softtabstop=4 shiftwidth=4
   autocmd FileType           help                   set nofoldenable
-  autocmd FileType           snippets               set expandtab
+  autocmd FileType           snippets               set expandtab tabstop=2 softtabstop=2 shiftwidth=2
   autocmd Syntax             c,cpp,xml,html,xhtml   normal zM
 
   augroup DevOps
