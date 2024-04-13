@@ -102,6 +102,11 @@ dotfils                    # -> $HOME
 
 ### nvim
 
+> [!TIP|label:key shortcuts]
+> - <kbd>Tab<kbd>: for copilot auto-completion
+> - <kbd>Ctrl</kbd>+<kbd>j</kbd>: for coc-snippets
+> - <kbd>Ctrl</kbd>+<kbd>m</kbd>: for lsp auto-completion
+
   ![nvim](https://github.com/marslo/ibook/raw/marslo/docs/screenshot/vim/nvim-coc-copilot-snippets.gif)
 
   ![nvim](https://github.com/marslo/dotfiles/raw/assets/screenshots/nvim-2.png)

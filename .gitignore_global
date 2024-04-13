@@ -9,3 +9,4 @@ Thumbs.db
 __pycache__
 tags
 logback.log
+.watchman*
