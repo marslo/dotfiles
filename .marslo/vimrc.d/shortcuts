@@ -25,6 +25,7 @@ nnoremap gk          k
 nnoremap n           nzzzv
 nnoremap N           Nzzzv
 nnoremap <leader>bd  :bd<CR>
+noremap  Q           :%bd<CR>
 nnoremap <C-k>       <C-w>k
 nnoremap <C-j>       <C-w>j
 nnoremap <C-h>       <C-w>h

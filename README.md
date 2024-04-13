@@ -26,6 +26,8 @@ Life is short, make it easier!
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [setup](#setup)
+  - [dotfiles](#dotfiles)
+  - [tools](#tools)
 - [folder structure](#folder-structure)
 - [manual configure](#manual-configure)
   - [`~/.marslo/.marslorc`](#marslomarslorc)
@@ -100,9 +102,9 @@ dotfils                    # -> $HOME
 
 ### nvim
 
-  ![nvim](https://marslo.github.io/ibook/screenshot/vim/nvim-treesitter-coc-lspconfig.gif)
+  ![nvim](https://github.com/marslo/ibook/raw/marslo/docs/screenshot/vim/nvim-coc-copilot-snippets.gif)
 
-  ![nvim](https://github.com/marslo/dotfiles/raw/assets/screenshots/nvim.png)
+  ![nvim](https://github.com/marslo/dotfiles/raw/assets/screenshots/nvim-2.png)
 
 ### gitalias
 ```bash

@@ -1,5 +1,5 @@
 require'nvim-treesitter.configs'.setup {
-  ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "python", "bash", "groovy", "java", "yaml", "xml", "cmake", "css", "dockerfile", "git_config", "gitcommit", "gitignore", "jq", "json", "markdown", "ssh_config" },
+  ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "python", "bash", "groovy", "java", "yaml", "xml", "cmake", "css", "dockerfile", "git_config", "gitcommit", "gitignore", "jq", "json", "markdown", "ssh_config", "vimdoc" },
   sync_install = true,
   auto_install = true,
   ignore_install = { "javascript" },
@@ -23,4 +23,3 @@ require'nvim-treesitter.configs'.setup {
   },
 }
 require("nvim-treesitter.install").prefer_git = true
-
