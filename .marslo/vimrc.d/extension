@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-04-10 22:57:03
+"    LastChange : 2024-04-14 00:46:52
 " =============================================================================
 
 " /**************************************************************
@@ -180,9 +180,9 @@ let g:rainbow_conf      = {
   \   'html': {
   \     'parentheses': ['start=/\v\<((area|base|br|col|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr)[ >])@!\z([-_:a-zA-Z0-9]+)(\s+[-_:a-zA-Z0-9]+(\=("[^"]*"|'."'".'[^'."'".']*'."'".'|[^ '."'".'"><=`]*))?)*\>/ end=#</\z1># fold'],
   \   },
- \    'nerdtree': 0
- \  }
- \}
+  \   'nerdtree': 0
+  \   }
+  \ }
 
 " Yggdroot/indentLine
 let g:indentLine_enabled              = 1
@@ -271,14 +271,41 @@ map <C-A-n> :NERDTreeToggle<CR>
 nnoremap <silent> <leader>nt :NERDTreeToggle<CR>
 let NERDTreeShowHidden            = 1
 let NERDTreeHighlightCursorline   = 0
+let g:NERDTreeShowLineNumbers     = 0
 let g:NERDTreeQuitOnOpen          = 1
 let g:NERDTreeWinPos              = 'left'
-let g:NERDTreeIgnore              = [ '^node_modules$', '^.git$' ]
 let g:NERDTreeWinSize             = 25
 " cause devicon color issue
 " let g:NERDTreeFileLines         = 1
 let g:NERDTreeDirArrowExpandable  = '+'
 let g:NERDTreeDirArrowCollapsible = '⏵'
+let g:NERDTreeIgnore              = [
+      \ '^.*history$',
+      \ '.*iterm2_shell_integration.*',
+      \ '^.*\.swp',
+      \ '.*\.log',
+      \ '.wget-hsts',
+      \ '.DS_Store',
+      \ '^__pycache__$',
+      \ 'vim_mru_files',
+      \ 'viminfo',
+      \ '^node_modules$',
+      \ '^.git$',
+      \ '^.Trash$',
+      \ 'NERDTree.*',
+      \ 'CFUserTextEncoding',
+      \ '.*tags',
+      \ '.node-gyp',
+      \ '.*oracle_jre_usage',
+      \ '.ShadowsocksX-NG',
+      \ '.cache',
+      \ '.bundle',
+      \ '.bash_sessions',
+      \ '.*archive.*',
+      \ '.sogouinput',
+      \ '.gradle.*',
+      \ '.gnupg'
+      \]
 autocmd BufEnter * if winnr() == winnr('h') && bufname('#') =~ 'NERD_tree_\d\+' && bufname('%') !~ 'NERD_tree_\d\+' && winnr('$') > 1 |
     \ let buf=bufnr() | buffer# | execute "normal! \<C-W>w" | execute 'buffer'.buf | endif
 autocmd BufEnter * if winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() | quit | endif
@@ -295,20 +322,24 @@ let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['log']       = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['json']      = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['md']        = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['perm']      = '󰌋'
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['groovy']    = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['groovy']    = ''   " 
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['sh']        = '󱆃'
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['yaml']      = '󱚥'
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['yml']       = '󱚥'
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['gitcommit'] = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['vim']       = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols                  = {}
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['jenkinsfile']   = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['vimrc.d']       = '󰷺'
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['.vimrc']        = ''   " 
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['devops']        = '󰘦'
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['vars']          = '󱆃'
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['src']           = '󰵮'
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols                = {}
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*ignore$']   = ''
-let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*rc$']       = '󱔁'
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*rc$']       = '🜘'
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*git.*$']    = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*vimrc.*']   = ''   " 
 if exists('g:loaded_webdevicons') | call webdevicons#refresh() | endif
 autocmd filetype nerdtree set conceallevel=3
 autocmd filetype nerdtree set concealcursor=nvic
@@ -323,6 +354,7 @@ let g:NERDTreeExtensionHighlightColor['log']          = '44788E'       " #44788E
 let g:NERDTreeExtensionHighlightColor['yaml']         = '9370db'       " #9370db
 let g:NERDTreeExtensionHighlightColor['yml']          = '9370db'       " #9370db
 let g:NERDTreeExtensionHighlightColor['png']          = '719899'       " #719899
+let g:NERDTreeExtensionHighlightColor['css']          = 'fd7e14'       " #fd7e14
 let g:NERDTreeExactMatchHighlightColor                = {}
 let g:NERDTreeExactMatchHighlightColor['README']      = '0099BD'       " #0099BD
 let g:NERDTreePatternMatchHighlightColor              = {}
@@ -381,10 +413,10 @@ set signcolumn=yes
 let g:gitgutter_enabled        = 1
 let g:gitgutter_realtime       = 0
 let g:gitgutter_eager          = 0
-highlight clear SignColumn
 if has('win32') || has('win64')
   let g:gitgutter_git_executable = 'c:\iMarslo\myprograms\Git\bin\git.exe'
 endif
+highlight clear SignColumn
 
 " RRethy/vim-hexokinase
 let g:Hexokinase_highlighters  = [ 'backgroundfull' ]
