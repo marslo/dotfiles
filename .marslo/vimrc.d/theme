@@ -20,10 +20,11 @@ if has('gui_running')
 
   " set guifont=Agave\ Nerd\ Font\ Mono:h32
   " set guifont=JetBrainsMono\ Nerd\ Font\ Mono:h26
+  " set guifont=OperatorMono\ Nerd\ Font:h29
   if has('win32') || has('win64')
     set guifont=Monaco\ Nerd\ Font\ Mono:h18
   else
-    set guifont=OperatorMono\ Nerd\ Font:h29
+    set guifont=Operator\ Mono\ Lig:h29
     set renderoptions=type:directx,renmode:5
   endif
   set lines=30                                                      " the initialize size

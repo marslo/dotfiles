@@ -103,7 +103,7 @@ dotfils                    # -> $HOME
 ### nvim
 
 > [!TIP|label:key shortcuts]
-> - <kbd>Tab<kbd>: for copilot auto-completion
+> - <kbd>Tab</kbd>: for copilot auto-completion
 > - <kbd>Ctrl</kbd>+<kbd>j</kbd>: for coc-snippets
 > - <kbd>Ctrl</kbd>+<kbd>m</kbd>: for lsp auto-completion
 
