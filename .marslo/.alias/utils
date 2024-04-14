@@ -111,6 +111,7 @@ alias reboot='sudo shutdown -r now'
 alias lgout='read ans; kill -HUP $PPID'
 alias showpath='echo -e ${PATH//:/\\n}'
 alias showmanpath="manpath | tr ':' '\n'"
+alias showfonts="fc-list | sed -re 's/^.+\/([^:]+):\s?([^,:]+),?:?.*$/\1 : \2/g' | column -t -s: -o:"
 alias cmount='mount | column -t'
 alias dstat='dstat -cdgilmnprsy'
 alias wget='wget --no-cookies --no-check-certificate'
