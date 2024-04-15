@@ -16,8 +16,6 @@
 " **************************************************************/
 " :help map-overview : https://vimhelp.org/map.txt.html#map-overview
 noremap  <leader>v   :e ~/.vimrc<CR>
-noremap  <F1>        <ESC>
-inoremap <F1>        <ESC>a
 nnoremap j           gj
 nnoremap gj          j
 nnoremap k           gk
