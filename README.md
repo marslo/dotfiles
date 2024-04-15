@@ -27,6 +27,7 @@ Life is short, make it easier!
 
 - [setup](#setup)
   - [dotfiles](#dotfiles)
+  - [fonts](#fonts)
   - [tools](#tools)
 - [folder structure](#folder-structure)
 - [manual configure](#manual-configure)
@@ -43,14 +44,24 @@ Life is short, make it easier!
 
 ![ffunc.sh](https://github.com/marslo/dotfiles/raw/assets/screenshots/ffunc.sh.gif)
 
-![LS_COLORS](https://github.com/marslo/dotfiles/raw/assets/screenshots/LS_COLORS.png)
+![LS_COLORS](https://github.com/marslo/dotfiles/raw/assets/screenshots/LS_COLORS-2.png)
 
-![LS_COLORS_ALL](https://github.com/marslo/dotfiles/raw/assets/screenshots/LS_COLORS_ALL.png)
+![LS_COLORS_ALL](https://github.com/marslo/dotfiles/raw/assets/screenshots/LS_COLORS_ALL-2.png)
 
 ## setup
 ### dotfiles
 ```bash
 $ bash install.sh
+```
+
+### fonts
+- [my favor fonts](https://marslo.github.io/ibook/tools/fonts.html)
+- [nerd-fonts](https://www.nerdfonts.com/) | [ryanoasis/nerd-fonts](https://github.com/ryanoasis/nerd-fonts)
+- [powerline/fonts](https://github.com/powerline/fonts)
+
+```bash
+# show fonts
+$ fc-list | sed -re 's/^.+\/([^:]+):\s?([^,:]+),?:?.*$/\1 : \2/g' | column -t -s: -o:
 ```
 
 ### tools
