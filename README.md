@@ -55,14 +55,46 @@ $ bash install.sh
 ```
 
 ### fonts
-- [my favor fonts](https://marslo.github.io/ibook/tools/fonts.html)
+
+> TIPS:
+> - [installation guild for nerd fonts patched by v3.2.1.1](https://github.com/marslo/fonts)
+
+- [nice fonts](https://marslo.github.io/ibook/tools/fonts.html)
 - [nerd-fonts](https://www.nerdfonts.com/) | [ryanoasis/nerd-fonts](https://github.com/ryanoasis/nerd-fonts)
 - [powerline/fonts](https://github.com/powerline/fonts)
 
 ```bash
 # show fonts
-$ fc-list | sed -re 's/^.+\/([^:]+):\s?([^,:]+),?:?.*$/\1 : \2/g' | column -t -s: -o:
+$ fc-list | sed -re 's/^.+\/([^:]+):\s?([^,:]+),?:?.*$/\1 : \2/g' | column -t -s: -o: | sort -t':' -k2'
+
+# show font properties
+$ fc-query /path/to/font.ttf
+## show font family only
+$ fc-query -f '%{family}\n' /path/to/font.ttf
 ```
+
+- RecMonoCasual Nerd Font Mono
+  ```bash
+  $ curl --create-dirs -O --output-dir "${fontsPath}" \
+         -fsSL --remote-name-all \
+         https://github.com/marslo/fonts/raw/fonts/Recursive/Recursive_Code_NF/RecMonoCasual/RecMonoCasualNerdFontMono-Regular.otf \
+         https://github.com/marslo/fonts/raw/fonts/Recursive/Recursive_Code_NF/RecMonoCasual/RecMonoCasualNerdFontMono-Italic.otf \
+         https://github.com/marslo/fonts/raw/fonts/Recursive/Recursive_Code_NF/RecMonoCasual/RecMonoCasualNerdFontMono-Bold.otf \
+         https://github.com/marslo/fonts/raw/fonts/Recursive/Recursive_Code_NF/RecMonoCasual/RecMonoCasualNerdFontMono-BoldItalic.otf
+  ```
+
+- Monaco Nerd Font Mono
+  ```bash
+  # otf
+  $ curl --create-dirs -O --output-dir "${fontsPath}" -fsSL \
+         https://github.com/marslo/fonts/raw/fonts/Monaco/MonacoNerdFontMono-Regular.otf
+
+  # ttf
+  $ curl --create-dirs -O --output-dir "${fontsPath}" -fsSL \
+         https://github.com/marslo/fonts/raw/fonts/Monaco/MonacoNerdFontMono-Regular.otf
+  ```
+
+- [more](https://github.com/marslo/fonts?tab=readme-ov-file#install-patched-fonts)
 
 ### tools
 - [fzf](https://marslo.github.io/ibook/devops/awesomeShell.html#fzf)
