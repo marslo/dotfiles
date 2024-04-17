@@ -128,8 +128,7 @@ let g:tagbar_type_groovy = {
 
 " tomtom/tcomment_vim
 " g:tcomment_mapleader1 = ','
-imap <leader>x gcc
-nmap <leader>x gcc
+map  <leader>x gcc
 vmap <leader>x <c-_>b
 nmap <C-/>     gcc
 imap <C-/>     <c-_><c-_>
@@ -337,7 +336,7 @@ let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['vars']          = '󱆃'
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['src']           = '󰵮'
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols                = {}
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*ignore$']   = ''
-let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*rc$']       = '🜘'
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*rc$']       = '󱍢'
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*git.*$']    = ''
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*vimrc.*']   = ''   " 
 if exists('g:loaded_webdevicons') | call webdevicons#refresh() | endif
@@ -345,7 +344,7 @@ autocmd filetype nerdtree set conceallevel=3
 autocmd filetype nerdtree set concealcursor=nvic
 
 " tiagofumo/vim-nerdtree-syntax-highlight
-" #293739 #BDBB72 #808000 #ba55d3 #183172 #0d6efd #3a346f #fd7e14 #d63384 #6c71c4
+" #293739 #BDBB72 #808000 #ba55d3 #183172 #0d6efd #3a346f #fd7e14 #d63384 #6c71c4 #4682b4
 let g:NERDTreeSyntaxEnabledExtensions                 = ['rb', 'lua', 'vim', 'sh', 'py', 'groovy', 'css', 'html', 'json', 'log']
 let g:NERDTreeSyntaxEnabledExactMatches               = ['.marslo', 'jenkins', 'virtualization', 'vimrc.d', 'devops', 'vars', 'jenkinsfile', '.vimrc']
 let g:NERDTreeExtensionHighlightColor                 = {}
@@ -360,7 +359,6 @@ let g:NERDTreeExactMatchHighlightColor['README']      = '0099BD'       " #0099BD
 let g:NERDTreePatternMatchHighlightColor              = {}
 let g:NERDTreePatternMatchHighlightColor['.*rc$']     = '616E88'       " #616E88
 let g:NERDTreePatternMatchHighlightColor['.*git.*$']  = '6c71c4'       " #6c71c4
-let g:NERDTreePatternMatchHighlightColor['.*rc$']     = '4682b4'       " #4682b4
 let g:NERDTreePatternMatchHighlightColor['.*ignore$'] = 'cd853f'       " #cd853f
 let g:NERDTreePatternMatchHighlightColor['.*\.bak$']  = '293739'       " #293739
 
