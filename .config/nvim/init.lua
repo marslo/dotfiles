@@ -1,3 +1,12 @@
+--[[
+=============================================================================
+     FileName : init.lua
+       Author : marslo.jiao@gmail.com
+      Created : 2024-01-11 01:33:04
+   LastChange : 2024-04-17 20:54:21
+=============================================================================
+--]]
+
 vim.cmd( 'set runtimepath^=~/.vim runtimepath+=~/.vim/after' )
 vim.cmd( 'let &packpath = &runtimepath' )
 vim.cmd( 'source ~/.vimrc' )

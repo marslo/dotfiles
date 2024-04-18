@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-04-14 00:46:52
+"    LastChange : 2024-04-17 20:52:27
 " =============================================================================
 
 " /**************************************************************
@@ -286,6 +286,7 @@ let g:NERDTreeIgnore              = [
       \ '.wget-hsts',
       \ '.DS_Store',
       \ '^__pycache__$',
+      \ '\.Xresources.*',
       \ 'vim_mru_files',
       \ 'viminfo',
       \ '^node_modules$',
@@ -339,6 +340,7 @@ let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*ignore$']   = ''
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*rc$']       = '󱍢'
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*git.*$']    = ''
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*vimrc.*']   = ''   " 
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*profile$']  = '󰙄'
 if exists('g:loaded_webdevicons') | call webdevicons#refresh() | endif
 autocmd filetype nerdtree set conceallevel=3
 autocmd filetype nerdtree set concealcursor=nvic
@@ -609,18 +611,23 @@ highlight link SyntasticStyleWarningSign GruvboxPurpleSign
 " github/copilot.vim
 let g:Copilot_proxy_strict_ssl = v:false
 let g:copilot_filetypes = {
+    \ '*': v:false,
     \ 'gitcommit': v:true,
     \ 'markdown': v:true,
     \ 'yaml': v:true,
     \ 'groovy': v:true,
-    \ 'python': v:true
+    \ 'python': v:true,
+    \ 'Jenkinsfile': v:true,
+    \ 'sh': v:true
     \ }
 " disable for extra large file
 autocmd BufReadPre *
     \ let f=getfsize(expand("<afile>"))
     \ | if f > 100000 || f == -2
-    \ | let b:copilot_enabled = v:false
+    \ |   let b:copilot_enabled = v:false
     \ | endif
-noremap <leader>pp  :set invpaste<cr>
+" invpaste -> paste in insert/normal/visual mode
+noremap <leader>pp :set invpaste<cr>
+map <silent> <F2> :Copilot disable<CR>
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
