@@ -1,4 +1,6 @@
 {
+  "snippets.ultisnips.pythonPrompt": false,
+  "groovy.java.home": "/opt/java/jdk-21.0.2",
   "codeLens.enable": true,
   "java.referencesCodeLens.enabled": true,
   "diagnostic.displayByAle": false,
@@ -18,7 +20,19 @@
   ],
   "html-css-support.enabledLanguages": [ "html", "markdown" ],
   "coc.source.file.ignoreHidden": false,
-  "snippets.ultisnips.pythonPrompt": false,
-  "groovy.java.home": "/opt/java/jdk-21.0.2",
-  "snippets.userSnippetsDirectory": "~/.marslo/vimrc.d/snips"
+  "snippets.userSnippetsDirectory": "~/.marslo/vimrc.d/snips",
+  // https://github.com/GroovyLanguageServer/groovy-language-server/issues/17
+  "languageserver": {
+    "groovy": {
+      "filetypes": ["groovy"],
+      "settings": {
+        "groovy": {
+          "classpath": [
+            "/usr/local/opt/groovy/libexec/lib",
+            "./libs"
+          ]
+        }
+      }
+    }
+  }
 }
