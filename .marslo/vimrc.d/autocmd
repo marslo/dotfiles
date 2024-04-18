@@ -15,26 +15,26 @@
 "
 " **************************************************************/
 if has( "autocmd" )
-  autocmd VimLeave           *                      silent clear              " :windo bd
-  autocmd BufReadPre         *                      setlocal foldmethod=indent
-  autocmd BufWinEnter        *                      if &fdm == 'indent' | setlocal foldmethod=manual | endif
-  autocmd BufWinEnter        *                      silent! loadview          " autocmd BufWinLeave * silent! mkview
-  autocmd Syntax             *                      syn match ExtraWhitespace /\s\+$\| \+\ze\t/
-  autocmd BufEnter           *                      if &diff | let g:blamer_enabled=0 | endif            " ╮ disable git blame in diff mode
-  " autocmd BufEnter         *                      if ! empty(&key) | let g:blamer_enabled=0 | endif    " ╯ and encrypt mode
-  autocmd BufWritePre        *                      %s/\s\+$//e | %s/\r$//e   " automatic remove trailing space
-  autocmd BufWritePre        *\(.ltsv\|.diffs\)\@<! silent! retab!            " automatic retab: https://vim.fandom.com/wiki/Remove_unwanted_spaces
-  autocmd BufRead,BufNewFile *.t                    set filetype=perl
-  autocmd BufRead,BufNewFile *.ltsv                 set filetype=ltsv syntax=groovy noexpandtab
-  autocmd QuickFixCmdPost    *grep*                 cwindow
-  autocmd FileType           make,snippet,robot     setlocal tabstop=4 softtabstop=4 shiftwidth=4
-  autocmd FileType           help                   set nofoldenable
-  autocmd FileType           snippets               set expandtab tabstop=2 softtabstop=2 shiftwidth=2
-  autocmd Syntax             c,cpp,xml,html,xhtml   normal zM
+  autocmd VimLeave           *                               silent :%bd                                          " :windo bd
+  autocmd BufReadPre         *                               setlocal foldmethod=indent
+  autocmd BufWinEnter        *                               if &foldmethod == 'indent' | setlocal foldmethod=manual | endif
+  autocmd BufWinEnter        *                               silent! loadview                                     " autocmd BufWinLeave * silent! mkview
+  autocmd Syntax             *                               syn match ExtraWhitespace /\s\+$\| \+\ze\t/
+  autocmd BufEnter           *                               if &diff | let g:blamer_enabled=0 | endif            " ╮ disable git blame in diff mode
+  " autocmd BufEnter         *                               if ! empty(&key) | let g:blamer_enabled=0 | endif    " ╯ and encrypt mode
+  autocmd BufWritePre        *                               %s/\s\+$//e | %s/\r$//e   " automatic remove trailing space
+  autocmd BufWritePre        *\(.ltsv\|.config\|.diffs\)\@<! silent! retab!            " automatic retab: https://vim.fandom.com/wiki/Remove_unwanted_spaces
+  autocmd BufRead,BufNewFile *.t                             set filetype=perl
+  autocmd BufRead,BufNewFile *.ltsv                          set filetype=ltsv syntax=groovy noexpandtab
+  autocmd QuickFixCmdPost    *grep*                          cwindow
+  autocmd FileType           make,snippet,robot              setlocal tabstop=4 softtabstop=4 shiftwidth=4
+  autocmd FileType           help                            set nofoldenable
+  autocmd FileType           snippets                        set expandtab tabstop=2 softtabstop=2 shiftwidth=2
+  autocmd FileType           snippets                        setlocal commentstring=#\ %s
+  autocmd Syntax             c,cpp,xml,html,xhtml            normal zM
 
   augroup DevOps
     autocmd BufRead,BufNewFile *                   setfiletype Jenkinsfile
-    autocmd BufRead,BufNewFile *.config            set filetype=config syntax=gitconfig noexpandtab
     autocmd FileType           json,markdown,yaml  set tabstop=2 softtabstop=2 shiftwidth=2
     autocmd FileType           json,markdown,yaml  setlocal foldmethod=indent
     autocmd Syntax             yaml                normal zM
@@ -42,7 +42,6 @@ if has( "autocmd" )
     autocmd BufRead,BufNewFile .*ignore            set filetype=ignore
     autocmd FileType           ignore,gitconfig    setlocal commentstring=#\ %s
     autocmd FileType           json                setlocal commentstring=//\ %s
-    autocmd FileType           snippets            setlocal commentstring=#\ %s
     autocmd FileType           markdown,html       let g:AutoPairsCompleteOnlyOnSpace = 0
     autocmd FileType           markdown,html       let b:AutoPairs = autopairs#AutoPairsDefine({
           \ '<div>':'</div>', '<font>':'</font>', '<a>':'</a>', '<p>':'</p>',
@@ -51,6 +50,9 @@ if has( "autocmd" )
           \ })
     if index( ['README', 'SUMMARY'], expand("%:r") ) == -1
       autocmd BufWritePost     *\(.md\)            silent :DocTocUpdate       " automatic build doctoc when save it
+    endif
+    if index( ['project.config', 'groups'], expand("%:r") ) == -1
+      autocmd BufRead,BufNewFile *.config          set syntax=gitconfig noexpandtab
     endif
     autocmd BufNewFile,BufRead                                                " git config files
           \ *.git/config,.gitconfig,.gitmodules,gitconfig
@@ -135,9 +137,15 @@ if has( "autocmd" )
     let w:m1         = matchadd( 'CollumnLimit', pattern, -1 )
   augroup END
 
+  if has('nvim')
+    autocmd! TermOpen,TermEnter * :IndentLinesDisable
+    autocmd! TermOpen           * setlocal nonumber norelativenumber modifiable nospell
+    autocmd  TermClose          * echom 'Terminal exited with status '..v:event.status
+  endif
+
   if version > 703
-    " autocmd FocusLost * set norelativenumber
-    autocmd FocusGained * set relativenumber
+    " autocmd FocusLost   * set norelativenumber
+    " autocmd FocusGained * set relativenumber         " impacted NerdTree and terminal mode
     autocmd InsertEnter * set norelativenumber
     autocmd InsertLeave * set relativenumber
     autocmd CmdwinEnter * set norelativenumber

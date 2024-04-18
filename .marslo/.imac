@@ -4,7 +4,7 @@
 #   FileName: .imac
 #     Author: marslo.jiao@gmail.com
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2023-10-06 20:07:49
+# LastChange: 2024-04-17 20:59:19
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
 
@@ -158,6 +158,10 @@ for _i in $( /bin/ls -1 ${iRCHOME}/.alias ); do
 done
 unset _i
 
+if [[ $(command -v brew) != '' ]] && [[  -f $(brew --prefix)/etc/bash_completion ]]; then
+  source $(brew --prefix)/etc/bash_completion;
+fi
+
 # yum whatprovides
 brew-whatprovides() {
   if [[ 0 -ne $# ]]; then
@@ -173,5 +177,9 @@ brew-whatprovides() {
     done < <(brew leaves);
   fi
 }
+
+# # https://iterm2.com/documentation-scripting-fundamentals.html
+# export LC_ALL=en_US.UTF-8
+# function iterm2_print_user_vars() { iterm2_set_user_var gitBranch $(git symbolic-ref --short HEAD); }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
