@@ -395,7 +395,7 @@ nnoremap <leader>mp  :execute 'silent !git mp' \| redraw!<CR>
 nnoremap <Leader>ebb :<C-u>call gitblame#echo()<CR>
 " APZelos/blamer.nvim
 nnoremap <Leader>bb  :BlamerToggle<CR>
-if has( 'nvim' ) && has( 'unix' )
+if IsNvim() && has('unix')
   let g:blamer_enabled            = 1
 else
   let g:blamer_enabled            = 0
@@ -413,8 +413,14 @@ set signcolumn=yes
 let g:gitgutter_enabled        = 1
 let g:gitgutter_realtime       = 0
 let g:gitgutter_eager          = 0
-if has('win32') || has('win64')
+if IsWindows()
   let g:gitgutter_git_executable = 'c:\iMarslo\myprograms\Git\bin\git.exe'
+elseif ( IsGitBash() || IsNuShell() )
+  let g:gitgutter_git_executable = '/mingw64/bin/git'
+elseif IsMac()
+  let g:gitgutter_git_executable = '/usr/local/bin/git'
+else
+  let g:gitgutter_git_executable = '/usr/bin/git'
 endif
 highlight clear SignColumn
 
