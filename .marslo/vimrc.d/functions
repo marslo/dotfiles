@@ -130,21 +130,4 @@ if exists( ":Tabularize" )                                          " 'godlygeek
   endfunction
 endif
 
-" to avoid `system('uname')` issue in powershell/gvim/cmd
-" previous solution: https://stackoverflow.com/a/57015339/2940319
-"   let uname = substitute(system('uname'),'\n','','')
-"   if uname == 'Linux'
-" to avoid `Can't open file /proc/version` in MacOS using:
-" - `has('linux')` instead of `has('unix')`
-" - `has('unix') && !has('macunix')` if `has('linux')` not supported
-function! IsWSL()
-  if has( 'linux' )
-    let lines = readfile( '/proc/version' )
-    if lines[0] =~ 'Microsoft'
-      return 1
-    endif
-  endif
-  return 0
-endfunction
-
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
