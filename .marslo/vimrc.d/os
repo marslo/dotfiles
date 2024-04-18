@@ -1,0 +1,71 @@
+" =============================================================================
+"      FileName : os
+"        Author : marslo.jiao@gmail.com
+"       Created : 2024-04-18 03:18:08
+"    LastChange : 2024-04-18 05:22:38
+" =============================================================================
+
+function! IsLinux()
+  return has('unix') && has('linux') && !has('macunix')
+endfunction
+
+function! IsMac()
+  return has('macunix')
+endfunction
+
+function! IsWindows()
+  return ( has('win32') || has('win64') )
+endfunction
+
+" cygwin or git bash or nushell
+function! IsWindowsUnix()
+  return ( has('win32unix') || has('win64uni') )
+endfunction
+
+function! IsGitBash()
+  if has('unix') && !has('macunix')
+    let uname = substitute(system('uname'),'\n','','')
+    if uname =~ 'MINGW64_NT' | return 1 | endif
+  endif
+  return 0
+endfunction
+
+function! IsCygwin()
+  if has('unix') && !has('macunix')
+    let uname = substitute(system('uname'),'\n','','')
+    if uname =~ 'CYGWIN_NT' | return 1 | endif
+  endif
+  return 0
+endfunction
+
+function! IsNuShell()
+  if has('unix') && !has('linux') && !has('macunix')
+    let uname = substitute(system('uname'),'\n','','')
+    if uname =~ 'MSYS_NT' | return 1 | endif
+  endif
+endfunction
+
+" to avoid `system('uname')` issue in powershell/gvim/cmd
+" previous solution: https://stackoverflow.com/a/57015339/2940319
+"   let uname = substitute(system('uname'),'\n','','')
+"   if uname == 'Linux'
+" to avoid `Can't open file /proc/version` in MacOS using:
+" - `has('linux')` instead of `has('unix')`
+" - `has('unix') && !has('macunix')` if `has('linux')` not supported
+function! IsWSL()
+  if has( 'linux' )
+    let lines = readfile( '/proc/version' )
+    if lines[0] =~ 'Microsoft' | return 1 | endif
+  endif
+  return 0
+endfunction
+
+function! IsNvim()
+  return has('nvim')
+endfunction
+
+function! IsVim()
+  return has('vim')
+endfunction
+
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

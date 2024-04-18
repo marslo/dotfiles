@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-04-10 03:00:50
+"    LastChange : 2024-04-18 05:21:59
 " =============================================================================
 
 " /**************************************************************
@@ -109,7 +109,7 @@ if has( "autocmd" )
             \| silent !redraw
     endif
 
-    if has('nvim') && '/'.join(split(expand('%:p'), '/')[0:3], '/') == stdpath('config')
+    if IsNvim() && '/'.join(split(expand('%:p'), '/')[0:3], '/') == stdpath('config')
       autocmd! BufWritePost ~/.config/nvim/*    silent! source $MYVIMRC
             \| echohl WarningMsg
             \| echom expand('%:p') . " changed! " . $MYVIMRC . " sourced!"
@@ -137,7 +137,7 @@ if has( "autocmd" )
     let w:m1         = matchadd( 'CollumnLimit', pattern, -1 )
   augroup END
 
-  if has('nvim')
+  if IsNvim()
     autocmd! TermOpen,TermEnter * :IndentLinesDisable
     autocmd! TermOpen           * setlocal nonumber norelativenumber modifiable nospell
     autocmd  TermClose          * echom 'Terminal exited with status '..v:event.status
