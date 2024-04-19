@@ -3,29 +3,47 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-04-13 02:11:20
+"    LastChange : 2024-04-19 04:09:02
 " =============================================================================
 
 " vim
-highlight! ExtraWhitespace             ctermfg=245    ctermbg=NONE    guifg=#928374   guibg=NONE
-highlight! SpellBad                    term=underline cterm=underline ctermbg=NONE    guibg=NONE  guisp=NONE
-highlight! Cursor                      term=bold      cterm=reverse   ctermfg=142     ctermbg=235 gui=underline  guifg=white  guibg=steelblue  guisp=steelblue
-highlight! link TermCursor Cursor
-highlight! link iCursor Cursor
-highlight! CursorColumn ctermbg=236 guibg=#32302f
-highlight! CursorLine   ctermbg=236 guibg=#32302f
+highlight! Grey             ctermfg=241 guifg=#616161
+highlight! link Ignore      Grey
+highlight! ExtraWhitespace  ctermfg=245    ctermbg=NONE    guifg=#928374   guibg=NONE
+highlight! SpellBad         term=underline cterm=underline ctermbg=NONE    guibg=NONE  guisp=NONE
+highlight! Cursor           term=bold      cterm=reverse   ctermfg=142     ctermbg=235 gui=underline  guifg=white  guibg=steelblue  guisp=steelblue
+highlight! link TermCursor  Cursor
+highlight! link iCursor     Cursor
+highlight! CursorColumn     ctermbg=236 guibg=#32302f
+highlight! CursorLine       ctermbg=236 guibg=#32302f
+highlight! Folded           cterm=italic ctermfg=241 ctermbg=236 guifg=#616161 guibg=#32302f
+highlight! SpecialGrey      cterm=italic ctermfg=241 gui=italic guifg=#616161
+" highlight! Comment        cterm=italic ctermfg=241 gui=italic guifg=#616161
+
+" coc
+highlight! link CocExplorerHelpHint SpecialGrey
+highlight! link CocPumVirtualText   SpecialGrey
+highlight! link CocHintLine         SpecialGrey
+highlight! link CocFadeOut          SpecialGrey
 
 " ale
-highlight! ALEVirtualTextError              ctermfg=245 guifg=#928374
-highlight! ALEVirtualTextStyleError         ctermfg=245 guifg=#928374
-highlight! ALEVirtualTextWarning            ctermfg=245 guifg=#928374
-highlight! ALEVirtualTextStyleWarning       ctermfg=245 guifg=#928374
-highlight! ALEVirtualTextInfo               ctermfg=245 guifg=#928374
+" #928374
+highlight! ALEVirtualTextError              ctermfg=241 guifg=#616161
+highlight! ALEVirtualTextStyleError         ctermfg=241 guifg=#616161
+highlight! ALEVirtualTextWarning            ctermfg=241 guifg=#616161
+highlight! ALEVirtualTextStyleWarning       ctermfg=241 guifg=#616161
+highlight! ALEVirtualTextInfo               ctermfg=241 guifg=#616161
 highlight! link ALEVirtualTextError         Comment
 highlight! link ALEVirtualTextStyleError    ALEVirtualTextError
 highlight! link ALEVirtualTextWarning       Comment
 highlight! link ALEVirtualTextStyleWarning  ALEVirtualTextWarning
 highlight! link ALEVirtualTextInfo          ALEVirtualTextWarning
+
+" vim-syntastic/syntastic
+highlight link SyntasticErrorSign           Error
+highlight link SyntasticWarningSign         GruvboxYellow
+highlight link SyntasticStyleErrorSign      GruvboxRedSign
+highlight link SyntasticStyleWarningSign    GruvboxPurpleSign
 
 " vim diff
 highlight! DiffAdd     term=bold    cterm=reverse ctermfg=142 ctermbg=235 gui=reverse guifg=#b8bb26 guibg=#282828
@@ -35,18 +53,23 @@ highlight! DiffText    term=reverse cterm=reverse ctermfg=214 ctermbg=235 gui=re
 " highlight! DiffText  term=reverse cterm=reverse ctermfg=109 ctermbg=235 gui=reverse guifg=#fabd2f guibg=#458588
 
 " APZelos/blamer.nvim
-highlight! Blamer   cterm=italic    ctermfg=245 gui=italic    guifg=#928374
+highlight! Blamer      cterm=italic ctermfg=241   gui=italic  guifg=#616161
 
 " markdown
 " highlight! htmlLink cterm=italic,underline ctermfg=245 gui=italic,underline guifg=#928374
-highlight! htmlLink cterm=underline ctermfg=245 gui=underline guifg=#928374
-highlight! link mkdLink htmlLink
-highlight! link mkdURL  htmlString
+highlight! htmlLink    cterm=underline ctermfg=245 gui=underline guifg=#928374
+highlight! link mkdLink      htmlLink
+highlight! link mkdDelimiter htmlLink
+highlight! link mkdHeading   htmlLink
+highlight! link mkdURL       htmlString
 
 " vim-syntastic/syntastic
 highlight! link SyntasticStyleWarningSign GruvboxPurpleSign
 
 " coc-snippet
 highlight! link snipLeadingSpaces snipComment
+
+" airblade/vim-gitgutter
+highlight clear SignColumn
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************

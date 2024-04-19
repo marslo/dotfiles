@@ -2,14 +2,14 @@ require('nvim-treesitter.configs').setup {
   ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "python", "bash", "groovy", "java", "yaml", "xml", "cmake", "css", "dockerfile", "git_config", "gitcommit", "gitignore", "jq", "json", "markdown", "ssh_config", "vimdoc", "ini" },
   sync_install = true,
   auto_install = true,
-  ignore_install = { "javascript" },
+  ignore_install = { "javascript", "jenkinsfile", "Jenkinsfile" },
   indent = {
     enable = true,
-    disable = { "markdown" },
+    disable = { "markdown", "groovy", "Groovy" },
   },
   highlight = {
     enable = true,
-    disable = { "markdown" },
+    disable = { "markdown", "groovy", "Groovy" },
     additional_vim_regex_highlighting = true,
   },
   incremental_selection = {
