@@ -6,8 +6,9 @@
 # bash -ixlc : 2>&1 | grep ...                                      # debug bash full start process : https://unix.stackexchange.com/a/322468/29178
 test -f "$HOME/.marslo/.marslorc" && source "$HOME/.marslo/.marslorc"
 
+# https://stackoverflow.com/a/11532197/2940319
 # shellcheck disable=SC2155
-export PATH=$( echo "$PATH" | tr ':' '\n' | uniq | sed '/^$/d' | /usr/local/opt/coreutils/libexec/gnubin/paste -s -d: )
+export PATH=$( echo "$PATH" | tr ':' '\n' | awk '!x[$0]++' | sed '/^$/d' | /usr/local/opt/coreutils/libexec/gnubin/paste -s -d: )
 test -d "$HOME"/perl5                            && eval "$(perl -I"$HOME"/perl5/lib/perl5 -Mlocal::lib="$HOME"/perl5)"
 test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
 

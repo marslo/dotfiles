@@ -75,7 +75,7 @@ Plug 'pedrohdz/vim-yaml-folds'                                      " ╯
 Plug 'dense-analysis/ale'
 Plug 'modille/groovy.vim'                                           " /usr/local/vim/share/vim/vim90/syntax/groovy.vim
 Plug 'vim-scripts/vim-gradle'
-Plug 'marslo/Jenkinsfile-vim-syntax'                                " Jenkinfile
+Plug 'marslo/Jenkinsfile-vim-syntax'                                " Jenkinsfile
 Plug 'ekalinin/Dockerfile.vim'                                      " dockerfile
 Plug 'rizzatti/dash.vim'
 Plug 'vim-syntastic/syntastic'
@@ -312,57 +312,19 @@ autocmd BufEnter * if winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTa
 " autocmd VimEnter *  NERDTree
 
 " ryanoasis/vim-devicons
-let g:WebDevIconsOS                                                    = 'Darwin'
-let g:DevIconsEnableFoldersOpenClose                                   = 1
-let g:DevIconsEnableFolderExtensionPatternMatching                     = 0
-let g:DevIconsDefaultFolderOpenSymbol                                  = ''
-let g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol               = ''
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols              = {}
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['log']       = ''
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['json']      = ''
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['md']        = ''
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['perm']      = '󰌋'
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['groovy']    = ''   " 
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['sh']        = '󱆃'
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['yaml']      = '󱚥'
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['yml']       = '󱚥'
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['gitcommit'] = ''
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['vim']       = ''
-let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols                  = {}
-let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['jenkinsfile']   = ''
-let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['vimrc.d']       = '󰷺'
-let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['.vimrc']        = ''   " 
-let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['devops']        = '󰘦'
-let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['vars']          = '󱆃'
-let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['src']           = '󰵮'
-let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols                = {}
-let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*ignore$']   = ''
-let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*rc$']       = '󱍢'
-let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*git.*$']    = ''
-let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*vimrc.*']   = ''   " 
-let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*profile$']  = '󰙄'
+" let g:WebDevIconsOS                                    = 'Darwin'
+let g:DevIconsEnableDistro                               = 1
+let g:DevIconsEnableFoldersOpenClose                     = 1
+let g:DevIconsEnableFolderExtensionPatternMatching       = 0
+let g:DevIconsDefaultFolderOpenSymbol                    = ''
+let g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol = ''
 if exists('g:loaded_webdevicons') | call webdevicons#refresh() | endif
 autocmd filetype nerdtree set conceallevel=3
 autocmd filetype nerdtree set concealcursor=nvic
-
 " tiagofumo/vim-nerdtree-syntax-highlight
-" #293739 #BDBB72 #808000 #ba55d3 #183172 #0d6efd #3a346f #fd7e14 #d63384 #6c71c4 #4682b4
 let g:NERDTreeSyntaxEnabledExtensions                 = ['rb', 'lua', 'vim', 'sh', 'py', 'groovy', 'css', 'html', 'json', 'log']
 let g:NERDTreeSyntaxEnabledExactMatches               = ['.marslo', 'jenkins', 'virtualization', 'vimrc.d', 'devops', 'vars', 'jenkinsfile', '.vimrc']
-let g:NERDTreeExtensionHighlightColor                 = {}
-let g:NERDTreeExtensionHighlightColor['groovy']       = '8FAA54'       " #8FAA54
-let g:NERDTreeExtensionHighlightColor['log']          = '44788E'       " #44788E
-let g:NERDTreeExtensionHighlightColor['yaml']         = '9370db'       " #9370db
-let g:NERDTreeExtensionHighlightColor['yml']          = '9370db'       " #9370db
-let g:NERDTreeExtensionHighlightColor['png']          = '719899'       " #719899
-let g:NERDTreeExtensionHighlightColor['css']          = 'fd7e14'       " #fd7e14
-let g:NERDTreeExactMatchHighlightColor                = {}
-let g:NERDTreeExactMatchHighlightColor['README']      = '0099BD'       " #0099BD
-let g:NERDTreePatternMatchHighlightColor              = {}
-let g:NERDTreePatternMatchHighlightColor['.*rc$']     = '616E88'       " #616E88
-let g:NERDTreePatternMatchHighlightColor['.*git.*$']  = '6c71c4'       " #6c71c4
-let g:NERDTreePatternMatchHighlightColor['.*ignore$'] = 'cd853f'       " #cd853f
-let g:NERDTreePatternMatchHighlightColor['.*\.bak$']  = '293739'       " #293739
+source ~/.marslo/vimrc.d/devicons
 
 " preservim/vim-markdown
 let g:vim_markdown_toc_autofit          = 1
@@ -422,7 +384,6 @@ elseif IsMac()
 else
   let g:gitgutter_git_executable = '/usr/bin/git'
 endif
-highlight clear SignColumn
 
 " RRethy/vim-hexokinase
 let g:Hexokinase_highlighters  = [ 'backgroundfull' ]
@@ -439,6 +400,7 @@ let g:Hexokinase_optInPatterns = [
 " neoclide/coc.nvim
 set updatetime=300
 set signcolumn=yes
+let g:coc_default_semantic_highlight_groups = 1
 let g:coc_global_extensions = [
   \   'coc-sh',
   \   'coc-groovy', 'coc-java',
@@ -539,6 +501,11 @@ let g:ale_set_balloons                    = 1
 let g:ale_hover_to_preview                = 1
 let g:ale_floating_preview                = 1
 let g:ale_close_preview_on_insert         = 1
+let g:ale_groovy_npmgroovylint_options    = '--loglevel warning --config ~/.groovylintrc.json'
+nmap ]a :ALENextWrap<CR>
+nmap [a :ALEPreviousWrap<CR>
+nmap ]A :ALELast<CR>
+nmap [A :ALEFirst<CR>
 
 " junegunn/fzf.vim
 nnoremap <silent> <leader>ff :Files<CR>
@@ -609,10 +576,6 @@ let g:syntastic_warning_symbol           = '⍨'
 let g:syntastic_style_error_symbol       = '⍥'
 let g:syntastic_style_warning_symbol     = 'ఠ'
 let g:syntastic_dockerfile_checkers      = [ 'hadolint' ]
-highlight link SyntasticErrorSign        Error
-highlight link SyntasticWarningSign      GruvboxYellow
-highlight link SyntasticStyleErrorSign   GruvboxRedSign
-highlight link SyntasticStyleWarningSign GruvboxPurpleSign
 
 " github/copilot.vim
 let g:Copilot_proxy_strict_ssl = v:false

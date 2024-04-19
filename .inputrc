@@ -34,6 +34,7 @@ set show-mode-in-prompt on
 # \C : Control     #
 ####################
 
+set meta-flag on
 # allow iso-latin1 characters to be inserted
 set convert-meta                   on
 # don't strip characters to 7 bits when reading

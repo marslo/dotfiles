@@ -1,0 +1,97 @@
+" =============================================================================
+"      FileName : devicons
+"        Author : marslo.jiao@gmail.com
+"       Created : 2024-04-18 17:39:15
+"    LastChange : 2024-04-18 17:39:53
+" =============================================================================
+
+" ryanoasis/vim-devicons
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols                     = {}
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['log']              = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['json']             = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['md']               = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['perm']             = '󰌋'
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['groovy']           = ''   " 
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['sh']               = '󱆃'
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['yaml']             = '󱚥'
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['yml']              = '󱚥'
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['gitcommit']        = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['Jenkinsfile']      = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['vim']              = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['snippets']         = '󰷺'
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols                         = {}
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['devops']               = '󰘦'
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['vars']                 = '󱆃'
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['src']                  = '󰵮'
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['snips']                = '󰷺'
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols                       = {}
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*marslo.*$']        = '󰮯' " 🇨🇳
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*ignore$']          = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*rc$']              = '󱍢'
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*git.*$']           = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*profile$']         = '󰙄'
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*[Jj]enkinsfile.*'] = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^candidate$']        = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^doxygen$']          = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^internal$']         = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^klocwork$']         = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^monitor$']          = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^oncommit$']         = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^purifyer$']         = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^release$']          = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^sync$']             = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^tester$']           = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^unittests$']        = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^validation$']       = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^agent$']            = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^headerGenerator$']  = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^.*compiler.*$']     = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^post.*$']           = '󰷺' " ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^pre.*$']            = '󰷺' " ''
+" all files in pattern of **/jenkinsfile/**
+if index(split( expand("%:p:h"), "/" ), 'jenkinsfile') >= 0
+  let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*']               = ''
+endif
+
+" 
+" all files in pattern of **/.marslo/vimrc.d/**
+if stridx(expand("%:p:h"), '.marslo/vimrc.d') >= 0
+  let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*']               = ''
+endif
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['.vimrc']               = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*vimrc.*']          = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^autocmd$']          = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^cmds$']             = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^devicons$']         = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^.*extension$']      = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^functions$']        = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^highlight$']        = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^os$']               = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^settings$']         = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^shortcuts$']        = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^theme$']            = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^unix$']             = ''
+
+
+" tiagofumo/vim-nerdtree-syntax-highlight
+" #293739 #BDBB72 #808000 #ba55d3 #183172 #0d6efd #3a346f #d63384 #6c71c4 #4682b4
+let g:NERDTreeExtensionHighlightColor                     = {}
+let g:NERDTreeExtensionHighlightColor['groovy']           = '8FAA54'       " #8FAA54
+let g:NERDTreeExtensionHighlightColor['log']              = '44788E'       " #44788E
+let g:NERDTreeExtensionHighlightColor['yaml']             = '9370db'       " #9370db
+let g:NERDTreeExtensionHighlightColor['yml']              = '9370db'       " #9370db
+let g:NERDTreeExtensionHighlightColor['png']              = '719899'       " #719899
+let g:NERDTreeExtensionHighlightColor['css']              = 'fd7e14'       " #fd7e14
+let g:NERDTreeExtensionHighlightColor['snippets']         = 'fd7e14'       " #4682b4
+let g:NERDTreeExactMatchHighlightColor                    = {}
+let g:NERDTreeExactMatchHighlightColor['README']          = '0099BD'       " #0099BD
+let g:NERDTreePatternMatchHighlightColor                  = {}
+let g:NERDTreePatternMatchHighlightColor['.*rc$']         = '616E88'       " #616E88
+let g:NERDTreePatternMatchHighlightColor['.*git.*$']      = '6c71c4'       " #6c71c4
+let g:NERDTreePatternMatchHighlightColor['.*ignore$']     = 'cd853f'       " #cd853f
+let g:NERDTreePatternMatchHighlightColor['.*\.bak$']      = '293739'       " #293739
+" **/vimrc.d/*
+let g:NERDTreePatternMatchHighlightColor['.*vimrc.*']     = '808000'       " #808000
+let g:NERDTreePatternMatchHighlightColor['.*extension.*'] = 'd63384'       " #d63384
+
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
