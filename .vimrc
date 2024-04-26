@@ -29,7 +29,6 @@ if IsMac()
 elseif IsWindows()
   set shell=c:\iMarslo\myprograms\Git\bin\bash.exe
   let g:gitgutter_git_executable = 'c:\iMarslo\myprograms\Git\bin\git.exe'
-  let g:copilot_proxy = 'http://proxy.sample.com:8080'
 else                                                                " linux/wsl
   set shell=/usr/bin/bash
   let g:gitgutter_git_executable = '/usr/bin/git'
@@ -64,7 +63,6 @@ if ! IsWSL() && ! IsMac() | source ~/.marslo/vimrc.d/unix | endif
 if IsWSL()
   set clipboard^=unnamed
   set clipboard^=unnamedplus
-  let g:copilot_proxy = 'http://proxy.sample.com:8080'
 else
   set clipboard+=unnamed
   set clipboard+=unnamedplus

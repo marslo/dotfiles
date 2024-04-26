@@ -53,11 +53,14 @@ highlight! DiffText    term=reverse cterm=reverse ctermfg=214 ctermbg=235 gui=re
 " highlight! DiffText  term=reverse cterm=reverse ctermfg=109 ctermbg=235 gui=reverse guifg=#fabd2f guibg=#458588
 
 " APZelos/blamer.nvim
-highlight! Blamer      cterm=italic ctermfg=241   gui=italic  guifg=#616161
+highlight! Blamer            cterm=italic    ctermfg=241  gui=italic    guifg=#616161
+
+" copilot
+highlight! CopilotSuggestion cterm=italic    ctermfg=241  gui=italic    guifg=#616161
 
 " markdown
-" highlight! htmlLink cterm=italic,underline ctermfg=245 gui=italic,underline guifg=#928374
-highlight! htmlLink    cterm=underline ctermfg=245 gui=underline guifg=#928374
+" highlight! htmlLink cterm=italic,underline ctermfg=245  gui=italic,underline guifg=#928374
+highlight! htmlLink          cterm=underline ctermfg=245  gui=underline guifg=#928374
 highlight! link mkdLink      htmlLink
 highlight! link mkdDelimiter htmlLink
 highlight! link mkdHeading   htmlLink
