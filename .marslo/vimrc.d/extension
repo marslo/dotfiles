@@ -578,8 +578,9 @@ let g:syntastic_style_warning_symbol     = 'ఠ'
 let g:syntastic_dockerfile_checkers      = [ 'hadolint' ]
 
 " github/copilot.vim
-let g:Copilot_proxy_strict_ssl = v:false
-let g:copilot_filetypes = {
+let g:copilot_proxy            = 'http://proxy.sample.com:8080'
+let g:copilot_proxy_strict_ssl = v:false
+let g:copilot_filetypes        = {
     \ '*': v:false,
     \ 'gitcommit': v:true,
     \ 'markdown': v:true,
@@ -597,6 +598,6 @@ autocmd BufReadPre *
     \ | endif
 " invpaste -> paste in insert/normal/visual mode
 noremap <leader>pp :set invpaste<cr>
-map <silent> <F2> :Copilot disable<CR>
+map <silent> <F2>  :Copilot disable<CR>
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
