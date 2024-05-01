@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC2015
 
 [[ -f /etc/bash_completion ]] && . /etc/bash_completion
 
-# for :terminal in nvim
+# for :terminal in nvim, avoid scp issue from non-mac system
 if [[ 'Darwin' = $(uname) ]]; then
-  source "$(brew --prefix git)"/etc/bash_completion.d/git-*.sh
+  command -v brew >/dev/null && source "$(brew --prefix git)"/etc/bash_completion.d/git-*.sh \
+                             || source "/usr/local/opt/git/etc/bash_completion.d/git-prompt.sh"
 fi
 function bello() { source ~/.bash_profile; }
 
