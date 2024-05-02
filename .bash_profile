@@ -8,8 +8,12 @@ test -f "$HOME/.marslo/.marslorc" && source "$HOME/.marslo/.marslorc"
 
 # https://stackoverflow.com/a/11532197/2940319
 # shellcheck disable=SC2155
-export PATH=$( echo "$PATH" | tr ':' '\n' | awk '!x[$0]++' | sed '/^$/d' | /usr/local/opt/coreutils/libexec/gnubin/paste -s -d: )
-test -d "$HOME"/perl5                            && eval "$(perl -I"$HOME"/perl5/lib/perl5 -Mlocal::lib="$HOME"/perl5)"
-test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
+if [[ '1' = $(isOSX) ]]; then
+  test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
+  export PATH=$( echo "$PATH" | tr ':' '\n' | awk '!x[$0]++' | sed '/^$/d' | /usr/local/opt/coreutils/libexec/gnubin/paste -s -d: )
+else
+  export PATH=$( echo "$PATH" | tr ':' '\n' | awk '!x[$0]++' | sed '/^$/d' | paste -s -d: )
+fi
+test -d "$HOME"/perl5 && eval "$(perl -I"$HOME"/perl5/lib/perl5 -Mlocal::lib="$HOME"/perl5)"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
