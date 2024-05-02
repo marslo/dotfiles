@@ -569,4 +569,28 @@ function tcmd() {
   eval "${cmd}"
 }
 
+# inspired in https://github.com/sharkdp/bat/issues/2916#issuecomment-2061788871
+# to enable command auto-completion, add the following line to your .bashrc
+# ```
+# [[ $(complete -p bat | wc -l) -gt 0 ]] && eval "$(complete -p bat) showTODO" || complete -F _fzf_path_completion -o default -o bashdefault showTODO
+# ``
+function showTODO() {
+  local option=''
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -* ) option+="$1 $2 " ; shift 2 ;;
+    esac
+  done
+
+  while read -r _file; do
+    # identify language automatically
+    local lang='';
+    lang="$(sed -r 's/^.+\.(.+)$/\1/' <<< $_file)";
+    if [[ "${_file}" = "${lang}" ]]; then
+      test -x "${_file}" && lang='sh' || lang='groovy';
+    fi
+    sed -ne '/TODO:/,/^\s*$/p' "${_file}" | bat -l ${lang} ${option} --file-name="${_file}";
+  done < <(rg --vimgrep --with-filename 'TODO' --color never | cut -d':' -f1 | uniq)
+}
+
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************
