@@ -1,6 +1,9 @@
 [user]
   name              = marslo
   email             = marslo.jiao@gmail.com
+[gitreview]
+  username          = marslo
+  remote            = origin
 [push]
   default           = matching
   followTags        = true
@@ -60,9 +63,6 @@
   enabled           = true
 [commit]
   template          = /Users/marslo/.stCommitMsg
-[gitreview]
-  username          = marslo
-  remote            = origin
 [include]
   path              = ~/.marslo/.gitalias
   path              = ~/.marslo/.gitcolors
@@ -76,11 +76,8 @@
 # [url "git@ssh.github.com"]
 #   insteadOf       = git@github.com
 # [url "git@ssh.github.com:"]
-  # insteadOf       = https://github.com/
-# [url "https://github.com/"]
-#   insteadOf         = git@ssh.github.com:
-# [url "https://github.com/"]
-#   insteadOf         = git@github.com:
+#   insteadOf       = https://github.com/
+
 [advice]
   detachedHead      = false
   objectNameWarning = false
@@ -101,9 +98,19 @@
   autocorrect       = 20
 [merge]
   renamelimit       = 10000
+
+#############################################################
+# for environment failed in $ ssh -vT git@github.com -p 22 #
+#############################################################
+[url "https://github.com/"]
+  insteadOf     = git@ssh.github.com:
+[url "https://github.com/"]
+  insteadOf     = git@github.com:
 [credential]
   helper            = store --file ~/.git-credentials
   helper            = cache --timeout 30000
   # helper          = wincred
 [git-extras]
   github-personal-access-token = ghp_***********************************N
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker

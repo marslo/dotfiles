@@ -48,7 +48,6 @@ Library/
 
 .*history
 .vim_mru_files
-.git-credentials
 .*history
 
 *.png
