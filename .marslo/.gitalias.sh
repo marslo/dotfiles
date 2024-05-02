@@ -40,22 +40,22 @@
   ### [p]retty [t]ag
   ls          = log --stat --pretty=short --graph
   ### [p]retty [l]og[s]
-  pl          = !git --no-pager log --color --graph --pretty=tformat:'%C(red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=3
-  pls         = log --color --graph --pretty=tformat:'%C(red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative
+  pl          = !git --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=3
+  pls         = log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative
   ### [p]revious branch [p]retty [l]og
-  ppl         = !git --no-pager log --color --graph --pretty=tformat:'%C(red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=3 @{-1}
+  ppl         = !git --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=3 @{-1}
   ### [f]ull [p]retty [l]log
-  fpl         = log --color --graph --pretty=tformat:'%C(red)%H%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative
+  fpl         = log --color --graph --pretty=tformat:'%C(6)%H%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative
   fl          = log -p --graph --color --graph
-  who-renamed ="! bach -c 'git log -M --summary | grep -E '^\\s*rename.*{.*=>.*}'"
-  dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format='%C(red)%h%Creset %C(yellow)(%ad)%Creset %s %C(blue)<%an>%Creset'
+  who-renamed ="! bach -c 'git log -M --summary | grep -e '^\\s*rename.*{.*=>.*}'"
+  dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format='%C(6)%h%Creset %C(yellow)(%ad)%Creset %s %C(blue)<%an>%Creset'
   revlog      = log --max-count=3 --color --graph --notes=linrev --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %C(blue)<%an>%Creset %N' --abbrev-commit --date=relative
   ### Showing all branches and their relationshps
   tree        = log --color --graph --pretty=oneline --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --decorate --abbrev-commit --all
   clog        = log --color --graph --all --decorate --simplify-by-decoration --oneline
   pshow       = show -s --pretty='tformat:%Cred%h%Creset %Cgreen(%s)%Creset'
-  pt          = "! git for-each-ref --sort=-taggerdate refs/tags --format='%(color:red)%(objectname:short)%(color:reset) - %(align:left,38)%(color:bold yellow)[%(objecttype) : %(refname:short)]%(color:reset)%(end) %(subject) %(color:green)(%(if)%(taggerdate)%(then)%(taggerdate:format:%Y-%m-%d %H:%M:%S)%(else)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(end))%(color:reset) %(color:blue)%(if)%(taggername)%(then)<%(taggername)>%(else)<%(committername)>%(end)%(color:reset)' --color --count=10"
-  pts         = "! git for-each-ref --sort=-taggerdate refs/tags --format='%(color:red)%(objectname:short)%(color:reset) - %(color:bold yellow)[%(objecttype) : %(refname:short)]%(color:reset) - %(subject) %(color:green)(%(if)%(taggerdate)%(then)%(taggerdate:format:%Y-%m-%d %H:%M:%S)%(else)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(end))%(color:reset) %(color:blue)%(if)%(taggername)%(then)<%(taggername)>%(else)<%(committername)>%(end)%(color:reset)' --color"
+  pt          = "! git for-each-ref --sort=-taggerdate refs/tags --format='%(color:6)%(objectname:short)%(color:reset) - %(align:left,38)%(color:yellow)[%(objecttype) : %(refname:short)]%(color:reset)%(end) %(subject) %(color:green)(%(if)%(taggerdate)%(then)%(taggerdate:format:%Y-%m-%d %H:%M:%S)%(else)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(end))%(color:reset) %(color:blue)%(if)%(taggername)%(then)<%(taggername)>%(else)<%(committername)>%(end)%(color:reset)' --color --count=10"
+  pts         = "! git for-each-ref --sort=-taggerdate refs/tags --format='%(color:6)%(objectname:short)%(color:reset) - %(color:yellow)[%(objecttype) : %(refname:short)]%(color:reset) - %(subject) %(color:green)(%(if)%(taggerdate)%(then)%(taggerdate:format:%Y-%m-%d %H:%M:%S)%(else)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(end))%(color:reset) %(color:blue)%(if)%(taggername)%(then)<%(taggername)>%(else)<%(committername)>%(end)%(color:reset)' --color"
   # credit from https://www.everythingcli.org/git-like-a-pro-sort-git-tags-by-date/
   prettytags  = "! git for-each-ref --sort=-taggerdate --format='[%(tag)]_,,,_%(taggerdate:raw)_,,,_<%(taggername)>_,,,_%(subject)' refs/tags \
                        | awk 'BEGIN { FS = \"_,,,_\"  } ; { t=strftime(\"%Y-%m-%d  %H:%M\",$2); printf \"%-20s %-18s %-25s %s\\n\", t, $1, $4, $3  }'"
@@ -114,7 +114,7 @@
   br          = branch --sort=-committerdate
   bra         = branch -a --sort=-committerdate
   ### [s]ort [b]ranch
-  # sb        = "! git branch --sort=-committerdate --format='%(HEAD) %(color:red)%(objectname:short)%(color:reset) - %(color:yellow)%(refname:short)%(color:reset) - %(subject) %(color:bold green)(%(committerdate:relative))%(color:reset) %(color:blue)<%(authorname)>%(color:reset)' --color=always"
+  # sb        = "! git branch --sort=-committerdate --format='%(HEAD) %(color:6)%(objectname:short)%(color:reset) - %(color:yellow)%(refname:short)%(color:reset) - %(subject) %(color:bold green)(%(committerdate:relative))%(color:reset) %(color:blue)<%(authorname)>%(color:reset)' --color=always"
   sbranch     = show-branch
   rbr         = "! f(){ git branch -ra | grep $1; }; f"
   # [c]urrent [b]ranch
