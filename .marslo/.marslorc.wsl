@@ -4,19 +4,23 @@
 #   FileName : .marslorc.wsl
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2024-01-17 11:05:30
+# LastChange : 2024-05-02 13:17:00
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
 # credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
 source "${iRCHOME}/bin/bash-color.sh"
 
-function isWSL()   { if uname -r | command grep --color=never -q -i 'microsoft'; then echo 1; fi; }
-function isOSX()   { [[ 'Darwin' = $(uname) ]] && echo 1; }
-function isLinux() { [[ '1' != "$(isWSL)" ]] && [[ 'Linux' = $(uname) ]] && echo 1; }
+function isWSL()    { if uname -r | command grep --color=never -q -i 'microsoft'; then echo 1; fi; }
+function isOSX()    { [[ 'Darwin' = $(uname) ]] && echo 1; }
+function isLinux()  { [[ '1' != "$(isWSL)" ]] && [[ 'Linux' = $(uname) ]] && echo 1; }
+function isDebian() { [[ 'debian' = $(awk -F '=' '/ID_LIKE/ { print $2 }' /etc/os-release) ]] && echo 1; }
+function isRHEL()   { [[ 'rhel'   = $(awk -F '=' '/ID/ { print $2 }' /etc/os-release)      ]] && echo 1; }
+function isUbuntu() { [[ 'ubuntu' = $(awk -F '=' '/ID/ { print $2 }' /etc/os-release)      ]] && echo 1; }
+function isCentOS() { [[ 'centos' = $(awk -F '=' '/ID/ { print $2 }' /etc/os-release)      ]] && echo 1; }
 # for public server (use common account)
-function bello()   { source ~/.marslo/.marslorc; set -o vi;  }
-function bye()     { source "${iRCHOME}"/.bye; set -o emacs; }
+function bello()    { source ~/.marslo/.marslorc; set -o vi;  }
+function bye()      { source "${iRCHOME}"/.bye; set -o emacs; }
 
 # /--------------------------------------------------------------
 #                            _      _   _
@@ -31,6 +35,7 @@ function bye()     { source "${iRCHOME}"/.bye; set -o emacs; }
 # --------------------------------------------------------------/
 ANSIBLE_COMPLETION_PATH="${iRCHOME}/.completion/ansible-completion"   # https://github.com/dysosmus/ansible-completion
 FZF_HOME="${iRCHOME}"/utils/fzf                                       # fzf: $ git clone git@github.com:junegunn/fzf.git ${iRCHOME}/utils
+GROOVY_HOME='/opt/groovy/current'
 test -f "$HOME/.fzf.bash"                            && source "$HOME/.fzf.bash"
 test -d "${ANSIBLE_COMPLETION_PATH}"                 && source <( cat "${ANSIBLE_COMPLETION_PATH}"/*.bash )
 test -f "${iRCHOME}/.completion/.bash_completion.sh" && source "${iRCHOME}/.completion/.bash_completion.sh"
@@ -38,6 +43,7 @@ test -f "${iRCHOME}/.completion/cht.sh"              && source <( cat "${iRCHOME
 test -f "$HOME/.cargo/env"                           && source "$HOME/.cargo/env"
 test -s "$HOME/.sdkman/bin/sdkman-init.sh"           && source "$HOME/.sdkman/bin/sdkman-init.sh"
 test -f "$HOME"/.rbenv/bin/rbenv                     && eval "$("$HOME"/.rbenv/bin/rbenv init - bash)"
+test -d "${GROOVY_HOME}/bin"                         && source <( cat "${GROOVY_HOME}"/bin/*_completion )
 command -v kubectl           > /dev/null             && source <( kubectl completion bash )
 # command -v npm             > /dev/null             && source <( npm completion )
 command -v vault             > /dev/null             && complete -C /usr/local/bin/vault vault
