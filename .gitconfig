@@ -18,38 +18,8 @@
   textconv          = identify
 [diff "bin"]
   textconv          = hexdump -v -C
-[color]
-  ui                = true
-  log               = always
-  status            = always
-  add               = always
-  push              = always
-  pull              = always
-  diff              = always
-  branch            = always
-  interactive       = auto
-[color "branch"]
-  current           = green bold
-  local             = yellow
-  remote            = red
-[color "status"]
-  added             = yellow
-  changed           = red bold
-  untracked         = magenta normal dim
-[color "diff"]
-  meta              = blue bold
-  frag              = magenta
-  old               = red bold
-  new               = green bold
-  whitespace        = yellow reverse
-  commit            = cyan
-[color "status"]
-  updated           = green
-[color "blame"]
-  highlightRecent   = 239, 20 month ago, 240, 18 month ago, 241, 16 month ago, 242, 14 month ago, 243, 12 month ago, 244, 10 month ago, 245, 8 month ago, 246, 6 month ago, 247, 4 month ago, 131, 3 month ago, 137, 2 month ago, 172, 1 month ago, 167, 3 weeks ago, 166, 2 weeks ago, 203, 1 week ago, 202
-  repeatedLines     = 130
 [core]
-  editor            = vim
+  editor            = nvim
   pager             = diff-highlight | less $LESS -F -x1,5 -X
   whitespace        = fix,-indent-with-non-tab,trailing-space,cr-at-eol,tab-in-indent
   autocrlf          = false
@@ -93,6 +63,7 @@
   remote            = origin
 [include]
   path              = ~/.marslo/.gitalias
+  path              = ~/.marslo/.gitcolors
 
 [http]
   sslVerify         = false
