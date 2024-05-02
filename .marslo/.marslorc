@@ -145,9 +145,6 @@ test -f "$HOME"/.rbenv/bin/rbenv                               && eval "$("$HOME
 test -f "${FZF_HOME}/shell/key-bindings.bash"                  && source "${FZF_HOME}/shell/key-bindings.bash"
 type -t _fd >/dev/null 2>&1                                    && complete -F _fd -o nosort -o bashdefault -o default ff ffs
 type -t _fzf_opts_completion >/dev/null 2>&1                   && complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
-# shellcheck disable=SC2015
-[[ $(complete -p bat | wc -l) -gt 0 ]]                         && eval "$(complete -p bat) showTODO" \
-                                                               || complete -F _fzf_path_completion -o default -o bashdefault showTODO
 
 # /--------------------------------------------------------------
 #                   __ _
