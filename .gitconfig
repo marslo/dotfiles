@@ -99,18 +99,18 @@
 [merge]
   renamelimit       = 10000
 
-#############################################################
-# for environment failed in $ ssh -vT git@github.com -p 22 #
-#############################################################
+###########################################################
+# for environment failed in $ ssh -T git@github.com -p 22 #
+###########################################################
 [url "https://github.com/"]
-  insteadOf     = git@ssh.github.com:
+  insteadOf         = git@ssh.github.com:
 [url "https://github.com/"]
-  insteadOf     = git@github.com:
+  insteadOf         = git@github.com:
 [credential]
   helper            = store --file ~/.git-credentials
   helper            = cache --timeout 30000
   # helper          = wincred
 [git-extras]
-  github-personal-access-token = ghp_***********************************N
+  github-personal-access-token = ghp_***********************************x
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker
