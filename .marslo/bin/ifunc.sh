@@ -570,31 +570,33 @@ function tcmd() {
 }
 
 # inspired in https://github.com/sharkdp/bat/issues/2916#issuecomment-2061788871
-# to enable command auto-completion, add the following line to your .bashrc
-# ```
-# [[ $(complete -p bat | wc -l) -gt 0 ]]  \
-#   && eval "$(complete -p bat) showTODO" \
-#   || complete -F _fzf_path_completion -o default -o bashdefault showTODO
-# ``
 function showTODO() {
-  local option=''
+  local option='--style="grid,changes,header"'
+  local isNL='true'
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -* ) option+="$1 $2 " ; shift 2 ;;
+      -nl | --no-ln ) isNL='false'     ; shift 1 ;;
+       -p | --plain ) option+=" $1"    ; shift 1 ;;
+            --style ) option+=" $1"    ; shift 1 ;;
+                 -* ) option+=" $1 $2" ; shift 2 ;;
     esac
   done
 
-  while read -r _file; do
-    # identify language automatically
-    local lang='';
-    lang="$(sed -r 's/^.+\.(.+)$/\1/' <<< $_file)";
-    if ! bat --list-languages | grep -q "${lang}"; then
-      test -x "${_file}" && lang='sh' || lang='txt';
-    else
-      lang='groovy';
-    fi
-    sed -ne '/TODO:/,/^\s*$/p' "${_file}" | bat -l ${lang} ${option} --file-name="${_file}";
-  done < <(rg --vimgrep --with-filename 'TODO:' --color never | cut -d':' -f1 | uniq)
+  rg --vimgrep --with-filename 'TODO:' --color never |
+     cut -d':' -f1 |
+     uniq |
+     while read -r _file; do
+       # identify language automatically
+       local lang='';
+       lang="$(sed -r 's/^.+\.(.+)$/\1/' <<< "${_file}")";
+       if ! bat --list-languages | command grep -iE -q "[,:]${lang}|${lang},"; then
+         # check shebang and reset to empty if shebang not found
+         lang=$(sed -rn 's/^#!.*[/\ ](\w+)$/\1/p' < <(head -n1 "${_file}"));
+       fi
+       [[ 'true' = "${isNL}" ]] && cmd="command nl \"${_file}\"" || cmd="command cat \"${_file}\""
+       sed -ne '/TODO:/,/^\s*$/p' < <(eval "${cmd}") |
+           eval "bat -l ${lang:-groovy} ${option} --file-name=\"${_file}\"" ;
+     done
 }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************
