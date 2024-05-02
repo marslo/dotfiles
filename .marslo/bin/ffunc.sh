@@ -53,7 +53,7 @@ _fzf_compgen_dir() {
 
 # smart copy - using `fzf` to list files and copy the selected file
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
 #   - if `copy` without parameter, then list file via `fzf` and copy the content
 #     - "${COPY}"
@@ -83,7 +83,7 @@ function copy() {                          # smart copy
 
 # smart cat - using bat by default for cat content, respect bat options
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
 #   - using `bat` by default if `command -v bat`
 #     - using `-c` ( `c`at ) as 1st parameter, to force using `type -P cat` instead of `type -P bat`
@@ -131,7 +131,7 @@ function fzfInPath() {                     # return file name via fzf in particu
 # runrc - filter rc files from "${rcPaths}" and source the selected item(s)
 #         same series: vimrc
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : default rcPaths: ~/.marslo ~/.config/nvim ~/.*rc ~/.*profile ~/.*ignore
 # shellcheck disable=SC2046,SC1090
 function runrc() {                         # source rc files
@@ -206,7 +206,7 @@ function fman() {
 
 # imgview - fzf list and preview images
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default imgview`
 #   - disable `gif` due to imgcat performance issue
@@ -261,7 +261,7 @@ function b() {                             # chrome [b]ookmarks browser with jq
 
 # magic vim - fzf list in recent modified order
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
 #   - if `nvim` installed using `nvim` instead of `vim`
 #     - using `-v` to force using `vim` instead of `nvim` even if nvim installed
@@ -310,7 +310,7 @@ function vim() {                           # magic vim - fzf list in most recent
 
 # v - open files in ~/.vim_mru_files       # https://github.com/junegunn/fzf/wiki/Examples#v
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : list 10 most recently used files via fzf, and open by regular vim
 function v() {                             # v - open files in ~/.vim_mru_files
   local files
@@ -325,7 +325,7 @@ function v() {                             # v - open files in ~/.vim_mru_files
 #        same series: [`cdr`](https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh#L411-L419)
 #        similar with [`:Gfiles`](https://github.com/junegunn/fzf.vim?tab=readme-ov-file#commands)
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
 #   - if pwd inside the repo, then filter all files within current git repository via data modified and open by vim
 #   - if pwd not inside the repo, then call `vim`
@@ -350,7 +350,7 @@ function vimr() {                          # vimr - open file(s) via [vim] in wh
 # vimrc - open rc files list from "${rcPaths}" to quick update/modify rc files
 #         same series: runrc
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
 #   - default rcPaths: ~/.marslo ~/.config/nvim ~/.*rc ~/.*profile ~/.*ignore
 #   - using nvim if `command -v nvim` is true
@@ -380,7 +380,7 @@ function vimrc() {                         # vimrc - fzf list all rc files in da
 
 # magic vimdiff - using fzf list in recent modified order
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
 #   - if any of paramters is directory, then get file path via fzf in target path first
 #   - if `vimdiff` commands without parameter , then compare files in `.` and `~/.marslo`
@@ -422,7 +422,7 @@ function vimdiff() {                       # smart vimdiff
 
 # vd - open vimdiff loaded files from ~/.vim_mru_files
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : list 10 most recently used files via fzf, and open by vimdiff
 #   - if `vd` commands without parameter, list 10 most recently used files via fzf, and open selected files by vimdiff
 #   - if `vd` commands with `-a` ( [q]uiet ) parameter, list 10 most recently used files via fzf and automatic select top 2, and open selected files by vimdiff
@@ -543,7 +543,7 @@ function killps() {                        # [kill] [p]roces[s]
 
 # eclr - environment variable clear, support multiple select
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : list all environment variable via `fzf`, and unset selected items
 # @alternative : `$ unset ,,<TAB>`
 # @dependency  : https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
@@ -569,7 +569,7 @@ function eclr() {                          # [e]nvironment variable [c][l]ea[r]
 
 # penv - print environment variable, support multiple select
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @dependency  : https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
 # @description : list all environment variable via `fzf`, and print values for selected items
 #   - to copy via `-c`
@@ -611,7 +611,7 @@ function penv() {                          # [p]rint [env]ironment variable
 
 # mkclr - compilation environment variable clear, support multiple select
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : list compilation environment variable via `fzf`, and unset for selected items
 # shellcheck disable=SC2016
 function mkclr() {                         # [m]a[k]e environment variable [c][l]ea[r]
@@ -636,7 +636,7 @@ function mkclr() {                         # [m]a[k]e environment variable [c][l
 
 # mkexp - compilation environment variable export, support multiple select
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : list compilation environment variable via `fzf`, and export selected items
 #   - if paramter is [ -f | --full ], then load full tool paths
 # shellcheck disable=SC1090,SC2155
@@ -748,7 +748,7 @@ function mkexp() {                         # [m]a[k]e environment variable [e][x
 
 # kns - kubectl set default namespace, show pods and sts in preview window dynamically
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : using `fzf` to list all available namespaces and use the selected namespace as default
 # @usage       : $ kns [-st] [pods | sts | ...]
 # [k]ubectl [n]ame[s]pace
@@ -797,7 +797,7 @@ function kns() {                           # [k]ubectl [n]ame[s]pace
 # kst - kubectl show pods status and container logs in current namespace
 # @inspired    : https://github.com/junegunn/fzf/blob/master/ADVANCED.md#log-tailing
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : using `fzf` to list all available pods in current namespace, and show pod and container logs
 # @usage       : $ kst po,sts,cm
 # [k]ubectl show provided resources [s][t]atus
@@ -817,7 +817,7 @@ function kpo() {
 
 # _can_i - kubectl check permission (auth can-i) for pods component
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : check whether given action is allowed in given namespaces; if namespace not provide, using default namespace
 function _can_i() {
   local namespace
@@ -839,7 +839,7 @@ function _can_i() {
 
 # kcani - kubectl check permission (auth can-i)
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : check whether an action is allowed in given namespaces. support multiple selection
 # [k]ubectl [can]-[i]
 function kcani() {                         # [k]ubectl [can]-[i]
@@ -875,7 +875,7 @@ function kcani() {                         # [k]ubectl [can]-[i]
 
 # kpcani - kubectl check permission (auth can-i) for pods component
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : check whether certain action is allowed in given namespaces
 # [k]ubectl [p]od [can]-[i]
 function kpcani() {                        # [k]ubectl [p]od [can]-[i]
@@ -915,7 +915,7 @@ function kpcani() {                        # [k]ubectl [p]od [can]-[i]
 
 # drclr - docker remote clean images via keywords in tags
 # @author      : marslo
-# @source      : https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/bin/ffunc.sh
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # [d]ocker [r]emote [c][l]ea[r]
 function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
   local username='devops'

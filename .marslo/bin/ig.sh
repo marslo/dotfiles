@@ -4,7 +4,7 @@
 #    FileName : ig.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2024-01-18 18:01:56
+#  LastChange : 2024-05-01 15:38:16
 #        Desc : for git
 # =============================================================================
 
@@ -122,7 +122,7 @@ function gfall() {
   else
     if command -v fd >/dev/null; then
       # shellcheck disable=SC2046,SC2035
-      dir=$(dirname $(fd -uu --type d --glob *.git* --exclude *archive* --exclude *archives*) | uniq)
+      dir=$(dirname $(fd '\.git$' -uu --type d --hidden --exclude *archive* --exclude *archives*) | uniq)
     else
       # shellcheck disable=SC2046
       dir=$(dirname $(find . -type d \( -not -path "*archive/*" -not -path "*archives/*" \) -name '.git') | uniq)
