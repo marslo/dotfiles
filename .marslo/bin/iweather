@@ -83,9 +83,9 @@ $(c M)iweather$(c) - show weather status of city
 \n\t1. requires https://openweathermap.org/api API key first! and setup environment variable:
 \t   $(c Y)\$ export OWM_API_TOKEN=xxxxx$(c)
 \t2. copy or move $(c G)iweather.icon$(c) into same directory with current script
-\t   $(c Y)\$ cp mylinux/config/home/.marslo/bin/iweather.icon .$(c)
+\t   $(c Y)\$ cp dotfiles/.marslo/bin/iweather.icon .$(c)
 \t   $(c sW)# or$(c)
-\t   $(c Y)\$ curl -o iweather.icon https://raw.githubusercontent.com/marslo/mylinux/master/confs/home/.marslo/bin/iweather.icon$(c)
+\t   $(c Y)\$ curl -o iweather.icon https://github.com/marslo/dotfiles/raw/main/.marslo/bin/iweather.icon$(c)
 \nSYNOPSIS:
 \n\t$(c sY)\$ iweather [ -h | -v | -c <city> ]$(c)
 \nEXAMPLE:

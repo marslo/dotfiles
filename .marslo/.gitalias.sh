@@ -157,8 +157,8 @@
   caa         = "!f(){ git add --all && git commit --amend --no-edit --allow-empty; }; f"
   ### [c]ommit --no-ed[i]t --ame[n]d --allow-empty
   cin         = commit --amend --no-edit --allow-empty
-  cij         = commit --amend --no-edit --allow-empty --author "marslo <marslo@domain.com>"
-  caj         = commit --author "marslo <marslo.jiao@gmail.com>" -m
+  cij         = commit --amend --no-edit --allow-empty --author 'marslo <marslo@sample.com>'
+  caj         = commit --author 'marslo <marslo.jiao@gmail.com>' -m
   # [c]ommit -[a]m
   ca          = "!f() { \
                         git add --all $(git rev-parse --show-toplevel) ; \
@@ -370,21 +370,22 @@
 
   # https://stackoverflow.com/q/53841043/2940319
   ### show [g]it alia[s]
-  as         = "! bash -c '''grep --no-group-separator -A1 -e \"^\\s*###\" \"$HOME\"/.marslo/.gitalias | \n\
+  as         = "! bash -c '''grep --no-group-separator --color=never -A1 -e \"^\\s*### \" \"$HOME\"/.marslo/.gitalias | \n\
                               awk \"END{if((NR%2))print p}!(NR%2){print\\$0p}{p=\\$0}\" | \n\
-                              sed -re \"s/( =)(.*)(###)/*/g\" | \n\
+                              grep --color=never -v -e \"^\\s*#\" | \n\
+                              sed -re \"s/(\\s*=)(.*)(###)/*/g\" | \n\
+                              sort -t \"*\" -n -k1 | \n\
                               sed -re \"s:[][]::g\" | \n\
-                              awk -F* \"{printf \\\"\\033[1;33m%-20s\\033[0m » \\033[0;34m%s\\033[0m\\n\\\", \\$1, \\$2}\" | \n\
-                              sort \n\
+                              awk -F* \"{printf \\\"\\033[38;5;178m%20s\\033[0m :\\033[3;37m%s\\033[0m\\n\\\", \\$1, \\$2}\" \n\
                           ''' \n\
                 "
   # https://brettterpstra.com/2014/08/04/shell-tricks-one-git-alias-to-rule-them-all/
   ### [find] [a]lias by keywords
   finda = "!grepalias() { git config --get-regexp alias | \
-                          grep -i \"$1\" | \
+                          grep -i \"alias.$1\" | \
                           awk -v nr=2 '{ \
                                          sub(/^alias\\./,\"\") }; \
-                                         {printf \"\\033[31m%15s :\\033[1;37m\", $1}; \
+                                         {printf \"\\033[38;5;178m%15s :\\033[3;37m\", $1}; \
                                          {sep=FS}; \
                                           { for (x=nr; x<=NF; x++) {printf \"%s%s\", sep, $x; }; print \"\\033[0;39m\" \
                                       }'; \
@@ -545,7 +546,7 @@
                               if [ 'meta/config' = \"${branch}\" ]; then \n\
                                 git push origin HEAD:refs/for/refs/meta/config \n\
                               else \n\
-                                git review ${branch} \n\
+                                git push origin HEAD:refs/for/${branch} \n\
                               fi \n\
                             done < <(git rev-parse --abbrev-ref HEAD) \n\
                            ' \n\
