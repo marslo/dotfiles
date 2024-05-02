@@ -10,13 +10,13 @@
 [log]
   follow            = true
 # [remote "origin"]
-  # fetch       = +refs/heads/*:refs/remotes/origin/*
+#   fetch           = +refs/heads/*:refs/remotes/origin/*
 [diff]
   rename            = copy
   submodule         = log
   wsErrorHighlight  = all
   renamelimit       = 10000
-# Inspired from tpope: https://github.com/tpope/tpope/blob/master/.gitconfig
+# inspired from tpope: https://github.com/tpope/tpope/blob/master/.gitconfig
 [diff "ruby"]
   funcname          = \"^ */(/(def/) .*/)\"
 [diff "image"]

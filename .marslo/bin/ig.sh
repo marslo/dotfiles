@@ -251,7 +251,6 @@ function diff-lines() {
   done
 }
 
-
 # For get git infor
 # author: Duane Johnson
 # email: duane.johnson@gmail.com
