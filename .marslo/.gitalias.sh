@@ -127,7 +127,7 @@
                             sed -rn \"s:\\s*(origin/)?(.*)$:\\2:p\") && \n\
                             [[ -n \"${branch}\" ]] && \n\
                             echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" && \n\
-                            git checkout \"${branch}\"; \n\
+                            git checkout --force \"${branch}\"; \n\
                            '"
   # bb        = "! bash -c 'git branch --color=never --all | \n\
   #                         grep -v --color=never HEAD | \n\
