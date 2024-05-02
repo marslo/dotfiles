@@ -6,6 +6,8 @@
   followTags        = true
 [log]
   follow            = true
+# [remote "origin"]
+  # fetch       = +refs/heads/*:refs/remotes/origin/*
 [diff]
   rename            = copy
   submodule         = log
@@ -87,7 +89,7 @@
 [rebase]
   autoStash         = true
 [init]
-  defaultBranch     = marslo
+  defaultBranch     = main
   templatedir       = /Users/marslo/.git-templates
 [blame]
   # https://gist.github.com/BuonOmo/ce45b51d0cefe949fd0c536a4a60f000
@@ -99,5 +101,9 @@
   autocorrect       = 20
 [merge]
   renamelimit       = 10000
+[credential]
+  helper            = store --file ~/.git-credentials
+  helper            = cache --timeout 30000
+  # helper          = wincred
 [git-extras]
-  github-personal-access-token = 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
+  github-personal-access-token = ghp_***********************************N
