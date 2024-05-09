@@ -986,6 +986,26 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
 }
 
 # /**************************************************************
+#   __     __                   _   _
+#  / _|___/ _|  ___   _ __ _  _| |_| |_  ___ _ _
+# |  _|_ /  _| |___| | '_ \ || |  _| ' \/ _ \ ' \
+# |_| /__|_|         | .__/\_, |\__|_||_\___/_||_|
+#                    |_|   |__/
+# **************************************************************/
+
+# activate venv - using `fzf` to list and activate python venv
+# @author      : marslo
+# @inspired    : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/#virtual-env
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+function avenv() {
+  # shellcheck disable=SC2155
+  local _venv=$(command ls --color=never "$HOME/.venv" | fzf)
+  [[ -n "${_venv}" ]] &&
+    source "$HOME/.venv/${_venv}/bin/activate" &&
+    echo -e "$(c Wd)>>$(c) $(c Gis)${_venv}$(c) $(c Wdi)has been activated ..$(c)"
+}
+
+# /**************************************************************
 #  _
 # | |          _
 # | | _   ____| |_
