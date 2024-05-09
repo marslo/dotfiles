@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-02-22 15:29:33
+"    LastChange : 2024-05-08 23:55:02
 " =============================================================================
 
 runtime macros/matchit.vim
@@ -26,6 +26,7 @@ endif
 if IsMac()
   set shell=/usr/local/bin/bash
   let g:gitgutter_git_executable = '/usr/local/bin/git'
+  let g:python3_host_prog = expand( substitute(system('command -v python3'), '\n\+$', '', '') )
 elseif IsWindows()
   set shell=c:\iMarslo\myprograms\Git\bin\bash.exe
   let g:gitgutter_git_executable = 'c:\iMarslo\myprograms\Git\bin\git.exe'
