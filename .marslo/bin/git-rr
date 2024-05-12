@@ -109,6 +109,7 @@ function doModify() {
 
 
 help='false'
+default='false'
 verbose='false'
 cherryPick='false'
 setEnv='false'
@@ -119,6 +120,7 @@ usage="""
 \nSYNOPSIS:
 \n\t$(c sY)\$ git rr [ -v | --verbose | --debug ]
 \t\t [ -h | --help ]
+\t\t [ -d | --default ]
 \t\t [ -s | --set ]
 \t\t [ -u | --unSet ]
 \t\t [ -c | --cp | --cherry-pick ]
@@ -128,6 +130,8 @@ usage="""
 \t\t$(c G)\$ git rr $(c)| $(c G)\$ git rr -h$(c) | $(c G)\$ git rr --help$(c)
 \n\tget verbose
 \t\t$(c G)\$ git rr -v$(c) | $(c G)\$ git rr --verbose$(c) | $(c G)\$ git rr --debug$(c)
+\n\tto set the author/committer to default ( from git config )
+\t\t$(c G)\$ git rr -d --revision=<revision>$(c) | $(c G)\$ git rr -d -r <revision>$(c)
 \n\tto cherry-pick and reset revision information
 \t\t$(c G)\$ git rr -c --revision=<revision>$(c) | $(c G)\$ git rr -c -r <revision>$(c)
 \t\t\t\t      + the long parameters MUST use '$(c R)=$(c)' to identify opt and args
@@ -150,7 +154,7 @@ elif [[ 1 -eq $# ]] && [[ '-' != "${1::1}" ]] && [[ "$1" =~ '=' ]]; then
 else
   # credit belongs to https://stackoverflow.com/a/28466267/519360
   # shellcheck disable=SC2295
-  while getopts :hsvcr:-: OPT; do
+  while getopts :hdsvcr:-: OPT; do
     if [ "$OPT" = "-" ]; then
       OPT="${OPTARG%%=*}"
       OPTARG="${OPTARG#$OPT}"
@@ -158,6 +162,7 @@ else
     fi
     case "$OPT" in
       h | help             ) help='true'                 ;;
+      d | default          ) default='true'              ;;
       v | verbose | debug  ) verbose='true'              ;;
       c | cp | cherry-pick ) cherryPick='true'           ;;
       s | set              ) setEnv='true'               ;;
@@ -181,12 +186,22 @@ revision=$(getRevision "${sha}")
 shortRevision="${revision:0:10}"
 
 values=$(getInfo "${revision}")
-author=$(echo "${values}"       |  awk -F'|' '{print $1}' | trim)
-authorEmail=$(echo "${values}"  |  awk -F'|' '{print $2}' | trim)
 authorDate=$(echo "${values}"   |  awk -F'|' '{print $3}' | trim)
-committer=$(echo "${values}"    |  awk -F'|' '{print $4}' | trim)
-commitEmail=$(echo "${values}"  |  awk -F'|' '{print $5}' | trim)
 commitDate=$(echo "${values}"   |  awk -F'|' '{print $6}' | trim)
+
+if [[ 'true' = "${default}" ]]; then
+  _name=$(git config user.name)
+  _email=$(git config user.email)
+  author="${_name}"
+  authorEmail="${_email}"
+  committer="${_name}"
+  commitEmail="${_email}"
+else
+  author=$(echo "${values}"       |  awk -F'|' '{print $1}' | trim)
+  authorEmail=$(echo "${values}"  |  awk -F'|' '{print $2}' | trim)
+  committer=$(echo "${values}"    |  awk -F'|' '{print $4}' | trim)
+  commitEmail=$(echo "${values}"  |  awk -F'|' '{print $5}' | trim)
+fi
 
 [[ 'true' = "${verbose}"    ]] && showParmas "${author}" "${authorEmail}" "${authorDate}" "${committer}" "${commitEmail}" "${commitDate}"
 [[ 'true' = "${cherryPick}" ]] && git cherry-pick "${revision}"
