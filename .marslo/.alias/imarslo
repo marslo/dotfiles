@@ -4,24 +4,10 @@
 #   FileName : imarslo
 #     Author : marslo.jiao@gmail.com
 #    Created : 2017-10-30 19:07:45
-# LastChange : 2024-02-23 21:04:28
+# LastChange : 2024-05-15 11:36:34
 # =============================================================================
 
 MYWORKSPACE="$HOME/iMarslo"
-
-if [[ '1' = "$(isWSL)" ]]; then
-  alias dsk="cd $HOME/userprofile/Desktop"
-  alias up="cd $HOME/userprofile"
-  alias proj="cd ${MYWORKSPACE}/myprogramfiles"
-  alias mw="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo'"
-  alias dos="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo/job/devops'"
-  alias clip='/mnt/c/Windows/System32/clip.exe'
-  alias pbcopy='/mnt/c/Windows/System32/clip.exe'
-  alias bcomp='/mnt/c/Program\ Files/Beyond\ Compare\ 4/BComp.exe'
-  alias open='/mnt/c/Windows/explorer.exe'
-  alias chrome='/mnt/c/Users/marslo/AppData/Local/Google/Chrome SxS/Application/chrome.exe'
-  alias cygpath='/mnt/c/iMarslo/myprograms/Git/usr/bin/cygpath.exe'
-fi
 
 alias irc="cd $HOME/.marslo"
 alias desk="cd $HOME/Desktop"
@@ -63,5 +49,20 @@ alias mi="cd ${MYWORKSPACE}/tools/git/marslo/myvim"
 alias dm="cd ${MYWORKSPACE}/tools/git/marslo/dotfiles"
 alias mt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"
 alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs >/dev/null"
+
+if [[ '1' = "$(isWSL)" ]]; then
+  alias dsk="cd $HOME/userprofile/Desktop"
+  alias up="cd $HOME/userprofile"
+  alias proj="cd ${MYWORKSPACE}/myprogramfiles"
+  alias mw="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo'"
+  alias dos="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo/job/devops'"
+  alias clip='/mnt/c/Windows/System32/clip.exe'
+  alias pbcopy='/mnt/c/Windows/System32/clip.exe'
+  alias bcomp='/mnt/c/Program\ Files/Beyond\ Compare\ 4/BComp.exe'
+  alias open='/mnt/c/Windows/explorer.exe'
+  alias chrome='/mnt/c/Users/marslo/AppData/Local/Google/Chrome SxS/Application/chrome.exe'
+  alias cygpath='/mnt/c/iMarslo/myprograms/Git/usr/bin/cygpath.exe'
+  alias vscode='/mnt/c/Users/marslo/AppData/Local/Programs/Microsoft\ VS\ Code/Code.exe'
+fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
