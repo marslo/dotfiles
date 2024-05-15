@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck source=/dev/null
+
 shopt -s extglob
 
 # credit belongs to https://raw.githubusercontent.com/ppo/bash-colors/master/bash-colors.sh
