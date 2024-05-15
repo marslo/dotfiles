@@ -116,7 +116,7 @@ function fdInRC() {
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   fdOpt+=' --exec stat --printf="%y | %n\n"'
   (
-    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore|.*gitconfig' $HOME ${fdOpt}";
+    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore|.*gitconfig|.*credentials' $HOME ${fdOpt}";
     echo "${rcPaths}" | fmt -1 | xargs -r -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
   ) |  sort -r
 }
