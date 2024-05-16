@@ -137,7 +137,7 @@ COPY='/mnt/c/Windows/System32/clip.exe'
 #             __/ |
 #            |___/
 # --------------------------------------------------------------/
-source <( cat "${iRCHOME}"/bin/{ffunc,ifunc,ig,im}.sh )
+source <( cat "${iRCHOME}"/bin/{ffunc,ifunc,ig,im,icolor}.sh )
 test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
 test -f "${iRCHOME}"/bin/now             && bash "${iRCHOME}"/bin/now
 
