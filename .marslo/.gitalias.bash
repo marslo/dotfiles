@@ -1,5 +1,5 @@
 #-----------------------#
-# .gitalias for git built with sh ( default git package ) instead of bash
+# .gitalias for git built with bash ( --with-shell=$(command -v bash) ); built from source
 #-----------------------#
 
 [alias]
@@ -47,7 +47,7 @@
   ### [f]ull [p]retty [l]log
   fpl         = log --color --graph --pretty=tformat:'%C(6)%H%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative
   fl          = log -p --graph --color --graph
-  who-renamed ="! bach -c 'git log -M --summary | grep -e '^\\s*rename.*{.*=>.*}'"
+  who-renamed = "! bach -c 'git log -M --summary | grep -E '^\\s*rename.*{.*=>.*}'"
   dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format='%C(6)%h%Creset %C(yellow)(%ad)%Creset %s %C(blue)<%an>%Creset'
   revlog      = log --max-count=3 --color --graph --notes=linrev --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %C(blue)<%an>%Creset %N' --abbrev-commit --date=relative
   ### Showing all branches and their relationshps
@@ -142,7 +142,7 @@
                             sed -rn \"s:\\s*(origin/)?(.*)$:\\2:p\") && \n\
                             [[ -n \"${branch}\" ]] && \n\
                             echo -e \"\\033[0;33;1m~~> branch \\033[0m\\033[0;32;3m${branch}\\033[0m \\033[0;33;1mcopied\\033[0m\" && \n\
-                            pbcopy <<< \"${branch}\" \n\
+                            /mnt/c/Windows/System32/clip.exe <<< \"${branch}\" \n\
                            '"
   # }}}
 
@@ -231,7 +231,7 @@
   cid         = "!f() { \
                         ref='HEAD'; \
                         if [ 0 -ne $# ]; then ref=\"$@\"; fi; \
-                        echo \"\\033[1;33m~~> Commit-Id : Change-Id :\\033[0m\"; \
+                        echo -e \"\\033[1;33m~~> Commit-Id : Change-Id :\\033[0m\"; \
                         git --no-pager log -1 --no-color ${ref} | \
                             sed -nr 's!^commit\\s*(.+)$!\\1!p; s!^\\s*Change-Id:\\s*(.*$)!\\1!p' | \
                             awk '{ key=$0; getline; print key \" : \" $0; }'; \
@@ -241,7 +241,7 @@
   cidn        = "!f() { \
                         OPT='-3'; \
                         if [ 0 -ne $# ]; then OPT=\"$@\"; fi; \
-                        echo \"\\033[1;33m~~> Commit-Id : Change-Id :\\033[0m\"; \
+                        echo -e \"\\033[1;33m~~> Commit-Id : Change-Id :\\033[0m\"; \
                         git --no-pager log --no-color ${OPT} | \
                             sed -nr 's!^commit\\s*(.+)$!\\1!p; s!^\\s*Change-Id:\\s*(.*$)!\\1!p' | \
                             awk '{ key=$0; getline; print key \" : \" $0; }'; \
@@ -253,7 +253,7 @@
                           changeId=\"$@\" ; \
                           for _i in $(git rev-list --do-walk HEAD); do \
                             if git --no-pager show ${_i} --no-patch --format='%B' | grep -F \"Change-Id: ${changeId}\" >/dev/null 2>&1; then \
-                              echo ${_i} ; \
+                              echo -e ${_i} ; \
                               break ; \
                             fi ; \
                           done ; \
@@ -264,7 +264,7 @@
                 "
   ### [c]hange-[id] rev-[c]ount
   cidc            = "!f() { \
-                            echo \"\\033[1;33m~~> Revision-Count : Commit-Id : Change-Id :\\033[0m\"; \
+                            echo -e \"\\033[1;33m~~> Revision-Count : Commit-Id : Change-Id :\\033[0m\"; \
                             git rev-list --no-color --reverse HEAD | nl | sort -nr | \
                                 while read number revision; do \
                                   cid=$(git show -s \"${revision}\" --format='%B' | sed -rn 's/^\\s*Change-Id:\\s*(.+)$/\\1/p') ; \
@@ -274,7 +274,7 @@
 
   ### [c]hange-[id][s] rev-count
   cids            = "!f() { \
-                            echo \"\\033[1;33m~~> Revision-Count : Commit-Id : Change-Id :\\033[0m\"; \
+                            echo -e \"\\033[1;33m~~> Revision-Count : Commit-Id : Change-Id :\\033[0m\"; \
                             git rev-list --no-color --reverse HEAD | nl | sort -nr | \
                                 while read number revision; do \
                                   cid=$(git show -s \"${revision}\" --format='%B' | sed -rn 's/^\\s*Change-Id:\\s*(.+)$/\\1/p') ; \
@@ -484,13 +484,13 @@
                           rn='remote.'\"$2\"'.fetch'; \
                           sp='+refs/heads/'\"$1\":'refs/remotes/'\"$2\"/\"$1\"; \
                         else \
-                          echo \"${help}\"; \
+                          echo -e \"${help}\"; \
                           exit 1; \
                         fi; \
                         matches=0; \
                         for s in $(git config --get-all ${rn}); do [[ \"${s}\" = \"${sp}\" ]] && matches=1; done; \
                         if [ '1' -eq \"${matches}\" ]; then \
-                          echo \"${sp} already exists in ${rn}.\"; \
+                          echo -e \"${sp} already exists in ${rn}.\"; \
                         else \
                           git config --add \"${rn}\" \"${sp}\"; \
                         fi; \
@@ -555,7 +555,7 @@
   # `echo` for MacOS (sh); `echo -e` for Linux (bash); \
   ### [r]eset to [o]riginal
   ro          = "!f() { \
-                        ECHO='echo'                                    ; \
+                        ECHO='echo -e'                                 ; \
                         if [ 0 -eq $# ]; then \
                           branch=$(git rev-parse --abbrev-ref HEAD)    ; \
                         else \
