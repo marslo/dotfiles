@@ -4,8 +4,8 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2024-02-27 20:59:57
-#  Description : Ifunctions
+#  LastChange : 2024-05-16 01:16:03
+#  Description : ifunctions
 # =============================================================================
 
 # /**************************************************************

@@ -1,27 +1,26 @@
 #!/usr/bin/env bash
+#=============================================================================
+#     FileName : icolor.sh
+#       Author : marslo.jiao@gmail.com
+#      Created : 2024-05-01 23:54:35
+#   LastChange : 2024-05-16 01:16:35
+#=============================================================================
 
-# /**************************************************************
-#            _
-#           | |
-#   ___ ___ | | ___  _ __ ___
-#  / __/ _ \| |/ _ \| '__/ __|
-# | (_| (_) | | (_) | |  \__ \
-#  \___\___/|_|\___/|_|  |___/
+# ***************************************************************
 #
 # @references:
 #   - [WAOW! Complete explanations](https://stackoverflow.com/a/28938235/101831)
 #   - [coloring functions](https://gist.github.com/inexorabletash/9122583)
 #   - [ppo/bash-colors](https://github.com/ppo/bash-colors/tree/master)
-#
-# @credit      : https://stackoverflow.com/a/55073732/2940319
-# @alternative : https://gist.github.com/marslo/8e4e1988de79957deb12f0eecec588ec
-# @install     :
-# ```bash
-# $ echo "[[ -f \"/path/to/color-utils.sh\" ]] && source \"/path/to/color-utils.sh\" >> ~/.bashrc"
-# ```
-# **************************************************************/
+#   - [marslo/color-utils](https://gist.github.com/marslo/8e4e1988de79957deb12f0eecec588ec)
+#     ```bash
+#     $ curl -o "/path/to/color-utils.sh" -fsSL https://gist.github.com/marslo/8e4e1988de79957deb12f0eecec588ec/raw/041dbcbd19df26589038f978ce508508ed3687d5/color-utils.sh
+#     $ echo "[[ -f \"/path/to/color-utils.sh\" ]] && source \"/path/to/color-utils.sh\" >> ~/.bashrc"
+#     ```
+# ***************************************************************
 
 # @author : Anthony Bourdain
+# @credit : https://stackoverflow.com/a/55073732/2940319
 # @usage  :
 # - `rgbtohex 17 0 26` ==> 1001A
 # - `rgbtohex -h 17 0 26` ==> #1001A
@@ -39,6 +38,7 @@ function rgbtohex () {
 }
 
 # @author : Anthony Bourdain
+# @credit : https://stackoverflow.com/a/55073732/2940319
 # @usage  :
 # - `rgbto256 0 95, 135` ==> 22
 function rgbto256 () {
@@ -49,6 +49,7 @@ function rgbto256 () {
 }
 
 # @author : Anthony Bourdain
+# @credit : https://stackoverflow.com/a/55073732/2940319
 # @usage  :
 # - `hexttorgb "11001A" ==> 17 0 26
 # - `hexttorgb "#11001A" ==> 17 0 26
@@ -66,6 +67,7 @@ function hextorgb () {
 
 # Generates Truecolor Escape Sequences from Hex Strings. (remove '\\' to use)
 # @author : Anthony Bourdain
+# @credit : https://stackoverflow.com/a/55073732/2940319
 # @params :
 # -fg     Prints as a foreground color. (default)
 # -bg     Prints as a background color.
@@ -136,13 +138,14 @@ function xColorTable() {
     (( i++ ))
   done
 
-  [[ 0 -ne "$#" ]] && output=$( echo "$@" | fmt -1) || output=$(printf "%s\n" "${!COLORS[@]}" | sort -n)
+  [[ 0 -ne "$#" ]] && output=$(echo "$@" | fmt -1) || output=$(printf "%s\n" "${!COLORS[@]}" | sort -n)
   while read -r _c; do
     _prettyPrint "${_c}" "${COLORS[${_c}]}"
   done <<< "${output}"
 }
 
 function 256colors() {
+  # ▒                                                    # ctrl+v -> u2592 ( medium shade )
   local bar='█'                                          # ctrl+v -> u2588 ( full block )
   if uname -r | grep -q "microsoft"; then bar='▌'; fi    # ctrl+v -> u258c ( left half block )
   for i in {0..255}; do
@@ -151,6 +154,7 @@ function 256colors() {
   echo -e "\e[m"
 }
 
+# @credit : https://misc.flogisoft.com/bash/tip_colors_and_formatting#colors2
 function 256color() {
   declare c="38"
   [[ '-b' = "$1" ]] && c="48"
@@ -169,6 +173,7 @@ function 256color() {
   done
 }
 
+# @credit : https://misc.flogisoft.com/bash/tip_colors_and_formatting#colors_and_formatting_16_colors
 function 256colorsAll() {
   for clbg in {40..47} {100..107} 49 ; do  # background
     for clfg in {30..37} {90..97} 39 ; do  # foreground
@@ -181,11 +186,11 @@ function 256colorsAll() {
   done
 }
 
-# @author : https://stackoverflow.com/a/69648792/2940319
-# @usage  :
+# @alternative : `ansi --color-codes`
+# @credit      : https://stackoverflow.com/a/69648792/2940319
+# @usage       :
 #   - `showcolors fg` : default
 #   - `showcolors bg`
-# @alternative: `ansi --color-codes`
 function showcolors() {
   local row col blockrow blockcol red green blue
   local showcolor=_showcolor_${1:-fg}
@@ -252,7 +257,8 @@ function _showcolor_bg() {
   echo -ne "\033[0m"
 }
 
-# to show $LS_COLORS: https://unix.stackexchange.com/a/52676/29178
+# to show $LS_COLORS
+# @credit : https://unix.stackexchange.com/a/52676/29178
 # shellcheck disable=SC2068
 function showLSColors() {
   ( # run in a subshell so it won't crash current color settings
