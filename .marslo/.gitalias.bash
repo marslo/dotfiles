@@ -580,7 +580,7 @@
   # `echo` for MacOS (sh); `echo -e` for Linux (bash); \
   ### [r]eset to [o]riginal and re[b]ase
   rob         = "!f() { \
-                        ECHO='echo'                                 ; \
+                        ECHO='echo -e'                              ; \
                         if [ 0 -eq $# ]; then \
                           branch=$(git rev-parse --abbrev-ref HEAD) ; \
                         else \

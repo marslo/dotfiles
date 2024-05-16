@@ -1,12 +1,14 @@
+#=============================================================================
+#     FileName : .gitcolors
+#       Author : marslo.jiao@gmail.com
+#      Created : 2024-05-01 22:35:53
+#   LastChange : 2024-05-16 01:31:35
+#=============================================================================
+
 # - colors:
-#   - yellow: 178
-#   - brightgreen: 192
-#   - green: 2 (#98971a), 10 (#b8bb26) 106
-#   - blue: 69, 75
-#   - magenta: 135, 213, 104
-#   - cyan: 81, 6 (#689d6a), 14(#8ec07c)
-#   - grey: 241
-# - attributes: bold, dim, ul, blink, reverse, italic, strike
+#   - green: 2 (#98971a), 10 (#b8bb26)
+#   - cyan:  6 (#689d6a), 14 (#8ec07c)
+# - attributes: bold, dim ( - 35% ), ul, blink, reverse, italic, strike
 
 [color]
   ui                = true
@@ -19,32 +21,32 @@
   branch            = always
   interactive       = always
 [color "branch"]
-  current           = 2 bold
-  local             = 178
-  remote            = 213 italic dim
+  current           = 2 bold                 # #98971A
+  local             = 178                    # #D7AF00
+  remote            = 213 italic dim         # normal: #FF87FF; dim: #A557A5 (-35%)
 [color "status"]
-  added             = 192 italic
-  updated           = 69 normal
-  changed           = 64 normal
-  untracked         = 135 italic
-  unmerged          = 81 italic
-  localBranch       = 178
-  remoteBranch      = 213 dim
+  added             = 192 italic             # #D7FF87
+  updated           = 69 normal              # #5F87FF
+  changed           = 100 normal             # #878700
+  untracked         = 135 italic             # #AF5FFF
+  unmerged          = 81 italic              # #5FD7FF
+  localBranch       = 178                    # #D7AF00
+  remoteBranch      = 213 dim                # normal: #FF87FF; dim: #A557A5 (-35%)
 [color "diff"]
-  meta              = 75 italic
-  frag              = 104 italic
-  old               = 241 bold italic strike
-  # new             = 106
-  new               = 2 bold
-  whitespace        = 178 reverse
-  commit            = 6 italic
+  meta              = 75 italic              # #5FAFFF
+  frag              = 104 italic             # #8787D7
+  old               = 241 bold italic strike # #626262
+  # new             = 106                    # #87AF00
+  new               = 2 bold                 # #98971A
+  whitespace        = 178 reverse            # #D7AF00
+  commit            = 6 italic               # #689d6a
 [color "blame"]
   highlightRecent   = 239, 20 month ago, 240, 18 month ago, 241, 16 month ago, 242, 14 month ago, 243, 12 month ago, 244, 10 month ago, 245, 8 month ago, 246, 6 month ago, 247, 4 month ago, 131, 3 month ago, 137, 2 month ago, 172, 1 month ago, 167, 3 weeks ago, 166, 2 weeks ago, 203, 1 week ago, 202
-  repeatedLines     = 130
+  repeatedLines     = 130                    # #AF5F00
 [color "decorate"]
-  remoteBranch      = 213 dim
-  branch            = 178
-  tag               = 100 italic
-  HEAD              = 172
+  remoteBranch      = 213 dim                # normal: #FF87FF; dim: #A557A5 (-35%)
+  branch            = 178                    # #D7AF00
+  tag               = 100 italic             # #878700
+  HEAD              = 172                    # #D78700
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker
