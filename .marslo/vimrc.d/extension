@@ -80,6 +80,9 @@ Plug 'ekalinin/Dockerfile.vim'                                      " dockerfile
 Plug 'rizzatti/dash.vim'
 Plug 'vim-syntastic/syntastic'
 Plug 'github/copilot.vim'                                           " github copilot
+Plug 'CopilotC-Nvim/CopilotChat.nvim' , { 'branch': 'canary' }      " ╮
+Plug 'zbirenbaum/copilot.lua'                                       " ├ copilot chat
+Plug 'nvim-lua/plenary.nvim'                                        " ╯
 Plug 'parkr/vim-jekyll'                                             " github page
 Plug 'xu-cheng/brew.vim'
 
