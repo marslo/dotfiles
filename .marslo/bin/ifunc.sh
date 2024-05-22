@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2024-05-16 01:16:03
+#  LastChange : 2024-05-21 21:26:19
 #  Description : ifunctions
 # =============================================================================
 
@@ -292,7 +292,7 @@ function ffs() {
     sort -r |
     head -"${num}"
   elif [[ 0 = "$#" ]]; then
-    fdInRC | head -"${num}"
+    fdInRC | grep -v --color=never 'git-credentials' | head -"${num}"
   else
     if [[ "${opt}}" =~ .*-t.* ]] || [[ "${opt}" =~ .*--type.* ]]; then
       option="${option//--type\ f/}"
