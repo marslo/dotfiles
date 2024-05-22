@@ -4,7 +4,7 @@
 #   FileName: kubernetes
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2023-12-18 11:07:06
+# LastChange: 2024-05-21 18:12:00
 # =============================================================================
 
 alias kubectl='kubecolor'
@@ -16,15 +16,15 @@ alias kc='kubecolor --namespace=kube-system'
 alias kcswatch='watch -n 1 kubectl --namespace=swcoe-system -o wide get all'
 alias kubeproxy="kubectl proxy --address=\"0.0.0.0\" -p 8001 --accept-hosts='^*$' --accept-paths='^.*' --disable-filter=true"
 
-alias  k3="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw3/.kube/config"
-alias  k4="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw4/.kube/config"
-alias  k8="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw8/.kube/config"
-alias kt1="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst1/.kube/config"
-alias kt2="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst2/.kube/config"
-alias kt3="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst3/.kube/config"
-alias kit="kubectl --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/it-k8s/.kube/config"
+alias  k3="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw3/.kube/config"
+alias  k4="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw4/.kube/config"
+alias  k8="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw8/.kube/config"
+alias kt1="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst1/.kube/config"
+alias kt2="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst2/.kube/config"
+alias kt3="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst3/.kube/config"
+alias kit="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/it-k8s/.kube/config"
+alias  kd="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw8/.kube/config --namespace devops-ci"
 
-alias  kd='kubecolor --kubeconfig ~/.kube/config --namespace devops-ci'
 # alias kcEvicted="kubecolor -n devops-ci get pods -o json | jq '.items[] | select(.status.reason!=null) | select(.status.reason | contains("Evicted")) | "kubecolor delete pods \(.metadata.name) -n \(.metadata.namespace)"' | xargs -n 1 bash -c"
 alias kcEvicted="kubecolor get pods --all-namespaces --field-selector 'status.phase==Failed' -o json | kubecolor delete -f -"
 
@@ -51,7 +51,8 @@ alias kcn='kubecolor config set-context --current --namespace "$(kln | fzf -e | 
 complete -o default -F __start_kubectl kubecolor
 
 # for kubernetes
-complete -o nosort -o bashdefault -o default -F __start_kubectl $(alias | sed -rn 's/^alias ([^=]+)=.+kubec.+$/\1/p' | xargs)
+# complete -o nosort -o bashdefault -o default -F __start_kubectl $(alias | sed -rn 's/^alias ([^=]+)=.+kubec.+$/\1/p' | xargs)
+complete -o nosort -o bashdefault -o default -F _complete_alias $(alias | sed -rn 's/^alias ([^=]+)=.+kubec.+$/\1/p' | xargs)
 
 # while read -r _i; do
 #   # complete -F _complete_alias "${_i}"
