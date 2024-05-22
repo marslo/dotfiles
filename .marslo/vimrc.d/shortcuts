@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-04-17 20:52:51
+"    LastChange : 2024-05-22 00:21:32
 " =============================================================================
 
 " /**************************************************************
@@ -60,6 +60,18 @@ noremap  [A           :ALEFirst<CR>
 " airblade/vim-gitgutter
 noremap  ]h           :GitGutterNextHunk<CR>
 noremap  [h           :GitGutterPrevHunk<CR>
+" github/copilot.vim - default M+⇢
+imap <C-L>             <Plug>(copilot-accept-word)
+imap <C-M-L>           <Plug>(copilot-accept-line)
+" neoclide/coc.nvim
+nmap     <silent>[g    <Plug>(coc-diagnostic-prev)
+nmap     <silent>]g    <Plug>(coc-diagnostic-next)
+nmap     <silent>gd    <Plug>(coc-definition)
+nmap     <silent>gy    <Plug>(coc-type-definition)
+nmap     <silent>gi    <Plug>(coc-implementation)
+nmap     <silent>gr    <Plug>(coc-references)
+nmap     <leader>cl    <Plug>(coc-codelens-action)
+nnoremap <silent>K     :call ShowDocumentation()<CR>
 
 cnoreabbrev W        w
 cnoreabbrev W!       w!
