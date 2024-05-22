@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-04-19 04:09:02
+"    LastChange : 2024-05-21 15:50:41
 " =============================================================================
 
 " vim
@@ -18,7 +18,7 @@ highlight! CursorColumn     ctermbg=236 guibg=#32302f
 highlight! CursorLine       ctermbg=236 guibg=#32302f
 highlight! Folded           cterm=italic ctermfg=241 ctermbg=236 guifg=#616161 guibg=#32302f
 highlight! SpecialGrey      cterm=italic ctermfg=241 gui=italic guifg=#616161
-" highlight! Comment        cterm=italic ctermfg=241 gui=italic guifg=#616161
+highlight! link Comment     SpecialGrey
 
 " coc
 highlight! link CocExplorerHelpHint SpecialGrey
@@ -74,5 +74,15 @@ highlight! link snipLeadingSpaces snipComment
 
 " airblade/vim-gitgutter
 highlight clear SignColumn
+
+" sainnhe/gruvbox-material: gruvbox_material.vim
+highlight RedItalic          cterm=italic   ctermfg=167   gui=italic    guifg=#ea6962
+highlight OrangeItalic       cterm=italic   ctermfg=208   gui=italic    guifg=#e78a4e
+highlight YellowItalic       cterm=italic   ctermfg=214   gui=italic    guifg=#d8a657
+highlight GreenItalic        cterm=italic   ctermfg=142   gui=italic    guifg=#a9b665
+highlight AquaItalic         cterm=italic   ctermfg=108   gui=italic    guifg=#89b482
+highlight BlueItalic         cterm=italic   ctermfg=109   gui=italic    guifg=#7daea3
+highlight PurpleItalic       cterm=italic   ctermfg=175   gui=italic    guifg=#d3869b
+highlight link shFunctionKey GreenItalic
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
