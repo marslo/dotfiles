@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-04-17 20:52:27
+"    LastChange : 2024-05-22 00:21:51
 " =============================================================================
 
 " /**************************************************************
@@ -431,14 +431,6 @@ inoremap <expr><UP> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
 inoremap <silent><expr> <C-M>
      \ coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 command! -nargs=0 OR  :call CocActionAsync('runCommand', 'editor.action.organizeImport')
-nmap     <silent>[g   <Plug>(coc-diagnostic-prev)
-nmap     <silent>]g   <Plug>(coc-diagnostic-next)
-nmap     <silent>gd   <Plug>(coc-definition)
-nmap     <silent>gy   <Plug>(coc-type-definition)
-nmap     <silent>gi   <Plug>(coc-implementation)
-nmap     <silent>gr   <Plug>(coc-references)
-nnoremap <silent>K    :call ShowDocumentation()<CR>
-nmap     <leader>cl   <Plug>(coc-codelens-action)
 " coc-snippets ( ctrl-j )
 imap <C-l> <Plug>(coc-snippets-expand)
 vmap <C-j> <Plug>(coc-snippets-select)
@@ -578,7 +570,7 @@ let g:syntastic_style_warning_symbol     = 'ఠ'
 let g:syntastic_dockerfile_checkers      = [ 'hadolint' ]
 
 " github/copilot.vim
-let g:copilot_proxy            = 'http://proxy.sample.com:8080'
+" let g:copilot_proxy          = 'http://proxy.sample.com:8080'
 let g:copilot_proxy_strict_ssl = v:false
 let g:copilot_filetypes        = {
     \ '*': v:false,
