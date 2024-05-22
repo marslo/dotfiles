@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2024-05-21 18:12:39
+# LastChange : 2024-05-21 20:11:18
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -15,6 +15,7 @@ function isWSL()    { if uname -r | command grep --color=never -q -i 'microsoft'
 function isOSX()    { [[ 'Darwin' = $(uname) ]] && echo 1; }
 function isLinux()  { [[ '1' != "$(isWSL)" ]] && [[ 'Linux' = $(uname) ]] && echo 1; }
 function isDebian() { [[ 'debian' = $(awk -F '=' '/ID_LIKE/ { print $2 }' /etc/os-release) ]] && echo 1; }
+function isFedora() { [[ $(awk -F '=' '/ID/ { print $2 }' /etc/os-release) =~ 'fedora'     ]] && echo 1; }
 function isRHEL()   { [[ 'rhel'   = $(awk -F '=' '/ID/ { print $2 }' /etc/os-release)      ]] && echo 1; }
 function isUbuntu() { [[ 'ubuntu' = $(awk -F '=' '/ID/ { print $2 }' /etc/os-release)      ]] && echo 1; }
 function isCentOS() { [[ 'centos' = $(awk -F '=' '/ID/ { print $2 }' /etc/os-release)      ]] && echo 1; }
@@ -83,71 +84,54 @@ fi
 # --------------------------------------------------------------/
 GROOVY_HOME='/opt/groovy/current'
 ANSIBLE_COMPLETION_PATH="${iRCHOME}/.completion/ansible-completion"            # https://github.com/dysosmus/ansible-completion
-FZF_HOME="${iRCHOME}"/utils/fzf
 RT_COMPLETION="$HOME/.jfrog/jfrog_bash_completion"
-# NPM_COMPLETION_PATH="/usr/local/lib/node_modules/npm-completion"             # https://github.com/Jephuff/npm-bash-completion
 
 if [[ '1' = "$(isOSX)" ]]; then
-  HOMEBREW_PREFIX="$(brew --prefix)"
-  GROOVY_HOME="${HOMEBREW_PREFIX}/opt/groovy"                                  # GROOVY_HOME="$(brew --prefix groovy)"
-  ITERM2_INTEGRATION="$HOME/.iterm2_shell_integration.bash"
-  ## bash-compltion
-  BASH_COMPLETION_DIR="${HOMEBREW_PREFIX}/etc/bash_completion.d"               # BASH_COMPLETION="${HOMEBREW_PREFIX}/opt/bash-completion/etc/bash_completion"
-  # BASH_COMPLETION="$(brew --prefix bash-completion)/etc/bash_completion"     # for bash_completion 1.3_3 BASH_COMPLETION="${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"
-  ## bash-completion@2
-  BASH_COMPLETION="$(brew --prefix bash-completion@2)/etc/profile.d/bash_completion.sh"
-  # BASH_COMPLETION_2="${HOMEBREW_PREFIX}/opt/bash-completion@2/etc/profile.d/bash_completion.sh" # BASH_COMPLETION_2_DIR=$(pkg-config --variable=completionsdir bash-completion)
-  # GIT_COMPLETION_DIR="${HOMEBREW_PREFIX}/opt/git/etc/bash_completion.d"
-  # ADDITIONAL_COMPLETION="${iRCHOME}/.completion/bash_completion_init_completion"    # workaround: https://github.com/mobile-shell/mosh/issues/675#issuecomment-156457108
-  # MACCLI_COMPLETION='/usr/local/bin/mac-cli/completion/bash_completion'
-  # VBOX_COMPLETION="${iRCHOME}/.completion/vbox/VBoxManage-completion.bash"   # ╮ https://github.com/gryf/vboxmanage-bash-completion
-                                                                               # ╯ https://github.com/mug896/virtualbox-bash-completion
-  if test -d "${BASH_COMPLETION_DIR}"; then
-    source <( cat "${BASH_COMPLETION_DIR}"/{brew,tmux,tig-completion.bash} )
-    test -r "${BASH_COMPLETION}"                                       && source "${BASH_COMPLETION}"
-    ls "${BASH_COMPLETION_DIR}"/*git*    >/dev/null 2>&1; [ $? -eq 0 ] && source <( cat "${BASH_COMPLETION_DIR}"/*git* )
-    ls "${BASH_COMPLETION_DIR}"/*docker* >/dev/null 2>&1; [ $? -eq 0 ] && source <( cat "${BASH_COMPLETION_DIR}"/*docker* )
-    # test -f "${BASH_COMPLETION_2}"                                   && source "${BASH_COMPLETION_2}"
-  fi
-
-  # for complete_alias (https://raw.githubusercontent.com/cykerway/complete-alias/master/complete_alias)
-  # test -f "${ADDITIONAL_COMPLETION}"  && source "${ADDITIONAL_COMPLETION}"
-  # test -f "${MACCLI_COMPLETION}"      && source "${MACCLI_COMPLETION}"
-  # test -f "${VBOX_COMPLETION}"        && source "${VBOX_COMPLETION}"
-  test -f "$HOME/.docker/init-bash.sh"  && source "$HOME/.docker/init-bash.sh" # docker desktop
-  test -f "${iRCHOME}"/.imac            && source "${iRCHOME}"/.imac
-elif [[ '1' = "$(isLinux)" ]]; then                                              ## for Ubuntu/RHEL/CentOS
-  distrab=$(awk -F= '$1=="ID" {print $2;}' /etc/os-release)
-  GIT_COMPLETION_DIR="/usr/share/doc/git/contrib/completion"
-
-  [[ 'ubuntu' == "${distrab}" ]] || [[ 'centos' == "${distrab}" ]] || [[ 'rhel' == "${distrab}" ]] && file="$HOME/.bashrc"
-  ls "${GIT_COMPLETION_DIR}"/*git* >/dev/null 2>&1; [ $? -eq 0 ] && source "${GIT_COMPLETION_DIR}"/*git*.[bs]*h
+  GROOVY_HOME="$(brew --prefix groovy)"
+  test -f "${iRCHOME}"/.imac && source "${iRCHOME}"/.imac
+elif [[ '1' = "$(isLinux)" ]]; then                                            ## for Ubuntu/RHEL/CentOS
+  # distrab=$(awk -F= '$1=="ID" {print $2;}' /etc/os-release)
+  # [[ 'ubuntu' == "${distrab}" ]] || [[ 'centos' == "${distrab}" ]] || [[ 'rhel' == "${distrab}" ]] && file="$HOME/.bashrc"
+  [[ '1' == "$(isDebian)" ]]  && GIT_COMPLETION_DIR='/opt/git/contrib/completion'
+  [[ '1' == "$(isFedora)" ]]  && GIT_COMPLETION_DIR='/usr/share/doc/git/contrib/completion'
+  if ls "${GIT_COMPLETION_DIR}"/*git* >/dev/null 2>&1; then source "${GIT_COMPLETION_DIR}"/*git*.[bs]*h; fi
   test -f "${iRCHOME}"/.irhel && source <( cat "${iRCHOME}"/.irhel )
 fi
 
-test -f "${iRCHOME}"/.env                                      && source "${iRCHOME}"/.env
-test -f "${iRCHOME}"/.token                                    && source "${iRCHOME}"/.token
+test -f "${iRCHOME}"/.env                            && source "${iRCHOME}"/.env
+test -f "${iRCHOME}"/.token                          && source "${iRCHOME}"/.token
+
+test -d "${GROOVY_HOME}/bin"                         && source <( cat "${GROOVY_HOME}"/bin/*_completion )
+test -f "$HOME"/.docker/init-bash.sh                 && source "$HOME"/.docker/init-bash.sh       # docker desktop
+test -d "${ANSIBLE_COMPLETION_PATH}"                 && source <( cat "${ANSIBLE_COMPLETION_PATH}"/*.bash )
+test -f "${iRCHOME}/.completion/.bash_completion.sh" && source <( cat "${iRCHOME}/.completion/.bash_completion.sh" )
+test -f "${iRCHOME}/.completion/cht.sh"              && source <( cat "${iRCHOME}/.completion/cht.sh" )
+test -f "${iRCHOME}/.completion/complete_alias"      && source <( cat "${iRCHOME}/.completion/complete_alias" )
+test -f "${RT_COMPLETION}"                           && source "${RT_COMPLETION}"
+test -f "$HOME/.cargo/env"                           && source "$HOME/.cargo/env"
+test -s "$HOME/.sdkman/bin/sdkman-init.sh"           && source "$HOME/.sdkman/bin/sdkman-init.sh"
+test -f "$HOME"/.rbenv/bin/rbenv                     && eval "$("$HOME"/.rbenv/bin/rbenv init - bash)"
+command -v kubectl >/dev/null                        && source <( command kubectl completion bash )
+command -v npm     >/dev/null                        && source <( npm completion )
+command -v vault   >/dev/null                        && complete -C /usr/local/bin/vault vault
+command -v pipx    >/dev/null                        && eval "$(register-python-argcomplete pipx)"
+command -v pip     >/dev/null                        && eval "$(pip completion --bash)"
+type -t _fd >/dev/null 2>&1                          && complete -F _fd -o nosort -o bashdefault -o default ff ffs
+
+# fzf
+if test -f "$HOME"/.fzf.bash; then
+  source "$HOME"/.fzf.bash
+else
+  FZF_HOME="${iRCHOME}"/utils/fzf
+  command -v fzf >/dev/null                          && eval "$(fzf --bash)"
+  test -f "${FZF_HOME}/shell/key-bindings.bash"      && source "${FZF_HOME}/shell/key-bindings.bash"
+fi
+type -t _fzf_opts_completion >/dev/null 2>&1         && complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
+
+# NPM_COMPLETION_PATH="/usr/local/lib/node_modules/npm-completion"             # https://github.com/Jephuff/npm-bash-completion
+# command -v pipenv  >/dev/null && eval "$(pipenv --completion)"
 # find "${GROOVY_HOME}/bin" -name '*_completion' -print0 | xargs -0 -I FILE bash -c "source FILE"
-test -f "$HOME"/.fzf.bash                                      && source "$HOME"/.fzf.bash
-test -d "${GROOVY_HOME}/bin"                                   && source <( cat "${GROOVY_HOME}"/bin/*_completion )
-test -d "${ANSIBLE_COMPLETION_PATH}"                           && source <( cat "${ANSIBLE_COMPLETION_PATH}"/*.bash )
-test -f "${iRCHOME}/.completion/.bash_completion.sh"           && source <( cat "${iRCHOME}/.completion/.bash_completion.sh" )
-test -f "${iRCHOME}/.completion/cht.sh"                        && source <( cat "${iRCHOME}/.completion/cht.sh" )
-test -f "${iRCHOME}/.completion/complete_alias"                && source <( cat "${iRCHOME}/.completion/complete_alias" )
-test -f "${RT_COMPLETION}"                                     && source "${RT_COMPLETION}"
-test -f "$HOME/.cargo/env"                                     && source "$HOME/.cargo/env"
-test -s "$HOME/.sdkman/bin/sdkman-init.sh"                     && source "$HOME/.sdkman/bin/sdkman-init.sh"
-command -v kubectl >/dev/null                                  && source <( command kubectl completion bash )
-command -v npm     >/dev/null                                  && source <( npm completion )
-command -v vault   >/dev/null                                  && complete -C /usr/local/bin/vault vault
-command -v pipx    >/dev/null                                  && eval "$(register-python-argcomplete pipx)"
-command -v pip     >/dev/null                                  && eval "$(pip completion --bash)"
-# command -v pipenv  >/dev/null                                && eval "$(pipenv --completion)"
-test -f "$HOME"/.rbenv/bin/rbenv                               && eval "$("$HOME"/.rbenv/bin/rbenv init - bash)"
-[[ $- == *i* ]] && test -f "${FZF_HOME}/shell/completion.bash" && source "${FZF_HOME}/shell/completion.bash" 2> /dev/null
-test -f "${FZF_HOME}/shell/key-bindings.bash"                  && source "${FZF_HOME}/shell/key-bindings.bash"
-type -t _fd >/dev/null 2>&1                                    && complete -F _fd -o nosort -o bashdefault -o default ff ffs
-type -t _fzf_opts_completion >/dev/null 2>&1                   && complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
+# [[ $- == *i* ]] && test -f "${FZF_HOME}/shell/completion.bash" && source "${FZF_HOME}/shell/completion.bash" 2> /dev/null
 
 # /--------------------------------------------------------------
 #                   __ _
