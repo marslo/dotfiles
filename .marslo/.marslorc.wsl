@@ -15,12 +15,32 @@ function isWSL()    { if uname -r | command grep --color=never -q -i 'microsoft'
 function isOSX()    { [[ 'Darwin' = $(uname) ]] && echo 1; }
 function isLinux()  { [[ '1' != "$(isWSL)" ]] && [[ 'Linux' = $(uname) ]] && echo 1; }
 function isDebian() { [[ 'debian' = $(awk -F '=' '/ID_LIKE/ { print $2 }' /etc/os-release) ]] && echo 1; }
+function isFedora() { [[ $(awk -F '=' '/ID/ { print $2 }' /etc/os-release) =~ 'fedora'     ]] && echo 1; }
 function isRHEL()   { [[ 'rhel'   = $(awk -F '=' '/ID/ { print $2 }' /etc/os-release)      ]] && echo 1; }
 function isUbuntu() { [[ 'ubuntu' = $(awk -F '=' '/ID/ { print $2 }' /etc/os-release)      ]] && echo 1; }
 function isCentOS() { [[ 'centos' = $(awk -F '=' '/ID/ { print $2 }' /etc/os-release)      ]] && echo 1; }
 # for public server (use common account)
 function bello()    { source ~/.marslo/.marslorc; set -o vi;  }
 function bye()      { source "${iRCHOME}"/.bye; set -o emacs; }
+
+# /--------------------------------------------------------------
+#      _       __            _ _     _              _
+#     | |     / _|          | | |   | |            | |
+#   __| | ___| |_ __ _ _   _| | |_  | |_ ___   ___ | |___
+#  / _` |/ _ \  _/ _` | | | | | __| | __/ _ \ / _ \| / __|
+# | (_| |  __/ || (_| | |_| | | |_  | || (_) | (_) | \__ \
+#  \__,_|\___|_| \__,_|\__,_|_|\__|  \__\___/ \___/|_|___/
+#
+# --------------------------------------------------------------/
+if [[ '1' = "$(isWSL)" ]]; then
+  # COPY='/mnt/c/Windows/System32/clip.exe'
+  COPY="$(command -v wl-copy)"
+elif [[ 'Darwin' = "$(uname)" ]]; then
+  COPY="$(type -P pbcopy)"
+else
+  COPY=''
+fi
+
 
 # /--------------------------------------------------------------
 #                            _      _   _
@@ -33,28 +53,40 @@ function bye()      { source "${iRCHOME}"/.bye; set -o emacs; }
 #                     |_|
 #
 # --------------------------------------------------------------/
-ANSIBLE_COMPLETION_PATH="${iRCHOME}/.completion/ansible-completion"   # https://github.com/dysosmus/ansible-completion
-FZF_HOME="${iRCHOME}"/utils/fzf                                       # fzf: $ git clone git@github.com:junegunn/fzf.git ${iRCHOME}/utils
 GROOVY_HOME='/opt/groovy/current'
-test -f "$HOME/.fzf.bash"                            && source "$HOME/.fzf.bash"
-test -d "${ANSIBLE_COMPLETION_PATH}"                 && source <( cat "${ANSIBLE_COMPLETION_PATH}"/*.bash )
-test -f "${iRCHOME}/.completion/.bash_completion.sh" && source "${iRCHOME}/.completion/.bash_completion.sh"
-test -f "${iRCHOME}/.completion/cht.sh"              && source <( cat "${iRCHOME}/.completion/cht.sh" )
+FZF_HOME="${iRCHOME}"/utils/fzf                                       # fzf: $ git clone git@github.com:junegunn/fzf.git ${iRCHOME}/utils
+ANSIBLE_COMPLETION_PATH="${iRCHOME}/.completion/ansible-completion"   # https://github.com/dysosmus/ansible-completion
+RT_COMPLETION="$HOME/.jfrog/jfrog_bash_completion"
+
 test -f "$HOME/.cargo/env"                           && source "$HOME/.cargo/env"
 test -s "$HOME/.sdkman/bin/sdkman-init.sh"           && source "$HOME/.sdkman/bin/sdkman-init.sh"
 test -f "$HOME"/.rbenv/bin/rbenv                     && eval "$("$HOME"/.rbenv/bin/rbenv init - bash)"
-test -d "${GROOVY_HOME}/bin"                         && source <( cat "${GROOVY_HOME}"/bin/*_completion )
-command -v kubectl           > /dev/null             && source <( kubectl completion bash )
-# command -v npm             > /dev/null             && source <( npm completion )
-command -v vault             > /dev/null             && complete -C /usr/local/bin/vault vault
 # install git from source
 test -f /usr/local/libexec/git-core/git-prompt.sh    && source /usr/local/libexec/git-core/git-prompt.sh
 test -f /usr/share/bash-completion/completions/git   && source /usr/share/bash-completion/completions/git
-command -v pipx              > /dev/null             && eval "$(register-python-argcomplete pipx)"
-test -f "${FZF_HOME}/shell/completion.bash"          && source "${FZF_HOME}/shell/completion.bash" 2> /dev/null
-test -f "${FZF_HOME}/shell/key-bindings.bash"        && source "${FZF_HOME}/shell/key-bindings.bash"
-type -t _fd                  >/dev/null 2>&1         && complete -F _fd -o nosort -o bashdefault -o default ff ffs
+
+test -d "${GROOVY_HOME}/bin"                         && source <( cat "${GROOVY_HOME}"/bin/*_completion )
+test -d "${ANSIBLE_COMPLETION_PATH}"                 && source <( cat "${ANSIBLE_COMPLETION_PATH}"/*.bash )
+test -f "${iRCHOME}/.completion/cht.sh"              && source <( cat "${iRCHOME}/.completion/cht.sh" )
+test -f "${iRCHOME}/.completion/complete_alias"      && source <( cat "${iRCHOME}/.completion/complete_alias" )
+test -f "${RT_COMPLETION}"                           && source "${RT_COMPLETION}"
+command -v kubectl > /dev/null                       && source <( kubectl completion bash )
+# command -v npm   > /dev/null                       && source <( npm completion )
+command -v vault   > /dev/null                       && complete -C /usr/local/bin/vault vault
+command -v pipx    > /dev/null                       && eval "$(register-python-argcomplete pipx)"
+command -v pip     >/dev/null                        && eval "$(pip completion --bash)"
+type -t _fd        >/dev/null 2>&1                   && complete -F _fd -o nosort -o bashdefault -o default ff ffs
+type -t _bat       >/dev/null 2>&1                   && complete -F _fzf_path_completion -o default -o bashdefault showTODO
+
+# fzf
+if test -f "$HOME"/.fzf.bash; then
+  source "$HOME"/.fzf.bash
+else
+  command -v fzf >/dev/null                          && eval "$(fzf --bash)"
+  test -f "${FZF_HOME}/shell/key-bindings.bash"      && eval "${FZF_HOME}/shell/key-bindings.bash"
+fi
 type -t _fzf_opts_completion >/dev/null 2>&1         && complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
+
 
 # /--------------------------------------------------------------
 #                   __ _
