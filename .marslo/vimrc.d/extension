@@ -497,10 +497,7 @@ let g:ale_hover_to_preview                = 1
 let g:ale_floating_preview                = 1
 let g:ale_close_preview_on_insert         = 1
 let g:ale_groovy_npmgroovylint_options    = '--loglevel warning --config ~/.groovylintrc.json'
-nmap ]a :ALENextWrap<CR>
-nmap [a :ALEPreviousWrap<CR>
-nmap ]A :ALELast<CR>
-nmap [A :ALEFirst<CR>
+let g:ale_use_neovim_diagnostics_api      = 0
 
 " junegunn/fzf.vim
 nnoremap <silent> <leader>ff :Files<CR>

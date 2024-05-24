@@ -19,7 +19,7 @@ endfunction
 
 " cygwin or git bash or nushell
 function! IsWindowsUnix()
-  return ( has('win32unix') || has('win64uni') )
+  return ( has('win32unix') || has('win64unix') )
 endfunction
 
 function! IsGitBash()
@@ -65,7 +65,7 @@ function! IsNvim()
 endfunction
 
 function! IsVim()
-  return has('vim')
+  return ! has('nvim')
 endfunction
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

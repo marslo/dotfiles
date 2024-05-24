@@ -23,7 +23,7 @@ curlOpt="-sgk -x http://proxy.sample.com:80"
 # current weather, already in color so no need to override
 # replace edmonton with your city name, gps, etc. see: curl wttr.in/:help
 # shellcheck disable=SC2086
-if ! curl ${curlOpt} wttr.in/sanjose?QmM0 --fail --silent --max-time 3 > /tmp/now-weather; then
+if ! curl ${curlOpt} wttr.in/sanjose?QmM0 --fail --silent --max-time 3 1>/tmp/now-weather 2>/dev/null; then
 #                          timeout #. increase for slow connection---^
   ~/.marslo/bin/iweather > /tmp/now-weather
 fi

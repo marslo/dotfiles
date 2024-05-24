@@ -794,7 +794,7 @@ function kns() {                           # [k]ubectl [n]ame[s]pace
   return ${exitcode:-0}
 }
 
-# kst - kubectl show pods status and container logs in current namespace
+# kpo - kubectl show pods status and container logs in current namespace
 # @inspired    : https://github.com/junegunn/fzf/blob/master/ADVANCED.md#log-tailing
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
