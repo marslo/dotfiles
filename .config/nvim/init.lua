@@ -19,7 +19,7 @@ require('config/nvim-treesitter')
 require("CopilotChat").setup {
   debug = true,
   allow_insecure = true, -- https://github.com/deathbeam/dotfiles/blob/master/nvim/.config/nvim/lua/config/copilot.lua
-  show_folds = false,
+  show_folds = false
 }
 -- require('config.snippets')
 -- require('config/lsp')

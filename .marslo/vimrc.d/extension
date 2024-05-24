@@ -90,9 +90,8 @@ if !has('macunix')
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 endif
 
-if has('vim')
-  Plug 'ycm-core/YouCompleteMe', { 'do': 'python3 install.py --all' }
-  Plug 'ycm-core/lsp-examples',  { 'do': 'python3 install.py --all' }
+if IsVim()
+  Plug 'machakann/vim-highlightedyank'
 endif
 
 call plug#end()
