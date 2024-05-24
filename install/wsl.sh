@@ -49,6 +49,8 @@ sudo apt install -y bc \
                     tig \
                     build-essential \
                     moreutils \
+                    wl-clipboard \
+                    net-tools \
                     libncurses-dev \           # ncdu
                     checkinstall \             # ╮
                     libbz2-dev \               # │

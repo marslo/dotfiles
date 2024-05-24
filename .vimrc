@@ -11,6 +11,8 @@ runtime defaults.vim
 let performance_mode = 1
 set nocompatible
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip
+let g:python3_host_prog = expand( substitute(system('command -v python3'), '\n\+$', '', '') )
+let g:gitgutter_git_executable = expand( substitute(system('command -v git'), '\n\+$', '', '') )
 
 source ~/.marslo/vimrc.d/os
 
@@ -25,14 +27,11 @@ endif
 
 if IsMac()
   set shell=/usr/local/bin/bash
-  let g:gitgutter_git_executable = '/usr/local/bin/git'
-  let g:python3_host_prog = expand( substitute(system('command -v python3'), '\n\+$', '', '') )
 elseif IsWindows()
   set shell=c:\iMarslo\myprograms\Git\bin\bash.exe
   let g:gitgutter_git_executable = 'c:\iMarslo\myprograms\Git\bin\git.exe'
 else                                                                " linux/wsl
   set shell=/usr/bin/bash
-  let g:gitgutter_git_executable = '/usr/bin/git'
 endif
 
 if filereadable( '/usr/local/opt/fzf' )
@@ -62,8 +61,8 @@ source ~/.marslo/vimrc.d/highlight
 
 if ! IsWSL() && ! IsMac() | source ~/.marslo/vimrc.d/unix | endif
 if IsWSL()
-  set clipboard^=unnamed
-  set clipboard^=unnamedplus
+  set clipboard=unnamed
+  set clipboard=unnamedplus
 else
   set clipboard+=unnamed
   set clipboard+=unnamedplus
