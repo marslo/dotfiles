@@ -17,6 +17,7 @@
 dateColumn=34                                   # default is 27 for 80 character line, 34 for 92 character line
 timeColumn=61                                   # default is 49 for   "   "   "   "    61 "   "   "   "
 curlOpt="-sgk -x http://proxy.sample.com:80"
+[[ -f "/tmp/now-weather" ]] && rm -rf /tmp/now-weather
 
 #------------------------------ WEATHER -------------------------------------
 
@@ -27,6 +28,7 @@ if ! curl ${curlOpt} wttr.in/sanjose?QmM0 --fail --silent --max-time 3 1>/tmp/no
 #                          timeout #. increase for slow connection---^
   ~/.marslo/bin/iweather > /tmp/now-weather
 fi
+[[ $(wc -c < /tmp/now-weather) -lt 100 ]] || ~/.marslo/bin/iweather > /tmp/now-weather
 
 # was valid weather report found or an error message?
 if grep '°C' /tmp/now-weather >/dev/null 2>&1; then
