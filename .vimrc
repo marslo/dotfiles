@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-05-08 23:55:02
+"    LastChange : 2024-05-28 18:36:57
 " =============================================================================
 
 runtime macros/matchit.vim
@@ -11,8 +11,8 @@ runtime defaults.vim
 let performance_mode = 1
 set nocompatible
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip
-let g:python3_host_prog = expand( substitute(system('command -v python3'), '\n\+$', '', '') )
-let g:gitgutter_git_executable = expand( substitute(system('command -v git'), '\n\+$', '', '') )
+let g:python3_host_prog = expand( trim(system('command -v python3')) )
+let g:gitgutter_git_executable = expand( trim(system('command -v git')) )
 
 source ~/.marslo/vimrc.d/os
 
