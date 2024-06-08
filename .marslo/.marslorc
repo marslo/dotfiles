@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2024-06-07 22:43:36
+# LastChange : 2024-06-08 00:26:28
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -129,8 +129,6 @@ else
   test -f "${FZF_HOME}/shell/key-bindings.bash"      && source "${FZF_HOME}/shell/key-bindings.bash"
 fi
 type -t _fzf_opts_completion >/dev/null 2>&1         && complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
-# avoid using _fzf_complete_ssh
-type -t _ssh >/dev/null 2>&1                         && complete -F _ssh -o bashdefault -o default ssh
 
 # /--------------------------------------------------------------
 #                   __ _
@@ -193,6 +191,9 @@ source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im,icolor}.sh )
 test -f "${iRCHOME}"/bin/now       && bash   "${iRCHOME}"/bin/now
 [[ '1' = "$(isOSX)"    ]] && echo ''
 test -f "${iRCHOME}"/.tmux-session && source "${iRCHOME}"/.tmux-session
+# to fix the issue of _comp_compgen_known_hosts__impl: -F: an empty filename is specified
+# [[ '1' = "$(isOSX)"  ]] && complete -r ssh
+[[ '1' = "$(isOSX)"    ]] && complete -F _ssh -o bashdefault -o default ssh
 
 # /--------------------------------------------------------------
 #   __      __         _             _
