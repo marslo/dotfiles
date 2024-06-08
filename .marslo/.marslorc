@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2024-05-21 21:37:46
+# LastChange : 2024-06-07 22:43:36
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -119,6 +119,7 @@ command -v vault   >/dev/null                        && complete -C /usr/local/b
 command -v pipx    >/dev/null                        && eval "$(register-python-argcomplete pipx)"
 command -v pip     >/dev/null                        && eval "$(pip completion --bash)"
 type -t _fd        >/dev/null 2>&1                   && complete -F _fd -o nosort -o bashdefault -o default ff ffs
+type -t _comp_cmd_chromium_browser 2>&1              && complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome
 
 # fzf
 if test -f "$HOME"/.fzf.bash; then
@@ -128,6 +129,8 @@ else
   test -f "${FZF_HOME}/shell/key-bindings.bash"      && source "${FZF_HOME}/shell/key-bindings.bash"
 fi
 type -t _fzf_opts_completion >/dev/null 2>&1         && complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
+# avoid using _fzf_complete_ssh
+type -t _ssh >/dev/null 2>&1                         && complete -F _ssh -o bashdefault -o default ssh
 
 # /--------------------------------------------------------------
 #                   __ _
