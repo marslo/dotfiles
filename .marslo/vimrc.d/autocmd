@@ -15,7 +15,7 @@
 "
 " **************************************************************/
 if has( "autocmd" )
-  autocmd VimLeave           *                               silent :%bd                                          " :windo bd
+  " autocmd VimLeave         *                               silent :%bd                                          " :windo bd
   autocmd BufReadPre         *                               setlocal foldmethod=indent
   autocmd BufWinEnter        *                               if &foldmethod == 'indent' | setlocal foldmethod=manual | endif
   autocmd BufWinEnter        *                               silent! loadview                                     " autocmd BufWinLeave * silent! mkview
