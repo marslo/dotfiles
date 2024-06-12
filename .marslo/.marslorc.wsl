@@ -72,7 +72,7 @@ test -f "${iRCHOME}/.completion/complete_alias"      && source <( cat "${iRCHOME
 test -f "${RT_COMPLETION}"                           && source "${RT_COMPLETION}"
 command -v kubectl > /dev/null                       && source <( kubectl completion bash )
 # command -v npm   > /dev/null                       && source <( npm completion )
-command -v vault   > /dev/null                       && complete -C /usr/local/bin/vault vault
+command -v vault   > /dev/null                       && complete -C /snap/bin/vault vault
 command -v pipx    > /dev/null                       && eval "$(register-python-argcomplete pipx)"
 command -v pip     >/dev/null                        && eval "$(pip completion --bash)"
 type -t _fd        >/dev/null 2>&1                   && complete -F _fd -o nosort -o bashdefault -o default ff ffs
