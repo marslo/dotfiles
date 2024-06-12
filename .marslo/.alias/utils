@@ -67,7 +67,7 @@ alias egrep='egrep -i -n --color=always'
 alias egp='egrep -v "(#|^$)"'
 alias h='history | grep -i --color=always'
 alias his='history'
-alias more='more -r'
+# alias more='more -r'
 alias diff='diff --color=auto'
 alias fdiff="diff --old-group-format=$'\\e[0;31m%<\\e[0m' --new-group-format=$'\\e[0;31m%>\\e[0m' --unchanged-group-format=$'\\e[0;32m%=\\e[0m'"
 
