@@ -97,7 +97,7 @@ set matchpairs+=<:>
 set thesaurus+=~/.vim/spell/dictionary/thesaurii.txt                " ╮
 set thesaurus+=~/.vim/spell/dictionary/mthesaur.txt                 " ├ spell and grammars
 set dictionary=/usr/share/dict/words                                " ╯
-" set autowrite
+set autowrite
 if has('cmdline_info')
   set ruler                                                         " ruler: show line and column number
   set showcmd                                                       " show (partial) command in status line
