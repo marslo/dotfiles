@@ -108,7 +108,7 @@ test -f "$HOME"/.rbenv/bin/rbenv                     && eval "$("$HOME"/.rbenv/b
 
 test -d "${GROOVY_HOME}/bin"                         && source <( cat "${GROOVY_HOME}"/bin/*_completion )
 test -f "$HOME"/.docker/init-bash.sh                 && source "$HOME"/.docker/init-bash.sh       # docker desktop
-test -d "${ANSIBLE_COMPLETION_PATH}"                 && source <( cat "${ANSIBLE_COMPLETION_PATH}"/*.bash )
+test -d "${ANSIBLE_COMPLETION_PATH}"                 && eval "$(cat "${ANSIBLE_COMPLETION_PATH}"/*.bash)"
 test -f "${iRCHOME}/.completion/cht.sh"              && source <( cat "${iRCHOME}/.completion/cht.sh" )
 test -f "${iRCHOME}/.completion/complete_alias"      && source <( cat "${iRCHOME}/.completion/complete_alias" )
 test -f "${RT_COMPLETION}"                           && source "${RT_COMPLETION}"

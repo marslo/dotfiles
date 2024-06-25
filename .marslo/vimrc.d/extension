@@ -77,6 +77,7 @@ Plug 'modille/groovy.vim'                                           " /usr/local
 Plug 'vim-scripts/vim-gradle'
 Plug 'marslo/Jenkinsfile-vim-syntax'                                " Jenkinsfile
 Plug 'ekalinin/Dockerfile.vim'                                      " dockerfile
+Plug 'sheerun/vim-polyglot'                                         " yaml.ansible
 Plug 'rizzatti/dash.vim'
 Plug 'vim-syntastic/syntastic'
 Plug 'github/copilot.vim'                                           " github copilot
@@ -413,6 +414,9 @@ let g:coc_global_extensions = [
   \   'coc-docker',
   \   'coc-emoji'
   \ ]
+let g:coc_filetype_map = {
+  \   'yaml.ansible': 'ansible',
+  \ }
 function! CheckBackspace() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'
@@ -497,6 +501,10 @@ let g:ale_floating_preview                = 1
 let g:ale_close_preview_on_insert         = 1
 let g:ale_groovy_npmgroovylint_options    = '--loglevel warning --config ~/.groovylintrc.json'
 let g:ale_use_neovim_diagnostics_api      = 0
+" for ansbile.yaml
+let g:ale_ansible_ansible_lint_executable = 'ansible-lint'
+let g:ale_ansible_language_server_config = {}
+let g:ale_ansible_language_server_executable = 'ansible-language-server'
 
 " junegunn/fzf.vim
 nnoremap <silent> <leader>ff :Files<CR>
