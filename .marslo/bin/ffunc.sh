@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-03-27 02:04:32
+#   LastChange : 2024-06-24 16:59:12
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -116,7 +116,7 @@ function fdInRC() {
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   fdOpt+=' --exec stat --printf="%y | %n\n"'
   (
-    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore|.*gitconfig|.*credentials' $HOME ${fdOpt}";
+    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml' $HOME ${fdOpt}";
     echo "${rcPaths}" | fmt -1 | xargs -r -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
   ) |  sort -r
 }
@@ -736,6 +736,19 @@ function mkexp() {                         # [m]a[k]e environment variable [e][x
                          --prompt 'env> ' \
                          --header 'TAB/SHIFT-TAB to select multiple items, CTRL-D to deselect-all, CTRL-S to select-all'
           )
+}
+
+
+# avpw - select and export the environment variable for ansible vault
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# shellcheck disable=SC2155
+function avpw() {                          # [a]nsible [v]ault [p]ass[w]ord
+  local _file=$(fd . ~/.marslo/.vault --type f --max-depth 1 --color never | xargs -I%% bash -c "name=\$(basename %%); echo \${name%.*}" | fzf)
+  [[ -n "${_file}" ]] &&
+    export ANSIBLE_VAULT_PASSWORD_FILE="$HOME/.marslo/.vault/${_file}.txt" &&
+    echo -e "$(c Wd)>>$(c) $(c Gis)${_file}$(c) $(c Wdi)has been exported ..$(c)" &&
+    penv -q ANSIBLE_VAULT_PASSWORD_FILE
 }
 
 # /**************************************************************
