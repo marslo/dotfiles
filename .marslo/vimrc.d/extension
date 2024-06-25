@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-05-22 00:21:51
+"    LastChange : 2024-06-24 21:42:05
 " =============================================================================
 
 " /**************************************************************
@@ -81,14 +81,18 @@ Plug 'sheerun/vim-polyglot'                                         " yaml.ansib
 Plug 'rizzatti/dash.vim'
 Plug 'vim-syntastic/syntastic'
 Plug 'github/copilot.vim'                                           " github copilot
-Plug 'CopilotC-Nvim/CopilotChat.nvim' , { 'branch': 'canary' }      " ╮
-Plug 'zbirenbaum/copilot.lua'                                       " ├ copilot chat
-Plug 'nvim-lua/plenary.nvim'                                        " ╯
 Plug 'parkr/vim-jekyll'                                             " github page
-Plug 'xu-cheng/brew.vim'
 
-if !has('macunix')
+if has('macunix')
+  Plug 'xu-cheng/brew.vim'
+else
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+endif
+
+if IsNvim()
+  Plug 'CopilotC-Nvim/CopilotChat.nvim' , { 'branch': 'canary' }    " ╮
+  Plug 'zbirenbaum/copilot.lua'                                     " ├ copilot chat
+  Plug 'nvim-lua/plenary.nvim'                                      " ╯
 endif
 
 if IsVim()
