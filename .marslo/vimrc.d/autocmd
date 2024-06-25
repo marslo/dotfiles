@@ -33,6 +33,13 @@ if has( "autocmd" )
   autocmd FileType           snippets                        setlocal commentstring=#\ %s
   autocmd Syntax             c,cpp,xml,html,xhtml            normal zM
 
+  " assumes set ignorecase smartcase
+  augroup dynamic_smartcase
+      autocmd!
+      autocmd CmdLineEnter : set nosmartcase
+      autocmd CmdLineLeave : set smartcase
+  augroup END
+
   augroup DevOps
     autocmd BufRead,BufNewFile *                   setfiletype Jenkinsfile
     autocmd FileType           json,markdown,yaml  set tabstop=2 softtabstop=2 shiftwidth=2
