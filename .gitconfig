@@ -70,7 +70,7 @@
 [http]
   sslVerify         = false
   postBuffer        = 524288000
-#   sslBackend      = openssl
+  # sslBackend      = openssl
 [url "ssh://marslo@vgitcentral.sample.com:29418/"]
   insteadOf         = ssh://srv-ssd-fw-devops@vgitcentral.sample.com:29418/
 # [url "git@ssh.github.com"]

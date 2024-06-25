@@ -4,7 +4,7 @@
 #     FileName : .iwsl
 #       Author : marslo.jiao@gmail.com
 #  Description : wsl specific settings
-#   LastChange : 2024-02-22 05:59:41
+#   LastChange : 2024-06-25 01:12:58
 # =============================================================================
 
 # if [[ -d '/usr/local/ssl' ]]; then
@@ -23,5 +23,39 @@ PATH="$JAVA_HOME/bin:$GROOVY_HOME/bin:$PATH"
 export JAVA_HOME GROOVY_HOME CLASSPATH
 
 while read -r _i; do source "${iRCHOME}/.alias/$_i"; done < <( /bin/ls -1 "${iRCHOME}/.alias" )
+
+function chrome() {
+  local _chromec="/mnt/c/Users/marslo/AppData/Local/Google/Chrome SxS/Application/chrome.exe"
+  local _chrome="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
+  local chromeCMD=''
+  local _cancary='false'
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -c | --cancary ) _cancary="true" ; shift ;;
+                   * ) break                   ;;
+    esac;
+  done;
+  local _path="$1"
+
+  [[ "${_cancary}" = 'true' ]] && _chrome="${_chromec}"
+  chromeCMD+="\"${_chrome}\" --new-window \"$(getWSLPath "${_path}")\""
+  eval "${chromeCMD}"
+}
+
+function open() {
+  local _explorer='/mnt/c/Windows/explorer.exe'
+  local _path="$1"
+  local _cmd=''
+  # or `/mnt/c/Windows/system32/cmd.exe /c "start $(getWSLPath "${_path}")"`
+  _cmd="${_explorer} \"$(getWSLPath "${_path}")\""
+  eval "${_cmd}"
+}
+
+function getWSLPath() {
+  wslpath -aw "$(realpath "$1")"
+}
+
+complete -o default -o bashdefault chrome wslpath
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
