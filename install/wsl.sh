@@ -47,6 +47,7 @@ sudo apt install -y bc \
                     toilet \
                     figlet \
                     tig \
+                    wslu \
                     build-essential \
                     moreutils \
                     wl-clipboard \
