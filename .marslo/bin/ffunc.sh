@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-06-24 16:59:12
+#   LastChange : 2024-06-24 18:28:23
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -373,9 +373,9 @@ function vimrc() {                         # vimrc - fzf list all rc files in da
 
   [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="$(type -P nvim)"
   fdInRC | sed -rn 's/^[^|]* \| (.+)$/\1/p' \
-          | fzf ${foption} --bind="enter:become(${VIM} {+})" \
-                           --bind "ctrl-y:execute-silent(echo -n {+} | ${COPY})+abort" \
-                           --header 'Press CTRL-Y to copy name into clipboard'
+         | fzf ${foption} --bind="enter:become(${VIM} {+})" \
+                          --bind "ctrl-y:execute-silent(echo -n {+} | ${COPY})+abort" \
+                          --header 'Press CTRL-Y to copy name into clipboard'
 }
 
 # magic vimdiff - using fzf list in recent modified order
@@ -1010,12 +1010,65 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
 # @author      : marslo
 # @inspired    : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/#virtual-env
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# @description :
+#   - -c | --create : create a new venv with given name
+#   - -d | --delete : delete a venv from fzf list
+# @usage       : $ avenv [ -d | --delete ]
+#                        [ -c | --create <name> ]
+# shellcheck disable=SC2155
 function avenv() {
-  # shellcheck disable=SC2155
-  local _venv=$(command ls --color=never "$HOME/.venv" | fzf)
-  [[ -n "${_venv}" ]] &&
-    source "$HOME/.venv/${_venv}/bin/activate" &&
-    echo -e "$(c Wd)>>$(c) $(c Gis)${_venv}$(c) $(c Wdi)has been activated ..$(c)"
+  local _venv=''
+  local _del='false'
+
+  function activeVenv() {
+    [[ -n "$1" ]] &&
+      source "$HOME/.venv/$1/bin/activate" &&
+      echo -e "$(c Wd)>>$(c) $(c Wdi)venv$(c) $(c Gis)$1$(c) $(c Wdi)has been activated ..$(c)"
+  }
+
+  function deleteVenv() {
+    # read -r -p "Do you want to delete venv $1 ( Y/N ) ? " answer
+    printf "$(c Wi)Do you want to delete venv$(c) $(c Ms)%s$(c) $(c Wi)( Y/N ) ?$(c) " "$1"
+    read -r answer
+    if [[ "${answer}" != "${answer#[Yy]}" ]]; then
+      [[ -n "${VIRTUAL_ENV}" ]] && [[ "$1" = "${VIRTUAL_ENV##*/}" ]] &&
+      deactivate &&
+      echo -e "$(c Wd)>>$(c) $(c Wdi)venv$(c) $(c Mis)$1$(c) $(c Wdi)has been deactivated ..$(c)"
+      command rm -rf "$HOME/.venv/$1" &&
+      echo -e "$(c Wd)>>$(c) $(c Wdi)venv$(c) $(c Mis)$1$(c) $(c Wdi)has been deleted ..$(c)"
+    fi
+  }
+
+  function createVenv() {
+    _newvenv="$1"
+    if command ls --color=never "$HOME/.venv" | grep -qE "^${_newvenv}$"; then
+      echo -e "$(c Ys)WARNING:$(c) $(c Gis)${_newvenv}$(c) $(c Wdi)already exists. activating ..$(c)"
+    else
+      python3 -m venv ~/.venv/${_newvenv}
+      echo -e "$(c Wd)>>$(c) $(c Gis)${_newvenv}$(c) $(c Wdi)has been created. activating ..$(c)"
+    fi
+  }
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -c | --create ) _venv="$2"  ; shift 2 ;;
+      -d | --delete ) _del="true" ; shift   ;;
+                  * ) break                 ;;
+    esac
+  done
+
+  if [[ "${_del}" = 'true' ]]; then
+    _venv=$(command ls --color=never "$HOME/.venv" | fzf)
+    [[ -n "${_venv}" ]] && deleteVenv "${_venv}"
+  elif [[ -n "${_venv}" ]]; then
+    createVenv "${_venv}"
+    activeVenv "${_venv}"
+    echo -e "$(c Wd)>>$(c) $(c Wid)install pip package$(c) $(c Cis)pynvim$(c) $(c Wdi)for nvim ..$(c)"
+    python3 -m pip install --upgrade pynvim
+  else
+    _venv=$(command ls --color=never "$HOME/.venv" | fzf)
+    activeVenv "${_venv}"
+  fi
 }
 
 # /**************************************************************
