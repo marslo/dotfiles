@@ -1,4 +1,4 @@
-[submodule "ansible-completion"]
+[submodule ".marslo/.completion/ansible-completion"]
 	path = .marslo/.completion/ansible-completion
-	url = https://github.com/dysosmus/ansible-completion.git
+	url = https://github.com/marslo/ansible-completion.git
 	branch = master
