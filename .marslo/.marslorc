@@ -120,6 +120,7 @@ command -v pipx    >/dev/null                        && eval "$(register-python-
 command -v pip     >/dev/null                        && eval "$(pip completion --bash)"
 type -t _fd        >/dev/null 2>&1                   && complete -F _fd -o nosort -o bashdefault -o default ff ffs
 type -t _comp_cmd_chromium_browser 2>&1              && complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome
+complete -o default -o bashdefault chrome
 
 # fzf
 if test -f "$HOME"/.fzf.bash; then
