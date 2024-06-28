@@ -48,6 +48,7 @@ sudo apt install -y bc \
                     figlet \
                     tig \
                     wslu \
+                    imagemagick \
                     build-essential \
                     moreutils \
                     wl-clipboard \
