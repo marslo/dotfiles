@@ -42,6 +42,7 @@ if has( "autocmd" )
 
   augroup DevOps
     autocmd BufRead,BufNewFile *                   setfiletype Jenkinsfile
+    autocmd Filetype           Dockerfile          set filetype=dockerfile  syntax=dockerfile
     autocmd FileType           json,markdown,yaml  set tabstop=2 softtabstop=2 shiftwidth=2
     autocmd FileType           json,markdown,yaml  setlocal foldmethod=indent
     autocmd Syntax             yaml                normal zM
