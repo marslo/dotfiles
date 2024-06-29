@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-02-22 16:00:21
+"    LastChange : 2024-06-28 20:34:27
 " =============================================================================
 
 " /**************************************************************
@@ -129,5 +129,18 @@ if exists( ":Tabularize" )                                          " 'godlygeek
     endif
   endfunction
 endif
+
+" set diff mode options
+" references:
+" - [OptionSet](https://vi.stackexchange.com/a/38300/7389)
+" - [CursorShapeInDiffMode()](https://github.com/marslo/dotfiles/blob/main/.marslo/vimrc.d/theme)
+function! SetDiffModeOptions()
+  if &diff
+    set diffopt=filler,internal,algorithm:histogram,indent-heuristic,context:3
+    set nofoldenable
+    " call CursorShapeInDiffMode()
+  endif
+endfunction
+" autocmd OptionSet diff call SetDiffModeOptions()
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************

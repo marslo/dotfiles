@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-04-18 05:20:27
+"    LastChange : 2024-06-28 20:41:49
 " =============================================================================
 
 " /**************************************************************
@@ -72,5 +72,21 @@ else
   let &t_SR .= "\e[4 q"                                             " SR = REPLACE mode
   let &t_EI .= "\e[3 q"                                             " EI = NORMAL mode (ELSE)
 endif
+
+" setup cursor shape to block in diff mode
+function! CursorShapeInDiffMode()
+  if &diff
+    if $TERM_PROGRAM =~ "iTerm"
+      let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+      let &t_SR = "\<Esc>]50;CursorShape=2\x7"
+      let &t_EI = "\<Esc>]50;CursorShape=2\x7"
+    else
+      let &t_SI = "\e[1 q"
+      let &t_SR = "\e[2 q"
+      let &t_EI = "\e[2 q"
+    endif
+  endif
+endfunction
+autocmd BufRead,BufEnter,BufNewFile * :call CursorShapeInDiffMode()
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
