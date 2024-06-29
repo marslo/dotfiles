@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null disable=SC2155
 # ~/.profile: executed by the command interpreter for login shells.
 # This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
 # exists.
@@ -12,7 +14,7 @@
 if [ -n "$BASH_VERSION" ]; then
     # include .bashrc if it exists
     if [ -f "$HOME/.bashrc" ]; then
-  . "$HOME/.bashrc"
+      . "$HOME/.bashrc"
     fi
 fi
 
@@ -28,3 +30,7 @@ fi
 
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+
+export PATH=$( echo "$PATH" | tr ':' '\n' | awk '!x[$0]++' | sed '/^$/d' | paste -s -d: )
+
+# vim: tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
