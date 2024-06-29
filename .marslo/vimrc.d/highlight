@@ -6,12 +6,15 @@
 "    LastChange : 2024-06-28 20:42:20
 " =============================================================================
 
+" color table
+" #4682b4 - 24 - steelblue
+
 " vim
 highlight! Grey             ctermfg=241 guifg=#616161
 highlight! link Ignore      Grey
 highlight! ExtraWhitespace  ctermfg=245    ctermbg=NONE    guifg=#928374   guibg=NONE
 highlight! SpellBad         term=underline cterm=underline ctermbg=NONE    guibg=NONE  guisp=NONE
-highlight! Cursor           term=bold      cterm=reverse   ctermfg=142     ctermbg=235 gui=underline  guifg=white  guibg=steelblue  guisp=steelblue
+highlight! Cursor           term=bold      cterm=reverse   ctermfg=255     ctermbg=24  gui=underline  guifg=white  guibg=steelblue  guisp=steelblue
 highlight! link TermCursor  Cursor
 highlight! link iCursor     Cursor
 highlight! CursorColumn     ctermbg=236 guibg=#32302f
