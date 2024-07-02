@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-06-24 21:42:05
+"    LastChange : 2024-07-02 13:08:35
 " =============================================================================
 
 " /**************************************************************
@@ -31,7 +31,7 @@ Plug 'tpope/vim-surround'
 Plug 'godlygeek/tabular'
 Plug 'tpope/vim-repeat'
 Plug 'Yggdroot/indentLine'
-Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
 Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf.vim'
 Plug 'simnalamburt/vim-mundo'
@@ -136,10 +136,10 @@ let g:tagbar_type_groovy = {
 " tomtom/tcomment_vim
 " g:tcomment_mapleader1 = ','
 map  <leader>x gcc
-vmap <leader>x <c-_>b
+vmap <leader>x :TComment<CR>
 nmap <C-/>     gcc
-imap <C-/>     <c-_><c-_>
-vmap <C-/>     <c-_>b
+imap <C-/>     :TComment<CR>
+vmap <C-/>     :TCommentBlock<CR>
 
 " dantezhu/authorinfo
 noremap <leader>aid :AuthorInfoDetect<CR>
@@ -359,7 +359,7 @@ if exists( ":Tabularize" )
 endif
 
 " git
-nnoremap <leader>mp  :execute 'silent !git mp' \| redraw!<CR>
+nnoremap <leader>mp  :execute 'silent !git mp' \| redraw! \| echom "change committed !"<CR>
 " zivyangll/git-blame.vim
 nnoremap <Leader>ebb :<C-u>call gitblame#echo()<CR>
 " APZelos/blamer.nvim
@@ -584,7 +584,7 @@ let g:syntastic_dockerfile_checkers      = [ 'hadolint' ]
 " let g:copilot_proxy          = 'http://proxy.sample.com:8080'
 let g:copilot_proxy_strict_ssl = v:false
 let g:copilot_filetypes        = {
-    \ '*': v:false,
+    \ '*': v:true,
     \ 'gitcommit': v:true,
     \ 'markdown': v:true,
     \ 'yaml': v:true,
