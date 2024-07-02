@@ -113,4 +113,10 @@
 [git-extras]
   github-personal-access-token = ghp_***********************************x
 
+[trailer "sign"]
+  key               = Signed-off-by
+  ifmissing         = add
+  ifexists          = doNothing
+  command           = echo \"$(git config user.name) <$(git config user.email)>\"
+
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker

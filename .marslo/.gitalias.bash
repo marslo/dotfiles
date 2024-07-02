@@ -150,26 +150,45 @@
   # commit && push
   #-----------------------#
   # {{{
-  ci          = commit -m
+  ci          = commit -s -m
   ### [c]ommit --[a]llow [e]mepty
-  cae         = commit --allow-empty -am
-  ### [c]ommit [a]dd [a]all
-  caa         = "!f(){ git add --all && git commit --amend --no-edit --allow-empty; }; f"
+  cae         = commit --allow-empty --signoff -am
   ### [c]ommit --no-ed[i]t --ame[n]d --allow-empty
-  cin         = commit --amend --no-edit --allow-empty
-  cij         = commit --amend --no-edit --allow-empty --author 'marslo <marslo@sample.com>'
-  caj         = commit --author 'marslo <marslo.jiao@gmail.com>' -m
+  cin         = commit --signoff --amend --no-edit --allow-empty
+  cij         = commit --signoff --amend --no-edit --allow-empty --author 'marslo <marslo@marvell.com>'
+  caj         = commit --signoff --author 'marslo <marslo.jiao@gmail.com>' -m
+  ### [c]ommit [a]dd [a]all
+  caa         = "!f() { \
+                        git add --all; \
+                        declare signed=\"$(git log -n1 --format='%(trailers:key=Signed-off-by,valueonly,separator=%x2C)' | command grep -q \"$(git config user.email)\"; echo $?)\"; \
+                        if [ 0 -eq ${signed} ]; then \
+                          git commit --amend --no-edit --allow-empty;\
+                        else \
+                          git commit --signoff --amend --no-edit --allow-empty;\
+                        fi; \
+                      }; f \
+                "
   # [c]ommit -[a]m
   ca          = "!f() { \
                         git add --all $(git rev-parse --show-toplevel) ; \
-                        git commit -am \"$1\" ; \
+                        declare signed=\"$(git log -n1 --format='%(trailers:key=Signed-off-by,valueonly,separator=%x2C)' | command grep -q \"$(git config user.email)\"; echo $?)\"; \
+                        if [ 0 -eq ${signed} ]; then \
+                          git commit -am \"$1\" ; \
+                        else \
+                          git commit -s -am \"$1\" ; \
+                        fi; \
                       }; f \
                 "
   ### [c]omm[i]t --[a]mend
   cia         = "!f() { \
                         declare authorDate=\"${GIT_AUTHOR_DATE}\"; \
                         declare commiterDate=\"${GIT_COMMITTER_DATE}\"; \
-                        OPT='commit --amend --allow-empty'; \
+                        declare signed=\"$(git log -n1 --format='%(trailers:key=Signed-off-by,valueonly,separator=%x2C)' | command grep -q \"$(git config user.email)\"; echo $?)\"; \
+                        if [ 0 -eq ${signed} ]; then \
+                          OPT='commit --amend --allow-empty'; \
+                        else \
+                          OPT='commit --signoff --amend --allow-empty'; \
+                        fi; \
                         if [ 0 -eq $# ]; then \
                           git ${OPT} ; \
                         else \
@@ -181,8 +200,8 @@
                           else \
                             git ${OPT} -m \"$@\" ; \
                           fi; \
-                          unset GIT_AUTHOR_DATE; \
-                          unset GIT_COMMITTER_DATE; \
+                          export GIT_AUTHOR_DATE=\"${authorDate}\"; \
+                          export GIT_COMMITTER_DATE=\"${commiterDate}\"; \
                         fi; \
                       }; f \
                 "
@@ -395,11 +414,11 @@
                         declare help=\"\"\"\
                           marslo specific git alias \n\n\
                           EXPLATIOIN: \n\
-                             ca = git commit -am \n\
-                            cae = git commit --allow-empty -am \n\
-                            caa = git add --all && git commit --amend --no-edit --allow-empty \n\
-                            cia = git commit --amend --allow-empty [-m <comments>] \n\
-                            cin = commit --amend --no-edit --allow-empty \n\
+                             ca = git commit -s -am \n\
+                            cae = git commit --signoff --allow-empty -am \n\
+                            caa = git add --all && git commit --signoff --amend --no-edit --allow-empty \n\
+                            cia = git commit --signoff --amend --allow-empty [-m <comments>] \n\
+                            cin = commit --signoff --amend --no-edit --allow-empty \n\
                              mp = git caa & git push --force -u <current-brancha> \n\
                              mw = git caa & git review <current-branch> \n\
                              ro = git fetch all & git reset --hard origin/<current-branch> \n\
