@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-06-28 20:42:20
+"    LastChange : 2024-07-03 14:14:19
 " =============================================================================
 
 " color table
@@ -14,6 +14,9 @@ highlight! Grey             ctermfg=241 guifg=#616161
 highlight! link Ignore      Grey
 highlight! ExtraWhitespace  ctermfg=245    ctermbg=NONE    guifg=#928374   guibg=NONE
 highlight! SpellBad         term=underline cterm=underline ctermbg=NONE    guibg=NONE  guisp=NONE
+
+" - vim cursor color depends on terminal color
+" - nvim curcor color depends on `set termguicolors`
 highlight! Cursor           term=bold      cterm=reverse   ctermfg=255     ctermbg=24  gui=underline  guifg=white  guibg=steelblue  guisp=steelblue
 highlight! link TermCursor  Cursor
 highlight! link iCursor     Cursor
