@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-06-28 20:41:49
+"    LastChange : 2024-07-03 14:00:44
 " =============================================================================
 
 " /**************************************************************
@@ -74,16 +74,22 @@ else
 endif
 
 " setup cursor shape to block in diff mode
+" https://vim.fandom.com/wiki/Change_cursor_shape_in_different_modes
 function! CursorShapeInDiffMode()
   if &diff
     if $TERM_PROGRAM =~ "iTerm"
       let &t_SI = "\<Esc>]50;CursorShape=1\x7"
       let &t_SR = "\<Esc>]50;CursorShape=2\x7"
-      let &t_EI = "\<Esc>]50;CursorShape=2\x7"
+      let &t_EI = "\<Esc>]50;CursorShape=0\x7"
     else
       let &t_SI = "\e[1 q"
       let &t_SR = "\e[2 q"
       let &t_EI = "\e[2 q"
+    endif
+
+    " set termguicolors
+    if IsNvim()
+      set guicursor=n-v-i:block-Cursor/lCursor,c-ci:hor10-iCursor-blinkon0
     endif
   endif
 endfunction
