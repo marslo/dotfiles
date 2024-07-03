@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2024-06-08 00:26:28
+# LastChange : 2024-07-03 13:02:56
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -106,14 +106,14 @@ test -f "$HOME/.cargo/env"                           && source "$HOME/.cargo/env
 test -s "$HOME/.sdkman/bin/sdkman-init.sh"           && source "$HOME/.sdkman/bin/sdkman-init.sh"
 test -f "$HOME"/.rbenv/bin/rbenv                     && eval "$("$HOME"/.rbenv/bin/rbenv init - bash)"
 
-test -d "${GROOVY_HOME}/bin"                         && source <( cat "${GROOVY_HOME}"/bin/*_completion )
 test -f "$HOME"/.docker/init-bash.sh                 && source "$HOME"/.docker/init-bash.sh       # docker desktop
-test -d "${ANSIBLE_COMPLETION_PATH}"                 && eval "$(cat "${ANSIBLE_COMPLETION_PATH}"/*.bash)"
-test -f "${iRCHOME}/.completion/cht.sh"              && source <( cat "${iRCHOME}/.completion/cht.sh" )
-test -f "${iRCHOME}/.completion/complete_alias"      && source <( cat "${iRCHOME}/.completion/complete_alias" )
 test -f "${RT_COMPLETION}"                           && source "${RT_COMPLETION}"
-command -v kubectl >/dev/null                        && source <( command kubectl completion bash )
-command -v npm     >/dev/null                        && source <( npm completion )
+test -d "${GROOVY_HOME}/bin"                         && eval "$(cat "${GROOVY_HOME}"/bin/*_completion)"
+test -d "${ANSIBLE_COMPLETION_PATH}"                 && eval "$(cat "${ANSIBLE_COMPLETION_PATH}"/*.bash)"
+test -f "${iRCHOME}/.completion/cht.sh"              && eval "$(cat "${iRCHOME}/.completion/cht.sh")"
+test -f "${iRCHOME}/.completion/complete_alias"      && eval "$(cat "${iRCHOME}/.completion/complete_alias")"
+command -v kubectl >/dev/null                        && eval "$(command kubectl completion bash)"
+command -v npm     >/dev/null                        && eval "$(npm completion)"
 # via `vault -autocomplete-install`
 command -v vault   >/dev/null                        && complete -C /usr/local/bin/vault vault
 command -v pipx    >/dev/null                        && eval "$(register-python-argcomplete pipx)"
