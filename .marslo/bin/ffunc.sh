@@ -404,16 +404,20 @@ function vimdiff() {                       # smart vimdiff
 
   if [[ 0 -eq $# ]]; then
     lFile=$(fzfInPath '.' "${option}")
+    [[ -z "${lFile}" ]] && return 1
     rFile=$(fdInRC | sed -rn 's/^[^|]* \| (.+)$/\1/p' | fzf --cycle --multi ${option} --header 'filter in rc paths:')
   elif [[ 1 -eq $# ]]; then
     lFile=$(fzfInPath '.' "${option}")
-    [[ -d "$1" ]] && rFile=$(fzfInPath "$1" "${option}") || rFile="$1"
+    [[ -z "${lFile}" ]] && return 1
+    [[ -d "$1"       ]] && rFile=$(fzfInPath "$1" "${option}") || rFile="$1"
   elif [[ 2 -eq $# ]]; then
-    [[ -d "$1" ]] && lFile=$(fzfInPath "$1" "${option}") || lFile="$1"
-    [[ -d "$2" ]] && rFile=$(fzfInPath "$2" "${option}") || rFile="$2"
+    [[ -d "$1"       ]] && lFile=$(fzfInPath "$1" "${option}") || lFile="$1"
+    [[ -z "${lFile}" ]] && return 1
+    [[ -d "$2"       ]] && rFile=$(fzfInPath "$2" "${option}") || rFile="$2"
   else
     var="${*: 1:$#-2}"
     [[ -d "${*: -2:1}" ]] && lFile=$(fzfInPath "${*: -2:1}") || lFile="${*: -2:1}"
+    [[ -z "${lFile}"   ]] && return 1
     [[ -d "${*: -1}"   ]] && rFile=$(fzfInPath "${*: -1}")   || rFile="${*: -1}"
   fi
 
