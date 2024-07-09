@@ -18,7 +18,13 @@ else
   test -f "/usr/local/libexec/git-core/git-prompt.sh" && source "/usr/local/libexec/git-core/git-prompt.sh"
 fi
 
-export PATH=$( echo "$PATH" | tr ':' '\n' | awk '!x[$0]++' | sed '/^$/d' | paste -s -d: )
+# remove empty line:
+# - sed '/^$/d'
+# - awk 'NF > 0' or awk 'NF'
+# remove duplicate line:
+# - awk '!x[$0]++'
+# - https://stackoverflow.com/a/11532197/2940319
+export PATH=$( echo "$PATH" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | paste -s -d: )
 
 # ubuntu/wsl
 if [[ 'debian' = $(awk -F '=' '/ID_LIKE/ { print $2 }' /etc/os-release) ]]; then
