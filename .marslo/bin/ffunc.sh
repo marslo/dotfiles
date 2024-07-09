@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-06-24 18:28:23
+#   LastChange : 2024-07-09 14:22:38
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -941,6 +941,7 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
   local delete=false
   local dangling=false
   local show=true
+  local dind=false
   local name=''
   local tag=''
   local cmd=''
@@ -963,14 +964,15 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -c  | --show     ) show=true     ; shift 1    ;;
-      -dl | --dangling ) dangling=true ; shift 1    ;;
-      -d  | --delete   ) delete=true   ; shift 1    ;;
-      -t  | --tag      ) tag="$2"      ; shift 2    ;;
-      -n  | --name     ) name="$2"     ; shift 2    ;;
-      -r  | --registry ) registry="$2" ; shift 2    ;;
-      -h  | --help     ) echo -e "${usage}"; return ;;
-      *                ) break                      ;;
+      -c  | --show     ) show=true          ;  shift   ;;
+      -dl | --dangling ) dangling=true      ;  shift   ;;
+      -d  | --delete   ) delete=true        ;  shift   ;;
+      -t  | --tag      ) tag="$2"           ;  shift 2 ;;
+      -n  | --name     ) name="$2"          ;  shift 2 ;;
+      -r  | --registry ) registry="$2"      ;  shift 2 ;;
+      --dind           ) dind=true          ;  shift   ;;
+      -h  | --help     ) echo -e "${usage}" ;  return  ;;
+      *                ) break                         ;;
     esac
   done
 
@@ -981,17 +983,18 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
   else
     [[ -z "${tag}"  ]] && echo -e "$(c Rs)ERROR$(c): \`tag\` cannot be empty. check more options via \`-h\` or \`--help\`. EXIT ..." && return;
     [[ -n "${name}" ]] && name="${hostname}/${registry}/${name}"
-    [[ 'true' = "${show}" ]] && extraCmd=" | column -t | grep --fixed-string ${tag}" || extraCmd=''
+    [[ 'true' = "${show}" ]] && extraCmd=" | column -t | grep --fixed-string -e ${tag}" || extraCmd=''
     extraFormat=''
   fi
 
   cmd="docker images ${name} --format \\\"${extraFormat}{{.Tag}}\\t{{.ID}}\\\" ${extraCmd}"
   [[ 'true' = "${delete}" ]] && cmd+=" | awk '{print \\\$NF}' | uniq | xargs -r docker rmi -f"
 
-  hostnames=$(echo dc5-ssdfw{1,4,6,8,9,15,17,18,19,-vm1} |
-              fmt -1 |
-              fzf --cycle --exit-0 --prompt "hostname > " \
-             )
+  [[ 'true' = "${dind}" ]] && k8sOpt='-l devops.marvell/docker.builder=true' || k8sOpt=''
+  hostnames=$( kubecolor --kubeconfig ~/.kube/config get nodes ${k8sOpt} -o json |
+              jq -r '.items[] | select(.spec.taints|not) | select(.status.conditions[].reason=="KubeletReady" and .status.conditions[].status=="True") | .metadata.name' |
+              fzf --cycle --exit-0 --prompt "hostname > "
+         )
 
   if [[ -n ${hostnames} ]]; then
     while read -r _hostname; do
@@ -999,6 +1002,99 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
       eval "ssh -n ${username}@${_hostname} \"${cmd}\""
       eval "ssh -n ${username}@${_hostname} \"docker images --filter dangling=true -q | xargs -r docker rmi -f\""
     done <<< "${hostnames}"
+  fi
+}
+
+# ddi - delete docker images via keywords in tags in remote server
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# [d]elete [d]ocker [i]mages
+function ddi() {                          # [d]elete [d]ocker [i]mages
+  function join_by {
+    local d=${1-} f=${2-}
+    if shift 2; then
+      printf %s "$f" "${@/#/$d}"
+    fi
+  }
+
+  declare -a tags
+  local nodes=''
+  local cmd=''
+  local removal='false'
+  local dangling='true'
+  local verbose='false'
+  local dryrun='false'
+  local dind='false'
+
+  # shellcheck disable=SC2155
+  local usage="""
+  \t $(c M)ddi$(c) - $(c iM)d$(c)elete $(c iM)d$(c)ocker $(c iM)i$(c)mage: remove docker images
+  \nSYNOPSIS:
+  \n\t$(c sY)\$ ddi [ -t | --tags <tag> ]
+  \t      [ -v | --verbose ]
+  \t      [ -r | --removal ]
+  \t      [ -d | --dind ]
+  \t      [ --dangling | --no-dangling ]
+  \t      [ -h | --help ]
+  \t      [ --dryrun ]$(c)
+  \nEXAMPLE:
+  \n\tshow help
+  \t\t$(c G)\$ ddi -h$(c) | $(c G)\$ ddi --help$(c)
+  \n\tremove docker images with multiple tags as well as dangling images
+  \t\t$(c G)\$ ddi -t '4.1.0' -t '3.1.0' -r --verbose$(c)
+  \n\tremove docker images with multiple tags with dryrun mode
+  \t\t$(c G)\$ ddi -t '4.1.0' -t '22.04' --dryrun$(c)
+  \n\tcheck or remove by docker tags in docker.builer servers only
+  \t\t$(c G)\$ ddi -t '4.1.0' -t '22.04' --dind [ -r | --removal ] [ -v | --verbose ]$(c)
+  """
+
+  while test -n "$1"; do
+    case "$1" in
+      -t | --tags    ) tags+=("$2")                         ;  shift 2  ;;
+      -r | --removal ) removal='true'                       ;  shift    ;;
+      -v | --verbose ) verbose='true'                       ;  shift    ;;
+      -d | --dind    ) dind='true'                          ;  shift    ;;
+      --dangling     ) dangling='true'                      ;  shift    ;;
+      --no-dangling  ) dangling='false'                     ;  shift    ;;
+      --dryrun       ) dryrun='true'                        ;  shift    ;;
+      -h  | --help   ) echo -e "${usage}"                   ;  return   ;;
+      *              ) echo "Invalid option $1. try -h" >&2 ;  return 1 ;;
+    esac
+  done
+  [[ ${#tags[@]} -eq 0 ]] && echo -e "$(c Rs)ERROR$(c): \`-t | --tags\` cannot be empty. check more options via \`-h\` or \`--help\`. EXIT ..." && return 2;
+
+  for val in "${tags[@]}"; do grepOpt+="-e '${val//./\\.}' "; done
+  format="\\\"{{.Tag}}\\\\t{{.ID}}\\\""
+  cmd+="docker images --format \"${format}\" | command grep ${grepOpt}"
+  if [[ 'true' = "${removal}" ]]; then
+    cmd+=" | awk '{print \\\$NF}' | uniq | xargs -r docker rmi -f"
+    [[ 'true' = "${dangling}" ]] && cmd+=" ; docker images -f dangling=true -q | uniq | xargs -r docker rmi -f"
+  fi
+  # reset cmd if dryrun is true
+  if [[ 'true' = "${dryrun}" ]]; then
+    format="\\\"{{.Repository}}\\\\\\t{{.Tag}}\\\\\\t{{.ID}}\\\""
+    cmd="docker images --format \"${format}\" | awk -v VAR=\\\"$(join_by '|' "${tags[@]}")\\\" '\\\$2 ~ VAR'"
+    [[ 'true' = "${dangling}" ]] && cmd+="; docker images -f dangling=true --format \"${format}\""
+  fi
+
+  [[ 'true' = "${dind}" ]] && k8sOpt='-l devops.sample/docker.builder=true' || k8sOpt=''
+  # shellcheck disable=SC2086
+  nodes=$( kubecolor --kubeconfig ~/.kube/config get nodes ${k8sOpt} -o json |
+              jq -r '.items[] | select(.spec.taints|not) | select(.status.conditions[].reason=="KubeletReady" and .status.conditions[].status=="True") | .metadata.name' |
+              fzf --prompt "hostname >"
+         )
+  if [[ -n ${nodes} ]]; then
+    while read -r _node; do
+      echo -e "$(c Wd)>>$(c) $(c Ys)${_node}$(c) $(c Wd)<<$(c)"
+      sshCmd="ssh devops@${_node} \"${cmd}\""
+      if [[ 'true' = "${verbose}"  ]]; then
+        echo -ne "$(c Wdi)>> [DEBUG]:$(c) $(c Wi)"
+        echo -n "${sshCmd}"
+        echo -e "$(c)"
+      fi
+      [[ 'true' != "${removal}" ]] && sshCmd+=""" | awk '{ printf \"\033[36;3m%s\033[0m\t\033[32m%s\033[0m\t\033[35;3m%s\033[0m\n\", \$1, \$2, \$3 }' | column -t"""
+      eval "${sshCmd}"
+    done <<< "${nodes}"
   fi
 }
 
