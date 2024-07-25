@@ -1,6 +1,10 @@
-#-----------------------#
-# .gitalias for git built with bash ( --with-shell=$(command -v bash) ); built from source
-#-----------------------#
+#-----------------------------------------------------------------------------#
+#     FileName : .gitalias
+#       Author : marslo.jiao@gmail.com
+#      Created : 2020-09-15 06:31:53
+#   LastChange : 2024-07-24 20:28:51
+#  Description : for git built with bash ( --with-shell=$(command -v bash) ); built from source
+#-----------------------------------------------------------------------------#
 
 [alias]
   aa          = add --all
@@ -63,46 +67,46 @@
   # https://stackoverflow.com/a/40480534/2940319
   show-tags   = "! bash -c 'git show-ref -d --tags | cut -b 42- | sort | sed \"s/\\^{}//\" | uniq -c | sed \"s/2\\ refs\\/tags\\// a /\" | sed \"s/1\\ refs\\/tags\\//lw /\"'"
   rlog        = "! bash -c 'while read branch; do \n\
-                              git fetch --all --force; \n\
-                              git pl refs/remotes/origin/${branch}; \n\
+                              git fetch --all --force ; \n\
+                              git pl refs/remotes/origin/${branch} ; \n\
                             done < <(git rev-parse --abbrev-ref HEAD) \n\
                            '"
   rlogs       = "! bash -c 'while read branch; do \n\
-                              git fetch --all --force; \n\
-                              git pls refs/remotes/origin/${branch}; \n\
+                              git fetch --all --force ; \n\
+                              git pls refs/remotes/origin/${branch} ; \n\
                             done < <(git rev-parse --abbrev-ref HEAD) \n\
                            '"
   # https://stackoverflow.com/a/53535353/2940319
   ### [p]retty [b]ranch
   pb          = "! git for-each-ref refs/heads refs/remotes --sort=-committerdate --format='%(color:red)%(objectname:short)%(color:reset) - %(color:bold yellow)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(color:reset) - %(align:left,22)%(color:cyan)<%(authorname)>%(color:reset)%(end) %(color:bold red)%(if)%(HEAD)%(then)* %(else)  %(end)%(color:reset)%(refname:short)' --color --count=10"
   pbs         = "! git for-each-ref refs/heads refs/remotes --sort=-committerdate --format='%(color:red)%(objectname:short)%(color:reset) - %(color:bold yellow)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(color:reset) - %(align:left,22)%(color:cyan)<%(authorname)>%(color:reset)%(end) %(color:bold red)%(if)%(HEAD)%(then)* %(else)  %(end)%(color:reset)%(refname:short)' --color"
-  # git for-each-ref --sort=-committerdate ${refs} --format='%(HEAD)%(color:yellow)%(refname:short)|%(color:bold green)%(committerdate:relative)|%(color:blue)%(subject)|%(color:magenta)%(authorname)%(color:reset)' --color=always | column -ts'|'; \
+  # git for-each-ref --sort=-committerdate ${refs} --format='%(HEAD)%(color:yellow)%(refname:short)|%(color:bold green)%(committerdate:relative)|%(color:blue)%(subject)|%(color:magenta)%(authorname)%(color:reset)' --color=always | column -ts'|' ; \
   ### sort local/remote branch via committerdate (DESC). usage: $ git recent; $ git recent remotes 10
   recent      = "!f() { \
-                        declare help=\"USAGE: git recent [remotes|tags] [count]\"; \
-                        declare refs; \
-                        declare count; \
+                        declare help=\"USAGE: git recent [remotes|tags] [count]\" ; \
+                        declare refs ; \
+                        declare count ; \
                         if [ 2 -lt $# ]; then \
-                          echo \"${help}\"; \
-                          exit 1; \
+                          echo \"${help}\" ; \
+                          exit 1 ; \
                         else \
                           if [ 'remotes' = \"$1\" ]; then \
-                            refs='refs/remotes/origin'; \
+                            refs='refs/remotes/origin' ; \
                           elif [ 'tags' = \"$1\" ]; then \
-                            refs='refs/tags'; \
+                            refs='refs/tags' ; \
                           elif [ 1 -eq $# ]; then \
-                            count=$1; \
-                          fi; \
+                            count=$1 ; \
+                          fi ; \
                           if [ 2 -eq $# ]; then \
-                            count=$2; \
-                          fi; \
-                        fi; \
+                            count=$2 ; \
+                          fi ; \
+                        fi ; \
                         git for-each-ref \
                             --sort=-committerdate \
                             ${refs:='refs/heads'} \
                             --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) %(color:green)(%(committerdate:relative))%(color:reset)' \
                             --color=always \
-                            --count=${count:=5}; \
+                            --count=${count:=5} ; \
                     }; f \
                 "
   # }}}
@@ -127,7 +131,7 @@
                             sed -rn \"s:\\s*(origin/)?(.*)$:\\2:p\") && \n\
                             [[ -n \"${branch}\" ]] && \n\
                             echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" && \n\
-                            git checkout --force \"${branch}\"; \n\
+                            git checkout --force \"${branch}\" ; \n\
                            '"
   # bb        = "! bash -c 'git branch --color=never --all | \n\
   #                         grep -v --color=never HEAD | \n\
@@ -155,88 +159,94 @@
   cae         = commit --allow-empty --signoff -am
   ### [c]ommit --no-ed[i]t --ame[n]d --allow-empty
   cin         = commit --signoff --amend --no-edit --allow-empty
-  cij         = commit --signoff --amend --no-edit --allow-empty --author 'marslo <marslo@marvell.com>'
+  cij         = commit --signoff --amend --no-edit --allow-empty --author 'marslo <marslo@sample.com>'
   caj         = commit --signoff --author 'marslo <marslo.jiao@gmail.com>' -m
   ### [c]ommit [a]dd [a]all
   caa         = "!f() { \
-                        git add --all; \
-                        declare signed=\"$(git log -n1 --format='%(trailers:key=Signed-off-by,valueonly,separator=%x2C)' | command grep -q \"$(git config user.email)\"; echo $?)\"; \
+                        git add --all ; \
+                        declare signed=\"$(git log -n1 --format='%(trailers:key=Signed-off-by,valueonly,separator=%x2C)' | command grep -q \"$(git config user.email)\"; echo $?)\" ; \
                         if [ 0 -eq ${signed} ]; then \
                           git commit --amend --no-edit --allow-empty;\
                         else \
                           git commit --signoff --amend --no-edit --allow-empty;\
-                        fi; \
+                        fi ; \
                       }; f \
                 "
   # [c]ommit -[a]m
   ca          = "!f() { \
                         git add --all $(git rev-parse --show-toplevel) ; \
-                        declare signed=\"$(git log -n1 --format='%(trailers:key=Signed-off-by,valueonly,separator=%x2C)' | command grep -q \"$(git config user.email)\"; echo $?)\"; \
+                        declare signed=\"$(git log -n1 --format='%(trailers:key=Signed-off-by,valueonly,separator=%x2C)' | command grep -q \"$(git config user.email)\"; echo $?)\" ; \
                         if [ 0 -eq ${signed} ]; then \
                           git commit -am \"$1\" ; \
                         else \
                           git commit -s -am \"$1\" ; \
-                        fi; \
+                        fi ; \
                       }; f \
                 "
   ### [c]omm[i]t --[a]mend
   cia         = "!f() { \
-                        declare authorDate=\"${GIT_AUTHOR_DATE}\"; \
-                        declare commiterDate=\"${GIT_COMMITTER_DATE}\"; \
-                        declare signed=\"$(git log -n1 --format='%(trailers:key=Signed-off-by,valueonly,separator=%x2C)' | command grep -q \"$(git config user.email)\"; echo $?)\"; \
+                        declare authorDate=\"${GIT_AUTHOR_DATE}\" ; \
+                        declare commiterDate=\"${GIT_COMMITTER_DATE}\" ; \
+                        declare signed=\"$(git log -n1 --format='%(trailers:key=Signed-off-by,valueonly,separator=%x2C)' | command grep -q \"$(git config user.email)\"; echo $?)\" ; \
                         if [ 0 -eq ${signed} ]; then \
-                          OPT='commit --amend --allow-empty'; \
+                          OPT='commit --amend --allow-empty' ; \
                         else \
-                          OPT='commit --signoff --amend --allow-empty'; \
-                        fi; \
+                          OPT='commit --signoff --amend --allow-empty' ; \
+                        fi ; \
                         if [ 0 -eq $# ]; then \
                           git ${OPT} ; \
                         else \
                           if [ \"o\" = \"$1\" ] || [ \"original\" = \"$1\" ]; then \
-                            declare dd=\"$(git log -n 1 --format=%aD)\"; \
-                            export GIT_AUTHOR_DATE=\"${dd}\"; \
-                            export GIT_COMMITTER_DATE=\"${dd}\"; \
+                            declare dd=\"$(git log -n 1 --format=%aD)\" ; \
+                            export GIT_AUTHOR_DATE=\"${dd}\" ; \
+                            export GIT_COMMITTER_DATE=\"${dd}\" ; \
                             git ${OPT} --date=\"${dd}\" -m \"${@:2}\" ; \
                           else \
                             git ${OPT} -m \"$@\" ; \
-                          fi; \
-                          export GIT_AUTHOR_DATE=\"${authorDate}\"; \
-                          export GIT_COMMITTER_DATE=\"${commiterDate}\"; \
-                        fi; \
+                          fi ; \
+                          export GIT_AUTHOR_DATE=\"${authorDate}\" ; \
+                          export GIT_COMMITTER_DATE=\"${commiterDate}\" ; \
+                        fi ; \
                       }; f \
                 "
 
   ### [m]arslo force [p]ush
-  mp          = "! bash -c 'while read branch; do \n\
-                              echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
-                              git add --all $(git rev-parse --show-toplevel) \n\
-                              git commit --amend --no-edit \n\
-                              if [ 'meta/config' = \"${branch}\" ]; then \n\
-                                git push -u --force origin HEAD:refs/meta/config \n\
-                                git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \n\
-                                git reset --hard remotes/origin/${branch} ; \n\
-                              else \n\
-                                git push -u --force origin ${branch} \n\
-                              fi \n\
-                            done < <(git rev-parse --abbrev-ref HEAD) \n\
-                           ' \n\
+  mp          = "!f() { \
+                        declare branch=\"$(git rev-parse --abbrev-ref HEAD)\" ; \
+                        echo \"\\033[1;33m~~> ${branch}\\033[0m\" ; \
+                        git add --all $(git rev-parse --show-toplevel) ; \
+                        git commit --amend --no-edit ; \
+                        if [ 'meta/config' = \"${branch}\" ]; then \
+                          git push -u --force origin HEAD:refs/meta/config ; \
+                          git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \
+                          git reset --hard remotes/origin/${branch} ; \
+                        else \
+                          if [ \"-r\" = \"$1\" ] || [ \"--remote\" = \"$1\" ]; then \
+                            rBranch=$(git ls-remote --heads origin ${branch} | wc -l) ; \
+                            [ 0 != \"${rBranch}\" ] && \
+                            echo \"\\033[1;35;3m~~> delete remote branch origin/${branch} ...\\033[0m\" && \
+                            git push --delete origin ${branch} ; \
+                          fi ; \
+                          git push -u --force origin ${branch} ; \
+                        fi ; \n\
+                      }; f \
                 "
 
   # [c]ommit [a]nd [p]ush
   cap         = "! bash -c 'while read branch; do \n\
-                              git add --all .; \n\
-                              git commit -am \"${0}\"; \n\
-                              git push origin $branch; \n\
+                              git add --all . ; \n\
+                              git commit -am \"${0}\" ; \n\
+                              git push origin $branch ; \n\
                             done < <(git rev-parse --abbrev-ref HEAD) \n\
                            ' \n\
                 "
   # [c]ommit [f]orce [m]erge [p]ush
   cfmp        = "! bash -c 'while read branch; do \n\
-                              git add --all .; \n\
-                              git commit -aqm \"${0}\"; \n\
-                              git fetch --all --force; \n\
-                              git merge --all --progress remotes/origin/$branch; \n\
-                              git push origin $branch; \n\
+                              git add --all . ; \n\
+                              git commit -aqm \"${0}\" ; \n\
+                              git fetch --all --force ; \n\
+                              git merge --all --progress remotes/origin/$branch ; \n\
+                              git push origin $branch ; \n\
                             done < <(git rev-parse --abbrev-ref HEAD) \n\
                            ' \n\
                 "
@@ -248,22 +258,22 @@
   # {{{
   ### [c]hange-[i][d]
   cid         = "!f() { \
-                        ref='HEAD'; \
-                        if [ 0 -ne $# ]; then ref=\"$@\"; fi; \
-                        echo -e \"\\033[1;33m~~> Commit-Id : Change-Id :\\033[0m\"; \
+                        ref='HEAD' ; \
+                        if [ 0 -ne $# ]; then ref=\"$@\"; fi ; \
+                        echo -e \"\\033[1;33m~~> Commit-Id : Change-Id :\\033[0m\" ; \
                         git --no-pager log -1 --no-color ${ref} | \
                             sed -nr 's!^commit\\s*(.+)$!\\1!p; s!^\\s*Change-Id:\\s*(.*$)!\\1!p' | \
-                            awk '{ key=$0; getline; print key \" : \" $0; }'; \
+                            awk '{ key=$0; getline; print key \" : \" $0; }' ; \
                       }; f \
                 "
   ### [c]hange-[i][d] -[n]
   cidn        = "!f() { \
-                        OPT='-3'; \
-                        if [ 0 -ne $# ]; then OPT=\"$@\"; fi; \
-                        echo -e \"\\033[1;33m~~> Commit-Id : Change-Id :\\033[0m\"; \
+                        OPT='-3' ; \
+                        if [ 0 -ne $# ]; then OPT=\"$@\"; fi ; \
+                        echo -e \"\\033[1;33m~~> Commit-Id : Change-Id :\\033[0m\" ; \
                         git --no-pager log --no-color ${OPT} | \
-                            sed -nr 's!^commit\\s*(.+)$!\\1!p; s!^\\s*Change-Id:\\s*(.*$)!\\1!p' | \
-                            awk '{ key=$0; getline; print key \" : \" $0; }'; \
+                          sed -nr 's!^commit\\s*(.+)$!\\1!p; s!^\\s*Change-Id:\\s*(.*$)!\\1!p' | \
+                          awk '{ key=$0; getline; print key \" : \" $0; }' ; \
                       }; f \
                 "
   ### [c]hange-[i][d] to [r]evsion
@@ -277,29 +287,29 @@
                             fi ; \
                           done ; \
                         else \
-                          exit 1; \
-                        fi; \
+                          exit 1 ; \
+                        fi ; \
                       }; f \
                 "
   ### [c]hange-[id] rev-[c]ount
   cidc            = "!f() { \
-                            echo -e \"\\033[1;33m~~> Revision-Count : Commit-Id : Change-Id :\\033[0m\"; \
+                            echo -e \"\\033[1;33m~~> Revision-Count : Commit-Id : Change-Id :\\033[0m\" ; \
                             git rev-list --no-color --reverse HEAD | nl | sort -nr | \
                                 while read number revision; do \
                                   cid=$(git show -s \"${revision}\" --format='%B' | sed -rn 's/^\\s*Change-Id:\\s*(.+)$/\\1/p') ; \
-                                  if [[ \"${cid}\" = \"$1\" ]]; then echo \"${number} : ${revision} : ${cid}\"; break; fi; \
-                                done; \
+                                  if [[ \"${cid}\" = \"$1\" ]]; then echo \"${number} : ${revision} : ${cid}\"; break; fi ; \
+                                done ; \
                           }; f"
 
   ### [c]hange-[id][s] rev-count
   cids            = "!f() { \
-                            echo -e \"\\033[1;33m~~> Revision-Count : Commit-Id : Change-Id :\\033[0m\"; \
+                            echo -e \"\\033[1;33m~~> Revision-Count : Commit-Id : Change-Id :\\033[0m\" ; \
                             git rev-list --no-color --reverse HEAD | nl | sort -nr | \
                                 while read number revision; do \
                                   cid=$(git show -s \"${revision}\" --format='%B' | sed -rn 's/^\\s*Change-Id:\\s*(.+)$/\\1/p') ; \
-                                  echo \"${number} : ${revision} : ${cid}\"; \
-                                  if [[ \"${cid}\" = \"$1\" ]]; then break; fi; \
-                                done; \
+                                  echo \"${number} : ${revision} : ${cid}\" ; \
+                                  if [[ \"${cid}\" = \"$1\" ]]; then break; fi ; \
+                                done ; \
                           }; f"
   # }}}
 
@@ -347,11 +357,11 @@
   show-rev        = "!f(){ git rev-list --count $1; }; f"
   rev-number      = "!bash -c 'git rev-list --reverse HEAD | nl | sort -nr | awk \"{ if(\\$1 == "$0") { print \\$2 }}\"'"
   rev-count       = "!f() { \
-                            declare hash=$(git rev-parse \"$1\"); \
+                            declare hash=$(git rev-parse \"$1\") ; \
                             git rev-list --no-color --reverse HEAD | nl | sort -nr | \
                                 while read number revision ; do \
-                                  if [[ \"${revision}\" = \"${hash}\" ]]; then echo \"${number}\"; break; fi; \
-                                done; \
+                                  if [[ \"${revision}\" = \"${hash}\" ]]; then echo \"${number}\"; break; fi ; \
+                                done ; \
                           }; f"
   show-remote-rev = "!bash -c 'git ls-remote --heads $(git config --get remote.origin.url) | \n\
                                grep \"refs/heads/$0\" | \n\
@@ -359,18 +369,18 @@
                               ' \n\
                     "
   revset          = "!bash -c 'ix=0; for ih in $(git rev-list --reverse HEAD); do \n\
-                                 TCMD=\"git notes --ref linrev\"; \n\
-                                 TCMD=\"$TCMD add $ih -m \\\"(r\\$((++ix)))\\\"\"; \n\
-                                 eval \"$TCMD\"; \n\
-                               done; \n\
+                                 TCMD=\"git notes --ref linrev\" ; \n\
+                                 TCMD=\"$TCMD add $ih -m \\\"(r\\$((++ix)))\\\"\" ; \n\
+                                 eval \"$TCMD\" ; \n\
+                               done ; \n\
                                echo \"Linear revision notes are set.\" \n\
                               ' \n\
                     "
   revunset        = "!bash -c 'ix=0; for ih in $(git rev-list --reverse HEAD); do \n\
-                                 TCMD=\"git notes --ref linrev\"; \n\
-                                 TCMD=\"$TCMD remove $ih\"; \n\
-                                 eval \"$TCMD 2>/dev/null\"; \n\
-                               done; \n\
+                                 TCMD=\"git notes --ref linrev\" ; \n\
+                                 TCMD=\"$TCMD remove $ih\" ; \n\
+                                 eval \"$TCMD 2>/dev/null\" ; \n\
+                               done ; \n\
                                echo \"Linear revision notes are unset.\" \n\
                               ' \n\
                     "
@@ -403,43 +413,39 @@
   finda = "!grepalias() { git config --get-regexp alias | \
                           grep -i \"alias.$1\" | \
                           awk -v nr=2 '{ \
-                                         sub(/^alias\\./,\"\") }; \
-                                         {printf \"\\033[38;5;178m%15s :\\033[3;37m\", $1}; \
-                                         {sep=FS}; \
+                                         sub(/^alias\\./,\"\") } ; \
+                                         {printf \"\\033[38;5;178m%15s :\\033[3;37m\", $1} ; \
+                                         {sep=FS} ; \
                                           { for (x=nr; x<=NF; x++) {printf \"%s%s\", sep, $x; }; print \"\\033[0;39m\" \
-                                      }'; \
+                                      }' ; \
                         }; grepalias"
   # [m]arslo [h]elp
   mh          = "!f() { \
-                        declare help=\"\"\"\
-                          marslo specific git alias \n\n\
-                          EXPLATIOIN: \n\
-                             ca = git commit -s -am \n\
-                            cae = git commit --signoff --allow-empty -am \n\
-                            caa = git add --all && git commit --signoff --amend --no-edit --allow-empty \n\
-                            cia = git commit --signoff --amend --allow-empty [-m <comments>] \n\
-                            cin = commit --signoff --amend --no-edit --allow-empty \n\
-                             mp = git caa & git push --force -u <current-brancha> \n\
-                             mw = git caa & git review <current-branch> \n\
-                             ro = git fetch all & git reset --hard origin/<current-branch> \n\
-                        \"\"\"; \
-                        echo \"${help}\"; \
-                      }; f\
+                        printf \"\\033[38;5;178m%15s\\033[0m : \\033[3;37m%s\\033[0m\n\" \"$1\" \"$2\" ; \
+                      } ; \
+                      f 'ca'  'git commit -s -am' ; \
+                      f 'cae' 'git commit --signoff --allow-empty -am' ; \
+                      f 'caa' 'git add --all && git commit --signoff --amend --no-edit --allow-empty' ; \
+                      f 'cia' 'git commit --signoff --amend --allow-empty [-m <comments>]' ; \
+                      f 'cin' 'commit --signoff --amend --no-edit --allow-empty' ; \
+                      f 'mp'  'git caa & git push --force -u <current-branch>' ; \
+                      f 'mw'  'git caa & git review <current-branch>' ; \
+                      f 'ro'  'git fetch all & git reset --hard origin/<current-branch>' ; \
                 "
 
   # if a branch name is specified, on top of the specified branch.
   ### [m]erge github [p]ull [r]equest on top of the current branch or,
   mpr         = "!f() { \
-                        declare currentBranch=\"$(git symbolic-ref --short HEAD)\"; \
-                        declare branch=\"${2:-$currentBranch}\"; \
+                        declare currentBranch=\"$(git symbolic-ref --short HEAD)\" ; \
+                        declare branch=\"${2:-$currentBranch}\" ; \
                         if [ $(printf \"%s\" \"$1\" | grep '^[0-9]\\+$' > /dev/null; printf $?) -eq 0 ]; then \
-                            git fetch origin refs/pull/$1/head:pr/$1 && \
-                            git checkout -B $branch && \
-                            git rebase $branch pr/$1 && \
-                            git checkout -B $branch && \
-                            git merge pr/$1 && \
-                            git branch -D pr/$1 && \
-                            git commit --amend -m \"$(git log -1 --pretty=%B)\n\nClose #$1\"; \
+                          git fetch origin refs/pull/$1/head:pr/$1 && \
+                          git checkout -B $branch && \
+                          git rebase $branch pr/$1 && \
+                          git checkout -B $branch && \
+                          git merge pr/$1 && \
+                          git branch -D pr/$1 && \
+                          git commit --amend -m \"$(git log -1 --pretty=%B)\n\nClose #$1\" ; \
                         fi \
                       }; f \
                 "
@@ -451,21 +457,21 @@
                                 REMOTE_URL : mandatory \n\
                             DEFAULT_BRANCH : optinal. default is 'master' \n\
                                  LOCAL_DIR : optional. default is current directory: '\"$(pwd)\"' \n\
-                        \"\"\"; \
-                        declare remoteURL=\"$1\"; \
-                        declare defaultBr='master'; \
-                        declare localDir='.'; \
-                        [ 2 -le $# ] && defaultBr=\"$2\"; \
-                        [ 3 -eq $# ] && localDir=\"$3\"; \
+                        \"\"\" ; \
+                        declare remoteURL=\"$1\" ; \
+                        declare defaultBr='master' ; \
+                        declare localDir='.' ; \
+                        [ 2 -le $# ] && defaultBr=\"$2\" ; \
+                        [ 3 -eq $# ] && localDir=\"$3\" ; \
                         if [ 0 -eq $# ] || [ 3 -lt $# ]; then \
-                          echo \"${help}\"; \
+                          echo \"${help}\" ; \
                         else \
-                          [ -d ${localDir} ] || mkdir -p ${localDir}; \
+                          [ -d ${localDir} ] || mkdir -p ${localDir} ; \
                           cd ${localDir} ; \
                           git init && \
                           git remote add origin ${remoteURL} && \
                           git fetch --all --force --quiet && \
-                          git checkout -b ${defaultBr}; \
+                          git checkout -b ${defaultBr} ; \
                         fi \
                       }; f \
                 "
@@ -473,8 +479,8 @@
   ### [m]eta/[c]onfig checkout
   mc          = "!f() { \
                         if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then \
-                          git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config; \
-                          git checkout meta/config; \
+                          git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \
+                          git checkout meta/config ; \
                         else \
                           echo \"current directory isn't inside the git working tree\" ; \
                         fi \
@@ -484,7 +490,7 @@
   add-refs    = "!f() { \
                         declare help=\"\"\" \
                           USAGE: \n\
-                            git add-refs [REMOTE] [BRANCH] \n\n\
+                            git add-refs [--usage] [REMOTE] [BRANCH] \n\n\
                           EXMAPLE: \n\
                             add +refs/heads/*:+refs/remotes/origin/* : \n\
                               $ git add-refs \n\
@@ -492,27 +498,30 @@
                               $ git add-refs <branch> \n\
                             add +refs/heads/<branch>:+refs/remotes/<new-origin>/<branch> : \n\
                               $ git add-refs <branch> <new-origin> \n\
-                        \"\"\"; \
-                        if [ 0 -eq $# ]; then \
-                          rn='remote.origin.fetch'; \
-                          sp='+refs/heads/*:refs/remotes/origin/*'; \
+                        \"\"\" ; \
+                        if [ '--usage' = \"$1\" ]; then \
+                          echo \"${help}\" ; \
+                          exit 1 ; \
+                        elif [ 0 -eq $# ]; then \
+                          rn='remote.origin.fetch' ; \
+                          sp='+refs/heads/*:refs/remotes/origin/*' ; \
                         elif [ 1 -eq $# ]; then \
-                          rn='remote.origin.fetch'; \
-                          sp='+refs/heads/'\"${1}\":'refs/remotes/origin/'\"${1}\"; \
+                          rn='remote.origin.fetch' ; \
+                          sp='+refs/heads/'\"${1}\":'refs/remotes/origin/'\"${1}\" ; \
                         elif [ 2 -eq $# ]; then \
-                          rn='remote.'\"$2\"'.fetch'; \
-                          sp='+refs/heads/'\"$1\":'refs/remotes/'\"$2\"/\"$1\"; \
+                          rn='remote.'\"$2\"'.fetch' ; \
+                          sp='+refs/heads/'\"$1\":'refs/remotes/'\"$2\"/\"$1\" ; \
                         else \
-                          echo -e \"${help}\"; \
-                          exit 1; \
-                        fi; \
-                        matches=0; \
-                        for s in $(git config --get-all ${rn}); do [[ \"${s}\" = \"${sp}\" ]] && matches=1; done; \
+                          echo -e \"${help}\" ; \
+                          exit 1 ; \
+                        fi ; \
+                        matches=0 ; \
+                        for s in $(git config --get-all ${rn}); do [[ \"${s}\" = \"${sp}\" ]] && matches=1; done ; \
                         if [ '1' -eq \"${matches}\" ]; then \
-                          echo -e \"${sp} already exists in ${rn}.\"; \
+                          echo -e \"${sp} already exists in ${rn}.\" ; \
                         else \
-                          git config --add \"${rn}\" \"${sp}\"; \
-                        fi; \
+                          git config --add \"${rn}\" \"${sp}\" ; \
+                        fi ; \
                       }; f \
                 "
 
@@ -520,16 +529,16 @@
   ### [u]pdate [a]ll
   ua          = "! bash -c 'while read branch; do \n\
                               echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
-                              git fetch --all --force; \n\
-                              git fetch --prune --prune-tags --force origin; \n\
+                              git fetch --all --force ; \n\
+                              git fetch --prune --prune-tags --force origin ; \n\
                               if [ 'meta/config' = \"${branch}\" ]; then \n\
                                 git fetch origin --force refs/${branch}:refs/remotes/origin/${branch} \n\
                               fi \n\
-                              git rebase -v refs/remotes/origin/${branch}; \n\
-                              git merge --all --progress refs/remotes/origin/${branch}; \n\
-                              git remote prune origin; \n\
+                              git rebase -v refs/remotes/origin/${branch} ; \n\
+                              git merge --all --progress refs/remotes/origin/${branch} ; \n\
+                              git remote prune origin ; \n\
                               if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \n\
-                                git submodule sync --recursive; \n\
+                                git submodule sync --recursive ; \n\
                                 git submodule update -f --init --recursive \n\
                               fi \n\
                             done < <(git rev-parse --abbrev-ref HEAD) \n\
@@ -547,68 +556,62 @@
   # https://gerrit-review.googlesource.com/Documentation/user-upload.html#push_options
   # https://gerrit-review.googlesource.com/Documentation/user-upload.html#push_create
   # git review ${branch} --reviewers a@domain.com b@domain.com c@domain.com cc:e@domain.com \n\
-  ### [m]arslo revie[w]
-  mw          = "! bash -c 'while read branch; do \n\
-                              echo -e \"\\033[1;33m~~> ${branch}\\033[0m\"; \n\
-                              if [ 'meta/config' = \"${branch}\" ]; then \n\
-                                git push origin HEAD:refs/for/refs/meta/config; \n\
-                              else \n\
-                                git push origin HEAD:refs/for/${branch}%r=a@domain.com,r=b@domain.com,r=c@domain.com,r=d@domain.com,cc=e@domain.com; \n\
-                              fi; \n\
-                            done < <(git rev-parse --abbrev-ref HEAD) \n\
-                           ' \n\
-                "
-
-  ### [p]ure [m]arslo revie[w]
-  pmw         = "! bash -c 'while read branch; do \n\
-                              echo -e \"\\033[1;33m~~> ${branch}\\033[0m\" \n\
-                              if [ 'meta/config' = \"${branch}\" ]; then \n\
-                                git push origin HEAD:refs/for/refs/meta/config \n\
-                              else \n\
-                                git push origin HEAD:refs/for/${branch} \n\
-                              fi \n\
-                            done < <(git rev-parse --abbrev-ref HEAD) \n\
-                           ' \n\
-                "
-
-  # `echo` for MacOS (sh); `echo -e` for Linux (bash); \
-  ### [r]eset to [o]riginal
-  ro          = "!f() { \
-                        ECHO='echo -e'                                 ; \
-                        if [ 0 -eq $# ]; then \
-                          branch=$(git rev-parse --abbrev-ref HEAD)    ; \
-                        else \
-                          branch=\"$*\"                                ; \
-                        fi                                             ; \
-                        ${ECHO} \"\\033[1;33m~~> ${branch}\\033[0m\"   ; \
+  ### [m]arslo revie[w] [--sms] [--ccs]
+  mw          = "!f() { \
+                        declare branch=\"$(git rev-parse --abbrev-ref HEAD)\" ; \
+                        declare reviewers='' ; \
+                        if [ \"--sms\" = \"$1\" ]; then \
+                          reviewers=\"%r=a@domain.com,r=b@domain.com,r=c@domain.com,cc=d@domain.com\" ; \
+                        elif [ \"--ccs\" = \"$1\" ]; then \
+                          reviewers=\"%r=d@domain.com,r=e@domain.com,r=f@domain.com\" ; \
+                        fi ; \
+                        echo \"\\033[1;33m~~> ${branch}\\033[0m\" ; \
                         if [ 'meta/config' = \"${branch}\" ]; then \
-                          git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \
+                          git push origin HEAD:refs/for/refs/meta/config ; \
                         else \
-                          git fetch --all --prune --prune-tags --force ; \
-                        fi                                             ; \
-                        git reset --hard remotes/origin/${branch}      ; \
-                        git clean -dffx                                ; \
-                        if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \
-                          git submodule foreach --recursive git clean -dffx  ; \
-                          git submodule foreach --recursive git reset --hard ; \
-                          git submodule update -f --init --recursive         ; \
+                          git push origin HEAD:refs/for/${branch}${reviewers} ; \
                         fi ; \
                       }; f \
                 "
 
-  # `echo` for MacOS (sh); `echo -e` for Linux (bash); \
-  ### [r]eset to [o]riginal and re[b]ase
-  rob         = "!f() { \
-                        ECHO='echo -e'                              ; \
+  # `echo` for MacOS (sh); `echo -e` for Linux (bash)
+  ### [r]eset to [o]riginal
+  ro          = "!f() { \
+                        ECHO='echo -e' ; \
                         if [ 0 -eq $# ]; then \
                           branch=$(git rev-parse --abbrev-ref HEAD) ; \
                         else \
-                          branch=\"$*\"                             ; \
+                          branch=\"$*\" ; \
                         fi ; \
-                        git ro ${branch}                            ; \
+                        ${ECHO} \"\\033[1;33m~~> ${branch}\\033[0m\" ; \
+                        if [ 'meta/config' = \"${branch}\" ]; then \
+                          git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config ; \
+                        else \
+                          git fetch --all --prune --prune-tags --force ; \
+                        fi ; \
+                        git reset --hard remotes/origin/${branch} ; \
+                        git clean -dffx ; \
+                        if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \
+                          git submodule foreach --recursive git clean -dffx ; \
+                          git submodule foreach --recursive git reset --hard ; \
+                          git submodule update -f --init --recursive ; \
+                        fi ; \
+                      } ; f \
+                "
+
+  # `echo` for MacOS (sh); `echo -e` for Linux (bash)
+  ### [r]eset to [o]riginal and re[b]ase
+  rob         = "!f() { \
+                        ECHO='echo -e' ; \
+                        if [ 0 -eq $# ]; then \
+                          branch=$(git rev-parse --abbrev-ref HEAD) ; \
+                        else \
+                          branch=\"$*\" ; \
+                        fi ; \
+                        git ro ${branch} ; \
                         if [ 0 -ne $# ]; then \
-                          ${ECHO} \"\\033[1;33m~~> rebase from : ${branch}\\033[0m\"   ; \
-                          git rebase \"${branch}\"                  ; \
+                          ${ECHO} \"\\033[1;33m~~> rebase from : ${branch}\\033[0m\" ; \
+                          git rebase \"${branch}\" ; \
                         fi ; \
                       }; f \
                 "
@@ -635,8 +638,8 @@
   # ld        = !bash -l -c 'git diff -U0 "$@" | diff-lines' -
   ldiff       = diff -U0
   diffremote  = "!bash -c 'while read branch; do \n\
-                             git fetch origin $branch; \n\
-                             git ld $branch remotes/origin/$branch; \n\
+                             git fetch origin ${branch} ; \n\
+                             git ld $branch remotes/origin/${branch} ; \n\
                            done < <(git rev-parse --abbrev-ref HEAD) \n\
                           '"
   diffname    = git diff --name-only
@@ -659,20 +662,20 @@
   make-patch  = "! bash -c \"git format-patch HEAD~1; git reset HEAD~1\""
   pdraft      = !git push origin HEAD:refs/drafts/$1
   ghook       = "!bash -c 'scp -p -O -P 29418 vgitcentral.example.com:hooks/commit-msg $(git rev-parse --git-dir)/hooks/'"
-  ghprofile   = "! bash -c 'git config user.email \"marslo.jiao@gmail.com\"; \n\
+  ghprofile   = "! bash -c 'git config user.email \"marslo.jiao@gmail.com\" ; \n\
                             git config user.name \"marslo\" \n\
                            '"
   # https://stackoverflow.com/a/39616600/2940319
   ### convert anything into sh+ : `\"` -> `\\\"`
-  quote-string      = "!read -r l; printf \\\"!; printf %s \"$l\" | sed 's/\\([\\\"]\\)/\\\\\\1/g'; printf \" #\\\"\\n\" #"
-  quote-string-undo = "!read -r l; printf %s \"$l\" | sed 's/\\\\\\([\\\"]\\)/\\1/g'; printf \"\\n\" #"
+  quote-string      = "! read -r l; printf \\\"!; printf %s \"$l\" | sed 's/\\([\\\"]\\)/\\\\\\1/g'; printf \" #\\\"\\n\" #"
+  quote-string-undo = "! read -r l; printf %s \"$l\" | sed 's/\\\\\\([\\\"]\\)/\\1/g'; printf \"\\n\" #"
   showupstream      = "! bash -c 'while read branch; do \n\
-                                    upstream=$(git rev-parse --abbrev-ref ${branch}@{upstream} 2>/dev/null); \n\
+                                    upstream=$(git rev-parse --abbrev-ref ${branch}@{upstream} 2>/dev/null) ; \n\
                                     if [[ $? = 0 ]]; then \n\
-                                      echo -e \"${branch} tracks ${upstream}\"; \n\
+                                      echo -e \"${branch} tracks ${upstream}\" ; \n\
                                     else \n\
-                                      echo -e \"${branch} has no upstream configured\"; \n\
-                                    fi; \n\
+                                      echo -e \"${branch} has no upstream configured\" ; \n\
+                                    fi ; \n\
                                   done < <(git for-each-ref --format=\"%(refname:short)\" refs/heads/*) \n\
                                  ' \n\
                       "
@@ -690,9 +693,9 @@
   #-----------------------#
   # {{{
   show-cmd        = "!f() { \
-                              sep="㊣" ;\
-                              name=${1:-alias};\
-                              echo "$name"; \
+                              sep="㊣" ; \
+                              name=${1:-alias} ; \
+                              echo "$name" ; \
                               git config --get-regexp ^$name\\..*$2+ | \
                               cut -c 1-40 | \
                               sed -e s/^$name.// \
