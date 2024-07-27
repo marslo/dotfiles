@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-07-26 18:56:55
+#   LastChange : 2024-07-26 19:22:38
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -572,7 +572,13 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   \n\tshow help
   \t\t$(c G)\$ knrun -h$(c) | $(c G)\$ knrun --help$(c)
   \n\tto run commands \`uname -a\` in selected nodes
-  \t\t$(c G)\$ knrun --cmd \"uname -a\" [ --dind ] [ --armcc ] [ --verbose ]$(c)
+  \t\t$(c G)\$ knrun --cmd \"uname -a\" [ --verbose ]$(c)
+  \n\tto list docker tags and id in selected nodes ( filter via dind tags )
+  \t\t$(c G)\$ knrun --dind -c \"docker images --format '{{.Tag}}\\\t{{.ID}}'\" -v$(c)
+  \n\tto run local bash script in selected nodes ( filter via armcc tags )
+  \t\t$(c G)\$ knrun --armcc --file \"/path/to/script.sh\" [ --verbose ]$(c)
+  \n\tto clean up all dangling images in selected nodes ( filter via dind tags )
+  \t\t$(c G)\$ knrun --dind -c \"docker images -f dangling=true -q | uniq | xargs -r docker rmi -f\" -v$(c)
   """
 
   while test -n "$1"; do
