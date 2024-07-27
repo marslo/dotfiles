@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+# shellcheck source=/dev/null
 #=============================================================================
 #     FileName : git-st
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-02-01 03:39:19
-#   LastChange : 2024-04-04 19:41:58
+#   LastChange : 2024-07-26 22:47:28
 #   references : https://stackoverflow.com/q/77919418/2940319
 #=============================================================================
 
@@ -13,5 +14,14 @@ awk 'FNR==NR { k=$1; $1=""; map[k]=$0; next } { print $0 map[$2] }' \
     <(echo -e "${gdiff}") <(git status -sb) |
 column -t -s '|' -o '|' |
 sed -e '1 s/|$//'
+
+if [[ -z "${gdiff}" ]]; then
+  source "$HOME"/.marslo/bin/bash-color.sh
+  branch=$(git rev-parse --abbrev-ref HEAD)
+  echo -e "\n$(c Wdi)~~> local branch$(c) $(c Yi)${branch}$(c) $(c Wdi):$(c) "
+  git pl
+  echo -e "\n$(c Wdi)~~> remote branch$(c) $(c Yi)remotes/origin/${branch}$(c) $(c Wdi):$(c) "
+  git pl remotes/origin/"${branch}"
+fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
