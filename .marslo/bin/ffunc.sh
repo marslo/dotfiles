@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-07-26 19:22:38
+#   LastChange : 2024-07-26 22:32:45
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -630,6 +630,107 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
       fi
       eval "${sshCmd}"
     done <<< "${nodes}"
+  fi
+}
+
+# checkMountPoint : check if the mount point is mounted
+# @author         : marslo
+# @source         : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# @usage          : checkMountPoint </path/to/mountpoint>
+# @return         : 0 - mounted, 1 - not mounted
+function checkMountPoint() { mount | grep -qE "//[^\ ]+\son\s${1}.+"; echo $?; }
+
+# processMount - porcess mount in WSL ( mount -t cifs ) or OSX ( mount -t smbfs )
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# @references  :
+#   - [mount_cifs](https://askubuntu.com/a/1411378/92979)
+#   - [mount_cifs with credentials](https://serverfault.com/a/367942/129815)
+#   - [mount.smbfs](https://apple.stackexchange.com/a/699/254265)
+# @usage       : processMount <host> <path> [verbose (true|false)]
+# shellcheck disable=SC2155
+function processMount() {
+  local mpoint
+  local host="${1}"
+  local path="${2}"
+  local verbose="${3}"
+  # shellcheck disable=SC2001
+  local target="/tmp/$( sed 's/\$//' <<< "${path/\/}")"
+
+  if df -h | grep -q "${host}${path}" >/dev/null; then
+    local _target="$( df -h | command grep --color=never "${host}${path}" | awk '{print $NF}' )"
+    echo -e "$(c Wdi)~~>$(c) $(c Mi)${host}${path}$(c) $(c Wdi)has been mounted to$(c) $(c Mi)${_target}$(c) $(c Wdi)already ...$(c)"; return
+  fi
+
+  [[ '1' = "$(isWSL)" ]] && mpoint="//${host}${path}"
+  [[ '1' = "$(isOSX)" ]] && mpoint="//marslo@${host}:${path}"
+  if [[ -z "${mpoint}" ]]; then
+    echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint}$(c) $(c Wdi)cannot be empty. exit ...$(c)" && return
+  else
+    echo -e "$(c Wdi)~~> try mounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)to$(c) $(c Mi)${target}$(c) $(c Wdi)...$(c)"
+  fi
+
+  [[ -d "${target}" ]] || mkdir -p "${target}"
+  if [[ '1' = "$(isOSX)" ]]; then
+    mount -t smbfs "${mpoint}" "${target}"
+  elif [[ '1' = "$(isWSL)" ]]; then
+    [[ ! -f /usr/sbin/mount.cifs ]] && echo -e "$(c Bi)>> install cifs-utils first :$(c) $(c Gi)sudo apt install cifs-utils$(c) $(c Bi)...$(c)" && return
+    local _output=$( sudo mount -t cifs "${mpoint}" "${target}" -o credentials=/home/marslo/.cifs -vvv 2>&1 )
+    [[ 'true' = "${verbose}" ]] && echo -e "$(c Wdi)>> [DEBUG] : ${_output} ..$(c)"
+  fi
+
+  if [[ '1' = "$(checkMountPoint "${mpoint}")" ]]; then
+    echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint}$(c) $(c Wdi)->$(c) $(c Mi)${target}$(c) $(c Wdi)has been mounted successfully ...$(c)"
+    cd "${target}" || return
+  fi
+}
+
+# fmount       : using fzf to select mount point and mount it
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# @usage       : fmount [--auto] [--debug]
+function fmount() {
+  local points="1.2.3.4:/path hostname:/path/to/target"
+  local host
+  local path
+  local mpoint
+  local fzfOpt=''
+  local verbose='false'
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+       --auto ) fzfOpt='--reverse --bind start:+accept'; shift ;;
+      --debug ) verbose='true'                         ; shift ;;
+    esac
+  done
+
+  # shellcheck disable=SC2086
+  mpoint=$( echo "${points}" | fmt -1 | fzf --prompt="mount point: " ${fzfOpt} )
+  [[ -z "${mpoint}" ]] && echo -e "$(c Wdi)~~> no mount point in current environment ...$(c)" && return
+
+  host=$(sed -rn 's!^([^:]+):(.+)$!\1!p' <<< "${mpoint}")
+  path=$(sed -rn 's!^([^:]+):(.+)$!\2!p' <<< "${mpoint}")
+
+  processMount "${host}" "${path}" "${verbose}"
+}
+
+# fumount      : using fzf to select mount point and umount it
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+function fumount() {
+  local mpoint
+  mpoint=$( mount | sed -rn 's://[^\ ]+\son\s([^\ ]+).*:\1:p' | fzf --prompt="mount point: " )
+  [[ -z "${mpoint}" ]] && echo -e "$(c Wdi)~~> no mount point in current environment ...$(c)" && return
+
+  if [[ '0' = "$(checkMountPoint "${mpoint}")" ]]; then
+    echo -e "$(c Wdi)~~> umounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)...$(c)"
+    sudo umount "${mpoint}"
+    [[ '0' = "$(checkMountPoint "${mpoint}")" ]] && \
+      echo -e "$(c Wdi)~~>$(c) $(c Yi)${mpoint}$(c) $(c Wdi)umount failed ...$(c)" || \
+      echo -e "$(c Wdi)~~>$(c) $(c Gi)${mpoint}$(c) $(c Wdi)umount successfully ...$(c)"
+  else
+    echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint}$(c) $(c Wdi)is not exit. exit ...$(c)"
+    return
   fi
 }
 
