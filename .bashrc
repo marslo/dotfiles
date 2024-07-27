@@ -24,10 +24,14 @@ fi
 # remove duplicate line:
 # - awk '!x[$0]++'
 # - https://stackoverflow.com/a/11532197/2940319
-export PATH=$( echo "$PATH" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | paste -s -d: )
+if [[ 'Darwin' = "$(uname)" ]]; then
+  export PATH=$( echo "$PATH" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | /usr/local/opt/coreutils/libexec/gnubin/paste -s -d: )
+else
+  export PATH=$( echo "$PATH" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | paste -s -d: )
+fi
 
 # ubuntu/wsl
-if [[ 'debian' = $(awk -F '=' '/ID_LIKE/ { print $2 }' /etc/os-release) ]]; then
+if [[ -f /etc/os-release ]] && [[ 'debian' = $(awk -F '=' '/ID_LIKE/ { print $2 }' /etc/os-release) ]]; then
   export DEBIAN_FRONTEND=noninteractive
 fi
 
