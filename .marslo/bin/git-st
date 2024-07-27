@@ -4,7 +4,7 @@
 #     FileName : git-st
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-02-01 03:39:19
-#   LastChange : 2024-07-26 22:51:23
+#   LastChange : 2024-07-26 23:47:45
 #   references : https://stackoverflow.com/q/77919418/2940319
 #=============================================================================
 
@@ -27,10 +27,10 @@ column -t -s '|' -o '|' | sed -e '1 s/|$//'
 
 if [[ -z "${gdiff}" ]]; then
   branch=$(git rev-parse --abbrev-ref HEAD)
-  echo -e "\n$(c Wdi)~~> local branch$(c) $(c Yi)${branch}$(c) $(c Wdi):$(c) "
+  echo -e "\n$(c Wdi)~~>$(c) $(c Yi)${branch}$(c) $(c Wdi):$(c) "
   git --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=3
   if [[ 'true' = "${rlog}" ]]; then
-    echo -e "\n$(c Wdi)~~> remote branch$(c) $(c Yi)remotes/origin/${branch}$(c) $(c Wdi):$(c) "
+    echo -e "\n$(c Wdi)~~>$(c) $(c Yi)remotes/origin/${branch}$(c) $(c Wdi):$(c) "
     git --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=3 remotes/origin/"${branch}"
   fi
 fi

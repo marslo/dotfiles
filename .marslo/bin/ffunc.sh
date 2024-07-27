@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-07-26 23:14:12
+#   LastChange : 2024-07-26 23:47:16
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -556,6 +556,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   local kconfig="${HOME}/.kube/config"
   local reproject='false'
   local hhost='false'
+  local online='true'
 
   # shellcheck disable=SC2155
   local usage="""
@@ -565,6 +566,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   \t\t[ -f | --file <FILEPATH> ]
   \t\t[ -l | --armcc ]
   \t\t[ -d | --dind ]
+  \t\t[ -o | --offline ]
   \t\t[ -v | --verbose ]
   \t\t[ --re ] [ --hhost ]
   \t\t[ -h | --help ]$(c)
@@ -588,6 +590,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
       -d | --dind    ) dind='true'                          ; shift    ;;
       -l | --armcc   ) armcc='true'                         ; shift    ;;
       -f | --file    ) path="${2}"                          ; shift 2  ;;
+      -o | --offline ) online='false'                       ; shift    ;;
       --re           ) reproject='true'                     ; shift    ;;
       --hhost        ) hhost='true'                         ; shift    ;;
       -h | --help    ) echo -e "${usage}"                   ; return   ;;
@@ -610,8 +613,14 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
     fi
     [[ 0 -ne ${#selector[@]} ]] && k8sOpt="--selector $(joinBy ',' "${selector[@]}")" || k8sOpt=''
 
+    local jqOpt=''
+    [[ 'true' = "${online}" ]] &&
+      jqOpt='.items[] | select(.spec.taints|not) | select(.status.conditions[].reason=="KubeletReady" and .status.conditions[].status=="True") | .metadata.name' ||
+      jqOpt='.items[] | select(.status.conditions[].reason=="KubeletReady") | .metadata.name'
+
     nodes=$( kubecolor --kubeconfig "${kconfig}" get nodes ${k8sOpt} -o json |
-                jq -r '.items[] | select(.spec.taints|not) | select(.status.conditions[].reason=="KubeletReady" and .status.conditions[].status=="True") | .metadata.name' |
+                jq -r "${jqOpt}" |
+                sort --version-sort |
                 fzf --prompt "hostname >"
            )
   fi
@@ -725,8 +734,8 @@ function fumount() {
   if [[ '0' = "$(checkMountPoint "${mpoint}")" ]]; then
     echo -e "$(c Wdi)~~> umounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)...$(c)"
     sudo umount "${mpoint}"
-    [[ '0' = "$(checkMountPoint "${mpoint}")" ]] && \
-      echo -e "$(c Wdi)~~>$(c) $(c Yi)${mpoint}$(c) $(c Wdi)umount failed ...$(c)" || \
+    [[ '0' = "$(checkMountPoint "${mpoint}")" ]] &&
+      echo -e "$(c Wdi)~~>$(c) $(c Yi)${mpoint}$(c) $(c Wdi)umount failed ...$(c)" ||
       echo -e "$(c Wdi)~~>$(c) $(c Gi)${mpoint}$(c) $(c Wdi)umount successfully ...$(c)"
   else
     echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint}$(c) $(c Wdi)is not exit. exit ...$(c)"
