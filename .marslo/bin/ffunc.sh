@@ -668,15 +668,17 @@ function processMount() {
 
   if df -h | grep -q "${host}${path}" >/dev/null; then
     local _target="$( df -h | command grep --color=never "${host}${path}" | awk '{print $NF}' )"
-    echo -e "$(c Wdi)~~>$(c) $(c Mi)${host}${path}$(c) $(c Wdi)has been mounted to$(c) $(c Mi)${_target}$(c) $(c Wdi)already ...$(c)"; return
+    [[ ! 'false' != "${verbose}" ]] || echo -e "$(c Wdi)~~>$(c) $(c Mi)${host}${path}$(c) $(c Wdi)has been mounted to$(c) $(c Mi)${_target}$(c) $(c Wdi)already ...$(c)"; return
   fi
 
   [[ '1' = "$(isWSL)" ]] && mpoint="//${host}${path}"
   [[ '1' = "$(isOSX)" ]] && mpoint="//marslo@${host}:${path}"
-  if [[ -z "${mpoint}" ]]; then
-    echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint}$(c) $(c Wdi)cannot be empty. exit ...$(c)" && return
-  else
-    echo -e "$(c Wdi)~~> try mounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)to$(c) $(c Mi)${target}$(c) $(c Wdi)...$(c)"
+  if [[ 'false' != "${verbose}" ]]; then
+    if [[ -z "${mpoint}" ]]; then
+      echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint}$(c) $(c Wdi)cannot be empty. exit ...$(c)" && return
+    else
+      echo -e "$(c Wdi)~~> try mounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)to$(c) $(c Mi)${target}$(c) $(c Wdi)...$(c)"
+    fi
   fi
 
   [[ -d "${target}" ]] || mkdir -p "${target}"
@@ -688,7 +690,7 @@ function processMount() {
     [[ 'true' = "${verbose}" ]] && echo -e "$(c Wdi)>> [DEBUG] : ${_output} ..$(c)"
   fi
 
-  if [[ '1' = "$(checkMountPoint "${mpoint}")" ]]; then
+  if [[ '1' = "$(checkMountPoint "${mpoint}")" ]] && [[ 'false' != "${verbose}" ]]; then
     echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint}$(c) $(c Wdi)->$(c) $(c Mi)${target}$(c) $(c Wdi)has been mounted successfully ...$(c)"
     cd "${target}" || return
   fi
@@ -697,25 +699,26 @@ function processMount() {
 # fmount       : using fzf to select mount point and mount it
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
-# @usage       : fmount [--auto] [--debug]
+# @usage       : fmount [--auto] [--debug] [--silent]
 function fmount() {
   local points="1.2.3.4:/path hostname:/path/to/target"
   local host
   local path
   local mpoint
   local fzfOpt=''
-  local verbose='false'
+  local verbose=''
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-       --auto ) fzfOpt='--reverse --bind start:+accept'; shift ;;
-      --debug ) verbose='true'                         ; shift ;;
+       --auto  ) fzfOpt='--reverse --bind start:+accept'; shift ;;
+      --debug  ) verbose='true'                         ; shift ;;
+      --silent ) verbose='false'                        ; shift ;;
     esac
   done
 
   # shellcheck disable=SC2086
   mpoint=$( echo "${points}" | fmt -1 | fzf --prompt="mount point: " ${fzfOpt} )
-  [[ -z "${mpoint}" ]] && echo -e "$(c Wdi)~~> no mount point in current environment ...$(c)" && return
+  [[ -z "${mpoint}" ]] && [[ 'true' = "${verbose}" ]] && echo -e "$(c Wdi)~~> no mount point in current environment ...$(c)" && return
 
   host=$(sed -rn 's!^([^:]+):(.+)$!\1!p' <<< "${mpoint}")
   path=$(sed -rn 's!^([^:]+):(.+)$!\2!p' <<< "${mpoint}")
