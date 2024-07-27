@@ -61,15 +61,19 @@ alias -- ---='pushd -1'
 alias dv='dirs -v'
 
 # show colorful
-alias grep='grep -i --color=always'
-alias lgrep='grep -i -n --color=always'
-alias egrep='egrep -i -n --color=always'
-alias egp='egrep -v "(#|^$)"'
+## command grep -> /usr/local/opt/grep/libexec/gnubin/grep in mac
+alias grep='command grep -i --color=always'
+alias lgrep='command grep -i -n --color=always'
+alias egrep='command egrep -i -n --color=always'
+alias egp='command egrep -v "(#|^$)"'
 alias h='history | grep -i --color=always'
 alias his='history'
-# alias more='more -r'
 alias diff='diff --color=auto'
 alias fdiff="diff --old-group-format=$'\\e[0;31m%<\\e[0m' --new-group-format=$'\\e[0;31m%>\\e[0m' --unchanged-group-format=$'\\e[0;32m%=\\e[0m'"
+
+if [[ '1' = $(isOSX) ]]; then
+  alias more='more -r'
+fi
 
 alias ld='\ls -alvd --color=always */'
 alias ls='ls --color=always'
