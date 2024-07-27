@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-07-09 14:22:38
+#   LastChange : 2024-07-26 18:56:55
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -511,11 +511,11 @@ function fif() {                           # [f]ind-[i]n-[f]ile
 }
 
 # /**************************************************************
-#   __     __
-#  / _|___/ _|  ___   _ __ _ _ ___  __ ___ ______
-# |  _|_ /  _| |___| | '_ \ '_/ _ \/ _/ -_|_-<_-<
-# |_| /__|_|         | .__/_| \___/\__\___/__/__/
-#                    |_|
+#   __     __              _   _ _ _ _
+#  / _|___/ _|  ___   _  _| |_(_) (_) |_ _  _
+# |  _|_ /  _| |___| | || |  _| | | |  _| || |
+# |_| /__|_|          \_,_|\__|_|_|_|\__|\_, |
+#                                        |__/
 #
 # **************************************************************/
 function lsps() {                          # [l]i[s]t [p]roces[s]
@@ -535,6 +535,96 @@ function killps() {                        # [kill] [p]roces[s]
       --layout=reverse --height=80% |
   awk '{print $2}' |
   xargs -r kill -9
+}
+
+# knrun - run shell command/script in k8s nodes
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# @references  :
+#   - exit in while loop by Ctrl-C: https://stackoverflow.com/a/58508884/2940319
+#   - join array by delimiter: https://stackoverflow.com/a/17841619/2940319
+#   - run ssh command in while loop: https://stackoverflow.com/a/1396070/2940319
+# [k]ubernets [n]odes [run] - run commands in k8s nodes
+function knrun() {                        # [k]ubernetes [n]odes [run]
+  function joinBy { local d=${-} f=${2-}; if shift 2; then printf %s "$f" "${@/#/$d}"; fi; }
+  declare -a selector
+  local nodes=''
+  local cmd=''
+  local verbose='false'
+  local dind='false'
+  local armcc='false'
+  local kconfig="${HOME}/.kube/config"
+  local reproject='false'
+  local hhost='false'
+
+  # shellcheck disable=SC2155
+  local usage="""
+  \t $(c M)knrun$(c) - $(c iM)k$(c)ubernets $(c iM)n$(c)odes $(c iM)run$(c): to run commands in k8s nodes
+  \nSYNOPSIS:
+  \n\t$(c sY)\$ knrun [ -c | --cmd <CMD> ]
+  \t\t[ -f | --file <FILEPATH> ]
+  \t\t[ -l | --armcc ]
+  \t\t[ -d | --dind ]
+  \t\t[ -v | --verbose ]
+  \t\t[ --re ] [ --hhost ]
+  \t\t[ -h | --help ]$(c)
+  \nEXAMPLE:
+  \n\tshow help
+  \t\t$(c G)\$ knrun -h$(c) | $(c G)\$ knrun --help$(c)
+  \n\tto run commands \`uname -a\` in selected nodes
+  \t\t$(c G)\$ knrun --cmd \"uname -a\" [ --dind ] [ --armcc ] [ --verbose ]$(c)
+  """
+
+  while test -n "$1"; do
+    case "$1" in
+      -c | --cmd     ) cmd="${2}"                           ; shift 2  ;;
+      -v | --verbose ) verbose='true'                       ; shift    ;;
+      -d | --dind    ) dind='true'                          ; shift    ;;
+      -l | --armcc   ) armcc='true'                         ; shift    ;;
+      -f | --file    ) path="${2}"                          ; shift 2  ;;
+      --re           ) reproject='true'                     ; shift    ;;
+      --hhost        ) hhost='true'                         ; shift    ;;
+      -h | --help    ) echo -e "${usage}"                   ; return   ;;
+      *              ) echo "Invalid option $1. try -h" >&2 ; return 1 ;;
+    esac
+  done
+
+  [[ -z "${cmd}" && -z "${path}" ]] && echo -e "$(c Rs)ERROR$(c): $(c G)\`-c/--cmd\`$(c) or $(c G)\`-f/--file\`$(c) is mandatory. check more options via $(c Yi)\`-h\`$(c) or $(c Yi)\`--help\`$(c). EXIT ..." && return 2;
+
+  # shellcheck disable=SC2086
+  if [[ 'true' = "${hhost}" ]] && [[ 'true' = "${reproject}" ]]; then
+    nodes=$( echo re{01..19} | fmt -1 | fzf --prompt "hostname >" )
+  else
+    if [[ 'true' = "${reproject}" ]]; then
+      kconfig="${HOME}/.kube.re/config"
+      selector+=('node-role.kubernetes.io/worker=worker')
+    else
+      [[ 'true' = "${dind}"  ]] && selector+=('devops.sample/docker.builder=true')
+      [[ 'true' = "${armcc}" ]] && selector+=('devops.sample/armcc=available')
+    fi
+    [[ 0 -ne ${#selector[@]} ]] && k8sOpt="--selector $(joinBy ',' "${selector[@]}")" || k8sOpt=''
+
+    nodes=$( kubecolor --kubeconfig "${kconfig}" get nodes ${k8sOpt} -o json |
+                jq -r '.items[] | select(.spec.taints|not) | select(.status.conditions[].reason=="KubeletReady" and .status.conditions[].status=="True") | .metadata.name' |
+                fzf --prompt "hostname >"
+           )
+  fi
+
+  [[ 'true' = "${reproject}" ]] && username='jenkins' || username='devops'
+  if [[ -n ${nodes} ]]; then
+    trap exit SIGINT SIGTERM; while read -r _node; do
+      printf "\n$(c Wd)>>$(c) $(c Ys)%s$(c) $(c Wd)<<$(c)\n" "${_node}"
+      if [[ -n "${path}" ]]; then
+        sshCmd="ssh -q ${username}@${_node} 'bash -s' < \"${path}\""
+      else
+        sshCmd="ssh -n ${username}@${_node} \"${cmd}\""
+      fi
+      if [[ 'true' = "${verbose}"  ]]; then
+        printf "$(c Wdi)>> [DEBUG]:$(c) $(c Wi)%s$(c)\n" "${sshCmd}"
+      fi
+      eval "${sshCmd}"
+    done <<< "${nodes}"
+  fi
 }
 
 # /**************************************************************
@@ -933,6 +1023,8 @@ function kpcani() {                        # [k]ubectl [p]od [can]-[i]
 # drclr - docker remote clean images via keywords in tags
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# @references  :
+#   - exit in while loop by Ctrl-C: https://stackoverflow.com/a/58508884/2940319; https://gist.github.com/iangreenleaf/279849
 # [d]ocker [r]emote [c][l]ea[r]
 function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
   local username='devops'
@@ -990,14 +1082,14 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
   cmd="docker images ${name} --format \\\"${extraFormat}{{.Tag}}\\t{{.ID}}\\\" ${extraCmd}"
   [[ 'true' = "${delete}" ]] && cmd+=" | awk '{print \\\$NF}' | uniq | xargs -r docker rmi -f"
 
-  [[ 'true' = "${dind}" ]] && k8sOpt='-l devops.marvell/docker.builder=true' || k8sOpt=''
+  [[ 'true' = "${dind}" ]] && k8sOpt='-l devops.sample/docker.builder=true' || k8sOpt=''
   hostnames=$( kubecolor --kubeconfig ~/.kube/config get nodes ${k8sOpt} -o json |
               jq -r '.items[] | select(.spec.taints|not) | select(.status.conditions[].reason=="KubeletReady" and .status.conditions[].status=="True") | .metadata.name' |
               fzf --cycle --exit-0 --prompt "hostname > "
          )
 
   if [[ -n ${hostnames} ]]; then
-    while read -r _hostname; do
+    trap exit SIGINT SIGTERM; while read -r _hostname; do
       echo -e "$(c Wd)>>$(c) $(c Gis)${_hostname}$(c) $(c Wd)<<$(c)"
       eval "ssh -n ${username}@${_hostname} \"${cmd}\""
       eval "ssh -n ${username}@${_hostname} \"docker images --filter dangling=true -q | xargs -r docker rmi -f\""
@@ -1008,15 +1100,12 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
 # ddi - delete docker images via keywords in tags in remote server
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# @references  :
+#   - exit in while loop by Ctrl-C: https://stackoverflow.com/a/58508884/2940319
+#   - join array by delimiter: https://stackoverflow.com/a/17841619/2940319
 # [d]elete [d]ocker [i]mages
 function ddi() {                          # [d]elete [d]ocker [i]mages
-  function join_by {
-    local d=${1-} f=${2-}
-    if shift 2; then
-      printf %s "$f" "${@/#/$d}"
-    fi
-  }
-
+  function joinBy { local d=${1-} f=${2-}; if shift 2; then printf %s "$f" "${@/#/$d}"; fi; }
   declare -a tags
   local nodes=''
   local cmd=''
@@ -1057,7 +1146,7 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
       --dangling     ) dangling='true'                      ;  shift    ;;
       --no-dangling  ) dangling='false'                     ;  shift    ;;
       --dryrun       ) dryrun='true'                        ;  shift    ;;
-      -h  | --help   ) echo -e "${usage}"                   ;  return   ;;
+      -h | --help    ) echo -e "${usage}"                   ;  return   ;;
       *              ) echo "Invalid option $1. try -h" >&2 ;  return 1 ;;
     esac
   done
@@ -1073,7 +1162,7 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
   # reset cmd if dryrun is true
   if [[ 'true' = "${dryrun}" ]]; then
     format="\\\"{{.Repository}}\\\\\\t{{.Tag}}\\\\\\t{{.ID}}\\\""
-    cmd="docker images --format \"${format}\" | awk -v VAR=\\\"$(join_by '|' "${tags[@]}")\\\" '\\\$2 ~ VAR'"
+    cmd="docker images --format \"${format}\" | awk -v VAR=\\\"$(joinBy '|' "${tags[@]}")\\\" '\\\$2 ~ VAR'"
     [[ 'true' = "${dangling}" ]] && cmd+="; docker images -f dangling=true --format \"${format}\""
   fi
 
@@ -1084,7 +1173,7 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
               fzf --prompt "hostname >"
          )
   if [[ -n ${nodes} ]]; then
-    while read -r _node; do
+    trap exit SIGINT SIGTERM; while read -r _node; do
       echo -e "$(c Wd)>>$(c) $(c Ys)${_node}$(c) $(c Wd)<<$(c)"
       sshCmd="ssh devops@${_node} \"${cmd}\""
       if [[ 'true' = "${verbose}"  ]]; then
