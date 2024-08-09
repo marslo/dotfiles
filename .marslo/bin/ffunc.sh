@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-07-26 23:47:16
+#   LastChange : 2024-08-08 21:31:38
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -248,6 +248,50 @@ function b() {                             # chrome [b]ookmarks browser with jq
         )
   # shellcheck disable=SC2046
   [[ -z "${urls}" ]] || "${open}" $(xargs -r <<< "${urls}")
+}
+
+# fmsh - using `fzf` to connect mongodb with mongosh
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# @description :
+#   - --eval : eval db.collection.<COMMAND>
+#   - --json : print json format
+# @usage       : $ fmsh [ --eval <COMMAND> ] [ --json ]
+# shellcheck disable=SC2155
+function fmsh() {
+  local cmd=''
+  local evalCmd=''
+  local jsonPrint='false'
+  declare -A credentials=(
+                           ['username@database']='path/to/credential'
+                         )
+
+  local db=$( printf "%s\n" "${!credentials[@]}" | fzf )
+  local username="${db%%@*}"
+  local database="${db##*@}"
+  local passPath="${credentials[$db]}"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --eval ) evalCmd="$2"     ; shift 2 ;;
+      --json ) jsonPrint='true' ; shift   ;;
+           * ) break                      ;;
+    esac
+  done
+
+  cmd="mongosh 'mongodb://mongodb.sample.com:27017'"
+  cmd+=" --username '${username}' --password '$(pass show ${passPath})'"
+  cmd+=" --authenticationDatabase '${database}'"
+  if [[ -n "${evalCmd}" ]]; then
+    if [[ 'true' = "${jsonPrint}" ]]; then
+      cmd+=" --eval \"db = db.getSiblingDB('${database}'); printjson( ${evalCmd} )\""
+      cmd+=" | tr \"'\" '\"' | jq -r"
+    else
+      cmd+=" --eval \"db = db.getSiblingDB('${database}'); ${evalCmd}\""
+    fi
+  fi
+
+  eval "${cmd}"
 }
 
 # /**************************************************************
