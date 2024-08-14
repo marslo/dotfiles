@@ -87,7 +87,7 @@
   autoStash         = true
 [init]
   defaultBranch     = main
-  templatedir       = /Users/marslo/.git-templates
+  templatedir       = ~/.git-templates
 [blame]
   # https://gist.github.com/BuonOmo/ce45b51d0cefe949fd0c536a4a60f000
   # date            = relative
