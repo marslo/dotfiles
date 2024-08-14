@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-08-08 21:31:38
+#   LastChange : 2024-08-13 18:11:53
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -112,7 +112,7 @@ function cat() {                           # smart cat
 
 # shellcheck disable=SC2089,SC2090
 function fdInRC() {
-  local rcPaths="$HOME/.config/nvim $HOME/.marslo $HOME/.idlerc $HOME/.ssh"
+  local rcPaths="$HOME/.config/nvim $HOME/.marslo $HOME/.idlerc $HOME/.ssh $HOME/.jfrog"
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   fdOpt+=' --exec stat --printf="%y | %n\n"'
   (
