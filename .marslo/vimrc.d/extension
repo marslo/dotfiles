@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-07-02 13:08:35
+"    LastChange : 2024-08-22 14:23:49
 " =============================================================================
 
 " /**************************************************************
@@ -28,7 +28,7 @@ call plug#begin( '~/.vim/plugged' )
 Plug 'junegunn/vim-plug'
 Plug 'tpope/vim-pathogen'
 Plug 'tpope/vim-surround'
-Plug 'godlygeek/tabular'
+Plug 'godlygeek/tabular', { 'commit': '84057252a01e96909cd1a9f0b1395f5d9f61be1e' }
 Plug 'tpope/vim-repeat'
 Plug 'Yggdroot/indentLine'
 Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
