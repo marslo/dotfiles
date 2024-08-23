@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-08-22 17:31:53
+"    LastChange : 2024-08-22 23:19:15
 " =============================================================================
 
 runtime macros/matchit.vim
@@ -11,8 +11,6 @@ runtime defaults.vim
 let performance_mode = 1
 set nocompatible
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip
-let g:python3_host_prog = expand( trim(system('command -v python3')) )
-let g:gitgutter_git_executable = expand( trim(system('command -v git')) )
 
 source ~/.marslo/vimrc.d/os
 
@@ -25,18 +23,21 @@ else                                                                " if has('un
   set spellcapcheck=0
 endif
 
-if IsMac()
-  set shell=/usr/local/bin/bash
+" python, git, shell environment
+if IsGitBash() || IsNuShell()
+  let g:python3_host_prog        = 'c:\iMarslo\myprograms\Python312\python.exe'
+  let g:gitgutter_git_executable = '/mingw64/bin/git'
 elseif IsWindows()
-  set shell=c:\iMarslo\myprograms\Git\bin\bash.exe
+  let g:python3_host_prog        = 'c:\iMarslo\myprograms\Python312\python.exe'
   let g:gitgutter_git_executable = 'c:\iMarslo\myprograms\Git\bin\git.exe'
-else                                                                " linux/wsl
+  " set shell=C:\iMarslo\myprograms\Git\bin\bash.exe
+else
+  let g:python3_host_prog        = expand(trim( system('command -v python3') ))
+  let g:gitgutter_git_executable = expand(trim( system('command -v git') ))
   set shell=/usr/bin/bash
 endif
-if executable( 'bash' )
-  set shellcmdflag=-c
-  let &shellcmdflag = '-c'
-endif
+if IsMac() | set shell=/usr/local/bin/bash    | endif               " let &shell = '/usr/local/bin/bash'
+if executable( 'bash' ) | set shellcmdflag=-c | endif               " let &shellcmdflag = '-c'
 
 if filereadable( '/usr/local/opt/fzf' )
   set runtimepath+=/usr/local/opt/fzf
