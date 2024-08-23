@@ -63,6 +63,7 @@ if [[ '1' = "$(isWSL)" ]]; then
   alias pbcopy='wl-copy --trim-newline'
   alias bcomp='/mnt/c/Program\ Files/Beyond\ Compare\ 4/BComp.exe'
   # alias open='xdg-open'
+  alias chrome='/mnt/c/Users/marslo/AppData/Local/Google/Chrome SxS/Application/chrome.exe'
   alias cygpath='/mnt/c/iMarslo/myprograms/Git/usr/bin/cygpath.exe'
   alias vscode='/mnt/c/Users/marslo/AppData/Local/Programs/Microsoft\ VS\ Code/Code.exe'
 fi

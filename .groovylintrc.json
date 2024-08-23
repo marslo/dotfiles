@@ -8,6 +8,7 @@
     "convention.CompileStatic": {
       "severity": "info"
     },
+    "naming.FactoryMethodName": "off",
     "convention.FieldTypeRequired": "info",
     "convention.IfStatementCouldBeTernary": "info",
     "convention.NoDef": "info",
