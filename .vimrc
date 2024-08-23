@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-05-28 18:36:57
+"    LastChange : 2024-08-22 17:31:53
 " =============================================================================
 
 runtime macros/matchit.vim
@@ -32,6 +32,10 @@ elseif IsWindows()
   let g:gitgutter_git_executable = 'c:\iMarslo\myprograms\Git\bin\git.exe'
 else                                                                " linux/wsl
   set shell=/usr/bin/bash
+endif
+if executable( 'bash' )
+  set shellcmdflag=-c
+  let &shellcmdflag = '-c'
 endif
 
 if filereadable( '/usr/local/opt/fzf' )
