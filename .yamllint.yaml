@@ -13,4 +13,4 @@ rules:
     max-spaces-inside: 1
 
   truthy:
-    allowed-values: ['yes', 'no']
+    allowed-values: ['yes', 'no', 'true', 'false', 'on', 'off']
