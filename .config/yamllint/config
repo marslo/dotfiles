@@ -2,3 +2,4 @@ extends: relaxed
 
 rules:
   line-length: disable
+  truthy: disable
