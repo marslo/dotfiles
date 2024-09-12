@@ -17,8 +17,8 @@ alias vimd="cd ~/.marslo/vimrc.d"
 
 alias mw="cd ${MYWORKSPACE}"
 alias jo="cd ${MYWORKSPACE}/job"
+alias dos="cd ${MYWORKSPACE}/job/devops"
 alias jc="cd ${MYWORKSPACE}/job/code"
-alias dos="cd ${MYWORKSPACE}/job/code/devops"
 alias re="cd ${MYWORKSPACE}/job/code/re"
 alias onf="cd ${MYWORKSPACE}/job/code/tool-config"
 
@@ -63,7 +63,7 @@ if [[ '1' = "$(isWSL)" ]]; then
   alias pbcopy='wl-copy --trim-newline'
   alias bcomp='/mnt/c/Program\ Files/Beyond\ Compare\ 4/BComp.exe'
   # alias open='xdg-open'
-  alias chrome='/mnt/c/Users/marslo/AppData/Local/Google/Chrome SxS/Application/chrome.exe'
+  # alias chrome='/mnt/c/Users/marslo/AppData/Local/Google/Chrome SxS/Application/chrome.exe'
   alias cygpath='/mnt/c/iMarslo/myprograms/Git/usr/bin/cygpath.exe'
   alias vscode='/mnt/c/Users/marslo/AppData/Local/Programs/Microsoft\ VS\ Code/Code.exe'
 fi

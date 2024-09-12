@@ -1124,7 +1124,7 @@ function kcani() {                         # [k]ubectl [can]-[i]
                           --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
                           --header 'Press CTRL-Y to copy name into clipboard'
              )
-  [[ -z "${namespaces}" ]] && echo "$(c Rs)ERROR: select at least one namespace !$(c)" && return
+  [[ -z "${namespaces}" ]] && echo -e "$(c Rs)ERROR: select at least one namespace !$(c)" && return
 
   while read -r namespace; do
     echo -e "\n>> $(c Ys)${namespace}$(c)"

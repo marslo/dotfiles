@@ -4,7 +4,7 @@
 #   FileName: kubernetes
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2024-05-21 18:12:00
+# LastChange: 2024-09-11 17:36:39
 # =============================================================================
 
 alias kubectl='kubecolor'
@@ -19,6 +19,10 @@ alias kubeproxy="kubectl proxy --address=\"0.0.0.0\" -p 8001 --accept-hosts='^*$
 alias  k3="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw3/.kube/config"
 alias  k4="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw4/.kube/config"
 alias  k8="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw8/.kube/config"
+alias  kk="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5lt-ssdfw01/.kube/config"
+alias kl1="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5lt-ssdfw01/.kube/config"
+alias kl2="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5lt-ssdfw02/.kube/config"
+alias kl3="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5lt-ssdfw03/.kube/config"
 alias kt1="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst1/.kube/config"
 alias kt2="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst2/.kube/config"
 alias kt3="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfwtst3/.kube/config"
