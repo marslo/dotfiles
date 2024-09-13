@@ -4,11 +4,11 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-08-13 18:11:53
+#   LastChange : 2024-09-13 00:52:32
 #  Description : [f]zf [func]tion
 #=============================================================================
 
-source $HOME/.marslo/bin/bash-color.sh
+source "${HOME}"/.marslo/bin/bash-color.sh
 
 # /**************************************************************
 #  ___        ___
@@ -292,6 +292,40 @@ function fmsh() {
   fi
 
   eval "${cmd}"
+}
+
+# fpw - using `fzf` to copy password from pass store into clipboard
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# @usage       : $ fpw [ -s | --show ]
+function fpw() {
+  passStoreDir="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+  show='false'
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -s | --show ) show='true' ; shift ;;
+                * ) break               ;;
+    esac
+  done
+
+  path=$( command fd . "${passStoreDir}" --extension gpg --color=never --type f --hidden --follow |
+          xargs -I_ bash -c "sed -r \"s:${passStoreDir}/marvell/(.+).gpg:\\1:\" <<< _" |
+          fzf --no-multi -1 \
+              --sort --tac \
+              --cycle \
+              --exit-0 \
+              --prompt 'pass> ' \
+              --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
+              --header 'Press CTRL-Y to copy name into clipboard' \
+      )
+
+  [[ 'true' = "${show}" ]] && option='show' || option='--clip'
+
+  [[ -n "${path}" ]] &&
+  if command pass ${option} "marvell/${path}" >/dev/null; then
+    echo -e "$(c Wd)>> copied$(c) $(c Yi)marvell/${path}$(c) $(c Wd)to clipboard .. will clear in$(c) $(c Ydi)45$(c) $(c Wd)seconds ..$(c)"
+  fi
 }
 
 # /**************************************************************
