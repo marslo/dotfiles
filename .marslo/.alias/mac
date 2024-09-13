@@ -3,7 +3,7 @@
 #   FileName: mac
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2019-09-19 15:48:14
+# LastChange: 2024-09-12 23:11:35
 # =============================================================================
 
 # shellcheck disable=SC2139
@@ -12,24 +12,21 @@ RTDOMAIN='pww.artifactory.cdi.philips.com'
 alias sxcode92='sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer/'
 alias sxcode833='sudo xcode-select -switch /Applications/Xcode8.3.3.app/Contents/Developer/'
 alias cdwda='cd /usr/local/lib/node_modules/appium/node_modules/appium-xcuitest-driver/WebDriverAgent'
-alias removeDS='find . -name .DS_Store -print0 | xargs -0 git rm -f --ignore-unmatch'
 
 # Start/stop indexing on all volumes.
 alias spotlight_off='sudo mdutil -a -i off'
 alias spotlight_on='sudo mdutil -a -i on'
 
 alias date="gdate"
-alias alfredreindex="/Applications/Alfred\\ 3.app/Contents/Frameworks/Alfred\\ Framework.framework/Versions/A/Resources/reindex.sh"
-alias alfredreindex='/Applications/Alfred 4.app/Contents/Frameworks/Alfred Framework.framework/Versions/Current/Resources/reindex.sh'
+alias alfredreindex='/Applications/Alfred 5.app/Contents/Frameworks/Alfred Framework.framework/Versions/A/Resources/reindex.sh'
 
 # alias chrome="/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --disable-gpu"
 alias chromec="'/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary' --disable-gpu"
 alias chrome="'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --disable-gpu"
 
-
 alias dockerlogin="docker login --username marslo ${RTDOMAIN}"
 # alias dockerstop="sudo killall Docker"
-alias dockerstop="osascript -e 'tell app \"Dock\" to quit'"
+alias dockerstop="osascript -e 'tell app \"Docker\" to quit'"
 alias dockerstart="open --hide --background -a Docker"
 alias dockerrestart="sudo killall Docker && sleep 5 && open --hide --background -a Docker"
 
@@ -40,7 +37,8 @@ alias sshrestart='sudo launchctl stop com.openssh.ssh-agent; sudo launchctl star
 alias bs='brew search'
 alias bi='brew install'
 
-alias dsclean="/usr/local/bin/fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --glob '*\.DS_*' $HOME -x rm -rf"
-alias lgclean="/usr/local/bin/fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --glob '*\logback.log' $HOME -x rm -rf"
+# alias removeDS='find . -name .DS_Store -print0 | xargs -0 git rm -f --ignore-unmatch'
+alias cleands="/usr/local/bin/fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --glob '*\.DS_*' $HOME -x rm -rf"
+alias cleanlg="/usr/local/bin/fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --glob '*\logback.log' $HOME -x rm -rf"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
