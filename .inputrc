@@ -2,7 +2,9 @@
 #     FileName : .inputrc
 #       Author : marslo.jiao@gmail.com
 #      Created : 2020-08-25 15:22:56
-#   LastChange : 2024-01-31 20:53:37
+#   LastChange : 2024-09-12 23:33:03
+#        Usage : - "\C-x\C-r": re-read-init-file
+#                - `bind -f ~/.inputrc`: reload the file
 #=============================================================================
 # [GNU Readline Library](https://tiswww.case.edu/php/chet/readline/rluserman.html)
 # [PS1](https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/.env#L209)
@@ -34,11 +36,15 @@ set show-mode-in-prompt on
 # \C : Control     #
 ####################
 
-set meta-flag on
-# allow iso-latin1 characters to be inserted
-set convert-meta                   on
+# https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#Readline-Init-File-Syntax
+# allow 8bit input
+set meta-flag                      on
 # don't strip characters to 7 bits when reading
 set input-meta                     on
+# keep the 8th bit for display
+set output-meta                    on
+# only allow iso-latin1 characters to be inserted
+set convert-meta                   off
 set completion-ignore-case         on
 set show-all-if-ambiguous          on
 set show-all-if-unmodified         on
@@ -50,7 +56,7 @@ set enable-bracketed-paste         off
 # https://groups.google.com/g/iterm2-discuss/c/K6YazwKUvjQ/m/7eqeT-AvBgAJ
 
 # TAB: menu-complete
-# set colored-completion-prefix on
+# set colored-completion-prefix    on
 set colored-stats                  on
 set skip-completed-text            on
 # ask if more than 100 candidates
