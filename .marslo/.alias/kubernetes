@@ -30,6 +30,9 @@ alias kit="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/it-k8s/.ku
 alias  kd="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dc5-ssdfw8/.kube/config --namespace devops-ci"
 alias kre="kubecolor --kubeconfig ${MYWORKSPACE}/job/devops/env/linux/dockerreg1-sc/.kube/config"
 
+# [d]ashboard [t]oken for kk
+alias kkdt="kk -n monitoring get secrets -o jsonpath=\"{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='kubernetes-dashboard-admin')].data.token}\" | base64 -d"
+
 # alias kcEvicted="kubecolor -n devops-ci get pods -o json | jq '.items[] | select(.status.reason!=null) | select(.status.reason | contains("Evicted")) | "kubecolor delete pods \(.metadata.name) -n \(.metadata.namespace)"' | xargs -n 1 bash -c"
 alias kcEvicted="kubecolor get pods --all-namespaces --field-selector 'status.phase==Failed' -o json | kubecolor delete -f -"
 

@@ -33,6 +33,10 @@ alias vv="$(type -P  vim) -Nu $HOME/.vimrc"
 alias vi="$(type -P nvim) -Nu $HOME/.config/nvim/init.lua"
 # alias vimdiff="$(type -P vim) -d"
 
+# binding
+alias bbon="bind 'set enable-bracketed-paste on'"
+alias bboff="bind 'set enable-bracketed-paste off'"
+
 # operation of files and directory
 alias cx='chmod u+x'
 alias cw='chmod u+w'
@@ -71,9 +75,7 @@ alias his='history'
 alias diff='diff --color=auto'
 alias fdiff="diff --old-group-format=$'\\e[0;31m%<\\e[0m' --new-group-format=$'\\e[0;31m%>\\e[0m' --unchanged-group-format=$'\\e[0;32m%=\\e[0m'"
 
-if [[ '1' = $(isOSX) ]]; then
-  alias more='more -r'
-fi
+if [[ '1' = $(isOSX) ]]; then alias more='more -r'; fi
 
 alias ld='\ls -alvd --color=always */'
 alias ls='ls --color=always'
