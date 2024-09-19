@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-09-13 00:52:32
+#   LastChange : 2024-09-18 21:22:12
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -788,9 +788,9 @@ function fmount() {
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-       --auto  ) fzfOpt='--reverse --bind start:+accept'; shift ;;
-      --debug  ) verbose='true'                         ; shift ;;
-      --silent ) verbose='false'                        ; shift ;;
+        --auto ) fzfOpt='--reverse --bind start:+accept' ; shift ;;
+       --debug ) verbose='true'                          ; shift ;;
+      --silent ) verbose='false'                         ; shift ;;
     esac
   done
 
@@ -822,6 +822,20 @@ function fumount() {
     echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint}$(c) $(c Wdi)is not exit. exit ...$(c)"
     return
   fi
+}
+
+# goto - cd to selected path
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+function goto() {
+  path=$(echo "path/to/target" \
+              "path/to/source" |
+         fmt -1 |
+         fzf --prompt "path>"
+        )
+  fmount --auto --silent && \
+         [[ -n "${path}" ]] && cd "/tmp/${path}" || \
+         echo -e "$(c Wdi)~~>$(c) $(c Mi)$(awk -F'/' '{print $1}' <<< "${path}")$(c) is not mounted ...$(c)"
 }
 
 # /**************************************************************
