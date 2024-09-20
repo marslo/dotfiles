@@ -70,12 +70,15 @@ function getWeatherData() {
 source "$(dirname $0)/iweather.icon"
 API_HOME='https://api.openweathermap.org'
 CURL="$(type -P curl)"
-curlOpt='-skg -x http://sample.proxy.com:8080'
 tempfile='/tmp/open-weather-map.json'
 locFile='/tmp/omw-lat-lon'
 cname='San Jose'
 verbose='false'
 appid="${OWM_API_TOKEN}"
+curlOpt='-skg'
+intranet=$(netstat -nr -f inet | awk '$3 ~ /UGScg|UG/' | awk '$2 ~ /10\.(85|86|87|68|78)\.[0-9]{1,3}\.[0-9]{1,3}/' | wc -l)
+[[ "${intranet}" -gt 0   ]] && curlOpt+=' -x http://sample.proxy.com:8080'
+
 # shellcheck disable=SC1078,SC1079
 usage="""
 $(c M)iweather$(c) - show weather status of city

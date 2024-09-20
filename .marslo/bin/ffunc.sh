@@ -838,6 +838,15 @@ function goto() {
          echo -e "$(c Wdi)~~>$(c) $(c Mi)$(awk -F'/' '{print $1}' <<< "${path}")$(c) is not mounted ...$(c)"
 }
 
+# jcli - execute Jenkins CLI command
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+function jcli() {
+  domain="$( echo 'jenkins.sample.com' | fmt -1 | fzf )"
+  cmd="java -jar ~/.jenkins/${domain}/jenkins-cli.jar -auth @$HOME/.jenkins/${domain}/auth -s http://${domain} "
+  osascript -e "tell application \"System Events\" to keystroke \"${cmd}\""
+}
+
 # /**************************************************************
 #   __     __
 #  / _|___/ _|  ___   ___ _ ___ __ __ ____ _ _ _
