@@ -98,6 +98,7 @@ alias nd='npm run deploy'
 # alias rg='rg --hidden --follow --smart-case --vimgrep --ignore-file=$HOME/.rgignore --color=always'
 alias rg='rg --hidden --follow --smart-case --ignore-file=$HOME/.rgignore --color=always'
 alias as-tree='tree --fromfile'
+alias tree='tree -hF --du'
 
 alias ud='du -h --max-depth=1 --exclude="\./\.*"'
 alias ud.='du -h --max-depth=1'

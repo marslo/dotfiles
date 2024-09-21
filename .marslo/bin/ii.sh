@@ -4,8 +4,8 @@
 #     FileName : ii.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2012
-#   LastChange : 2020-10-20 22:10:01
-#         Desc : for iterm2
+#   LastChange : 2024-09-21 03:37:33
+#  Description : for iterm2
 # =============================================================================
 
 # for itmer2
@@ -37,29 +37,37 @@ function tabcolor {
  }
 
 # iTerm2 tab titles
-function itit {
-  if [ "$1" ]; then
+function itit() {
+  local setColor='false'
+  local setBadge='false'
+  local clear='false'
+  local title=''
+  local usage="Usage: itit [-c|--color] [-b|--badge] [title]"
+
+  while [[ $# -gt 0 ]]; do
     # export PROMPT_COMMAND='__bp_precmd_invoke_cmd'
     unset PROMPT_COMMAND
     echo -ne "\\033]0;${1}\\007"
 
-    if [ 2 -eq $# ]; then
-      case $2 in
-        [cC] )
-          it2setcolor tab "$(shuf -n 1 ~/.marslo/.it2colors)" || echo
-          ;;
-        [bB] )
-          # https://iterm2.com/documentation-badges.html
-          printf "\e]1337;SetBadgeFormat=%s\a" "$(echo -n "${1} \(user.gitBranch)" | base64)"
-          ;;
-        [bB][cC] | [cC][bB] )
-          printf "\e]1337;SetBadgeFormat=%s\a" "$(echo -n "${1}" | base64)"
-          it2setcolor tab "$(shuf -n 1 ~/.marslo/.it2colors)" || echo
-          ;;
-      esac
-    fi
+    case "$1" in
+      -h | --help  ) echo "${usage}" ; return 0 ;;
+      -c | --color ) setColor='true' ; shift    ;;
+      -b | --badge ) setBadge='true' ; shift    ;;
+      --clear      ) clear='true'    ; shift    ;;
+      *            ) title="${1}"    ; shift    ;;
+    esac
+  done
 
-  else
+  if [[ 'true' = "${setColor}" ]] && [[ 'true' = "${setBadge}" ]]; then
+    it2setcolor tab "$(shuf -n 1 ~/.marslo/.it2colors)" || echo
+    printf "\e]1337;SetBadgeFormat=%s\a" "$(echo -n "${title} \(user.gitBranch)" | base64)"
+  elif [[ 'true' = "${setColor}" ]]; then
+    it2setcolor tab "$(shuf -n 1 ~/.marslo/.it2colors)" || echo
+  elif [[ 'true' = "${setBadge}" ]]; then
+    printf "\e]1337;SetBadgeFormat=%s\a" "$(echo -n "${title} \(user.gitBranch)" | base64)"
+  fi
+
+  if [[ 'true' = "${clear}" ]]; then
     export PROMPT_COMMAND='echo -ne "\033]0;${PWD/#$HOME/\~}\007";'
     printf "\e]1337;SetBadgeFormat=%s\a" "$(echo -n "" | base64)"
     it2setcolor tab default
