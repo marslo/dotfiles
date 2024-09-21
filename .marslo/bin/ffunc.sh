@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-09-18 21:22:12
+#   LastChange : 2024-09-21 00:26:57
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -807,14 +807,30 @@ function fmount() {
 # fumount      : using fzf to select mount point and umount it
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# shellcheck disable=SC2155
 function fumount() {
   local mpoint
+  local force
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -f ) force="true" ; shift ;;
+       * ) break                ;;
+    esac
+  done
+
+  force="$([[ 'Darwin' = "$(uname)" ]] && [[ 'true' = "${force}" ]] && echo 'force')"
+
   mpoint=$( mount | sed -rn 's://[^\ ]+\son\s([^\ ]+).*:\1:p' | fzf --prompt="mount point: " )
   [[ -z "${mpoint}" ]] && echo -e "$(c Wdi)~~> no mount point in current environment ...$(c)" && return
 
   if [[ '0' = "$(checkMountPoint "${mpoint}")" ]]; then
-    echo -e "$(c Wdi)~~> umounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)...$(c)"
-    sudo umount "${mpoint}"
+    echo -e "$(c Wdi)~~>$(c) $([[ 'force' = "${force}" ]] && echo "$(c Yi)${force}$(c) ")$(c Wdi)umounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)...$(c)"
+    if [[ 'force' = "${force}" ]]; then
+      diskutil unmountDisk force "${mpoint}"
+    else
+      sudo umount "${mpoint}"
+    fi
     [[ '0' = "$(checkMountPoint "${mpoint}")" ]] &&
       echo -e "$(c Wdi)~~>$(c) $(c Yi)${mpoint}$(c) $(c Wdi)umount failed ...$(c)" ||
       echo -e "$(c Wdi)~~>$(c) $(c Gi)${mpoint}$(c) $(c Wdi)umount successfully ...$(c)"
