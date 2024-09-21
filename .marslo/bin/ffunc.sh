@@ -778,7 +778,7 @@ function processMount() {
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @usage       : fmount [--auto] [--debug] [--silent]
-function fmount() {
+function fmount() {                        # [f]zf [mount]
   local points="1.2.3.4:/path hostname:/path/to/target"
   local host
   local path
@@ -808,7 +808,7 @@ function fmount() {
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # shellcheck disable=SC2155
-function fumount() {
+function fumount() {                       # [f]zf [umount]
   local mpoint
   local force
 
@@ -843,7 +843,7 @@ function fumount() {
 # goto - cd to selected path
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
-function goto() {
+function goto() {                          # another `cd`
   path=$(echo "path/to/target" \
               "path/to/source" |
          fmt -1 |
@@ -857,10 +857,10 @@ function goto() {
 # jcli - execute Jenkins CLI command
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
-function jcli() {
-  domain="$( echo 'jenkins.sample.com' | fmt -1 | fzf )"
+function jcli() {                          # [j]enkins [cli]
+  domain="$( echo 'jenkins-1.sample.com' 'jenkins-2.sample.com' | fmt -1 | fzf --prompt 'domain> ')"
   cmd="java -jar ~/.jenkins/${domain}/jenkins-cli.jar -auth @$HOME/.jenkins/${domain}/auth -s http://${domain} "
-  osascript -e "tell application \"System Events\" to keystroke \"${cmd}\""
+  bash -c "osascript -e \"tell application \\\"System Events\\\" to keystroke \\\"${cmd}\\\"\" &"
 }
 
 # /**************************************************************
