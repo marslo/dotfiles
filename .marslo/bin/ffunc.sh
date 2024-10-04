@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-09-21 00:26:57
+#   LastChange : 2024-10-04 02:19:35
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -111,7 +111,7 @@ function cat() {                           # smart cat
 }
 
 # shellcheck disable=SC2089,SC2090
-function fdInRC() {
+function fdInRC() {                        # [f]in[d] [in] [rc] files
   local rcPaths="$HOME/.config/nvim $HOME/.marslo $HOME/.idlerc $HOME/.ssh $HOME/.jfrog"
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   fdOpt+=' --exec stat --printf="%y | %n\n"'
@@ -134,7 +134,7 @@ function fzfInPath() {                     # return file name via fzf in particu
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : default rcPaths: ~/.marslo ~/.config/nvim ~/.*rc ~/.*profile ~/.*ignore
 # shellcheck disable=SC2046,SC1090
-function runrc() {                         # source rc files
+function runrc() {                         # runrc - source/[run] [rc] files
   local files
   local option
 
@@ -167,7 +167,7 @@ function runrc() {                         # source rc files
 #   - CTRL+/  to toggle preview window hidden/show
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default fman`
 # shellcheck disable=SC2046
-function fman() {
+function fman() {                          # show [man] page with [f]zf
   unset MANPATH
   local option='-e '
   local batman="man {1} | col -bx | bat --language=man --plain --color always --theme='gruvbox-dark'"
@@ -211,7 +211,7 @@ function fman() {
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default imgview`
 #   - disable `gif` due to imgcat performance issue
 # shellcheck disable=SC2215
-function imgview() {                       # view image via [imgcat](https://github.com/eddieantonio/imgcat)
+function imgview() {                       # [view] [im]a[g]e via [imgcat](https://github.com/eddieantonio/imgcat)
   fd --unrestricted --type f --exclude .git --exclude node_modules '^*\.(png|jpeg|jpg|xpm|bmp)$' |
   fzf "$@" --height 100% \
            --preview "imgcat -W \$FZF_PREVIEW_COLUMNS -H \$FZF_PREVIEW_LINES {}" \
@@ -258,7 +258,7 @@ function b() {                             # chrome [b]ookmarks browser with jq
 #   - --json : print json format
 # @usage       : $ fmsh [ --eval <COMMAND> ] [ --json ]
 # shellcheck disable=SC2155
-function fmsh() {
+function fmsh() {                          # connect [m]ongodb with mongo[sh] with [f]zf
   local cmd=''
   local evalCmd=''
   local jsonPrint='false'
@@ -298,7 +298,7 @@ function fmsh() {
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @usage       : $ fpw [ -s | --show ]
-function fpw() {
+function fpw() {                           # copy or show [p]ass[w]ord from pass store with [f]zf
   passStoreDir="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
   show='false'
 
@@ -508,7 +508,7 @@ function vimdiff() {                       # smart vimdiff
 # @description : list 10 most recently used files via fzf, and open by vimdiff
 #   - if `vd` commands without parameter, list 10 most recently used files via fzf, and open selected files by vimdiff
 #   - if `vd` commands with `-a` ( [q]uiet ) parameter, list 10 most recently used files via fzf and automatic select top 2, and open selected files by vimdiff
-function vd() {                            # vd - open vimdiff loaded files from ~/.vim_mru_files
+function vd() {                            # vd - open [v]im[d]iff loaded files from ~/.vim_mru_files
   [[ 1 -eq $# ]] && [[ '-q' = "$1" ]] && opt='--bind start:select+down+select+accept' || opt=''
   # shellcheck disable=SC2046
   files=$( grep --color=none -v '^#' ~/.vim_mru_files |
@@ -804,11 +804,11 @@ function fmount() {                        # [f]zf [mount]
   processMount "${host}" "${path}" "${verbose}"
 }
 
-# fumount      : using fzf to select mount point and umount it
+# fumount - using fzf to select mount point and umount it
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # shellcheck disable=SC2155
-function fumount() {                       # [f]zf [umount]
+function fumount() {                       # fumount - [umount] with [f]zf
   local mpoint
   local force
 
@@ -1439,11 +1439,29 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
 #   - -c | --create : create a new venv with given name
 #   - -d | --delete : delete a venv from fzf list
 # @usage       : $ avenv [ -d | --delete ]
-#                        [ -c | --create <name> ]
+#                        [ -c | --create <name> ] [ --auto ]
 # shellcheck disable=SC2155
-function avenv() {
+function avenv() {                         # [a]ctivate [venv] - activate/create/delete python venv
   local _venv=''
   local _del='false'
+  local _auto='false'
+  local usage="""
+  \t $(c M)avenv$(c) - $(c iM)a$(c)ctivate $(c iM)venv$(c): to create/active/deactivate python virtual environment
+  \nSYNOPSIS:
+  \n\t$(c sY)\$ avenv [ -d | --delete ]
+  \t\t[ -c | --create <NAME> ]
+  \t\t[ -c --auto | --create --auto ]
+  \t\t[ -h | --help ]$(c)
+  \nEXAMPLE:
+  \n\tactivate existing venv
+  \t\t$(c G)\$ avenv$(c)
+  \n\tcreate new venv with name \`marslo\` and activate it
+  \t\t$(c G)\$ avenv -c marslo$(c) | $(c G)\$ avenv --create marslo$(c)
+  \n\tcreate new venv with name of current folder name and activate it automatically
+  \t\t$(c G)\$ avenv -c --auto$(c) | $(c G)\$ avenv --create --auto$(c)
+  \n\tdelete existing venv
+  \t\t$(c G)\$ avenv -d$(c) | $(c G)\$ avenv --delete$(c)
+  """
 
   function activeVenv() {
     [[ -n "$1" ]] &&
@@ -1465,7 +1483,12 @@ function avenv() {
   }
 
   function createVenv() {
-    _newvenv="$1"
+    if [[ $# -eq 2 ]] && [[ 'true' = "$2" ]]; then
+      _newvenv=${1:-"${PWD##*/}"}
+    else
+      _newvenv="$1"
+    fi
+
     if command ls --color=never "$HOME/.venv" | grep -qE "^${_newvenv}$"; then
       echo -e "$(c Ys)WARNING:$(c) $(c Gis)${_newvenv}$(c) $(c Wdi)already exists. activating ..$(c)"
     else
@@ -1476,20 +1499,34 @@ function avenv() {
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -c | --create ) _venv="$2"  ; shift 2 ;;
-      -d | --delete ) _del="true" ; shift   ;;
-                  * ) break                 ;;
+             --auto ) _auto='true'       ; shift  ;;
+      -c | --create ) _venv="$2"         ; shift  ;;
+      -d | --delete ) _del='true'        ; shift  ;;
+        -h | --help ) echo -e "${usage}" ; return ;;
+                  * ) break                       ;;
     esac
+    if [[ '--auto' = "${_venv}" ]] || [[ -z "${_venv}" ]]; then
+      _venv="${PWD##*/}"
+      _auto='true'
+    elif [[ -e "${_venv}" ]]; then
+      shift
+    fi
   done
 
   if [[ "${_del}" = 'true' ]]; then
     _venv=$(command ls --color=never "$HOME/.venv" | fzf)
-    [[ -n "${_venv}" ]] && deleteVenv "${_venv}"
+    if [[ -n "${_venv}" ]]; then
+      for _var in ${_venv}; do deleteVenv "${_var}"; done
+    fi
   elif [[ -n "${_venv}" ]]; then
-    createVenv "${_venv}"
+    createVenv "${_venv}" "${_auto}"
     activeVenv "${_venv}"
     echo -e "$(c Wd)>>$(c) $(c Wid)install pip package$(c) $(c Cis)pynvim$(c) $(c Wdi)for nvim ..$(c)"
     python3 -m pip install --upgrade pynvim
+    if [[ -f ./requirements.txt ]]; then
+      echo -e "$(c Wd)>>$(c) $(c Wid)install$(c) $(c Cis)./requirements.txt$(c) $(c Wdi)automatically ..$(c)"
+      python3 -m pip install -r ./requirements.txt
+    fi
   else
     _venv=$(command ls --color=never "$HOME/.venv" | fzf)
     activeVenv "${_venv}"
