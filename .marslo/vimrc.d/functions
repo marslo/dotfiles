@@ -71,7 +71,25 @@ function! IgnoreSpells()                                            " ignore Cam
   " syntax    cluster Spell add=UrlNoSpell
 endfunction
 autocmd BufRead,BufNewFile * :call IgnoreSpells()
+autocmd Syntax  * :call IgnoreSpells()
 set spellcapcheck=                                                  " ignore capital check
+
+" set spellcamelcase=1
+fun! IgnoreCamelCaseSpell()                                         " Ignore CamelCase words when spell checking
+  syn match CamelCase /\<[A-Z][a-z]\+[A-Z].\{-}\>/ contains=@NoSpell transparent
+  syn match mixedCase /\<[a-z]\+[A-Z].\{-}\>/ contains=@NoSpell transparent
+  syn cluster Spell add=CamelCase
+  syn cluster Spell add=mixedCase
+endfun
+autocmd BufRead,BufNewFile * :call IgnoreCamelCaseSpell()
+autocmd Syntax *             :call IgnoreCamelCaseSpell()
+syn match UrlNoSpell '\w\+:\/\/[^[:space:]]\+' contains=@NoSpell
+
+function! GroovyKeywords()
+  syntax keyword newJDKMethods collectEntries eachWithIndex collectMany
+  syntax cluster groovyJDKMethods add=newJDKMethods
+endfunction
+autocmd Syntax groovy,Jenkinsfile :call GroovyKeywords()
 
 " redir into new tab: https://vim.fandom.com/wiki/Capture_ex_command_outputhttps://vim.fandom.com/wiki/Capture_ex_command_output
 " `gt`, `:tabfirst`, `:tabnext`, `:tablast` ... to switch tabs : https://vim.fandom.com/wiki/Alternative_tab_navigation
@@ -105,16 +123,6 @@ endfunction
 nnoremap <S-Tab>    :call BSkipQuickFix("bn")<CR>
 nnoremap <leader>bp :call BSkipQuickFix("bn")<CR>
 nnoremap <leader>bn :call BSkipQuickFix("bp")<CR>
-
-" set spellcamelcase=1
-fun! IgnoreCamelCaseSpell()                                         " Ignore CamelCase words when spell checking
-  syn match CamelCase /\<[A-Z][a-z]\+[A-Z].\{-}\>/ contains=@NoSpell transparent
-  syn match mixedCase /\<[a-z]\+[A-Z].\{-}\>/ contains=@NoSpell transparent
-  syn cluster Spell add=CamelCase
-  syn cluster Spell add=mixedCase
-endfun
-autocmd BufRead,BufNewFile * :call IgnoreCamelCaseSpell()
-syn match UrlNoSpell '\w\+:\/\/[^[:space:]]\+' contains=@NoSpell
 
 if exists( ":Tabularize" )                                          " 'godlygeek/tabular'
   function! s:table_auto_align()

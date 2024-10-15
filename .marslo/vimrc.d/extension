@@ -73,15 +73,17 @@ Plug 'amadeus/vim-css'
 Plug 'stephpy/vim-yaml'                                             " ╮ yaml
 Plug 'pedrohdz/vim-yaml-folds'                                      " ╯
 Plug 'dense-analysis/ale'
-Plug 'modille/groovy.vim'                                           " /usr/local/vim/share/vim/vim90/syntax/groovy.vim
-Plug 'vim-scripts/vim-gradle'
+" Plug 'vim-scripts/vim-gradle'                                     " ╮ groovy
+" Plug 'modille/groovy.vim'                                           " ├ /usr/local/vim/share/vim/vim90/syntax/groovy.vim
+Plug 'sheerun/vim-polyglot'                                       " ╯ yaml.ansible
 Plug 'marslo/Jenkinsfile-vim-syntax'                                " Jenkinsfile
 Plug 'ekalinin/Dockerfile.vim'                                      " dockerfile
-Plug 'sheerun/vim-polyglot'                                         " yaml.ansible
+" Plug 'yaegassy/coc-ansible', {'do': 'yarn install --frozen-lockfile'}
 Plug 'rizzatti/dash.vim'
 Plug 'vim-syntastic/syntastic'
 Plug 'github/copilot.vim'                                           " github copilot
 Plug 'parkr/vim-jekyll'                                             " github page
+Plug 'dstein64/vim-startuptime'
 
 if has('macunix')
   Plug 'xu-cheng/brew.vim'
@@ -361,7 +363,7 @@ endif
 
 " git
 nnoremap <leader>mp  :execute 'silent !git mp'    \| redraw! \| echom "change committed !"<CR>
-nnoremap <leader>pmp :execute 'silent !git mp -r' \| redraw! \| echom "change force committed !"<CR>
+nnoremap <leader>pmp :execute 'silent !git mp -r' \| redraw! \| echom "change force committed !!"<CR>
 " zivyangll/git-blame.vim
 nnoremap <Leader>ebb :<C-u>call gitblame#echo()<CR>
 " APZelos/blamer.nvim
@@ -595,5 +597,8 @@ autocmd BufReadPre *
 " invpaste -> paste in insert/normal/visual mode
 noremap <leader>pp :set invpaste<cr>
 map <silent> <F2>  :Copilot disable<CR>
+
+" sheerun/vim-polyglot
+" let g:polyglot_disabled = ['groovy.plugin']
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************

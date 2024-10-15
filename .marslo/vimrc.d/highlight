@@ -91,4 +91,14 @@ highlight BlueItalic         cterm=italic   ctermfg=109   gui=italic    guifg=#7
 highlight PurpleItalic       cterm=italic   ctermfg=175   gui=italic    guifg=#d3869b
 highlight link shFunctionKey GreenItalic
 
+" for groovy
+highlight! groovyType        cterm=italic   ctermfg=214   gui=italic    guifg=#d8a657
+highlight! Boolean           cterm=italic   ctermfg=175   gui=italic    guifg=#d3869b
+highlight! link NewSpecialFunction  GreenItalic
+" https://github.com/sheerun/vim-polyglot/blob/master/syntax/groovy.vim#L159
+highlight! link groovyJDKBuiltin NewSpecialFunction
+highlight! link TSFuncBuiltin    NewSpecialFunction
+highlight! link groovyJDKMethods AquaItalic
+highlight! link groovyKeywords   PurpleItalic
+
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
