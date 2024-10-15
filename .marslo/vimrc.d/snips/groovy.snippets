@@ -40,16 +40,29 @@ import groovy.transform.Field
 ${2://} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/\w+/\u$0/g}
 endsnippet
 
+snippet //vim "modeline" b
+// vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1:Groovy}
+endsnippet
+
 snippet importall "import generic libs" b
 import groovy.transform.Field
 import static groovy.json.JsonOutput.*
 import java.net.URLEncoder
+import java.nio.file.Paths
 
 ${1}
 endsnippet
 
 snippet importj "import jenkins.model.*" b
 import jenkins.model.*
+endsnippet
+
+snippet /*gld "insert groovylint-disable" b
+/* groovylint-disable ${1} */
+endsnippet
+
+snippet //gld "insert groovylint-disable" b
+// groovylint-disable ${1}
 endsnippet
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=snippet

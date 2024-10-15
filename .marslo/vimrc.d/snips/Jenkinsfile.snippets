@@ -27,14 +27,13 @@
 snippet #!! "shebang" b
 #!/usr/bin/env groovy
 
-@Library([ 'libs', 'engineering-libs@${1:branch}' ]) _
+@Library( 'sdk-release-libs@${1:sdk-release-automation-devel}' ) _
 
 import groovy.transform.Field
 ${2}
 
 // vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=Jenkinsfile
 endsnippet
-
 
 snippet shebang "shebang" b
 #!/usr/bin/env groovy
@@ -44,5 +43,9 @@ snippet shebang "shebang" b
 import groovy.transform.Field
 ${2}
 
+// vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=Jenkinsfile
+endsnippet
+
+snippet //vim "modeline" b
 // vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=Jenkinsfile
 endsnippet
