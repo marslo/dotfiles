@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-04-18 05:21:59
+"    LastChange : 2024-10-16 16:50:12
 " =============================================================================
 
 " /**************************************************************
@@ -87,9 +87,9 @@ if has( "autocmd" )
     autocmd FileType   Jenkinsfile           setlocal commentstring=//\ %s
 
     autocmd Syntax     groovy,Jenkinsfile    syn region  groovyDocComment start="/\*\*"  end="\*\*/" keepend contains=groovyCommentTitle,@groovyHtml,groovyDocTags,groovyTodo,@Spell
-    autocmd Syntax     groovy,Jenkinsfile    syn keyword groovyScopeDecl  def
     autocmd Syntax     groovy,Jenkinsfile    syn keyword groovyJDKMethods collectEntries collectMany eachWithIndex
-    autocmd Syntax     groovy,Jenkinsfile    syn keyword groovyKeywords it Object
+    autocmd Syntax     groovy,Jenkinsfile    syn keyword groovyKeywords it Object Closure
+    autocmd Syntax     groovy,Jenkinsfile    syn keyword groovyType Map List
 
     " https://vim.fandom.com/wiki/Syntax_folding_for_Java
     autocmd FileType   java                  setlocal foldmarker=/**,**/ foldmethod=marker foldcolumn=1

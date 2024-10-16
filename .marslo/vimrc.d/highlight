@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-07-03 14:14:19
+"    LastChange : 2024-10-16 16:50:28
 " =============================================================================
 
 " color table
@@ -92,13 +92,16 @@ highlight PurpleItalic       cterm=italic   ctermfg=175   gui=italic    guifg=#d
 highlight link shFunctionKey GreenItalic
 
 " for groovy
-highlight! groovyType        cterm=italic   ctermfg=214   gui=italic    guifg=#d8a657
+" highlight! groovyType      cterm=italic   ctermfg=214   gui=italic    guifg=#d8a657
+highlight! groovyType        cterm=NONE     ctermfg=214   gui=NONE      guifg=#d8a657
 highlight! Boolean           cterm=italic   ctermfg=175   gui=italic    guifg=#d3869b
-highlight! link NewSpecialFunction  GreenItalic
 " https://github.com/sheerun/vim-polyglot/blob/master/syntax/groovy.vim#L159
-highlight! link groovyJDKBuiltin NewSpecialFunction
-highlight! link TSFuncBuiltin    NewSpecialFunction
-highlight! link groovyJDKMethods AquaItalic
+highlight! link groovyJDKBuiltin PurpleItalic
+highlight! link TSFuncBuiltin    GreenItalic
 highlight! link groovyKeywords   PurpleItalic
+highlight! link groovyDocTags    YellowItalic
+highlight! link groovyDocParam   GreenItalic
+" syn groovyJDKMethods : flatten leftShift reverse collectEntries readLines toInteger eachFile compareTo push splitEachLine upto call eachLine eachLine withPrintWriter immutable withWriterAppend any step read newOutputStream times collect tokenize toList getIn invokeMethods putAt previous intersect findAll withReader writeLine withWriter readBytes subMap join println grep newInputStream getOut count eachWithIndex getAt find every getErr each eachByte getText newReader append dump newWriter inspect sort size write pop print asWritable inject withStream asList reverseEach newPrintWriter collectMany next waitForOrKill isCase
+" highlight! link groovyJDKMethods AquaItalic
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
