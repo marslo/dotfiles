@@ -20,8 +20,6 @@ if has( "autocmd" )
   autocmd BufWinEnter        *                               if &foldmethod == 'indent' | setlocal foldmethod=manual | endif
   autocmd BufWinEnter        *                               silent! loadview                                     " autocmd BufWinLeave * silent! mkview
   autocmd Syntax             *                               syn match ExtraWhitespace /\s\+$\| \+\ze\t/
-  " autocmd Syntax           *                               syn region  groovyDocComment    start="/\*\*"  end="\*\*/" keepend contains=groovyCommentTitle,@groovyHtml,groovyDocTags,groovyTodo,@Spell
-  " autocmd Syntax           *                               syn keyword groovyScopeDecl     public protected private abstract def
   autocmd BufEnter           *                               if &diff | let g:blamer_enabled=0 | endif            " ╮ disable git blame in diff mode
   " autocmd BufEnter         *                               if ! empty(&key) | let g:blamer_enabled=0 | endif    " ╯ and encrypt mode
   autocmd BufWritePre        *                               %s/\s\+$//e | %s/\r$//e   " automatic remove trailing space
@@ -91,7 +89,7 @@ if has( "autocmd" )
     autocmd Syntax     groovy,Jenkinsfile    syn region  groovyDocComment start="/\*\*"  end="\*\*/" keepend contains=groovyCommentTitle,@groovyHtml,groovyDocTags,groovyTodo,@Spell
     autocmd Syntax     groovy,Jenkinsfile    syn keyword groovyScopeDecl  def
     autocmd Syntax     groovy,Jenkinsfile    syn keyword groovyJDKMethods collectEntries collectMany eachWithIndex
-    autocmd Syntax     groovy,Jenkinsfile    syn keyword groovyKeywords it
+    autocmd Syntax     groovy,Jenkinsfile    syn keyword groovyKeywords it Object
 
     " https://vim.fandom.com/wiki/Syntax_folding_for_Java
     autocmd FileType   java                  setlocal foldmarker=/**,**/ foldmethod=marker foldcolumn=1
