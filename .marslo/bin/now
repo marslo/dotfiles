@@ -31,7 +31,7 @@ if ! curl ${curlOpt} wttr.in/sanjose?QmM0 --fail --silent --max-time 3 1>/tmp/no
 #                          timeout #. increase for slow connection---^
   ~/.marslo/bin/iweather > /tmp/now-weather
 fi
-[[ -f /tmp/now-weather && $(wc -c < /tmp/now-weather) -lt 100 ]] || ~/.marslo/bin/iweather > /tmp/now-weather
+[[ -f /tmp/now-weather && $(wc -c < /tmp/now-weather) -gt 100 ]] || ~/.marslo/bin/iweather > /tmp/now-weather
 
 # was valid weather report found or an error message?
 if grep '°C' /tmp/now-weather >/dev/null 2>&1; then
