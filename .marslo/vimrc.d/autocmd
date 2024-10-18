@@ -17,7 +17,7 @@
 if has( "autocmd" )
   " autocmd VimLeave         *                               silent :%bd                                          " :windo bd
   autocmd BufReadPre         *                               setlocal foldmethod=indent
-  autocmd BufWinEnter        *                               if &foldmethod == 'indent' | setlocal foldmethod=manual | endif
+  " autocmd BufWinEnter      *                               if &foldmethod == 'indent' | setlocal foldmethod=manual | endif
   autocmd BufWinEnter        *                               silent! loadview                                     " autocmd BufWinLeave * silent! mkview
   autocmd Syntax             *                               syn match ExtraWhitespace /\s\+$\| \+\ze\t/
   autocmd BufEnter           *                               if &diff | let g:blamer_enabled=0 | endif            " ╮ disable git blame in diff mode
@@ -170,4 +170,4 @@ if has( "autocmd" )
   endif
 endif
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
