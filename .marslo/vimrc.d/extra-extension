@@ -147,4 +147,4 @@ let g:ale_sh_bashate_executable           = ''
 " groovy
 let g:ale_groovy_npmgroovylint_options    = '--javaexecutable /usr/local/bin/java --loglevel info'
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

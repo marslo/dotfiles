@@ -104,4 +104,4 @@ highlight! link groovyDocParam   GreenItalic
 " syn groovyJDKMethods : flatten leftShift reverse collectEntries readLines toInteger eachFile compareTo push splitEachLine upto call eachLine eachLine withPrintWriter immutable withWriterAppend any step read newOutputStream times collect tokenize toList getIn invokeMethods putAt previous intersect findAll withReader writeLine withWriter readBytes subMap join println grep newInputStream getOut count eachWithIndex getAt find every getErr each eachByte getText newReader append dump newWriter inspect sort size write pop print asWritable inject withStream asList reverseEach newPrintWriter collectMany next waitForOrKill isCase
 " highlight! link groovyJDKMethods AquaItalic
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

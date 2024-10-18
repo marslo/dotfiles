@@ -145,10 +145,10 @@ endif
 function! SetDiffModeOptions()
   if &diff
     set diffopt=filler,internal,algorithm:histogram,indent-heuristic,context:3
-    set nofoldenable
+    set foldenable
     " call CursorShapeInDiffMode()
   endif
 endfunction
 " autocmd OptionSet diff call SetDiffModeOptions()
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
