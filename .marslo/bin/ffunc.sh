@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-10-04 02:19:35
+#   LastChange : 2024-10-17 23:25:57
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -378,8 +378,8 @@ function vim() {                           # magic vim - fzf list in most recent
   if [[ 0 -eq $# ]] && [[ -z "${voption}" ]]; then
     fd . ${fdOpt} | fzf ${foption} --bind="enter:become(${VIM} {+})"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
-    [[ '.' = "${1}" ]] && target="${1}" || target=". ${1}"
-    fd ${target} ${fdOpt} | fzf ${foption} --bind="enter:become(${VIM} {+})"
+    [[ '.' = "${1}" ]] && target="${1}" || target=". \"${1}\""
+    eval "fd ${target} ${fdOpt}" | fzf ${foption} --bind="enter:become(${VIM} {+})"
   else
     # shellcheck disable=SC2068
     "${VIM}" ${voption} $@
@@ -635,6 +635,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   local reproject='false'
   local hhost='false'
   local online='true'
+  local quiet='false'
 
   # shellcheck disable=SC2155
   local usage="""
@@ -646,6 +647,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   \t\t[ -d | --dind ]
   \t\t[ -o | --offline ]
   \t\t[ -v | --verbose ]
+  \t\t[ -q | --quiet ]
   \t\t[ --re ] [ --hhost ]
   \t\t[ -h | --help ]$(c)
   \nEXAMPLE:
@@ -671,6 +673,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
       -o | --offline ) online='false'                       ; shift    ;;
       --re           ) reproject='true'                     ; shift    ;;
       --hhost        ) hhost='true'                         ; shift    ;;
+      -q | --quiet   ) quiet='true'                         ; shift    ;;
       -h | --help    ) echo -e "${usage}"                   ; return   ;;
       *              ) echo "Invalid option $1. try -h" >&2 ; return 1 ;;
     esac
@@ -706,7 +709,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   [[ 'true' = "${reproject}" ]] && username='jenkins' || username='devops'
   if [[ -n ${nodes} ]]; then
     trap exit SIGINT SIGTERM; while read -r _node; do
-      printf "\n$(c Wd)>>$(c) $(c Ys)%s$(c) $(c Wd)<<$(c)\n" "${_node}"
+      [[ 'false' = "${quiet}" ]] && printf "\n$(c Wd)>>$(c) $(c Ys)%s$(c) $(c Wd)<<$(c)\n" "${_node}"
       if [[ -n "${path}" ]]; then
         sshCmd="ssh -q ${username}@${_node} 'bash -s' < \"${path}\""
       else
@@ -778,7 +781,7 @@ function processMount() {
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @usage       : fmount [--auto] [--debug] [--silent]
-function fmount() {                        # [f]zf [mount]
+function fmount() {                        # fmount - [mount] with [f]zf
   local points="1.2.3.4:/path hostname:/path/to/target"
   local host
   local path
