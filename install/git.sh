@@ -61,4 +61,4 @@ curl -fsSL https://mirrors.edge.kernel.org/pub/software/scm/git/git-${gitver}.ta
 preInstall
 doInstall
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=indent
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

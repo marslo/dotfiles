@@ -21,7 +21,7 @@ function isLinux() { [[ '1' != "$(isWSL)" ]] && [[ 'Linux' = $(uname) ]] && echo
 
 function message() {
   [[ 2 != "$#" ]] && echo -e "$(c Rs)ERROR: must provide two parameters to message function$(s). Exit .." && exit 1
-  
+
   local msg="$2"
   if [[ 'warn' = "${type}" ]]; then
     echo -e "$(c Rs)>> $(c Rsn)WARNING$(c) : $(c Rs)${msg}. SKIP ..$(c)"
@@ -196,4 +196,4 @@ else
 fi
 source "${localrc}"
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

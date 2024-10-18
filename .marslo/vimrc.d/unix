@@ -17,4 +17,4 @@ if isdirectory( expand(pluginHome . 'MarsloFunc') )
   nnoremap gf     :call marslofunc#GotoFile()<CR>
 endif
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

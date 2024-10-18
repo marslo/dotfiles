@@ -91,4 +91,4 @@ if empty( glob('$HOME/.vim/autoload/plug.vim') ) || empty( glob($VIM . 'autoload
   execute 'silent exec "GetPlug"'
 endif
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:foldmethod=marker:foldmarker="\ **************************************************************/,"\ /**************************************************************
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
