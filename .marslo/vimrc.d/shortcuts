@@ -38,9 +38,12 @@ cnoremap <C-k>        <C-\>e(strpart(getcmdline(), 0, getcmdpos() - 1))<CR>
 cnoremap sudow!!      w !sudo tee > /dev/null %
 cnoremap sw!!         execute 'silent! write !sudo tee % >/dev/null' <bar> edit!
 nnoremap Y            y$
-" `rdd` delete without copy to default register: https://til.hashrocket.com/posts/u86r0vdytl-deleting-lines-without-copying-to-default-register
+" silent delete in virtual mode
+" `"_dd` delete without copy to default register: https://til.hashrocket.com/posts/u86r0vdytl-deleting-lines-without-copying-to-default-register
 nnoremap rdd          "_dd
 nnoremap rdw          "_dw
+nnoremap sx           "_x
+vnoremap sd           "_dd
 nnoremap <Del>        "_x
 xnoremap <Del>        "_d
 nnoremap <space>      za
@@ -57,6 +60,8 @@ noremap  ]a           :ALENextWrap<CR>
 noremap  [a           :ALEPreviousWrap<CR>
 noremap  ]A           :ALELast<CR>
 noremap  [A           :ALEFirst<CR>
+noremap  <silent>]d   :ALEDetail<CR>
+noremap  <silent>[d   :ALEDetail<CR>
 " airblade/vim-gitgutter
 noremap  ]h           :GitGutterNextHunk<CR>
 noremap  [h           :GitGutterPrevHunk<CR>
