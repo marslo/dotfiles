@@ -29,7 +29,7 @@ snippet #!! "shebnag" b
 import groovy.transform.Field
 ${3}
 
-// vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/\w+/\u$0/g}
+// vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/\w+/\l$0/g}
 endsnippet
 
 snippet shebang "shebnag" b
@@ -37,11 +37,11 @@ snippet shebang "shebnag" b
 
 import groovy.transform.Field
 
-${2://} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/\w+/\u$0/g}
+${2://} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/\w+/\l$0/g}
 endsnippet
 
 snippet //vim "modeline" b
-// vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1:Groovy}
+// vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1:groovy}
 endsnippet
 
 snippet importall "import generic libs" b
@@ -61,7 +61,15 @@ snippet /*gld "insert groovylint-disable"
 /* groovylint-disable ${1} */
 endsnippet
 
+snippet /*ngl "insert groovylint-disable"
+/* groovylint-disable ${1} */
+endsnippet
+
 snippet //gld "insert groovylint-disable"
+// groovylint-disable ${1}
+endsnippet
+
+snippet //ngl "insert groovylint-disable"
 // groovylint-disable ${1}
 endsnippet
 
