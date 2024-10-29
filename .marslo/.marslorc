@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2024-07-08 19:34:49
+# LastChange : 2024-10-28 19:34:47
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -117,7 +117,7 @@ fi
 ! command -v kubectl >/dev/null                      || eval "$(command kubectl completion bash)"
 ! command -v npm     >/dev/null                      || eval "$(npm completion)"
 # via `vault -autocomplete-install`
-! command -v vault   >/dev/null                      || complete -C /usr/local/bin/vault vault
+! command -v vault   >/dev/null                      || complete -C "$(command -v valut)" vault
 ! command -v pipx    >/dev/null                      || eval "$(register-python-argcomplete pipx)"
 ! command -v pip     >/dev/null                      || eval "$(pip completion --bash)"
 ! type -t _fd        >/dev/null 2>&1                 || complete -F _fd -o nosort -o bashdefault -o default ff ffs
@@ -194,9 +194,6 @@ source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im,icolor}.sh )
 ! test -f "${iRCHOME}"/bin/now       || bash   "${iRCHOME}"/bin/now
 [[ '1' = "$(isOSX)"    ]] && echo ''
 ! test -f "${iRCHOME}"/.tmux-session || source "${iRCHOME}"/.tmux-session
-# to fix the issue of _comp_compgen_known_hosts__impl: -F: an empty filename is specified
-# [[ '1' = "$(isOSX)"  ]] && complete -r ssh
-[[ '1' = "$(isOSX)"    ]] && complete -F _ssh -o bashdefault -o default ssh
 
 # /--------------------------------------------------------------
 #   __      __         _             _
