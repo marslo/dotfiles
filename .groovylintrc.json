@@ -4,7 +4,7 @@
     "basic.DeadCode": "error",
     "basic.IfStatementBraces": "info",
     "basic.ParameterCount" : "info",
-    "basic.LineLength": "info",
+    "basic.LineLength": "off",
     "convention.CompileStatic": {
       "severity": "info"
     },

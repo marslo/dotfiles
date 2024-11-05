@@ -1,7 +1,8 @@
 {
   // suppress the python not valid/found issue when open nvim
   "snippets.ultisnips.pythonPrompt": false,
-  "groovy.java.home": "/opt/java/jdk-21.0.2",
+  // $ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
+  "groovy.java.home": "/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home",
   "codeLens.enable": true,
   "java.referencesCodeLens.enabled": true,
   "diagnostic.displayByAle": false,
