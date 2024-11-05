@@ -4,7 +4,8 @@
 #   FileName: .imac
 #     Author: marslo.jiao@gmail.com
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2024-05-21 21:38:00
+# LastChange: 2024-11-04 22:35:04
+#   Comments: using `brew --prefix` for $HOMEBEW_PREFIX set as `/opt/homebrew`
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
 
@@ -13,35 +14,38 @@ HOMEBREW_PREFIX="$(brew --prefix)"
 if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]]; then
   # https://cloud.tencent.com/developer/article/1614039
   # export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
-  # HOMEBREW_BINS="/usr/local/bin"                                # added in /etc/paths
-  HOMEBREW_BINS+=":/usr/local/sbin"
 
-  OPENLDAP_HOME='/usr/local/opt/openldap'
-  CURL_OPENSSL_HOME='/usr/local/opt/curl'                         # via: brew install curl-openssl (https://stackoverflow.com/a/49798271/2940319)
-  OPENSSL_HOME='/usr/local/opt/openssl'                           # OPENSSL_HOME="$(brew --prefix openssl)"
-  LIBRESSL_HOME='/usr/local/opt/libressl'
-  GIT_EXTRAS='/usr/local/opt/git-extras'                          # GIT_EXTRAS="$(brew --prefix git-extras)"
-  ICU4C_711='/usr/local/Cellar/icu4c@71.1/71.1'                   # '/usr/local/opt/icu4c@71.1'
-  EXPAT_HOME='/usr/local/opt/expat'
-  ZLIB_HOME='/usr/local/opt/zlib'
-  LIBICONV_HOME='/usr/local/opt/libiconv'
-  NCURSES_HOME='/usr/local/opt/ncurses'
+  HOMEBREW_OPT="${HOMEBREW_PREFIX}/opt"
+  # if cannot be found in /etc/paths
+  ! grep "${HOMEBREW_PREFIX}/bin" /etc/paths && HOMEBREW_BINS="${HOMEBREW_PREFIX}/bin:"
+  HOMEBREW_BINS+="${HOMEBREW_PREFIX}/sbin"
+
+  OPENLDAP_HOME="${HOMEBREW_OPT}/openldap"
+  CURL_OPENSSL_HOME="${HOMEBREW_OPT}/curl"                        # via: brew install curl-openssl (https://stackoverflow.com/a/49798271/2940319)
+  OPENSSL_HOME="${HOMEBREW_OPT}/openssl"                          # OPENSSL_HOME="$(brew --prefix openssl)"
+  LIBRESSL_HOME="${HOMEBREW_OPT}/libressl"
+  GIT_EXTRAS="${HOMEBREW_OPT}/git-extras"                         # GIT_EXTRAS="$(brew --prefix git-extras)"
+  ICU4C_711="${HOMEBREW_PREFIX}/Cellar/icu4c@71.1/71.1"           # '${HOMEBREW_OPT}/icu4c@71.1'
+  EXPAT_HOME="${HOMEBREW_OPT}/expat"
+  ZLIB_HOME="${HOMEBREW_OPT}/zlib"
+  LIBICONV_HOME="${HOMEBREW_OPT}/libiconv"
+  NCURSES_HOME="${HOMEBREW_OPT}/ncurses"
 
   # https://stackoverflow.com/q/77849563/2940319
-  BINUTILS='/usr/local/opt/binutils'
-  GNUBINHOME='/usr/local/opt/coreutils/libexec/gnubin'
-  GNUMANHOME='/usr/local/opt/coreutils/libexec/gnuman'
-  GNUWHICH='/usr/local/opt/gnu-which/libexec/gnubin'
-  GNUGREP='/usr/local/opt/grep/libexec/gnubin'
-  GNUGETOPT='/usr/local/opt/gnu-getopt/bin'
-  GNUTAR='/usr/local/opt/gnu-tar/libexec/gnubin'
-  GNUFIND='/usr/local/opt/findutils/libexec/gnubin'
-  GNUINDENT='/usr/local/opt/gnu-indent/libexec/gnubin'
-  GNUSED='/usr/local/opt/gnu-sed/libexec/gnubin'
-  GNUMAKE='/usr/local/opt/make/libexec/gnubin'
-  INETUTILS='/usr/local/opt/inetutils/libexec/gnubin'
-  GUILE_TLS_CERTIFICATE_DIRECTORY='/usr/local/etc/gnutls/'
-  UTIL_LINUX_HOME='/usr/local/opt/util-linux'
+  BINUTILS="${HOMEBREW_OPT}/binutils"
+  GNUBINHOME="${HOMEBREW_OPT}/coreutils/libexec/gnubin"
+  GNUMANHOME="${HOMEBREW_OPT}/coreutils/libexec/gnuman"
+  GNUWHICH="${HOMEBREW_OPT}/gnu-which/libexec/gnubin"
+  GNUGREP="${HOMEBREW_OPT}/grep/libexec/gnubin"
+  GNUGETOPT="${HOMEBREW_OPT}/gnu-getopt/bin"
+  GNUTAR="${HOMEBREW_OPT}/gnu-tar/libexec/gnubin"
+  GNUFIND="${HOMEBREW_OPT}/findutils/libexec/gnubin"
+  GNUINDENT="${HOMEBREW_OPT}/gnu-indent/libexec/gnubin"
+  GNUSED="${HOMEBREW_OPT}/gnu-sed/libexec/gnubin"
+  GNUMAKE="${HOMEBREW_OPT}/make/libexec/gnubin"
+  INETUTILS="${HOMEBREW_OPT}/inetutils/libexec/gnubin"
+  GUILE_TLS_CERTIFICATE_DIRECTORY="${HOMEBREW_PREFIX}/etc/gnutls/"
+  UTIL_LINUX_HOME="${HOMEBREW_OPT}/util-linux"
 
   MACVIM_HOME='/Applications/MacVim.app'
   # /usr/local/Caskroom/neovim-nightly/nightly-7aa5637/nvim-macos-x86_64/bin/nvim
@@ -72,36 +76,40 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   #   JAVA_HOME='/Library/Java/JavaVirtualMachines/jdk1.8.0_271.jdk/Contents/Home'
   # java 11                                                       # https://docs.oracle.com/en/java/javase/11/install/installation-jdk-macos.html
   #   JAVA_HOME=$(/usr/libexec/java_home -v 11)
+  # java 17
+  #   JAVA_HOME=$(brew --prefix openjdk@17)                       # -> "${HOMEBREW_OPT}/openjdk@17"
   # java 21
   #   JAVA_HOME="$(brew --prefix java)"
-  JAVA_HOME=$(/usr/libexec/java_home)
-  # java 17
-  #   JAVA_HOME=$(brew --prefix openjdk@17)                       # -> '/usr/local/opt/openjdk@17'
-  GROOVY_HOME=$(brew --prefix groovy)/libexec                     # -> '/usr/local/opt/groovy/libexec'
+  # java 23
+  JAVA_HOME=$(/usr/libexec/java_home)                             # -> $ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
+  GROOVY_HOME=$(brew --prefix groovy)/libexec                     # -> "${HOMEBREW_OPT}/groovy/libexec"
   CLASSPATH=".:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar:$GROOVY_HOME/lib"
+  CPPFLAGS="-I$(brew --prefix openjdk)/include"                   # https://stackoverflow.com/a/69504284/2940319
   # JAVA_OPTS+='-Dhttp.proxyHost=ipamunix.sample.com -Dhttp.proxyPort=8080'
 
-  # NODE_HOME='/usr/local/opt/node@12'
+  # NODE_HOME="${HOMEBREW_OPT}/node@12"
   # NODE_HOME='/usr/local/Cellar/node/21.1.0'
   NODE_HOME="$(brew --prefix node)"
   MYSQL_HOME='/usr/local/mysql'
   ITERM2_ADDITIONAL="${HOME}/.iterm2"
 
-  TCLTK_HOME='/usr/local/opt/tcl-tk'                              # -> "$(brew --prefix tcl-tk)"
-  SQLITE_HOME='/usr/local/opt/sqlite'
+  TCLTK_HOME="${HOMEBREW_OPT}/tcl-tk"                              # -> "$(brew --prefix tcl-tk)"
+  SQLITE_HOME="${HOMEBREW_OPT}/sqlite"
   RUBY_HOME=$(brew --prefix ruby)
   RUBY_CONFIGURE_OPTS="--with-openssl-dir=${OPENSSL_HOME}"
-  ED_HOME='/usr/local/opt/ed'
+  RUBY_GEM_HOME="${HOMEBREW_PREFIX}"/lib/ruby/gems/3.4.0+0
+  ED_HOME="${HOMEBREW_OPT}/ed"
 
   PYTHON_VERSION='3.12'
   PYTHON_HOME=$(brew --prefix python@${PYTHON_VERSION})
-  PYTHONPATH="/usr/local/lib/python${PYTHON_VERSION}/site-packages"
+  PYTHONPATH="${HOMEBREW_PREFIX}/lib/python${PYTHON_VERSION}/site-packages"
   PYTHONUSERBASE="$(${PYTHON_HOME}/libexec/bin/python -c 'import site; print(site.USER_BASE)')"   # PYTHONUSERBASE=$PYTHONPATH
   PYTHON_CONFIGURE_OPTS="--with-tcltk-includes='-I${TCLTK_HOME}/include' --with-tcltk-libs='-L${TCLTK_HOME}/lib -ltcl8.6 -ltk8.6'"
 
   SCRIPT_BINS="${SCRIPT_BINS:-}"
   test -d "${PYTHON_HOME}"    && SCRIPT_BINS+=":${PYTHON_HOME}/libexec/bin"
   test -d "${RUBY_HOME}"      && SCRIPT_BINS+=":${RUBY_HOME}/bin"
+  test -d "${RUBY_GEM_HOME}"  && SCRIPT_BINS+=":${RUBY_GEM_HOME}/bin"
   test -d "${TCLTK_HOME}"     && SCRIPT_BINS+=":${TCLTK_HOME}/bin"
   test -d "${PYTHONUSERBASE}" && SCRIPT_BINS+=":${PYTHONUSERBASE}/bin"
   test -d "${NODE_HOME}"      && SCRIPT_BINS+=":${NODE_HOME}/bin"
@@ -114,8 +122,8 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   # SCRIPT_BINS+=":${PYENV_ROOT}/bin"                             # shell: bash 3.2.57
 
   UTLS_PATH="${UTLS_PATH:-}"
-  test -d '/usr/local/opt/gettext'      && UTLS_PATH+=':/usr/local/opt/gettext/bin'
-  test -d '/usr/local/opt/file-formula' && UTLS_PATH+=':/usr/local/opt/file-formula/bin'
+  test -d "${HOMEBREW_OPT}/gettext"      && UTLS_PATH+=":${HOMEBREW_OPT}/gettext/bin"
+  test -d "${HOMEBREW_OPT}/file-formula" && UTLS_PATH+=":${HOMEBREW_OPT}/file-formula/bin"
   test -d "${OPENLDAP_HOME}"            && UTLS_PATH+=":${OPENLDAP_HOME}/bin"
   test -d "${OPENLDAP_HOME}"            && UTLS_PATH+=":${OPENLDAP_HOME}/sbin"
   test -d "${CURL_OPENSSL_HOME}"        && UTLS_PATH+=":${CURL_OPENSSL_HOME}/bin"
@@ -202,5 +210,11 @@ brew-whatprovides() {
 # # https://iterm2.com/documentation-scripting-fundamentals.html
 # export LC_ALL=en_US.UTF-8
 # function iterm2_print_user_vars() { iterm2_set_user_var gitBranch $(git symbolic-ref --short HEAD); }
+
+# nvim
+export NVM_DIR="$HOME/.nvm"
+export NPM_CONFIG_PREFIX="${NVM_DIR}"
+[ -s "${HOMEBREW_OPT}/nvm/nvm.sh" ] && source "${HOMEBREW_OPT}/nvm/nvm.sh"
+[ -s "${HOMEBREW_OPT}/nvm/etc/bash_completion.d/nvm" ] && source "${HOMEBREW_OPT}/nvm/etc/bash_completion.d/nvm"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

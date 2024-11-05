@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck source=/dev/null disable=SC1090
 
+export BASH_SILENCE_DEPRECATION_WARNING=1
+test -f /opt/homebrew/bin/brew && eval "$(/opt/homebrew/bin/brew shellenv)"
+[[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]] && source "$(brew --prefix)/etc/profile.d/bash_completion.sh"
+
 # set -a; source "/Users/marslo/.marslo/.marslorc"; set +a;         # `-a`: mark variables which are modified or created for export
 # set -x; source "/Users/marslo/.marslo/.marslorc"; set +x;         # `-x`: print commands and their arguments as they are executed
 # bash -ixlc : 2>&1 | grep ...                                      # debug bash full start process : https://unix.stackexchange.com/a/322468/29178
@@ -13,11 +17,18 @@
 # - awk '!x[$0]++'
 # - https://stackoverflow.com/a/11532197/2940319
 # shellcheck disable=SC2155
-if [[ '1' = $(isOSX) ]]; then
+if [[ 'Darwin' = "$(uname)" ]]; then
+  test -f "$(brew --prefix coreutils)/libexec/gnubin/paste" &&
+       export PATH=$( echo "${PATH}" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | "$(brew --prefix coreutils)/libexec/gnubin/paste" -s -d: )
+
+  # shellcheck disable=SC2015
+  command -v brew >/dev/null && source "$(brew --prefix git)"/etc/bash_completion.d/git-*.sh \
+                             || source "$(brew --prefix git)"/etc/bash_completion.d/git-prompt.sh
+
   test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
-  export PATH=$( echo "$PATH" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | /usr/local/opt/coreutils/libexec/gnubin/paste -s -d: )
 else
-  export PATH=$( echo "$PATH" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | paste -s -d: )
+  command -v paste >/dev/null &&
+       export PATH=$( echo "$PATH" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | paste -s -d: )
 fi
 ! test -d "$HOME"/perl5 || eval "$(perl -I"$HOME"/perl5/lib/perl5 -Mlocal::lib="$HOME"/perl5)"
 

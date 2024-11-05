@@ -35,8 +35,8 @@ function help() {
 
 userId="$1"
 attributes=''
-SED='/usr/local/opt/gnu-sed/libexec/gnubin/sed'
-LDAPSEARCH='/usr/local/opt/openldap/bin/ldapsearch'
+SED="$(brew --prefix gnu-sed)/libexec/gnubin/sed"
+LDAPSEARCH="$(brew --prefix openldap)/bin/ldapsearch"
 sedOpt="${SED} -r '/^(#.*)$/d;/^\s*$/d'"
 
 if [[ $# -gt 1 ]]; then

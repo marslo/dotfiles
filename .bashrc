@@ -12,7 +12,7 @@ fi
 # for :terminal in nvim, avoid scp issue from non-mac system
 if [[ 'Darwin' = $(uname) ]]; then
   command -v brew >/dev/null && source "$(brew --prefix git)"/etc/bash_completion.d/git-*.sh \
-                             || source "/usr/local/opt/git/etc/bash_completion.d/git-prompt.sh"
+                             || source "$(brew --prefix git)"/etc/bash_completion.d/git-prompt.sh
 else
   test -f "/etc/bash_completion.d/git-prompt"         && source "/etc/bash_completion.d/git-prompt"
   test -f "/usr/local/libexec/git-core/git-prompt.sh" && source "/usr/local/libexec/git-core/git-prompt.sh"
@@ -25,9 +25,11 @@ fi
 # - awk '!x[$0]++'
 # - https://stackoverflow.com/a/11532197/2940319
 if [[ 'Darwin' = "$(uname)" ]]; then
-  export PATH=$( echo "$PATH" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | /usr/local/opt/coreutils/libexec/gnubin/paste -s -d: )
+  test -f "$(brew --prefix coreutils)/libexec/gnubin/paste" &&
+       export PATH=$( echo "${PATH}" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | "$(brew --prefix coreutils)/libexec/gnubin/paste" -s -d: )
 else
-  export PATH=$( echo "$PATH" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | paste -s -d: )
+  command -v paste >/dev/null &&
+       export PATH=$( echo "${PATH}" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | paste -s -d: )
 fi
 
 # ubuntu/wsl
@@ -42,6 +44,6 @@ function bello() { source ~/.bash_profile; }
 # [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 # generated for envman. do not edit.
-[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+# [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
 
 # vim: tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
