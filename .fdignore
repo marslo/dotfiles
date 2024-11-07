@@ -23,12 +23,15 @@
 .local/bin
 .config/pulse
 snap
-snipaste/
+.snipaste/
+cache/
+.vim/?undo/
+undo/
+nundo/
+
 Pictures/
 Music/
 Movies/
-cache/
-.vim/?undo/
 Library/
 
 ## **/.marslo/.completion/*
@@ -46,10 +49,11 @@ Library/
 **/.completion/bash-completion
 **/.jfrog/dependencies/*
 **/.jfrog/logs/*
+**/.idlerc/recent-files.lst
+.kube/*bak*
+.kube/backup*
 
 .*history
-.vim_mru_files
-
 *.png
 *.gif
 *.jpeg
@@ -59,4 +63,3 @@ Library/
 .vim_mru_files
 .DS_Store
 .localized
-**/.idlerc/recent-files.lst
