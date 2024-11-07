@@ -1,10 +1,12 @@
 {
-  // suppress the python not valid/found issue when open nvim
+  "//":  "suppress the python not valid/found issue when open nvim",
   "snippets.ultisnips.pythonPrompt": false,
-  // $ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
+  "//": "$ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk",
   "groovy.java.home": "/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home",
   "codeLens.enable": true,
   "java.referencesCodeLens.enabled": true,
+  "java.implementationsCodeLens.enabled": true,
+  "java.signatureHelp.enabled": true,
   "diagnostic.displayByAle": false,
   "diagnostic.errorSign": "✘",
   "diagnostic.infoSign": "ᓆ",
@@ -23,7 +25,7 @@
   "html-css-support.enabledLanguages": [ "html", "markdown" ],
   "coc.source.file.ignoreHidden": false,
   "snippets.userSnippetsDirectory": "~/.marslo/vimrc.d/snips",
-  // https://github.com/GroovyLanguageServer/groovy-language-server/issues/17
+  "//": "https://github.com/GroovyLanguageServer/groovy-language-server/issues/17",
   "languageserver": {
     "groovy": {
       "filetypes": ["groovy"],
@@ -37,5 +39,7 @@
       }
     }
   },
-  "coc.preferences.extensionUpdateCheck": "daily"
+  "coc.preferences.extensionUpdateCheck": "daily",
+  "coc.preferences.currentFunctionSymbolAutoUpdate": true,
+  "git.enableGutters": true
 }

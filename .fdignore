@@ -29,8 +29,6 @@ Music/
 Movies/
 cache/
 .vim/?undo/
-undo/
-nundo/
 Library/
 
 ## **/.marslo/.completion/*
@@ -45,10 +43,12 @@ Library/
 **/.marslo/others
 **/.ssh/known_hosts*
 **/.marslo/.password-store
+**/.completion/bash-completion
+**/.jfrog/dependencies/*
+**/.jfrog/logs/*
 
 .*history
 .vim_mru_files
-.*history
 
 *.png
 *.gif
@@ -59,3 +59,4 @@ Library/
 .vim_mru_files
 .DS_Store
 .localized
+**/.idlerc/recent-files.lst
