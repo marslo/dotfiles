@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-10-17 23:25:57
+#   LastChange : 2024-11-07 02:11:20
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -117,7 +117,7 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
   fdOpt+=' --exec stat --printf="%y | %n\n"'
   (
     eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs' $HOME ${fdOpt}";
-    echo "${rcPaths}" | fmt -1 | xargs -r -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
+    echo "${rcPaths}" | fmt -1 | xargs -r -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude logs/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
   ) |  sort -r
 }
 
@@ -299,18 +299,23 @@ function fmsh() {                          # connect [m]ongodb with mongo[sh] wi
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @usage       : $ fpw [ -s | --show ]
 function fpw() {                           # copy or show [p]ass[w]ord from pass store with [f]zf
-  passStoreDir="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
-  show='false'
+  local passStoreDir="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+  local passClipTime="${PASSWORD_STORE_CLIP_TIME:-45}"
+  local show='false'
+  local clip=''
+  local plugin=''
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -s | --show ) show='true' ; shift ;;
+      -c | --clip ) clip='true' ; shift ;;
+         --slient ) clip='true' ; shift ;;
                 * ) break               ;;
     esac
   done
 
   path=$( command fd . "${passStoreDir}" --extension gpg --color=never --type f --hidden --follow |
-          xargs -I_ bash -c "sed -r \"s:${passStoreDir}/marvell/(.+).gpg:\\1:\" <<< _" |
+          xargs -I_ bash -c "sed -r \"s:${passStoreDir}/(.+).gpg:\\1:\" <<< _" |
           fzf --no-multi -1 \
               --sort --tac \
               --cycle \
@@ -320,11 +325,22 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
               --header 'Press CTRL-Y to copy name into clipboard' \
       )
 
-  [[ 'true' = "${show}" ]] && option='show' || option='--clip'
+  if command pass "${path}" | grep 'otpauth://' >/dev/null; then
+    plugin="otp"
+    show='true'                                 # show otp by default
+  fi
+
+  if [[ -n "${clip}" ]]; then                   # `--clip` or `-c` is the highest priority
+    [[ 'true' = "${clip}"  ]] && option='--clip' || option='show'
+  else                                          # `--show` or `-s` is the secondary priority
+    [[ 'true' = "${show}"  ]] && option='show'   || option='--clip'
+  fi
 
   [[ -n "${path}" ]] &&
-  if command pass ${option} "marvell/${path}" >/dev/null; then
-    echo -e "$(c Wd)>> copied$(c) $(c Yi)marvell/${path}$(c) $(c Wd)to clipboard .. will clear in$(c) $(c Ydi)45$(c) $(c Wd)seconds ..$(c)"
+  if [[ 'show' = "${option}" ]]; then
+    command pass ${plugin} ${option} "${path}"
+  elif command pass ${plugin} ${option} "${path}" >/dev/null; then
+    echo -e "$(c Wd)>> copied$(c) $(c Yi)${path}$(c) $(c Wd)to clipboard .. will clear in$(c) $(c Ydi)${passClipTime}$(c) $(c Wd)seconds ..$(c)"
   fi
 }
 
