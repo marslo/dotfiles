@@ -6,6 +6,8 @@
 "    LastChange : 2024-10-16 16:50:12
 " =============================================================================
 
+" vint: -ProhibitAutocmdWithNoGroup
+
 " /**************************************************************
 "              _                           _
 "   __ _ _   _| |_ ___   ___ _ __ ___   __| |
@@ -14,7 +16,7 @@
 "  \__,_|\__,_|\__\___/ \___|_| |_| |_|\__,_|
 "
 " **************************************************************/
-if has( "autocmd" )
+if has( 'autocmd' )
   " autocmd VimLeave         *                               silent :%bd                                          " :windo bd
   autocmd BufReadPre         *                               setlocal foldmethod=indent
   " autocmd BufWinEnter      *                               if &foldmethod == 'indent' | setlocal foldmethod=manual | endif
@@ -57,10 +59,10 @@ if has( "autocmd" )
           \ '<thread>':'</thread>', '<th>':'</th>', '<td>':'</td>',
           \ '<kbd>':'</kbd>'
           \ })
-    if index( ['README', 'SUMMARY'], expand("%:r") ) == -1
+    if index( ['README', 'SUMMARY'], expand('%:r') ) == -1
       autocmd BufWritePost     *\(.md\)            silent :DocTocUpdate       " automatic build doctoc when save it
     endif
-    if index( ['project.config', 'groups'], expand("%:r") ) == -1
+    if index( ['project.config', 'groups'], expand('%:r') ) == -1
       autocmd BufRead,BufNewFile *.config          set syntax=gitconfig noexpandtab
     endif
     autocmd BufNewFile,BufRead                                                " git config files
@@ -86,11 +88,6 @@ if has( "autocmd" )
     autocmd Syntax     groovy,Jenkinsfile    normal zM
     autocmd FileType   Jenkinsfile           setlocal commentstring=//\ %s
 
-    autocmd Syntax     groovy,Jenkinsfile    syn region  groovyDocComment start="/\*\*"  end="\*\*/" keepend contains=groovyCommentTitle,@groovyHtml,groovyDocTags,groovyTodo,@Spell
-    autocmd Syntax     groovy,Jenkinsfile    syn keyword groovyJDKMethods collectEntries collectMany eachWithIndex
-    autocmd Syntax     groovy,Jenkinsfile    syn keyword groovyKeywords it Object Closure
-    autocmd Syntax     groovy,Jenkinsfile    syn keyword groovyType Map List
-
     " https://vim.fandom.com/wiki/Syntax_folding_for_Java
     autocmd FileType   java                  setlocal foldmarker=/**,**/ foldmethod=marker foldcolumn=1
     " autocmd FileType javascript            syntax clear jsFuncBlock         " rainbow issue #2
@@ -98,8 +95,8 @@ if has( "autocmd" )
     " autocmd FileType Jenkinsfile           set syntax=groovy filetype=groovy
     " autocmd BufNewFile,BufRead             Jenkinsfile setf groovy
     " autocmd BufNewFile,BufRead,BufReadPost Jenkinsfile setlocal foldmethod=indent
-    if did_filetype()                     |  finish      | endif
-    if getline(1) =~ '^#!.*[/\\]groovy\>' |  setf groovy | endif               " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
+    if did_filetype()                      |  finish      | endif
+    if getline(1) =~# '^#!.*[/\\]groovy\>' |  setf groovy | endif             " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
   augroup END
 
   augroup Python
@@ -108,7 +105,7 @@ if has( "autocmd" )
             \ setlocal shiftwidth=2 tabstop=2 softtabstop=2 autoindent
             \ fileformat=unix
     autocmd FileType python syntax keyword pythonDecorator print self
-    autocmd FileTYpe python set isk-=.
+    autocmd FileType python set isk-=.
     autocmd Syntax   python setlocal foldmethod=indent
     autocmd Syntax   python normal zM
     autocmd FileType python map  <buffer> <F9> :w<CR>:exec '!python3' shellescape(@%, 1)<CR>

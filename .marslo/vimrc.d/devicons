@@ -55,7 +55,7 @@ endif
 
 " 
 " all files in pattern of **/.marslo/vimrc.d/**
-if stridx(expand("%:p:h"), '.marslo/vimrc.d') >= 0
+if stridx(expand('%:p:h'), '.marslo/vimrc.d') >= 0
   let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*']               = ''
 endif
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['.vimrc']               = ''
