@@ -1,0 +1,16 @@
+---
+cmdargs:
+  # checking more strictly
+  severity: style_problem
+
+  # enable coloring
+  color: true
+
+  # enable neovim syntax
+  env:
+    neovim: true
+
+policies:
+  # https://github.com/Vimjas/vint/issues/363#issuecomment-1065421117
+  ProhibitMissingScriptEncoding:
+    enabled: false

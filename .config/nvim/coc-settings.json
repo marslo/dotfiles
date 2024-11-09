@@ -41,5 +41,11 @@
   },
   "coc.preferences.extensionUpdateCheck": "daily",
   "coc.preferences.currentFunctionSymbolAutoUpdate": true,
-  "git.enableGutters": true
+  "git.enableGutters": true,
+  "java.imports.gradle.wrapper.checksums": [
+    {
+      "sha256": "af4ff7fffa2c25ebe61221050cc27f5482b14960f3b049f9abe5cadbf0b08085",
+      "allowed": true
+    }
+  ]
 }
