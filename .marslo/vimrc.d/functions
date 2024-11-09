@@ -3,8 +3,9 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-06-28 20:34:27
+"    LastChange : 2024-11-08 20:55:27
 " =============================================================================
+" vint: -ProhibitAutocmdWithNoGroup
 
 " /**************************************************************
 "   __                  _   _
@@ -18,10 +19,10 @@ function! GetPlug()                                                 " GetPlug() 
   let pluginHome=$HOME . '/.vim/autoload'
   let pluginFile=pluginHome . '/plug.vim'
   if filereadable( pluginFile )
-    echo "vim-plug has existed at " . expand( pluginFile )
+    echo 'vim-plug has existed at ' . expand( pluginFile )
   else
-    echo "download vim-plug to " . expand( pluginFile ) . '...'
-    echo ""
+    echo 'download vim-plug to ' . expand( pluginFile ) . '...'
+    echo ''
     if isdirectory( expand(pluginHome) ) == 0
       call mkdir( expand(pluginHome), 'p' )
     endif
@@ -86,8 +87,13 @@ autocmd Syntax *             :call IgnoreCamelCaseSpell()
 syn match UrlNoSpell '\w\+:\/\/[^[:space:]]\+' contains=@NoSpell
 
 function! GroovyKeywords()
-  syntax keyword newJDKMethods collectEntries eachWithIndex collectMany
-  syntax cluster groovyJDKMethods add=newJDKMethods
+  " syntax keyword newJDKMethods collectEntries eachWithIndex collectMany
+  " syntax cluster groovyJDKMethods add=newJDKMethods
+  syntax keyword groovyJDKMethods collectEntries collectMany eachWithIndex
+  syntax keyword groovyKeywords it Object Closure stage
+  syntax keyword groovyType Map List
+  syntax keyword groovyJDKMethods collectEntries collectMany eachWithIndex
+  syntax region  groovyDocComment start="/\*\*"  end="\*\*/" end="\ \*/" keepend contains=groovyCommentTitle,@groovyHtml,groovyDocTags,groovyTodo,@Spell
 endfunction
 autocmd Syntax groovy,Jenkinsfile :call GroovyKeywords()
 
@@ -98,7 +104,7 @@ function! TabMessage(cmd)
   silent execute a:cmd
   redir END
   if empty( message )
-    echoerr "no output"
+    echoerr 'no output'
   else
     tabnew                                                          " use `new` instead of `tabnew` below if you prefer split windows instead of tabs
     setlocal buftype=nofile bufhidden=wipe noswapfile nobuflisted nomodified
@@ -124,7 +130,7 @@ nnoremap <S-Tab>    :call BSkipQuickFix("bn")<CR>
 nnoremap <leader>bp :call BSkipQuickFix("bn")<CR>
 nnoremap <leader>bn :call BSkipQuickFix("bp")<CR>
 
-if exists( ":Tabularize" )                                          " 'godlygeek/tabular'
+if exists( ':Tabularize' )                                          " 'godlygeek/tabular'
   function! s:table_auto_align()
     let p = '^\s*|\s.*\s|\s*$'
     if exists( ':Tabularize' ) && getline('.') =~# '^\s*|'
