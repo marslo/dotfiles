@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-11-07 02:11:20
+#   LastChange : 2024-11-13 02:41:53
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -911,7 +911,7 @@ function eclr() {                          # [e]nvironment variable [c][l]ea[r]
                 --height '50%' \
                 --prompt 'env> ' \
                 --preview-window 'top,30%,wrap,rounded' \
-                --preview 'source ~/.marslo/bin/bash-color.sh; _env={}; echo -e "$(c Gs)${_env}=${!_env}$(c)"' \
+                --preview 'source ~/.marslo/bin/bash-color.sh; _env={}; printf "$(c Gs)%s=%s$(c)\n" "${_env}" "${!_env}"' \
                 --header 'TAB to select multiple items'
           )
 }
@@ -952,7 +952,7 @@ function penv() {                          # [p]rint [env]ironment variable
                 --prompt 'env> ' \
                 --height '50%' \
                 --preview-window 'top,50%,wrap,rounded' \
-                --preview 'source ~/.marslo/bin/bash-color.sh; _env={}; echo -e "$(c Gs)${_env}=${!_env}$(c)"' \
+                --preview 'source ~/.marslo/bin/bash-color.sh; _env={}; printf "$(c Gs)%s=%s$(c)\n" "${_env}" "${!_env}"' \
                 --header 'TAB/SHIFT-TAB to select multiple items, CTRL-D to deselect-all, CTRL-S to select-all'
           )
   [[ "${option}" == *-c\ * ]] && [[ -n "${COPY}" ]] && "${COPY}" < <( printf '%s\n' "${array[@]}" | head -c-1 )
@@ -977,7 +977,7 @@ function mkclr() {                         # [m]a[k]e environment variable [c][l
                          --prompt 'env> ' \
                          --height '50%' \
                          --preview-window 'top,50%,wrap,rounded' \
-                         --preview 'source ~/.marslo/bin/bash-color.sh; _env={}; echo -e "$(c Gs)${_env}=${!_env}$(c)"' \
+                         --preview 'source ~/.marslo/bin/bash-color.sh; _env={}; printf "$(c Gs)%s=%s$(c)\n" "${_env}" "${!_env}"' \
                          --header 'TAB/SHIFT-TAB to select multiple items, CTRL-D to deselect-all, CTRL-S to select-all'
           )
   # echo -e "\n$(c Wdi)[TIP]>> to list all env via $(c)$(c Wdiu)\$ env | sed -rn 's/^([a-zA-Z0-9]+)=.*$/\1/p'$(c)"
