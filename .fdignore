@@ -40,7 +40,7 @@ Library/
 **/.marslo/pkg
 **/.marslo/bin/go
 **/.marslo/bin/bash-completion
-**/.marslo/bin/screenfetch-dev
+# **/.marslo/bin/screenfetch-dev
 **/.marslo/bin/*completion*
 **/.marslo/.completion/archive
 **/.marslo/others

@@ -2711,18 +2711,17 @@ detectgtk () {
     if ps -U "${USER}" | grep -q -i 'finder'; then
       if [[ ${TERM_PROGRAM} == "iTerm.app" ]] && [ -f ~/Library/Preferences/com.googlecode.iterm2.plist ]; then
         # iTerm2
-
-        iterm2_theme_uuid=$(defaults read com.googlecode.iTerm2 "Default Bookmark Guid")
+        iterm2_theme_current="${ITERM_PROFILE}"
 
         OLD_IFS=$IFS
         IFS=$'\n'
-        iterm2_theme_info=($(defaults read com.googlecode.iTerm2 "New Bookmarks" | grep -e 'Guid\s*=\s*\w+' -e 'Normal Font'))
+        # iterm2_theme_info will be a array of: ( theme-1, font-1, theme-2, font-2, ... )
+        iterm2_theme_info=($(defaults read com.googlecode.iTerm2 "New Bookmarks" | sed -rn -e 's/^\s*Name\s*=\s*"?([^;"]+)"?;/\1/p' -e 's/^\s*"Normal Font"\s*=\s*"?([^\ ]+).+"?;/\1/p'))
         IFS=$OLD_IFS
 
         for i in $(seq 0 $((${#iterm2_theme_info[*]}/2-1))); do
-          found_uuid=$(str1=${iterm2_theme_info[$i*2]};echo "${str1}")
-          if [[ $found_uuid == $iterm2_theme_info ]]; then
-            gtkFont=$(str2=${iterm2_theme_info[$i*2]};echo ${str2:25:${#str2}-25-2} | sed 's/ [0-9]*$//')
+          if [[ "${iterm2_theme_info[$i*2]}" = "${iterm2_theme_current}" ]]; then
+            gtkFont="${iterm2_theme_info[$i*2+1]}"
             break
           fi
         done
