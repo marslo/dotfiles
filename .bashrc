@@ -11,6 +11,8 @@ fi
 
 # for :terminal in nvim, avoid scp issue from non-mac system
 if [[ 'Darwin' = $(uname) ]]; then
+  test -f /opt/homebrew/bin/brew && eval "$(/opt/homebrew/bin/brew shellenv)"
+  test -f /usr/local/bin/brew    && eval "$(/usr/local/bin/brew shellenv)"
   command -v brew >/dev/null && source "$(brew --prefix git)"/etc/bash_completion.d/git-*.sh \
                              || source "$(brew --prefix git)"/etc/bash_completion.d/git-prompt.sh
 else

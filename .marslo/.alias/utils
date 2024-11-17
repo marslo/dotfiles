@@ -8,6 +8,7 @@
 # =============================================================================
 
 if [[ 'Darwin' = $(uname --operating-system) ]]; then
+  # requires gnu-which
   alias which='alias | which -a --tty-only --read-alias --show-dot --show-tilde'
   alias ping='/sbin/ping --apple-time -v'
   alias sping='/sbin/ping -c1 -t1 -W0'
