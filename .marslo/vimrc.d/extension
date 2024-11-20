@@ -3,8 +3,9 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-11-04 22:17:21
+"    LastChange : 2024-11-20 02:39:19
 " =============================================================================
+" vint: -ProhibitAutocmdWithNoGroup
 
 " /**************************************************************
 "            _             _   _
@@ -30,7 +31,7 @@ Plug 'tpope/vim-pathogen'
 Plug 'tpope/vim-surround'
 Plug 'godlygeek/tabular', { 'commit': '84057252a01e96909cd1a9f0b1395f5d9f61be1e' }
 Plug 'tpope/vim-repeat'
-Plug 'Yggdroot/indentLine'
+Plug 'Yggdroot/indentLine'                                          " Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
 " Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
@@ -75,8 +76,8 @@ Plug 'stephpy/vim-yaml'                                             " ╮ yaml
 Plug 'pedrohdz/vim-yaml-folds'                                      " ╯
 Plug 'dense-analysis/ale'
 " Plug 'vim-scripts/vim-gradle'                                     " ╮ groovy
-" Plug 'modille/groovy.vim'                                           " ├ /usr/local/vim/share/vim/vim90/syntax/groovy.vim
-Plug 'sheerun/vim-polyglot'                                       " ╯ yaml.ansible
+" Plug 'modille/groovy.vim'                                         " ├ /usr/local/vim/share/vim/vim90/syntax/groovy.vim
+Plug 'sheerun/vim-polyglot'                                         " ╯ yaml.ansible
 Plug 'marslo/Jenkinsfile-vim-syntax'                                " Jenkinsfile
 Plug 'ekalinin/Dockerfile.vim'                                      " dockerfile
 " Plug 'yaegassy/coc-ansible', {'do': 'yarn install --frozen-lockfile'}
@@ -166,7 +167,7 @@ let g:rainbow_active    = 1
 let g:rainbow_operators = 1
 let g:rainbow_conf      = {
   \ 'guifgs' : [ '#6A5ACD', '#ff6347', '#b58900', '#9acd32', '#EEC900', '#9A32CD', '#EE7600', '#268bd2', '#183172' ],
-  \ 'ctermfgs' : 'xterm-256color' == $TERM ? [ '75', '147', '108', '196', '208', '66', '106', '172', '115', '129' ] : [ 'lightblue', 'lightgreen', 'yellow', 'red', 'magenta' ],
+  \ 'ctermfgs' : 'xterm-256color' ==? $TERM ? [ '75', '147', '108', '196', '208', '66', '106', '172', '115', '129' ] : [ 'lightblue', 'lightgreen', 'yellow', 'red', 'magenta' ],
   \ 'parentheses': ['start=/(/ end=/)/ fold', 'start=/\[/ end=/\]/ fold', 'start=/{/ end=/}/ fold'],
   \ 'operators': '_,_',
   \ 'separately': {
@@ -196,7 +197,7 @@ let g:rainbow_conf      = {
 
 " Yggdroot/indentLine
 let g:indentLine_enabled              = 1
-let g:indentLine_color_gui            = "#282828"
+let g:indentLine_color_gui            = '#282828'
 let g:indentLine_color_term           = 239
 let g:indentLine_indentLevel          = 20
 let g:indentLine_showFirstIndentLevel = 1
@@ -205,6 +206,8 @@ let g:indentLine_faster               = 1
 let g:indentLine_concealcursor        = 'inc'
 let g:indentLine_conceallevel         = 2
 let g:indentLine_char                 = '¦'
+let g:indentLine_bufTypeExclude       = ['help', 'terminal']
+let g:indentLine_bufNameExclude       = ['_.*', 'NERD_tree.*']
 
 " LunarWatcher/auto-pairs
 let g:AutoPairsMapBS                        = 1
@@ -384,7 +387,7 @@ let g:blamer_template             = '<author> • <commit-short> • <summary>'
 " airblade/vim-gitgutter
 set updatetime=250
 set signcolumn=yes
-let g:gitgutter_enabled        = 1
+let g:gitgutter_enabled        = 0
 let g:gitgutter_realtime       = 0
 let g:gitgutter_eager          = 0
 
