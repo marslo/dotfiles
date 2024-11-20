@@ -15,7 +15,7 @@
 "
 " **************************************************************/
 if has('gui_running')
-  set go=                                                           " hide everything (go = guioptions)
+  set guioptions=                                                   " hide everything (go = guioptions)
   set cpoptions+=n
 
   if IsWindows()
@@ -32,11 +32,11 @@ if has('gui_running')
   set columns=106
 endif
 
-if exists( '$TMUX' )         | set term=screen-256color | endif
-if 'xterm-256color' == $TERM | set t_Co=256             | endif
+if exists( '$TMUX' )          | set term=screen-256color | endif
+if 'xterm-256color' ==? $TERM | set t_Co=256             | endif
 set termguicolors
 
-if has( 'gui_running' ) || 'xterm-256color' == $TERM
+if has( 'gui_running' ) || 'xterm-256color' ==? $TERM
   set background=dark
   colorscheme gruvbox-material                                      " sainnhe/gruvbox-material
 

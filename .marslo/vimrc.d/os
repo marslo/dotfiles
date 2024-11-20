@@ -2,7 +2,7 @@
 "      FileName : os
 "        Author : marslo.jiao@gmail.com
 "       Created : 2024-04-18 03:18:08
-"    LastChange : 2024-04-18 05:22:38
+"    LastChange : 2024-11-20 02:39:12
 " =============================================================================
 
 function! IsLinux()
@@ -55,7 +55,7 @@ endfunction
 function! IsWSL()
   if has( 'linux' )
     let lines = readfile( '/proc/version' )
-    if lines[0] =~ 'Microsoft' | return 1 | endif
+    if lines[0] =~# 'Microsoft' | return 1 | endif
   endif
   return 0
 endfunction

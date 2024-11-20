@@ -21,6 +21,7 @@ require("CopilotChat").setup {
   allow_insecure = true, -- https://github.com/deathbeam/dotfiles/blob/master/nvim/.config/nvim/lua/config/copilot.lua
   show_folds = false
 }
+-- require("ibl").setup()
 -- require('config.snippets')
 -- require('config/lsp')
 -- require('undotree').setup()
