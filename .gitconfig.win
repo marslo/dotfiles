@@ -1,0 +1,160 @@
+[user]
+  name              = marslo
+  email             = marslo@sample.com
+[gitreview]
+  username          = marslo
+  remote            = origin
+[push]
+  default           = matching
+  followTags        = true
+[log]
+  follow            = true
+# [remote "origin"]
+#   fetch           = +refs/heads/*:refs/remotes/origin/*
+[diff]
+  rename            = copy
+  submodule         = log
+  wsErrorHighlight  = all
+  renamelimit       = 10000
+# inspired from tpope: https://github.com/tpope/tpope/blob/master/.gitconfig
+[diff "ruby"]
+  funcname          = "^ *\\(\\(def\\) .*\\)"
+[diff "image"]
+  textconv          = identify
+[diff "bin"]
+  textconv          = hexdump -v -C
+[core]
+  editor            = nvim
+  # pager           = cat
+  # pager           = less -r
+  # pager           = less
+  pager             = diff-highlight | less $LESS -F -x1,5 -X
+  whitespace        = fix,-indent-with-non-tab,trailing-space,cr-at-eol,tab-in-indent
+  # whitespace      = cr-at-eol
+  # autocrlf        = input
+  autocrlf          = false
+  precomposeUnicode = true
+  ignorecase        = false
+  excludesfile      = ~/.gitignore_global
+  eol               = lf
+  safecrlf          = false
+  attributesfile    = ~/.gitattributes
+  fileMode          = true
+  sshCommand        = ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa
+[pager]
+  branch            = false
+  diff              = diff-highlight | less
+  log               = diff-highlight | less
+  show              = diff-highlight | less
+[gui]
+  fontdiff          = -family Consolas -size 11 -weight normal -slant roman -underline 0 -overstrike 0
+[pretty]
+  custom            = "%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
+  #                                │        │            │            │             └─ author name
+  #                                │        │            │            └─ message
+  #                                │        │            └─ date (relative)
+  #                                │        └─ decorations (branch, heads or tags)
+  #                                └─ hash (abbreviated)
+
+[status]
+  submoduleSummary  = true
+[fetch]
+  prune             = true
+  pruneTags         = true
+[branch]
+  autosetuprebase   = always
+  sort              = -committerdate
+[rerere]
+  enabled           = true
+[difftool "sourcetree"]
+  cmd               = opendiff \"$LOCAL\" \"$REMOTE\"
+  path              =
+[mergetool "sourcetree"]
+  cmd               = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+  trustExitCode     = true
+[commit]
+  template          = ~/.stCommitMsg
+[include]
+  path              = ~/.marslo/.gitalias
+  path              = ~/.marslo/.gitcolors
+
+[http]
+  sslVerify         = false
+  postBuffer        = 1048576000
+#   sslBackend      = openssl
+#   proxy           = http://127.0.0.1:1087
+# [https]
+#   proxy           = http://127.0.0.1:1087
+# [http "https://chromium.googlesource.com"]
+#   sslVerify       = false
+#   proxy           = http://127.0.0.1:1087
+# [http "git@github.com:"]
+#   sslVerify       = false
+#   proxy           = http://127.0.0.1:1087
+
+[url "ssh://marslo@gerrit.sample.com:29418/"]
+  insteadOf         = ssh://srv-ssd-fw-devops@gerrit.sample.com:29418/
+# [url "git@ssh.github.com"]
+#   insteadOf       = git@github.com
+# [url "git@github.com"]
+#   insteadOf       = git@ssh.github.com
+# [url "https://marslo@gerrit.sample.com/a/"]
+#   insteadOf       = ssh://marslo@gerrit.sample.com:29418/
+# [url "ssh://marslo@gerrit.sample.com:29418/"]
+#   insteadOf       = https://marslo@gerrit.sample.com/a/
+[advice]
+  detachedHead      = false
+  objectNameWarning = false
+[pull]
+  rebase            = true
+[rebase]
+  autoStash         = true
+[init]
+  defaultBranch     = main
+  templatedir       = ~/.git-templates
+[blame]
+  # https://gist.github.com/BuonOmo/ce45b51d0cefe949fd0c536a4a60f000
+  # date            = relative
+  date              ="format:%Y-%m-%d %H:%M:%S %p"
+  coloring          = highlightRecent
+  showRoot          = true
+[help]
+  autocorrect       = immediate
+[merge]
+  renamelimit       = 10000
+
+############################################################
+# for environment failed in $ ssh -vT git@github.com -p 22 #
+############################################################
+[url "https://github.com/"]
+  insteadOf         = git@ssh.github.com:
+[url "https://github.com/"]
+  insteadOf         = git@github.com:
+[url "https://github.com/"]
+  insteadOf         = git@github-mrvlcp.com:
+[credential]
+  helper            = store --file ~/.marslo/.git-credentials
+  # helper          = cache --timeout 30000
+  # helper          = wincred
+[git-extras]
+  github-personal-access-token   = ghp_D**********************************x
+  # github-personal-access-token = ghp_C**********************************N
+
+# GIT_USERNAME/GIT_ASKPASS for token: https://git-scm.com/docs/gitcredentials
+[url "https://github.com/username"]
+  insteadOf         = git@github.com:username
+[credential "https://github.com/marslo"]
+  username          = marslo
+[credential "https://github.com/marsloijao-mvl"]
+  username          = marslojiao-mvl
+[credential "https://github.com/mdevapraba"]
+  username          = marslojiao-mvl
+  helper            = "!f() { test \"$1\" = get && echo \"password=ghp_p**********************************r\"; }; f"
+
+[trailer "sign"]
+  key               = Signed-off-by
+  ifmissing         = add
+  ifexists          = doNothing
+  command           = echo \"$(git config user.name) <$(git config user.email)>\"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker
