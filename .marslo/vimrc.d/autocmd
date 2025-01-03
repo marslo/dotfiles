@@ -2,8 +2,8 @@
 "      FileName : autocmd
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
-"       Version : 2.0.1
-"    LastChange : 2024-11-20 02:44:45
+"       Version : 2.0.2
+"    LastChange : 2025-01-03 09:56:25
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -113,12 +113,12 @@ if has( 'autocmd' )
   augroup END
 
   augroup Vimrc
-    if index( ['vimrc.d'], split(expand("%:p:h"), "/")[-1] ) >= 0
+    if index( ['vimrc.d'], split(expand('%:p:h'), '/')[-1] ) >= 0
       autocmd! BufWritePost ~/.marslo/vimrc.d/* silent! source $MYVIMRC
             \| echohl WarningMsg
             \| echom expand('%:p') . " changed! " . $MYVIMRC . " sourced!"
             \| echohl None
-            \| silent !redraw
+            \| execute 'silent redraw!'
     endif
 
     if IsNvim() && '/'.join(split(expand('%:p'), '/')[0:3], '/') == stdpath('config')
@@ -126,7 +126,7 @@ if has( 'autocmd' )
             \| echohl WarningMsg
             \| echom expand('%:p') . " changed! " . $MYVIMRC . " sourced!"
             \| echohl None
-            \| execute 'silent !redraw'
+            \| execute 'silent redraw!'
     endif
   augroup END
 
@@ -156,7 +156,7 @@ if has( 'autocmd' )
     autocmd  TermClose            * echom 'Terminal exited with status '..v:event.status
   endif
 
-  if version > 703
+  if v:version > 703
     " autocmd FocusLost   * set norelativenumber
     " autocmd FocusGained * set relativenumber         " impacted NerdTree and terminal mode
     autocmd InsertEnter * set norelativenumber
