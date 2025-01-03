@@ -2,8 +2,8 @@
 "      FileName : extension
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
-"       Version : 2.0.1
-"    LastChange : 2024-11-20 02:39:19
+"       Version : 2.0.2
+"    LastChange : 2025-01-03 09:55:47
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -94,7 +94,7 @@ else
 endif
 
 if IsNvim()
-  Plug 'CopilotC-Nvim/CopilotChat.nvim' , { 'branch': 'canary' }    " ╮
+  Plug 'CopilotC-Nvim/CopilotChat.nvim' , { 'branch': 'main' }      " ╮
   Plug 'zbirenbaum/copilot.lua'                                     " ├ copilot chat
   Plug 'nvim-lua/plenary.nvim'                                      " ╯
 endif
@@ -234,7 +234,7 @@ let g:airline_theme                                = 'base16_embers'" 'apprentic
 let g:Powerline_symbols                            = 'fancy'
 let g:airline_section_y                            = ''             " fileencoding
 let g:airline_section_x                            = ''
-let g:airline_section_z                            = "%3p%% %l/%L:%c [%B]"
+let g:airline_section_z                            = '%3p%% %l/%L:%c [%B]'
 let g:airline_skip_empty_sections                  = 1
 let g:airline_detect_modified                      = 1
 let g:airline_detect_paste                         = 1
@@ -274,7 +274,7 @@ let g:airline_left_sep                             = ''
 let g:airline_right_sep                            = ''
 function! AirlineInit()
   let g:airline_section_a = airline#section#create([ '[', 'mode', ']' ])
-  let g:airline_section_y = airline#section#create([ '%{strftime("%H:%M %b-%d %a")} ', '['.&ff.']' ])
+  let g:airline_section_y = airline#section#create([ '%{strftime("%H:%M %b-%d %a")} ', '['.&fileformat.']' ])
   let g:airline_section_c = '%<' . airline#section#create([ '%F' ]) " let g:airline_section_c = '%<' . '%{expand(%:p:~)}'
 endfunction
 autocmd User AirlineAfterInit call AirlineInit()
@@ -352,12 +352,12 @@ let g:vim_markdown_new_list_item_indent = 2
 noremap <Leader>tm :TableModeToggle<CR>
 let g:table_mode_corner          = '|'
 let g:table_mode_header_fillchar = '-'
-let g:table_mode_align_char      = ":"
-let g:table_mode_corner          = "|"
-let g:table_mode_align_char      = ":"
+let g:table_mode_align_char      = ':'
+let g:table_mode_corner          = '|'
+let g:table_mode_align_char      = ':'
 
 " godlygeek/tabular
-if exists( ":Tabularize" )
+if exists( ':Tabularize' )
   noremap  <Leader>a= :Tabularize /=<CR>
   vnoremap <Leader>a= :Tabularize /=<CR>
   noremap  <leader>a: :Tabularize /:\zs<CR>

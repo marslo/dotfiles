@@ -2,8 +2,8 @@
 "      FileName : .vimrc
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
-"       Version : 2.0.1
-"    LastChange : 2024-08-22 23:19:15
+"       Version : 2.0.2
+"    LastChange : 2025-01-03 09:55:18
 " =============================================================================
 
 runtime macros/matchit.vim
@@ -48,7 +48,7 @@ endif
 if has( 'nvim' )
   set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.nviminfo
 else
-  if version > 74399 | set cryptmethod=blowfish2 | endif
+  if v:version > 74399 | set cryptmethod=blowfish2 | endif
   set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.viminfo
   set ttymouse=xterm2
 endif

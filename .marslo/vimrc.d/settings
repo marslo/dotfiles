@@ -2,8 +2,8 @@
 "      FileName : settings
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
-"       Version : 2.0.1
-"    LastChange : 2024-01-10 22:58:58
+"       Version : 2.0.2
+"    LastChange : 2025-01-03 10:05:20
 " =============================================================================
 
 " /**************************************************************
@@ -34,8 +34,6 @@ set ttyfast                                                         " enable fas
 set iskeyword-=.
 set autochdir
 set encoding=UTF-8
-set termencoding=UTF-8
-let &termencoding=&encoding
 set fileencoding=UTF-8
 set fileencodings=utf-8,latin1,ucs-bom,gbk,cp936,gb2312,gb18030     " code format
 set selection=exclusive                                             " mouse settings
@@ -77,7 +75,6 @@ set virtualedit=onemore                                             " allow for 
 set scrolloff=3                                                     " scroll settings
 set sidescroll=1
 set sidescrolloff=5
-set imcmdline                                                       " fix context menu messing
 set complete+=kspell
 set completeopt=longest,menuone                                     " supper tab
 set foldenable                                                      " enable fold
@@ -88,7 +85,6 @@ set shortmess+=filmnrxoOtTc                                         " abbrev. of
 set viewoptions=folds
 set backspace=indent,eol,start                                      " make backspace h, l, etc wrap to
 set whichwrap+=<,>,h,l
-set go+=a                                                           " visual selection automatically copied to the clipboard
 set hidden                                                          " switch between buffers with unsaved change
 set equalalways
 set formatoptions=tcrqn
@@ -103,11 +99,20 @@ if has('cmdline_info')
   set showcmd                                                       " show (partial) command in status line
 endif
 set laststatus=2                                                    " set status bar
-" set synmaxcol=128
-" set binary
 set exrc
 set secure
 
-if has('persistent_undo') | set noundofile            | endif
+" disabled in nvim since v0.11.0-dev-1417+g487c48ec86
+if IsVim()
+  set termencoding=UTF-8
+  let &termencoding=&encoding
+  set imcmdline                                                     " fix context menu messing
+  set guioptions+=a                                                 " visual selection automatically copied to the clipboard
+endif
+
+" set synmaxcol=128
+" set binary
+
+if has('persistent_undo') | set noundofile | endif
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

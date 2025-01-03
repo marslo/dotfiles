@@ -2,7 +2,7 @@
 "      FileName : os
 "        Author : marslo.jiao@gmail.com
 "       Created : 2024-04-18 03:18:08
-"    LastChange : 2024-11-20 02:39:12
+"    LastChange : 2025-01-03 09:57:03
 " =============================================================================
 
 function! IsLinux()
@@ -25,7 +25,7 @@ endfunction
 function! IsGitBash()
   if has('unix') && !has('macunix')
     let uname = substitute(system('uname'),'\n','','')
-    if uname =~ 'MINGW64_NT' | return 1 | endif
+    if uname =~? 'MINGW64_NT' | return 1 | endif
   endif
   return 0
 endfunction
@@ -33,7 +33,7 @@ endfunction
 function! IsCygwin()
   if has('unix') && !has('macunix')
     let uname = substitute(system('uname'),'\n','','')
-    if uname =~ 'CYGWIN_NT' | return 1 | endif
+    if uname =~? 'CYGWIN_NT' | return 1 | endif
   endif
   return 0
 endfunction
@@ -41,7 +41,7 @@ endfunction
 function! IsNuShell()
   if has('unix') && !has('linux') && !has('macunix')
     let uname = substitute(system('uname'),'\n','','')
-    if uname =~ 'MSYS_NT' | return 1 | endif
+    if uname =~? 'MSYS_NT' | return 1 | endif
   endif
 endfunction
 
