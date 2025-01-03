@@ -4,7 +4,7 @@
 #   FileName: .imac
 #     Author: marslo.jiao@gmail.com
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2024-11-20 02:47:52
+# LastChange: 2025-01-03 10:11:24
 #   Comments: using `brew --prefix` for $HOMEBEW_PREFIX set as `/opt/homebrew`
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
@@ -21,6 +21,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   ! grep "${HOMEBREW_PREFIX}/bin" /etc/paths && HOMEBREW_BINS="${HOMEBREW_PREFIX}/bin:"
   HOMEBREW_BINS+="${HOMEBREW_PREFIX}/sbin"
 
+  INFOZIP_HOME="${HOMEBREW_OPT}/zip"
   OPENLDAP_HOME="${HOMEBREW_OPT}/openldap"
   CURL_OPENSSL_HOME="${HOMEBREW_OPT}/curl"                        # via: brew install curl-openssl (https://stackoverflow.com/a/49798271/2940319)
   OPENSSL_HOME="${HOMEBREW_OPT}/openssl"                          # OPENSSL_HOME="$(brew --prefix openssl)"
@@ -45,6 +46,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   GNUSED="${HOMEBREW_OPT}/gnu-sed/libexec/gnubin"
   GNUMAKE="${HOMEBREW_OPT}/make/libexec/gnubin"
   INETUTILS="${HOMEBREW_OPT}/inetutils/libexec/gnubin"
+  GNULIBTOOL="${HOMEBREW_OPT}/libtool/libexec/gnubin"
   GUILE_TLS_CERTIFICATE_DIRECTORY="${HOMEBREW_PREFIX}/etc/gnutls/"
   UTIL_LINUX_HOME="${HOMEBREW_OPT}/util-linux"
 
@@ -72,6 +74,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${GNUINDENT}"  && GNU_PATH+=":${GNUINDENT}"
   test -d "${GNUSED}"     && GNU_PATH+=":${GNUSED}"
   test -d "${BINUTILS}"   && GNU_PATH+=":${BINUTILS}/bin"
+  test -d "${GNULIBTOOL}" && GNU_PATH+=":${GNULIBTOOL}"
 
   # java 8
   #   JAVA_HOME='/Library/Java/JavaVirtualMachines/jdk1.8.0_271.jdk/Contents/Home'
@@ -125,13 +128,14 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   UTLS_PATH="${UTLS_PATH:-}"
   test -d "${HOMEBREW_OPT}/gettext"      && UTLS_PATH+=":${HOMEBREW_OPT}/gettext/bin"
   test -d "${HOMEBREW_OPT}/file-formula" && UTLS_PATH+=":${HOMEBREW_OPT}/file-formula/bin"
-  test -d "${OPENLDAP_HOME}"            && UTLS_PATH+=":${OPENLDAP_HOME}/bin"
-  test -d "${OPENLDAP_HOME}"            && UTLS_PATH+=":${OPENLDAP_HOME}/sbin"
-  test -d "${CURL_OPENSSL_HOME}"        && UTLS_PATH+=":${CURL_OPENSSL_HOME}/bin"
-  test -d "${EXPAT_HOME}"               && UTLS_PATH+=":${EXPAT_HOME}/bin"
-  test -d "${OPENSSL_HOME}"             && UTLS_PATH+=":${OPENSSL_HOME}/bin"
-  test -d "${LIBICONV_HOME}"            && UTLS_PATH+=":${LIBICONV_HOME}/bin"
-  test -d "${INETUTILS}"                && UTLS_PATH+=":${INETUTILS}"
+  test -d "${INFOZIP_HOME}"              && UTLS_PATH+=":${INFOZIP_HOME}/bin"
+  test -d "${OPENLDAP_HOME}"             && UTLS_PATH+=":${OPENLDAP_HOME}/bin"
+  test -d "${OPENLDAP_HOME}"             && UTLS_PATH+=":${OPENLDAP_HOME}/sbin"
+  test -d "${CURL_OPENSSL_HOME}"         && UTLS_PATH+=":${CURL_OPENSSL_HOME}/bin"
+  test -d "${EXPAT_HOME}"                && UTLS_PATH+=":${EXPAT_HOME}/bin"
+  test -d "${OPENSSL_HOME}"              && UTLS_PATH+=":${OPENSSL_HOME}/bin"
+  test -d "${LIBICONV_HOME}"             && UTLS_PATH+=":${LIBICONV_HOME}/bin"
+  test -d "${INETUTILS}"                 && UTLS_PATH+=":${INETUTILS}"
 
   SPECIAL_TOOLS="${SPECIAL_TOOLS:-}"
   test -d "${ICU4C_711}" && SPECIAL_TOOLS+=":${ICU4C_711}/bin"

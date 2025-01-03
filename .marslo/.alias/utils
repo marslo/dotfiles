@@ -123,7 +123,7 @@ alias showmanpath="manpath | tr ':' '\n'"
 alias showfonts="fc-list | sed -re 's/^.+\/([^:]+):\s?([^,:]+),?:?.*$/\1 : \2/g' | column -t -s: -o: | sort -t: -k2"
 alias cmount='mount | column -t'
 alias dstat='dstat -cdgilmnprsy'
-alias wget='wget --no-cookies --no-check-certificate'
+alias wget='wget --no-cookies --no-check-certificate --timeout=1 --tries=3 --retry-connrefused'
 alias curl='command curl --insecure --globoff --netrc-file ~/.marslo/.netrc'
 alias myip='command curl --insecure --globoff -sS https://ipecho.net/plain'
 
