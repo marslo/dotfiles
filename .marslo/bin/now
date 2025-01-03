@@ -109,11 +109,15 @@ tput cuu 6                                      # move up 9 lines
 tput cuf $timeColumn                            # move 49 columns right
 
 if hash toilet 2>/dev/null; then                # if has toilet
-   date +"%I:%M %P" | toilet -f future > /tmp/terminal
+  date +"%I:%M %P" | toilet -f future > /tmp/terminal
 elif hash figlet 2>/dev/null; then              # if has figlet
-   date +"%I:%M %P" | figlet -f /usr/local/share/figlet/future.tlf > /tmp/terminal
+  if [[ 'Darwin' = "$(uname)" ]]; then
+    date +"%I:%M %P" | figlet -f "$(brew --prefix)"/share/figlet/future.tlf > /tmp/terminal
+  else
+  date +"%I:%M %P" | figlet -f /usr/local/share/figlet/future.tlf > /tmp/terminal
+  fi
 else
-   date +"%I:%M %P" > /tmp/terminal
+  date +"%I:%M %P" > /tmp/terminal
 fi
 
 while IFS= read -r time; do
