@@ -33,10 +33,15 @@ function help() {
   exit 0
 }
 
+if [[ 'Darwin' = "$(uname)" ]]; then
+  SED="$(brew --prefix gnu-sed)/libexec/gnubin/sed"
+  LDAPSEARCH="$(brew --prefix openldap)/bin/ldapsearch"
+else
+  SED='/usr/bin/sed'
+  LDAPSEARCH='/usr/bin/ldapsearch'
+fi
 userId="$1"
 attributes=''
-SED="$(brew --prefix gnu-sed)/libexec/gnubin/sed"
-LDAPSEARCH="$(brew --prefix openldap)/bin/ldapsearch"
 sedOpt="${SED} -r '/^(#.*)$/d;/^\s*$/d'"
 
 if [[ $# -gt 1 ]]; then
