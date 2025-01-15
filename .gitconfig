@@ -30,10 +30,10 @@
   autocrlf          = false
   precomposeUnicode = true
   ignorecase        = false
-  excludesfile      = /Users/marslo/.gitignore_global
+  excludesfile      = ~/.gitignore_global
   eol               = lf
   safecrlf          = warn
-  attributesfile    = /Users/marslo/.gitattributes
+  attributesfile    = ~/.gitattributes
   fileMode          = true
   sshCommand        = ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa
 [pager]
@@ -62,7 +62,7 @@
 [rerere]
   enabled           = true
 [commit]
-  template          = /Users/marslo/.stCommitMsg
+  template          = ~/.stCommitMsg
 [include]
   path              = ~/.marslo/.gitalias
   path              = ~/.marslo/.gitcolors

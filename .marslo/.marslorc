@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2024-10-28 19:34:47
+# LastChange : 2025-01-14 16:43:14
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -15,12 +15,12 @@ function isWSL()     { if uname -r | command grep --color=never -q -i 'microsoft
 function isCygwin()  { [[ $(uname -s) =~ 'CYGWIN_NT'   ]] && echo 1; }
 function isGitBash() { [[ $(uname -s ) =~ 'MINGW64_NT' ]] && echo 1; }
 function isOSX()     { [[ 'Darwin' = $(uname)          ]] && echo 1; }
-function isLinux()   { [[ '1' != "$(isWSL)"  ]] && [[ 'Linux' = $(uname) ]] && echo 1; }
-function isDebian()  { [[ -f /etc/os-release ]] && [[ 'debian' = $(awk -F '=' '/ID_LIKE/ { print $2 }' /etc/os-release) ]] && echo 1; }
-function isFedora()  { [[ -f /etc/os-release ]] && [[ $(awk -F '=' '/ID/ { print $2 }' /etc/os-release) =~ 'fedora'     ]] && echo 1; }
-function isRHEL()    { [[ -f /etc/os-release ]] && [[ 'rhel'   = $(awk -F '=' '/ID/ { print $2 }' /etc/os-release)      ]] && echo 1; }
-function isUbuntu()  { [[ -f /etc/os-release ]] && [[ 'ubuntu' = $(awk -F '=' '/ID/ { print $2 }' /etc/os-release)      ]] && echo 1; }
-function isCentOS()  { [[ -f /etc/os-release ]] && [[ 'centos' = $(awk -F '=' '/ID/ { print $2 }' /etc/os-release)      ]] && echo 1; }
+function isLinux()   { [[ '1' != "$(isWSL)"  ]] && [[ 'Linux'  = $(uname) ]] && echo 1; }
+function isDebian()  { [[ -f /etc/os-release ]] && [[ 'debian' = $(awk -F '='    '/^ID_LIKE/ { print $2 }' /etc/os-release) ]] && echo 1; }
+function isFedora()  { [[ -f /etc/os-release ]] && [[ 'fedora' = $(awk -F '='    '/^ID=/ { print $2 }' /etc/os-release)     ]] && echo 1; }
+function isUbuntu()  { [[ -f /etc/os-release ]] && [[ 'ubuntu' = $(awk -F '='    '/^ID=/ { print $2 }' /etc/os-release)     ]] && echo 1; }
+function isRHEL()    { [[ -f /etc/os-release ]] && [[ 'rhel'   = $(awk -F '[="]' '/^ID=/ { print $3 }' /etc/os-release)     ]] && echo 1; }
+function isCentOS()  { [[ -f /etc/os-release ]] && [[ 'centos' = $(awk -F '[="]' '/^ID=/ { print $3 }' /etc/os-release)     ]] && echo 1; }
 # for public server (use common account)
 function bello()     { source ~/.marslo/.marslorc; set -o vi;  }
 function bye()       { source "${iRCHOME}"/.bye; set -o emacs; }

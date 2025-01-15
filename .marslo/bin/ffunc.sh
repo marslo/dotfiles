@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2024-11-13 02:41:53
+#   LastChange : 2025-01-14 16:55:59
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -768,11 +768,11 @@ function processMount() {
     [[ ! 'false' != "${verbose}" ]] || echo -e "$(c Wdi)~~>$(c) $(c Mi)${host}${path}$(c) $(c Wdi)has been mounted to$(c) $(c Mi)${_target}$(c) $(c Wdi)already ...$(c)"; return
   fi
 
-  [[ '1' = "$(isWSL)" ]] && mpoint="//${host}${path}"
+  [[ '1' = "$(isWSL)" || '1' = "$(isLinux)" ]] && mpoint="//${host}${path}"
   [[ '1' = "$(isOSX)" ]] && mpoint="//marslo@${host}:${path}"
   if [[ 'false' != "${verbose}" ]]; then
     if [[ -z "${mpoint}" ]]; then
-      echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint}$(c) $(c Wdi)cannot be empty. exit ...$(c)" && return
+      echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint:-mount point}$(c) $(c Wdi)cannot be empty. exit ...$(c)" && return
     else
       echo -e "$(c Wdi)~~> try mounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)to$(c) $(c Mi)${target}$(c) $(c Wdi)...$(c)"
     fi
@@ -781,9 +781,9 @@ function processMount() {
   [[ -d "${target}" ]] || mkdir -p "${target}"
   if [[ '1' = "$(isOSX)" ]]; then
     mount -t smbfs "${mpoint}" "${target}"
-  elif [[ '1' = "$(isWSL)" ]]; then
+  elif [[ '1' = "$(isWSL)" || '1' = "$(isLinux)" ]]; then
     [[ ! -f /usr/sbin/mount.cifs ]] && echo -e "$(c Bi)>> install cifs-utils first :$(c) $(c Gi)sudo apt install cifs-utils$(c) $(c Bi)...$(c)" && return
-    local _output=$( sudo mount -t cifs "${mpoint}" "${target}" -o credentials=/home/marslo/.cifs -vvv 2>&1 )
+    local _output=$( sudo mount -t cifs "${mpoint}" "${target}" -o credentials=$HOME/.cifs -vvv 2>&1 )
     [[ 'true' = "${verbose}" ]] && echo -e "$(c Wdi)>> [DEBUG] : ${_output} ..$(c)"
   fi
 
