@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2024-11-08 20:55:27
+"    LastChange : 2025-01-23 14:20:05
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -90,9 +90,8 @@ function! GroovyKeywords()
   " syntax keyword newJDKMethods collectEntries eachWithIndex collectMany
   " syntax cluster groovyJDKMethods add=newJDKMethods
   syntax keyword groovyJDKMethods collectEntries collectMany eachWithIndex
-  syntax keyword groovyKeywords it Object Closure stage
+  syntax keyword groovyKeywords it Object Closure stage withEnv
   syntax keyword groovyType Map List
-  syntax keyword groovyJDKMethods collectEntries collectMany eachWithIndex
   syntax region  groovyDocComment start="/\*\*"  end="\*\*/" end="\ \*/" keepend contains=groovyCommentTitle,@groovyHtml,groovyDocTags,groovyTodo,@Spell
 endfunction
 autocmd Syntax groovy,Jenkinsfile :call GroovyKeywords()
