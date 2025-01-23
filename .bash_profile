@@ -2,9 +2,12 @@
 # shellcheck source=/dev/null disable=SC1090
 
 export BASH_SILENCE_DEPRECATION_WARNING=1
-test -f /opt/homebrew/bin/brew && eval "$(/opt/homebrew/bin/brew shellenv)"
-test -f /usr/local/bin/brew    && eval "$(/usr/local/bin/brew shellenv)"
-[[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]] && source "$(brew --prefix)/etc/profile.d/bash_completion.sh"
+
+if [[ 'Darwin' = "$(uname)" ]]; then
+  test -f /opt/homebrew/bin/brew && eval "$(/opt/homebrew/bin/brew shellenv)"
+  test -f /usr/local/bin/brew    && eval "$(/usr/local/bin/brew shellenv)"
+  [[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]] && source "$(brew --prefix)/etc/profile.d/bash_completion.sh"
+fi
 
 # set -a; source "/Users/marslo/.marslo/.marslorc"; set +a;         # `-a`: mark variables which are modified or created for export
 # set -x; source "/Users/marslo/.marslo/.marslorc"; set +x;         # `-x`: print commands and their arguments as they are executed

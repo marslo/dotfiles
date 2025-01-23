@@ -88,6 +88,7 @@ GROOVY_HOME='/opt/groovy/current'
 FZF_HOME="${iRCHOME}"/utils/fzf
 ANSIBLE_COMPLETION_PATH="${iRCHOME}/.completion/ansible-completion"            # https://github.com/dysosmus/ansible-completion
 RT_COMPLETION="$HOME/.jfrog/jfrog_bash_completion"
+NPM_COMPLETION="$HOME/.npm/lib/node_modules/npm-completion"                    # for npm-completion https://github.com/Jephuff/npm-bash-completion
 
 if [[ '1' = "$(isOSX)" ]]; then
   GROOVY_HOME="$(brew --prefix groovy)"
@@ -115,7 +116,8 @@ fi
 ! test -f "${iRCHOME}/.completion/cht.sh"            || eval "$(cat "${iRCHOME}/.completion/cht.sh")"
 ! test -f "${iRCHOME}/.completion/complete_alias"    || eval "$(cat "${iRCHOME}/.completion/complete_alias")"
 ! command -v kubectl >/dev/null                      || eval "$(command kubectl completion bash)"
-! command -v npm     >/dev/null                      || eval "$(npm completion)"
+! command -v npm     >/dev/null                      || eval "$(npm completion)"                  # ~/.npm/lib/node_modules/npm-completion/npm-completion.sh
+# ! test -d "${NPM_COMPLETION}"                      || source "${NPM_COMPLETION}/npm-completion.sh"
 # via `vault -autocomplete-install`
 ! command -v vault   >/dev/null                      || complete -C "$(command -v valut)" vault
 ! command -v pipx    >/dev/null                      || eval "$(register-python-argcomplete pipx)"

@@ -80,7 +80,6 @@ alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
 alias tmcx='tmux at -t cdc'
 alias ctmcx='tmux new -s cdc -d && tmux at -t cdc'
 alias ta='tmux at -t '
-alias tls='tmux ls'
 
 alias wget='wget --no-cookies --no-check-certificate'
 alias clear-dns-cache="sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder"

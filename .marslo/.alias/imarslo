@@ -51,6 +51,7 @@ alias mi="cd ${MYWORKSPACE}/tools/git/marslo/myvim"
 alias dm="cd ${MYWORKSPACE}/tools/git/marslo/dotfiles"
 alias mt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"
 alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs >/dev/null"
+alias oct="cd \"${HOME}/Library/CloudStorage/OneDrive-SharedLibraries-OneDriveCloudTemp\""
 
 if [[ '1' = "$(isWSL)" ]]; then
   alias dsk="cd $HOME/userprofile/Desktop"
