@@ -4,7 +4,7 @@
 #   FileName: .imac
 #     Author: marslo.jiao@gmail.com
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2025-01-03 10:11:24
+# LastChange: 2025-02-03 16:34:51
 #   Comments: using `brew --prefix` for $HOMEBEW_PREFIX set as `/opt/homebrew`
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
@@ -18,7 +18,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
 
   HOMEBREW_OPT="${HOMEBREW_PREFIX}/opt"
   # if cannot be found in /etc/paths
-  ! grep "${HOMEBREW_PREFIX}/bin" /etc/paths && HOMEBREW_BINS="${HOMEBREW_PREFIX}/bin:"
+  ! grep -q "${HOMEBREW_PREFIX}/bin" /etc/paths && HOMEBREW_BINS="${HOMEBREW_PREFIX}/bin:"
   HOMEBREW_BINS+="${HOMEBREW_PREFIX}/sbin"
 
   INFOZIP_HOME="${HOMEBREW_OPT}/zip"
@@ -204,7 +204,7 @@ brew-whatprovides() {
     _realp="$(realpath ${_p})";
     while read -r pkg; do
       echo -ne "\r$(tput el)>> searching in ${pkg} ..."
-      if brew list --verbose "${pkg}" 2>/dev/null | grep "${_realp}" >/dev/null 2>&1; then
+      if brew list --verbose "${pkg}" 2>/dev/null | grep -q "${_realp}" >/dev/null 2>&1; then
         echo -ne "\r$(tput el)>> \033[0;32m${_p}\033[0m ( \033[0;37m${_realp}\033[0m ) provided by \033[0;33m${pkg}\033[0m";
         break;
       fi;
