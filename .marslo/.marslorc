@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2025-01-14 16:43:14
+# LastChange : 2025-02-05 14:23:15
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -12,9 +12,9 @@ export iRCHOME="$HOME/.marslo"
 source "${iRCHOME}/bin/bash-color.sh"
 
 function isWSL()     { if uname -r | command grep --color=never -q -i 'microsoft'; then echo 1; fi; }
-function isCygwin()  { [[ $(uname -s) =~ 'CYGWIN_NT'   ]] && echo 1; }
-function isGitBash() { [[ $(uname -s ) =~ 'MINGW64_NT' ]] && echo 1; }
-function isOSX()     { [[ 'Darwin' = $(uname)          ]] && echo 1; }
+function isCygwin()  { [[ $(uname -s) =~ 'CYGWIN_NT'  ]] && echo 1; }
+function isGitBash() { [[ $(uname -s) =~ 'MINGW64_NT' ]] && echo 1; }
+function isOSX()     { [[ 'Darwin' = $(uname)         ]] && echo 1; }
 function isLinux()   { [[ '1' != "$(isWSL)"  ]] && [[ 'Linux'  = $(uname) ]] && echo 1; }
 function isDebian()  { [[ -f /etc/os-release ]] && [[ 'debian' = $(awk -F '='    '/^ID_LIKE/ { print $2 }' /etc/os-release) ]] && echo 1; }
 function isFedora()  { [[ -f /etc/os-release ]] && [[ 'fedora' = $(awk -F '='    '/^ID=/ { print $2 }' /etc/os-release)     ]] && echo 1; }
@@ -115,15 +115,15 @@ fi
 ! test -d "${ANSIBLE_COMPLETION_PATH}"               || eval "$(cat "${ANSIBLE_COMPLETION_PATH}"/*.bash)"
 ! test -f "${iRCHOME}/.completion/cht.sh"            || eval "$(cat "${iRCHOME}/.completion/cht.sh")"
 ! test -f "${iRCHOME}/.completion/complete_alias"    || eval "$(cat "${iRCHOME}/.completion/complete_alias")"
-! command -v kubectl >/dev/null                      || eval "$(command kubectl completion bash)"
-! command -v npm     >/dev/null                      || eval "$(npm completion)"                  # ~/.npm/lib/node_modules/npm-completion/npm-completion.sh
+! type -P kubectl >/dev/null                         || eval "$(command kubectl completion bash)"
+! type -P npm     >/dev/null                         || eval "$(npm completion)"                  # ~/.npm/lib/node_modules/npm-completion/npm-completion.sh
 # ! test -d "${NPM_COMPLETION}"                      || source "${NPM_COMPLETION}/npm-completion.sh"
 # via `vault -autocomplete-install`
-! command -v vault   >/dev/null                      || complete -C "$(command -v valut)" vault
-! command -v pipx    >/dev/null                      || eval "$(register-python-argcomplete pipx)"
-! command -v pip     >/dev/null                      || eval "$(pip completion --bash)"
-! type -t _fd        >/dev/null 2>&1                 || complete -F _fd -o nosort -o bashdefault -o default ff ffs
-! type -t _comp_cmd_chromium_browser 2>&1            || complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome
+! type -P vault   >/dev/null                         || complete -C "$(type -P valut)" vault
+! type -P pipx    >/dev/null                         || eval "$(register-python-argcomplete pipx)"
+! type -P pip     >/dev/null                         || eval "$(pip completion --bash)"
+! type -t _fd     >/dev/null 2>&1                    || complete -F _fd -o nosort -o bashdefault -o default ff ffs
+! type -t _comp_cmd_chromium_browser >/dev/null 2>&1 || complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome
 complete -o default -o bashdefault chrome
 
 # fzf
@@ -172,6 +172,7 @@ fi
 #
 # --------------------------------------------------------------/
 export TERM='xterm-color'
+# screen: /usr/share/terminfo/73/screen.xterm-256color
 # centos/rhel
 test -e /usr/share/terminfo/x/xterm-256color  && export TERM='xterm-256color'
 # ubuntu
@@ -207,6 +208,6 @@ source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im,icolor}.sh )
 #               | |             __/ |
 #               |_|            |___/
 # --------------------------------------------------------------/
-! test -f "${iRCHOME}"/bin/fzf-git.sh || source "${iRCHOME}"/bin/fzf-git.sh
+test -f "${iRCHOME}"/bin/fzf-git.sh && source "${iRCHOME}"/bin/fzf-git.sh
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------
