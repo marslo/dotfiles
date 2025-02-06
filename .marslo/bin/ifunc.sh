@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2024-05-21 21:26:19
+#  LastChange : 2025-02-06 12:52:46
 #  Description : ifunctions
 # =============================================================================
 
@@ -458,6 +458,68 @@ function showTODO() {
        sed -ne '/TODO:/,/^\s*$/p' < <(eval "${cmd}") |
            eval "bat -l ${lang:-groovy} ${option} --file-name=\"${_file}\"" ;
      done
+}
+
+function fdclean() {
+  local path="$PWD"
+  local pattern='.DS_*'
+  local verbose='false'
+  local cmd
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -p | --path    ) path="${2}"    ;  shift 2   ;;
+      -k | --pattern ) pattern="${2}" ;  shift 2   ;;
+      -d | --debug   ) verbose='true' ;  shift     ;;
+      -v | --verbose ) verbose='true' ;  shift     ;;
+      *              ) echo "invalid option $1" >&2 ; return 1 ;;
+    esac
+  done
+
+  [[ '' = "${path}" ]] && echo -e "$(c R)Error:$(c) path is empty." && return 1
+  path=$(realpath "${path}")
+
+  echo -e "$(c Wid)>> cleaning \`${pattern}\` in $(c)$(c Mis)${path}$(c)$(c Wd) ..$(c)"
+  [[ 'true' = "${verbose}" ]] && rmOpt='-rvf' || rmOpt='-rf'
+  cmd="command fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --exclude 'OneDrive*' --glob '*\\${pattern}' \"${path}\" -x rm ${rmOpt}"
+  [[ 'true' = "${verbose}" ]] && echo -e "$(c Wid)>> [DEBUG]:$(c)\n\t$(c Yi)${cmd}$(c)"
+  eval "${cmd}"
+}
+
+function clean() {
+  local path="$PWD"
+  local action=''
+  local verbose='false'
+  local opt=''
+  # shellcheck disable=SC2155
+  local usage="""$(c Cs)clean$(c) - clean dump files in path
+  \nSYNOPSIS:
+  \n\t$(c Gs)\$ clean [ -h | --help ]
+  \t\t[ -v | --verbose ]
+  \t\t[ -p <path> | --path <path> | -a | --all ]
+  \t\t[ --dot | --ds | --lg ]$(c)
+  """
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -p | --path    ) path="${2}"     ;  shift 2  ;;
+      -a | --all     ) path="$HOME"    ;  shift    ;;
+      -v | --verbose ) verbose='true'  ;  shift    ;;
+      --dot          ) action='dot'    ;  shift    ;;
+      --ds           ) action='ds'     ;  shift    ;;
+      --lg           ) action='lg'     ;  shift    ;;
+      -h | --help    ) echo -e "${usage}"           ;  return 0 ;;
+      *              ) echo "invalid option $1. type \`-h\`" >&2 ;  return 1 ;;
+    esac
+  done
+
+  [[ 'true' = "${verbose}" ]] && opt='--verbose'
+  case "${action}" in
+    'dot' ) eval "fdclean --path '${path}' --pattern '._*' ${opt}"         ;;
+    'ds'  ) eval "fdclean --path '${path}' --pattern '.DS_*' ${opt}"       ;;
+    'lg'  ) eval "fdclean --path '${path}' --pattern 'logback.log' ${opt}" ;;
+    ''    ) echo -e "$(c R)Error:$(c) action is empty."                    ;;
+  esac
 }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************

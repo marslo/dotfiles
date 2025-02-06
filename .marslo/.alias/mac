@@ -3,7 +3,7 @@
 #   FileName: mac
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2024-09-12 23:11:35
+# LastChange: 2025-02-06 12:53:18
 # =============================================================================
 
 # shellcheck disable=SC2139
@@ -37,8 +37,9 @@ alias sshrestart='sudo launchctl stop com.openssh.ssh-agent; sudo launchctl star
 alias bs='brew search'
 alias bi='brew info'
 
+# using clean [--lg | --ds |--dot] instead of
 # alias removeDS='find . -name .DS_Store -print0 | xargs -0 git rm -f --ignore-unmatch'
-alias cleands="command fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --exclude 'OneDrive*' --glob '*\.DS_*' $HOME -x rm -rf"
-alias cleanlg="command fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --exclude 'OneDrive*' --glob '*\logback.log' $HOME -x rm -rf"
+# alias cleands="command fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --exclude 'OneDrive*' --glob '*\.DS_*' $HOME -x rm -rf"
+# alias cleanlg="command fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --exclude 'OneDrive*' --glob '*\logback.log' $HOME -x rm -rf"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
