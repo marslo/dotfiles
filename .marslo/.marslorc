@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2025-02-05 14:23:15
+# LastChange : 2025-02-06 16:56:39
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -130,7 +130,7 @@ complete -o default -o bashdefault chrome
 if test -f "$HOME"/.fzf.bash; then
   source "$HOME"/.fzf.bash
 else
-  ! command -v fzf >/dev/null                        || eval "$(fzf --bash)"
+  ! type -P fzf >/dev/null                           || eval "$(command fzf --bash)"
   ! test -f "${FZF_HOME}/shell/key-bindings.bash"    || source "${FZF_HOME}/shell/key-bindings.bash"
 fi
 ! type -t _fzf_opts_completion >/dev/null 2>&1       || complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
@@ -208,6 +208,6 @@ source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im,icolor}.sh )
 #               | |             __/ |
 #               |_|            |___/
 # --------------------------------------------------------------/
-test -f "${iRCHOME}"/bin/fzf-git.sh && source "${iRCHOME}"/bin/fzf-git.sh
+! test -f "${iRCHOME}"/bin/fzf-git.sh || source "${iRCHOME}"/bin/fzf-git.sh
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------

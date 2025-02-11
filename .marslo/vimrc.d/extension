@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-01-03 09:55:47
+"    LastChange : 2025-02-10 14:35:05
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -366,8 +366,8 @@ if exists( ':Tabularize' )
 endif
 
 " git
-nnoremap <leader>mp  :execute 'silent !git mp'    \| redraw! \| echom "change committed !"<CR>
-nnoremap <leader>pmp :execute 'silent !git mp -r' \| redraw! \| echom "change force committed !!"<CR>
+nnoremap <leader>mp  :execute 'silent !git mp'    \| redraw! \| echohl Function \| echo 'change committed !!'<CR>
+nnoremap <leader>pmp :execute 'silent !git mp -r' \| redraw! \| echohl Function \| echo 'change force committed !!'<CR>
 " zivyangll/git-blame.vim
 nnoremap <Leader>ebb :<C-u>call gitblame#echo()<CR>
 " APZelos/blamer.nvim

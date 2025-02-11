@@ -12,7 +12,7 @@ fi
 # set -a; source "/Users/marslo/.marslo/.marslorc"; set +a;         # `-a`: mark variables which are modified or created for export
 # set -x; source "/Users/marslo/.marslo/.marslorc"; set +x;         # `-x`: print commands and their arguments as they are executed
 # bash -ixlc : 2>&1 | grep ...                                      # debug bash full start process : https://unix.stackexchange.com/a/322468/29178
-! test -f "$HOME/.marslo/.marslorc" || source "$HOME/.marslo/.marslorc"
+test -f "$HOME/.marslo/.marslorc" && source "$HOME/.marslo/.marslorc"
 
 # remove empty line:
 # - sed '/^$/d'
