@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-01-14 16:55:59
+#   LastChange : 2025-02-07 17:05:56
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -20,7 +20,7 @@ source "${HOME}"/.marslo/bin/bash-color.sh
 #
 # **************************************************************/
 
-## preview contents via `$ cd **<tab>`:
+## preview contents via `$ cd **<tab>` | `$ cd ,,<tab>`: -> FZF_COMPLETION_TRIGGER
 # - https://pragmaticpineapple.com/four-useful-fzf-tricks-for-your-terminal/
 # - https://github.com/junegunn/fzf?tab=readme-ov-file#fuzzy-completion-for-bash-and-zsh
 _fzf_comprun() {
@@ -116,7 +116,7 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   fdOpt+=' --exec stat --printf="%y | %n\n"'
   (
-    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs' $HOME ${fdOpt}";
+    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf' $HOME ${fdOpt}";
     echo "${rcPaths}" | fmt -1 | xargs -r -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude logs/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
   ) |  sort -r
 }
@@ -371,7 +371,7 @@ function vim() {                           # magic vim - fzf list in most recent
   local orgv                               # force using vim instead of nvim
   local VIM="$(type -P vim)"
   local foption='--multi --cycle '
-  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore --exclude Music"
+  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore --exclude Music --exclude .target_book --exclude _book"
   [[ "$(pwd)" = "$HOME" ]] && fdOpt+=' --max-depth 3'
   if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
 
@@ -612,12 +612,25 @@ function fif() {                           # [f]ind-[i]n-[f]ile
 #                                        |__/
 #
 # **************************************************************/
+# lsps - list processes
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# @version     : 1.0.1
+#                - 1.0.1: https://github.com/junegunn/fzf/releases/tag/v0.59.0
 function lsps() {                          # [l]i[s]t [p]roces[s]
   (date; ps -ef) |
-  fzf --bind='ctrl-r:reload(date; ps -ef)' \
-      --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
-      --preview='echo {}' --preview-window=down,3,wrap \
-      --layout=reverse --height=80% |
+  fzf --bind 'start,ctrl-r:reload:(date; ps -ef)' \
+      --bind 'ctrl-n:change-nth(8..|1|2|3|4|5|6|7|)' \
+      --bind 'result:transform-prompt:echo "${FZF_NTH}> "' \
+      --preview 'echo {}' --preview-window=down,3,wrap \
+      --style full --layout reverse --header-lines 1 --height 80% \
+      --header-lines-border bottom --no-list-border \
+      --color fg:dim,nth:regular \
+      --bind 'click-header:transform-nth(
+                echo $FZF_CLICK_HEADER_NTH
+              )+transform-prompt(
+                echo "$FZF_CLICK_HEADER_WORD> "
+              )' |
   awk '{print $2}'
 }
 
@@ -760,8 +773,9 @@ function processMount() {
   local host="${1}"
   local path="${2}"
   local verbose="${3}"
+  [[ 'Darwin' = "$(uname)" ]] && prefix='/tmp' || prefix='/mnt'
   # shellcheck disable=SC2001
-  local target="/tmp/$( sed 's/\$//' <<< "${path/\/}")"
+  local target="${prefix}/$( sed 's/\$//' <<< "${path/\/}")"
 
   if df -h | grep -q "${host}${path}" >/dev/null; then
     local _target="$( df -h | command grep --color=never "${host}${path}" | awk '{print $NF}' )"
@@ -780,9 +794,10 @@ function processMount() {
 
   [[ -d "${target}" ]] || mkdir -p "${target}"
   if [[ '1' = "$(isOSX)" ]]; then
-    mount -t smbfs "${mpoint}" "${target}"
+    mount -t smbfs -o -d=755,-f=755 "${mpoint}" "${target}"
   elif [[ '1' = "$(isWSL)" || '1' = "$(isLinux)" ]]; then
-    [[ ! -f /usr/sbin/mount.cifs ]] && echo -e "$(c Bi)>> install cifs-utils first :$(c) $(c Gi)sudo apt install cifs-utils$(c) $(c Bi)...$(c)" && return
+    [[ ! -f '/usr/sbin/mount.cifs' ]] && echo -e "$(c Bi)>> install cifs-utils first :$(c) $(c Gi)sudo apt install cifs-utils$(c) $(c Bi)...$(c)" && return
+    [[ ! -f "$HOME/.cifs"          ]] && echo -e "$(c Bi)>> setup \`~/.cifs\` first ...$(c)" && return
     local _output=$( sudo mount -t cifs "${mpoint}" "${target}" -o credentials=$HOME/.cifs -vvv 2>&1 )
     [[ 'true' = "${verbose}" ]] && echo -e "$(c Wdi)>> [DEBUG] : ${_output} ..$(c)"
   fi
@@ -813,9 +828,23 @@ function fmount() {                        # fmount - [mount] with [f]zf
     esac
   done
 
-  # shellcheck disable=SC2086
-  mpoint=$( echo "${points}" | fmt -1 | fzf --prompt="mount point: " ${fzfOpt} )
-  [[ -z "${mpoint}" ]] && [[ 'true' = "${verbose}" ]] && echo -e "$(c Wdi)~~> no mount point in current environment ...$(c)" && return
+  # or via:
+  #   mount -t nfs,cifs,smbfs | awk '{print $1}' | sed -rn 's:^//([^@/]*@)?([^/]+).*:\2:p' | paste -sd '|'
+  mounted=()
+  while read -r _i; do
+    mounted+=("${_i}")
+  done < <(mount -t nfs,cifs,smbfs | awk '{print $1}' | sed -rn 's:^//([^@/]*@)?([^/]+).*:\2:p')
+  [[ "${#mounted[@]}" -gt 0 ]] && pattern=$(IFS='|'; echo "${mounted[*]}") || pattern='^$'
+
+  mpoint=$( echo "${points}" | fmt -1 |
+            awk -v pattern="${pattern}" '$0 !~ pattern' |
+            fzf --prompt="mount point: " ${fzfOpt}
+          )
+
+  if [[ -z "${mpoint}" ]]; then
+    [[ 'true' = "${verbose}" ]] && echo -e "$(c Wdi)~~> no mount point been selected ...$(c)"
+    return
+  fi
 
   host=$(sed -rn 's!^([^:]+):(.+)$!\1!p' <<< "${mpoint}")
   path=$(sed -rn 's!^([^:]+):(.+)$!\2!p' <<< "${mpoint}")
