@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null disable=SC2155
+#=============================================================================
+#     FileName : tlrc-update
+#       Author : marslo.jiao@gmail.com
+#      Created : 2025-02-13 13:44:36
+#   LastChange : 2025-02-13 15:15:28
+#  Description : workaround for `error: io: invalid peer certificate: UnknownIssuer`
+#                @see https://github.com/tldr-pages/tlrc/issues/111#issuecomment-2657620327
+#=============================================================================
+
+set -euo pipefail
+
+CACHE=''
+PAGES='https://github.com/tldr-pages/tldr/releases/latest/download'
+
+[[ 'Darwin' = "$(uname -s)" ]] && CACHE="$HOME/Library/Caches/tlrc"
+[[ 'Darwin' = "$(uname -s)" ]] && export CURL_CA_BUNDLE="$(openssl version -d | awk -F'"' '{print $2}')/cert.pem"
+[[ -z "${CACHE}" ]] && ( echo -e "\033[31;3mERROR: specified the \`CACHE\` path first\!\033[0m" >&2; exit 1 )
+
+USAGE="""
+To update the cache of tldr-pages
+\nSYNOPSIS:
+\n\t\033[32;1m$(basename "$0") [ -u | --update ] [ -h | --help ]\033[0m
+\nWorkaround for issue \033[35;3m\`error: io: invalid peer certificate: UnknownIssuer\`\033[0m
+"""
+
+function updateCache() {
+  curl -o "${CACHE}/tldr.sha256sums" -fsSL "${PAGES}/tldr.sha256sums" --create-dirs
+
+  while read -r -d' ' _name; do
+    echo -e "\033[32;1m${_name} is in progress ...\033[0m"
+    curl -o "${CACHE}/${_name}.zip" -fsSL "${PAGES}/${_name}.zip"
+    if echo "$(awk "/${_name}.zip/ {print \$1}" "${CACHE}/tldr.sha256sums") ${CACHE}/${_name}.zip" | sha256sum --check >/dev/null; then
+      unzip -q -o -d "${CACHE}/$(sed -r 's/^tldr-//' <<< "${_name}")" "${CACHE}/${_name}.zip"
+    fi
+  done < <(printf "%s " "tldr-pages tldr-pages.en tldr-pages.zh")
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -u | --update ) updateCache        ; exit $? ;;
+    -h | --help   ) echo -e "${USAGE}" ; exit 0  ;;
+                * ) break                        ;;
+  esac
+done
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
