@@ -155,19 +155,19 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   export GUILE_TLS_CERTIFICATE_DIRECTORY PYTHONPATH PYTHONUSERBASE CLASSPATH RUBY_CONFIGURE_OPTS
   # export JAVA_OPTS
 
+  # more options:
+  # - `/etc/ssl/cert.pem`
+  # - "$(brew --prefix ca-certificates)/share/ca-certificates/cacert.pem"
+  # - "$(openssl version -d | awk -F'"' '{print $2}')/cert.pem"
+  # - `security find-certificate -a -p /System/Library/Keychains/SystemRootCertificates.keychain | sudo tee /etc/ssl/certs/ca-certificates.crt`
+  export SSL_CERT_FILE="$(openssl version -d | awk -F'"' '{print $2}')/cert.pem"
+  export CURL_CA_BUNDLE="${SSL_CERT_FILE}"
+
   # export HOMEBREW_INSTALL_BADGE='☕️ 🐸'
   export HOMEBREW_INSTALL_BADGE='🦍'
   # for completion issue : https://github.com/orgs/Homebrew/discussions/4227#discussioncomment-5007112
   [[ -z "${HOMEBREW_REPOSITORY}" ]] && export HOMEBREW_REPOSITORY=/usr/local/Homebrew
 fi
-
-# alias after PATH
-for _i in $( /bin/ls -1 "${iRCHOME}"/.alias | grep -v --color=never -E 'kubernetes|docker'); do
-  source "${iRCHOME}/.alias/${_i}"
-done
-type -P kubectl >/dev/null 2>&1 && source "${iRCHOME}"/.alias/kubernetes
-type -P docker  >/dev/null 2>&1 && source "${iRCHOME}"/.alias/docker
-unset _i
 
 # /--------------------------------------------------------------
 #                            _      _   _
@@ -217,10 +217,10 @@ brew-whatprovides() {
 # export LC_ALL=en_US.UTF-8
 # function iterm2_print_user_vars() { iterm2_set_user_var gitBranch $(git symbolic-ref --short HEAD); }
 
-# nvim
+# nvm
 [[ -d "$HOME/.nvm" ]] && export NVM_DIR="$HOME/.nvm"
 [[ -d "$HOME/.nvm" ]] && export NPM_CONFIG_PREFIX="${NVM_DIR}"
-[ -s "${HOMEBREW_OPT}/nvm/nvm.sh" ] && source "${HOMEBREW_OPT}/nvm/nvm.sh"
-[ -s "${HOMEBREW_OPT}/nvm/etc/bash_completion.d/nvm" ] && source "${HOMEBREW_OPT}/nvm/etc/bash_completion.d/nvm"
+[[ -s "${HOMEBREW_OPT}/nvm/nvm.sh"                    ]] && source "${HOMEBREW_OPT}/nvm/nvm.sh"
+[[ -s "${HOMEBREW_OPT}/nvm/etc/bash_completion.d/nvm" ]] && source "${HOMEBREW_OPT}/nvm/etc/bash_completion.d/nvm"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

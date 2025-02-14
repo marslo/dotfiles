@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1091,SC2154,SC2155
+#=============================================================================
+#     FileName : .alias
+#       Author : marslo.jiao@gmail.com
+#      Created : 2025-02-12 14:45:55
+#   LastChange : 2025-02-12 16:45:03
+#=============================================================================
+
+declare ALIAS_DIR="${iRCHOME}/alias.d"
+
+while read -r _i; do
+  source "${ALIAS_DIR}/${_i}"
+done < <(/bin/ls -1 "${ALIAS_DIR}" | grep --color=never -vE "docker|kubernetes|mac")
+
+[[ 'Darwin' = "$(uname --operating-system)" ]] && source "${ALIAS_DIR}"/mac
+type -P kubectl >/dev/null 2>&1                && source "${ALIAS_DIR}"/kubernetes
+type -P docker  >/dev/null 2>&1                && source "${ALIAS_DIR}"/docker
+
+unset "${_i}"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

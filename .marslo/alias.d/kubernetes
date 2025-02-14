@@ -52,7 +52,7 @@ alias kln='kubecolor get -o name ns | sed "s|^.*/|  |;\|^  $(krn)$|s/ /*/"'
 alias kcn='kubecolor config set-context --current --namespace "$(kln | fzf -e | sed "s/^..//")"'
 
 # complete -F __start_kubectl k
-# for _i in $(sed '/^alias /!d;s/^alias //;s/=.*$//' ${iRCHOME}/.alias/kubernetes); do
+# for _i in $(sed '/^alias /!d;s/^alias //;s/=.*$//' ${iRCHOME}/alias/kubernetes); do
 # done
 
 # autocomplete for kubecolor

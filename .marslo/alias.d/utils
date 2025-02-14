@@ -4,7 +4,7 @@
 #   FileName: utils
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2025-01-23 14:04:26
+# LastChange: 2025-02-12 13:12:02
 # =============================================================================
 
 if [[ 'Darwin' = $(uname --operating-system) ]]; then
@@ -22,7 +22,8 @@ else
   alias howold="sudo tune2fs -l $(df -h / |(read; awk '{print $1; exit}')) | grep -i created"
 fi
 
-command -v trash >/dev/null && alias rm='trash' || alias rm='rm -i'
+type -P trash >/dev/null      && alias rm='trash' || alias rm='rm -i'
+test -x "$HOME/.npm/bin/tldr" && alias ntldr='$HOME/.npm/bin/tldr -t ocean'
 
 # https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#Aliases
 # https://askubuntu.com/a/22043/92979
@@ -145,5 +146,6 @@ alias imbusy='cat /dev/urandom | hexdump -C | grep "ca fe"'
 alias weekno='date +"%V"'
 alias daysleft='echo "There are $(($(date +%j -d"Dec 31, $(date +%Y)")-$(date +%j))) left in year $(date +%Y)."'
 alias weather='curl wttr.in/sanjose?mMFn'
+type -P npm-groovy-lint >/dev/null && alias npm-groovy-lint="$(type -P npm-groovy-lint) --failon warning"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

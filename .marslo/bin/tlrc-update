@@ -21,7 +21,7 @@ PAGES='https://github.com/tldr-pages/tldr/releases/latest/download'
 USAGE="""
 To update the cache of tldr-pages
 \nSYNOPSIS:
-\n\t\033[32;1m$(basename "$0") [ -u | --update ] [ -h | --help ]\033[0m
+\n\t\033[32;1m\$ $(basename "$0") [ -u | --update ] [ -h | --help ]\033[0m
 \nWorkaround for issue \033[35;3m\`error: io: invalid peer certificate: UnknownIssuer\`\033[0m
 """
 
