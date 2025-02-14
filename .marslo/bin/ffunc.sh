@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-02-13 21:34:31
+#   LastChange : 2025-02-14 01:38:43
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -173,7 +173,11 @@ function runrc() {                         # runrc - source/[run] [rc] files
 function fman() {                          # show [man] page with [f]zf
   unset MANPATH
   local option='-e '
-  local batman="man {1} | col -bx | bat --language=man --plain --color always --theme='gruvbox-dark'"
+  local manpage="echo {} | sed -rn 's/^([^\ ]+)\(([^)]+)\).*$/\2 \1/p'"
+  local batman="${manpage} | xargs -r man | sed -r 's/\x1B\[(([0-9]+)(;[0-9]+)*)?[mGKHfJ]//g' | col -bx | bat --language=man --plain --paging always --color always --theme=ansi"
+  # shellcheck disable=SC2155
+  local tldrshow="echo {1} | sed -rn 's/^([^\ ]+)\(([^)]+)\).*$/\1/p' | xargs -r -t $(brew --prefix tlrc)/bin/tldr --color always --quiet"
+  local chtshow="echo {1} | sed -rn 's/^([^\ ]+)\(([^)]+)\).*$/\1/p' | xargs -r -t cht.sh"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -182,10 +186,10 @@ function fman() {                          # show [man] page with [f]zf
     esac
   done
 
+  # --color : #809e90, #7b8c56, #7e85ae
   man -k . 2>/dev/null |
   sort -u |
-  awk -F"(\\\([0-9]\\\),?)" '{ for(i=1;i<NF;i++) { sub(/ +/, "", $i); sub(/ +-? +/, "", $NF); if (length($i) != 0) printf ("%s - %s\n", $i, $NF) } }' |
-  grep -v -E '::' |
+  grep --color=never -v -E '::' |
   awk -v cyan=$(tput setaf 6) -v blue=$(tput setaf 4) -v res=$(tput sgr0) -v bld=$(tput bold) '{ $1=cyan bld $1; $2=res blue $2;} 1' |
   fzf ${option:-} \
       -d ' ' \
@@ -195,12 +199,13 @@ function fman() {                          # show [man] page with [f]zf
       --no-multi \
       --tiebreak=begin \
       --prompt='ᓆ ‣ ' \
-      --color='prompt:#0099BD' \
+      --color='prompt:#80638c' \
       --preview-window 'up,70%,wrap,rounded,<50(up,85%,border-bottom)' \
       --preview "${batman}" \
       --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
-      --bind "ctrl-o:+change-preview(tldr --color always {1})+change-prompt(ﳁ tldr > )" \
+      --bind "ctrl-o:+change-preview(${tldrshow})+change-prompt(ﳁ tldr > )" \
       --bind "ctrl-i:+change-preview(${batman})+change-prompt(ᓆ  man > )" \
+      --bind "ctrl-t:+change-preview(${chtshow})+change-prompt(ᓆ  man > )" \
       --bind "enter:execute(${batman})+change-preview(${batman})+change-prompt(ᓆ > )" \
       --bind='ctrl-/:toggle-preview' \
       --header 'CTRL-N/P or SHIFT-↑/↓ to view preview contents; ENTER/Q to maximize/normal preview window' \

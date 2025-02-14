@@ -14,7 +14,11 @@
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default fman`
 # shellcheck disable=SC2046
 declare option
-declare batman="man {1} | col -bx | bat --language=man --plain --color always --theme='gruvbox-dark'"
+declare manpage="echo {} | sed -rn 's/^([^\ ]+)\(([^)]+)\).*$/\2 \1/p'"
+declare batman="${manpage} | xargs -r man | sed -r 's/\x1B\[(([0-9]+)(;[0-9]+)*)?[mGKHfJ]//g' | col -bx | bat --language=man --plain --paging always --color always --theme=ansi"
+# shellcheck disable=SC2155
+declare tldrshow="echo {1} | sed -rn 's/^([^\ ]+)\(([^)]+)\).*$/\1/p' | xargs -r -t $(brew --prefix tlrc)/bin/tldr --color always --quiet"
+declare chtshow="echo {1} | sed -rn 's/^([^\ ]+)\(([^)]+)\).*$/\1/p' | xargs -r -t cht.sh"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -23,10 +27,10 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# --color : #809e90, #7b8c56, #7e85ae
 man -k . 2>/dev/null |
 sort -u |
-sed -r 's/(\(.+\))//g' |
-grep -v -E '::' |
+grep --color=never -v -E '::' |
 awk -v cyan=$(tput setaf 6) -v blue=$(tput setaf 4) -v res=$(tput sgr0) -v bld=$(tput bold) '{ $1=cyan bld $1; $2=res blue $2;} 1' |
 fzf ${option:-} \
     -d ' ' \
@@ -36,11 +40,12 @@ fzf ${option:-} \
     --no-multi \
     --tiebreak=begin \
     --prompt='ᓆ > ' \
-    --color='prompt:#0099BD' \
+    --color='prompt:#80638c' \
     --preview-window 'up,70%,wrap,rounded,<50(up,85%,border-bottom)' \
     --preview "${batman}" \
     --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
-    --bind "ctrl-o:+change-preview(tldr --color always {1})+change-prompt(ﳁ tldr > )" \
+    --bind "ctrl-o:+change-preview(${tldrshow})+change-prompt(ﳁ tldr > )" \
+    --bind "ctrl-t:+change-preview(${chtshow})+change-prompt(ᓆ  man > )" \
     --bind "ctrl-i:+change-preview(${batman})+change-prompt(ᓆ  man > )" \
     --bind "enter:execute(${batman})+change-preview(${batman})+change-prompt(ᓆ > )" \
     --header 'CTRL-N/P or SHIFT-↑/↓ to view preview contents; ENTER/Q to maximize/normal preview window' \
