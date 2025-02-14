@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2034,SC1090,SC1091,SC2182,SC2181,SC1094
+# shellcheck source=/dev/null disable=SC2034
 # =============================================================================
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2025-02-06 16:56:39
+# LastChange : 2025-02-13 10:27:24
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -14,8 +14,8 @@ source "${iRCHOME}/bin/bash-color.sh"
 function isWSL()     { if uname -r | command grep --color=never -q -i 'microsoft'; then echo 1; fi; }
 function isCygwin()  { [[ $(uname -s) =~ 'CYGWIN_NT'  ]] && echo 1; }
 function isGitBash() { [[ $(uname -s) =~ 'MINGW64_NT' ]] && echo 1; }
-function isOSX()     { [[ 'Darwin' = $(uname)         ]] && echo 1; }
-function isLinux()   { [[ '1' != "$(isWSL)"  ]] && [[ 'Linux'  = $(uname) ]] && echo 1; }
+function isOSX()     { [[ 'Darwin' = $(uname -s)      ]] && echo 1; }
+function isLinux()   { [[ '1' != "$(isWSL)"  ]] && [[ 'Linux'  = $(uname -s) ]] && echo 1; }
 function isDebian()  { [[ -f /etc/os-release ]] && [[ 'debian' = $(awk -F '='    '/^ID_LIKE/ { print $2 }' /etc/os-release) ]] && echo 1; }
 function isFedora()  { [[ -f /etc/os-release ]] && [[ 'fedora' = $(awk -F '='    '/^ID=/ { print $2 }' /etc/os-release)     ]] && echo 1; }
 function isUbuntu()  { [[ -f /etc/os-release ]] && [[ 'ubuntu' = $(awk -F '='    '/^ID=/ { print $2 }' /etc/os-release)     ]] && echo 1; }
@@ -35,43 +35,22 @@ function bye()       { source "${iRCHOME}"/.bye; set -o emacs; }
 #  \__,_|\___|_| \__,_|\__,_|_|\__|  \__\___/ \___/|_|___/
 #
 # --------------------------------------------------------------/
-if test -f '/usr/local/opt/coreutils/libexec/gnubin/ls'; then
-  LS='/usr/local/opt/coreutils/libexec/gnubin/ls'
-elif test -f '/usr/bin/ls'; then
-  LS='/usr/bin/ls'
-elif test -f '/bin/ls'; then
-  LS='/bin/ls'
+LS="$(type -P ls)"
+GREP="$(type -P grep)"
+COLUMN="$(type -P column)"
+
+if [[ '1' = "$(isOSX)" ]] && [[ 0 = $(type -P brew >/dev/null; echo $?) ]]; then
+  test -x "$(brew --prefix)/bin/gls"               && LS="$(brew --prefix)/bin/gls"
+  test -x "$(brew --prefix)/bin/ggrep"             && GREP="$(brew --prefix)/bin/ggrep"
+  test -x "$(brew --prefix util-linux)/bin/column" && COLUMN="$(brew --prefix util-linux)/bin/column"
 else
-  LS="$(type -P ls)"
+  test -x '/usr/bin/ls'   && LS='/usr/bin/ls'      || LS='/bin/ls'
+  test -x '/usr/bin/grep' && GREP='/usr/bin/grep'  || GREP='/bin/grep'
 fi
 
-if test -f '/usr/local/opt/grep/libexec/gnubin/grep'; then
-  GREP='/usr/local/opt/grep/libexec/gnubin/grep'
-elif test -f '/usr/bin/grep'; then
-  GREP='/usr/bin/grep'
-elif test -f '/bin/grep'; then
-  GREP='/bin/grep'
-else
-  GREP="$(type -P grep)"
-fi
-
-if [[ '1' = "$(isWSL)" ]]; then
-  COPY='/mnt/c/Windows/System32/clip.exe'
-elif [[ 'Darwin' = "$(uname)" ]]; then
-  COPY="$(type -P pbcopy)"
-else
-  COPY=''
-fi
-
-if [[ '1' = $(isOSX) ]]; then
-  if [[ -x '/usr/local/opt/util-linux/bin/column' ]]; then
-    COLUMN='/usr/local/opt/util-linux/bin/column'
-  elif [[ -x '/usr/bin/column' ]]; then
-    COLUMN='/usr/bin/column'
-  fi
-else
-  COLUMN=$(type -P column)
-fi
+COPY=''
+[[ '1' = "$(isWSL)" ]]    && COPY='/mnt/c/Windows/System32/clip.exe'
+[[ '1' = "$(isOSX)" ]]    && COPY="$(type -P pbcopy)"
 
 # /--------------------------------------------------------------
 #                            _      _   _
@@ -103,37 +82,39 @@ elif [[ '1' = "$(isLinux)" ]]; then                                            #
   test -f "${iRCHOME}"/.irhel && source <( cat "${iRCHOME}"/.irhel )
 fi
 
-! test -f "${iRCHOME}"/.env                          || source "${iRCHOME}"/.env
-! test -f "${iRCHOME}"/.token                        || source "${iRCHOME}"/.token
-! test -f "$HOME/.cargo/env"                         || source "$HOME/.cargo/env"
-! test -s "$HOME/.sdkman/bin/sdkman-init.sh"         || source "$HOME/.sdkman/bin/sdkman-init.sh"
-! test -f "$HOME"/.rbenv/bin/rbenv                   || eval "$("$HOME"/.rbenv/bin/rbenv init - bash)"
+test -f "${iRCHOME}"/.env                           && source "${iRCHOME}"/.env
+test -f "${iRCHOME}"/.token                         && source "${iRCHOME}"/.token
+test -f "$HOME/.cargo/env"                          && source "$HOME/.cargo/env"
+test -s "$HOME/.sdkman/bin/sdkman-init.sh"          && source "$HOME/.sdkman/bin/sdkman-init.sh"
+test -f "$HOME"/.rbenv/bin/rbenv                    && eval "$("$HOME"/.rbenv/bin/rbenv init - bash)"
+test -f "${iRCHOME}"/.alias                         && source "${iRCHOME}"/.alias
 
-! test -f "$HOME"/.docker/init-bash.sh               || source "$HOME"/.docker/init-bash.sh       # docker desktop
-! test -f "${RT_COMPLETION}"                         || source "${RT_COMPLETION}"
-! test -d "${GROOVY_HOME}/bin"                       || eval "$(cat "${GROOVY_HOME}"/bin/*_completion)"
-! test -d "${ANSIBLE_COMPLETION_PATH}"               || eval "$(cat "${ANSIBLE_COMPLETION_PATH}"/*.bash)"
-! test -f "${iRCHOME}/.completion/cht.sh"            || eval "$(cat "${iRCHOME}/.completion/cht.sh")"
-! test -f "${iRCHOME}/.completion/complete_alias"    || eval "$(cat "${iRCHOME}/.completion/complete_alias")"
-! type -P kubectl >/dev/null                         || eval "$(command kubectl completion bash)"
-! type -P npm     >/dev/null                         || eval "$(npm completion)"                  # ~/.npm/lib/node_modules/npm-completion/npm-completion.sh
-# ! test -d "${NPM_COMPLETION}"                      || source "${NPM_COMPLETION}/npm-completion.sh"
+test -f "$HOME"/.docker/init-bash.sh                && source "$HOME"/.docker/init-bash.sh       # docker desktop
+test -f "${RT_COMPLETION}"                          && source "${RT_COMPLETION}"
+test -d "${GROOVY_HOME}/bin"                        && eval "$(cat "${GROOVY_HOME}"/bin/*_completion)"
+test -d "${ANSIBLE_COMPLETION_PATH}"                && eval "$(cat "${ANSIBLE_COMPLETION_PATH}"/*.bash)"
+test -f "${iRCHOME}/.completion/cht.sh"             && eval "$(cat "${iRCHOME}/.completion/cht.sh")"
+test -f "${iRCHOME}/.completion/complete_alias"     && eval "$(cat "${iRCHOME}/.completion/complete_alias")"
+test -f "${iRCHOME}/.completion/npm-groovy-lint.sh" && eval "$(cat "${iRCHOME}/.completion/npm-groovy-lint.sh")"
+type -P kubectl >/dev/null                          && eval "$(command kubectl completion bash)"
+type -P npm     >/dev/null                          && eval "$(npm completion)"                  # ~/.npm/lib/node_modules/npm-completion/npm-completion.sh
+# test -d "${NPM_COMPLETION}"                       && source "${NPM_COMPLETION}/npm-completion.sh"
 # via `vault -autocomplete-install`
-! type -P vault   >/dev/null                         || complete -C "$(type -P valut)" vault
-! type -P pipx    >/dev/null                         || eval "$(register-python-argcomplete pipx)"
-! type -P pip     >/dev/null                         || eval "$(pip completion --bash)"
-! type -t _fd     >/dev/null 2>&1                    || complete -F _fd -o nosort -o bashdefault -o default ff ffs
-! type -t _comp_cmd_chromium_browser >/dev/null 2>&1 || complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome
+type -P vault   >/dev/null                          && complete -C "$(type -P valut)" vault
+type -P pipx    >/dev/null                          && eval "$(register-python-argcomplete pipx)"
+type -P pip     >/dev/null                          && eval "$(pip completion --bash)"
+type -t _fd     >/dev/null 2>&1                     && complete -F _fd -o nosort -o bashdefault -o default ff ffs
+type -t _comp_cmd_chromium_browser >/dev/null 2>&1  && complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome
 complete -o default -o bashdefault chrome
 
 # fzf
 if test -f "$HOME"/.fzf.bash; then
   source "$HOME"/.fzf.bash
 else
-  ! type -P fzf >/dev/null                           || eval "$(command fzf --bash)"
-  ! test -f "${FZF_HOME}/shell/key-bindings.bash"    || source "${FZF_HOME}/shell/key-bindings.bash"
+  type -P fzf >/dev/null                            && eval "$(command fzf --bash)"
+  test -f "${FZF_HOME}/shell/key-bindings.bash"     && source "${FZF_HOME}/shell/key-bindings.bash"
 fi
-! type -t _fzf_opts_completion >/dev/null 2>&1       || complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
+type -t _fzf_opts_completion >/dev/null 2>&1        && complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
 
 # /--------------------------------------------------------------
 #                   __ _
@@ -152,13 +133,13 @@ shopt -s histappend
 # shopt -s extdebug
 
 ### disable ctrl+s lock putty : # stty -echo; stty stop undef; stty start undef
-# - [here](https://stackoverflow.com/a/25391867/2940319)
+# - [reference](https://stackoverflow.com/a/25391867/2940319)
 #   - tput : No value for $TERM and no -T specified
 #   - stty : 'standard input': Inappropriate ioctl for device
-if [[ $- == *i*  ]]; then
+if [[ $- == *i* ]]; then
   stty ixany
   stty ixoff -ixon
-  ! test -f ~/.LESS_TERMCAP || source ~/.LESS_TERMCAP
+  test -f ~/.LESS_TERMCAP && source ~/.LESS_TERMCAP
 fi
 
 # /--------------------------------------------------------------
@@ -194,9 +175,9 @@ source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im,icolor}.sh )
 [[ '1' = "$(isOSX)"    ]] && source <( cat "${iRCHOME}"/bin/ii.sh )
 [[ '1' != "$(isLinux)" ]] && test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
 [[ '1' = "$(isLinux)"  ]] && echo ''
-! test -f "${iRCHOME}"/bin/now       || bash   "${iRCHOME}"/bin/now
+test -f "${iRCHOME}"/bin/now       && bash   "${iRCHOME}"/bin/now
 [[ '1' = "$(isOSX)"    ]] && echo ''
-! test -f "${iRCHOME}"/.tmux-session || source "${iRCHOME}"/.tmux-session
+test -f "${iRCHOME}"/.tmux-session && source "${iRCHOME}"/.tmux-session
 
 # /--------------------------------------------------------------
 #   __      __         _             _

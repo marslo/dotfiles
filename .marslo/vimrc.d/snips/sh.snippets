@@ -42,4 +42,12 @@ ${3}
 ${2:#} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/^ba(.*)/$1/}
 endsnippet
 
+snippet #shellcheck "shellcheck" b
+# shellcheck source=/dev/null disable=${1:SC}
+endsnippet
+
+snippet #sc "shellcheck" b
+# shellcheck source=/dev/null disable=${1:SC}
+endsnippet
+
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=snippet
