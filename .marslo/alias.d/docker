@@ -4,7 +4,7 @@
 #   FileName: docker
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2020-06-08 22:24:34
+# LastChange: 2025-02-12 16:44:53
 # =============================================================================
 
 alias d='docker'
@@ -46,6 +46,6 @@ done < <(echo 'd')
 while read -r _i; do
   # complete -F _complete_alias "${_i}"
   complete -F _docker "${_i}"
-done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/.alias/docker")
+done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/alias.d/docker")
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

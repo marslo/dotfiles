@@ -7,6 +7,9 @@
 #   - CTRL-N/CTRL-P or SHIFT-↑/↓ for view preview content
 #   - ENTER/Q for toggle maximize/normal preview window
 #   - CTRL+O  for toggle tldr in preview window
+#       - tlrc (rust clietn): `tldr --color always {1}`
+#       - tldr (c client): `tldr --color {1}`
+#       - tldr (node client): `tldr -t ocean {1}`
 #   - CTRL+I  for toggle man in preview window
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default fman`
 # shellcheck disable=SC2046
@@ -20,7 +23,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-man -k . |
+man -k . 2>/dev/null |
 sort -u |
 sed -r 's/(\(.+\))//g' |
 grep -v -E '::' |
@@ -37,7 +40,7 @@ fzf ${option:-} \
     --preview-window 'up,70%,wrap,rounded,<50(up,85%,border-bottom)' \
     --preview "${batman}" \
     --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
-    --bind "ctrl-o:+change-preview(tldr --color {1})+change-prompt(ﳁ tldr > )" \
+    --bind "ctrl-o:+change-preview(tldr --color always {1})+change-prompt(ﳁ tldr > )" \
     --bind "ctrl-i:+change-preview(${batman})+change-prompt(ᓆ  man > )" \
     --bind "enter:execute(${batman})+change-preview(${batman})+change-prompt(ᓆ > )" \
     --header 'CTRL-N/P or SHIFT-↑/↓ to view preview contents; ENTER/Q to maximize/normal preview window' \

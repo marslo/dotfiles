@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-02-07 17:05:56
+#   LastChange : 2025-02-13 21:34:31
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -163,6 +163,9 @@ function runrc() {                         # runrc - source/[run] [rc] files
 #   - CTRL-N/CTRL-P or SHIFT-↑/↓ for view preview content
 #   - ENTER/Q to toggle maximize/normal preview window
 #   - CTRL+O  to toggle tldr in preview window
+#       - tlrc (rust clietn): `tldr --color always {1}`
+#       - tldr (c client): `tldr --color {1}`
+#       - tldr (node client): `tldr -t ocean {1}`
 #   - CTRL+I  to toggle man in preview window
 #   - CTRL+/  to toggle preview window hidden/show
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default fman`
@@ -179,7 +182,7 @@ function fman() {                          # show [man] page with [f]zf
     esac
   done
 
-  man -k . |
+  man -k . 2>/dev/null |
   sort -u |
   awk -F"(\\\([0-9]\\\),?)" '{ for(i=1;i<NF;i++) { sub(/ +/, "", $i); sub(/ +-? +/, "", $NF); if (length($i) != 0) printf ("%s - %s\n", $i, $NF) } }' |
   grep -v -E '::' |
@@ -196,7 +199,7 @@ function fman() {                          # show [man] page with [f]zf
       --preview-window 'up,70%,wrap,rounded,<50(up,85%,border-bottom)' \
       --preview "${batman}" \
       --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
-      --bind "ctrl-o:+change-preview(tldr --color {1})+change-prompt(ﳁ tldr > )" \
+      --bind "ctrl-o:+change-preview(tldr --color always {1})+change-prompt(ﳁ tldr > )" \
       --bind "ctrl-i:+change-preview(${batman})+change-prompt(ᓆ  man > )" \
       --bind "enter:execute(${batman})+change-preview(${batman})+change-prompt(ᓆ > )" \
       --bind='ctrl-/:toggle-preview' \
@@ -371,7 +374,8 @@ function vim() {                           # magic vim - fzf list in most recent
   local orgv                               # force using vim instead of nvim
   local VIM="$(type -P vim)"
   local foption='--multi --cycle '
-  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore --exclude Music --exclude .target_book --exclude _book"
+  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
+  fdOpt+=' --exclude Music --exclude .target_book --exclude _book --exclude OneDrive*'
   [[ "$(pwd)" = "$HOME" ]] && fdOpt+=' --max-depth 3'
   if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
 
@@ -460,8 +464,9 @@ function vimrc() {                         # vimrc - fzf list all rc files in da
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -v ) orgv=1 ; shift ;;
-       * ) break          ;;
+      -v ) orgv=1                   ; shift   ;;
+      -q ) foption+=" --query $2" ; shift 2 ;;
+       * ) break                              ;;
     esac
   done
 
