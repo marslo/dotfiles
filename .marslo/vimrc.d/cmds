@@ -30,8 +30,8 @@ xnoremap <Leader>r :Reverse <bar> nohlsearch<CR>
 " https://stackoverflow.com/a/2803985/2940319
 command! -nargs=1       Silent | execute ':silent !'.<q-args> | execute ':redraw!'
 
-command! -nargs=0 DocTocUpdate   execute 'silent !/usr/local/bin/doctoc --notitle --update-only --github --maxlevel 3 %' | execute 'redraw!'
-command! -nargs=0 DocTocCreate   execute 'silent !/usr/local/bin/doctoc --notitle --github --maxlevel 3 %' | execute 'redraw!'
+command! -nargs=0 DocTocUpdate   execute 'silent !~/.npm/bin/doctoc --notitle --update-only --github --maxlevel 3 %' | execute 'redraw!'
+command! -nargs=0 DocTocCreate   execute 'silent !~/.npm/bin/doctoc --notitle --github --maxlevel 3 %' | execute 'redraw!'
 command! -nargs=1        First   execute                           'Tabularize /^[^' . escape(<q-args>, '\^$.[?*~') . ']*\zs' . escape(<q-args>, '\^$.[?*~')
 command! -nargs=1 -range First   execute <line1> . ',' . <line2> . 'Tabularize /^[^' . escape(<q-args>, '\^$.[?*~') . ']*\zs' . escape(<q-args>, '\^$.[?*~')
 command! -nargs=0        Iname   execute 'echo expand("%:p")'
