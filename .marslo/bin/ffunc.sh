@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-02-14 01:38:43
+#   LastChange : 2025-02-14 16:29:12
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -64,6 +64,7 @@ _fzf_compgen_dir() {
 function copy() {                          # smart copy
   [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)" && return;
   local fdOpt='--type f --hidden --follow --exclude .git --exclude node_modules'
+  [[ "$(pwd)" = "$HOME" ]] && fdOpt+=' --max-depth 3'
   if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
 
   if [[ 0 -eq $# ]]; then
@@ -94,6 +95,7 @@ function copy() {                          # smart copy
 function cat() {                           # smart cat
   local fdOpt='--type f --hidden --follow --exclude .git --exclude node_modules'
   local CAT="$(type -P cat)"
+  [[ "$(pwd)" = "$HOME" ]] && fdOpt+=' --max-depth 3'
   if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
   command -v bat >/dev/null && CAT="$(type -P bat)"
 
@@ -112,13 +114,15 @@ function cat() {                           # smart cat
 
 # shellcheck disable=SC2089,SC2090
 function fdInRC() {                        # [f]in[d] [in] [rc] files
-  local rcPaths="$HOME/.config/nvim $HOME/.marslo $HOME/.idlerc $HOME/.ssh $HOME/.jfrog"
+  local rcPaths="$HOME/.marslo $HOME/.idlerc $HOME/.ssh $HOME/.jfrog $HOME/.config/nvim $HOME/.cht.sh"
+  local configPaths="cheat github-copilot htop yamllint pip ncdu bat"
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   fdOpt+=' --exec stat --printf="%y | %n\n"'
   (
     eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf' $HOME ${fdOpt}";
-    echo "${rcPaths}" | fmt -1 | xargs -r -I{} bash -c "fd . {} --exclude ss/ --exclude log/ --exclude logs/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
-  ) |  sort -r
+    echo "${rcPaths}"     | fmt -1 | xargs -r -I{} bash -c "fd . {} --exclude ss/ --exclude log*/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
+    echo "${configPaths}" | fmt -1 | xargs -r -I{} bash -c "fd . $HOME/.config/{} --max-depth 1 --exclude *.bak --exclude *backup ${fdOpt} " ;
+  ) |  sort -ru
 }
 
 function fzfInPath() {                     # return file name via fzf in particular folder
@@ -163,7 +167,7 @@ function runrc() {                         # runrc - source/[run] [rc] files
 #   - CTRL-N/CTRL-P or SHIFT-↑/↓ for view preview content
 #   - ENTER/Q to toggle maximize/normal preview window
 #   - CTRL+O  to toggle tldr in preview window
-#       - tlrc (rust clietn): `tldr --color always {1}`
+#       - tlrc (rust client): `tldr --color always {1}`
 #       - tldr (c client): `tldr --color {1}`
 #       - tldr (node client): `tldr -t ocean {1}`
 #   - CTRL+I  to toggle man in preview window
@@ -287,7 +291,7 @@ function fmsh() {                          # connect [m]ongodb with mongo[sh] wi
     esac
   done
 
-  cmd="mongosh 'mongodb://mongodb.sample.com:27017'"
+  cmd="mongosh 'mongodb://mongodb.domain.com:27017'"
   cmd+=" --username '${username}' --password '$(pass show ${passPath})'"
   cmd+=" --authenticationDatabase '${database}'"
   if [[ -n "${evalCmd}" ]]; then
@@ -728,8 +732,8 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
       kconfig="${HOME}/.kube.re/config"
       selector+=('node-role.kubernetes.io/worker=worker')
     else
-      [[ 'true' = "${dind}"  ]] && selector+=('devops.sample/docker.builder=true')
-      [[ 'true' = "${armcc}" ]] && selector+=('devops.sample/armcc=available')
+      [[ 'true' = "${dind}"  ]] && selector+=('devops.domain/docker.builder=true')
+      [[ 'true' = "${armcc}" ]] && selector+=('devops.domain/armcc=available')
     fi
     [[ 0 -ne ${#selector[@]} ]] && k8sOpt="--selector $(joinBy ',' "${selector[@]}")" || k8sOpt=''
 
@@ -916,7 +920,7 @@ function goto() {                          # another `cd`
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 function jcli() {                          # [j]enkins [cli]
-  domain="$( echo 'jenkins-1.sample.com' 'jenkins-2.sample.com' | fmt -1 | fzf --prompt 'domain> ')"
+  domain="$( echo 'jenkins-1.domain.com' 'jenkins-2.domain.com' | fmt -1 | fzf --prompt 'domain> ')"
   cmd="java -jar ~/.jenkins/${domain}/jenkins-cli.jar -auth @$HOME/.jenkins/${domain}/auth -s http://${domain} "
   bash -c "osascript -e \"tell application \\\"System Events\\\" to keystroke \\\"${cmd}\\\"\" &"
 }
@@ -1322,7 +1326,7 @@ function kpcani() {                        # [k]ubectl [p]od [can]-[i]
 # [d]ocker [r]emote [c][l]ea[r]
 function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
   local username='devops'
-  local hostname='artifactory.sample.com'
+  local hostname='artifactory.domain.com'
   local registry='storage-ff-devops-docker'
   local delete=false
   local dangling=false
@@ -1376,7 +1380,7 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
   cmd="docker images ${name} --format \\\"${extraFormat}{{.Tag}}\\t{{.ID}}\\\" ${extraCmd}"
   [[ 'true' = "${delete}" ]] && cmd+=" | awk '{print \\\$NF}' | uniq | xargs -r docker rmi -f"
 
-  [[ 'true' = "${dind}" ]] && k8sOpt='-l devops.sample/docker.builder=true' || k8sOpt=''
+  [[ 'true' = "${dind}" ]] && k8sOpt='-l devops.domain/docker.builder=true' || k8sOpt=''
   hostnames=$( kubecolor --kubeconfig ~/.kube/config get nodes ${k8sOpt} -o json |
               jq -r '.items[] | select(.spec.taints|not) | select(.status.conditions[].reason=="KubeletReady" and .status.conditions[].status=="True") | .metadata.name' |
               fzf --cycle --exit-0 --prompt "hostname > "
@@ -1460,7 +1464,7 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
     [[ 'true' = "${dangling}" ]] && cmd+="; docker images -f dangling=true --format \"${format}\""
   fi
 
-  [[ 'true' = "${dind}" ]] && k8sOpt='-l devops.sample/docker.builder=true' || k8sOpt=''
+  [[ 'true' = "${dind}" ]] && k8sOpt='-l devops.domain/docker.builder=true' || k8sOpt=''
   # shellcheck disable=SC2086
   nodes=$( kubecolor --kubeconfig ~/.kube/config get nodes ${k8sOpt} -o json |
               jq -r '.items[] | select(.spec.taints|not) | select(.status.conditions[].reason=="KubeletReady" and .status.conditions[].status=="True") | .metadata.name' |
