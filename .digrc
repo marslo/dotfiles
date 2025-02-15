@@ -1,0 +1,8 @@
++noall +answer
+
+# NOTE:
+# The above settings appear to break reverse IP lookup (e.g. dig -x <IP>)
+#
+# pipe output to `| column -t` for clearer output
+#
+# - https://github.com/Integralist/dotfiles/blob/e1598456e9a1342722517cfa78783ab62fa69c47/.digrc

@@ -23,6 +23,11 @@
 # run process in background
 # count words in text counter
 # group elements list
+#
+# @updated: 2025-02-14
+# @description: enabled `CHTSH_USE_BAT` to use `bat` as a pager, it requires:
+#               - set `CHTSH_USE_BAT=true` in environment variable
+#               - install `bat` tool ( `type -P bat` is true )
 
 __CHTSH_VERSION=0.0.4
 __CHTSH_DATETIME="2021-04-25 12:30:30 +0200"
@@ -33,7 +38,7 @@ __CHTSH_DATETIME="2021-04-25 12:30:30 +0200"
 #
 CHTSH_HOME=${CHTSH:-"$HOME"/.cht.sh}
 [ -z "$CHTSH_CONF" ] && CHTSH_CONF=$CHTSH_HOME/cht.sh.conf
-# shellcheck disable=SC1090,SC2002
+# shellcheck disable=SC1091
 [ -e "$CHTSH_CONF" ] && source "$CHTSH_CONF"
 [ -z "$CHTSH_URL" ] && CHTSH_URL=https://cht.sh
 
@@ -491,7 +496,8 @@ done
 query=$(echo "$input" | sed 's@ *$@@; s@^ *@@; s@ @/@; s@ @+@g')
 
 if [ "$shell_mode" != yes ]; then
-  curl -s "${CHTSH_URL}"/"$(get_query_options "$query")"
+  [[ ${CHTSH_USE_BAT:-no} = true ]] && type -P bat &>/dev/null && queryOpt=" | command bat -p"
+  eval "curl -s \"${CHTSH_URL}\"/\"$(get_query_options "$query")\" ${queryOpt:-}"
   exit 0
 else
   new_section="$1"
@@ -794,3 +800,5 @@ while true; do
   esac
   "cmd_$cmd_name" $cmd_args
 done
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

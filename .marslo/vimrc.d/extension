@@ -36,6 +36,7 @@ Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
 " Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
+Plug 'dbeniamine/cheat.sh-vim'
 Plug 'simnalamburt/vim-mundo'
 Plug 'preservim/tagbar'
 Plug 'scrooloose/nerdtree'
