@@ -123,9 +123,12 @@ alias locate='sudo locate'
 alias ports='sudo netstat -tunplea | grep'
 alias reboot='sudo shutdown -r now'
 alias lgout='read ans; kill -HUP $PPID'
+
 alias showpath='echo -e ${PATH//:/\\n}'
+alias showclasspath='echo -e ${CLASSPATH//:/\\n}'
 alias showmanpath="manpath | tr ':' '\n'"
 alias showfonts="fc-list | sed -re 's/^.+\/([^:]+):\s?([^,:]+),?:?.*$/\1 : \2/g' | column -t -s: -o: | sort -t: -k2"
+
 alias cmount='mount | column -t'
 alias dstat='dstat -cdgilmnprsy'
 alias wget='wget --no-cookies --no-check-certificate --timeout=1 --tries=3 --retry-connrefused'

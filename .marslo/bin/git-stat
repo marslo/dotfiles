@@ -6,6 +6,14 @@
 # .. files changed : 1046
 # .. lines inserted : 14096
 # .. lines deleted : 8871
+# $ git stat --author "marslo" -l -- --after='2025-01-01'
+# statistics for marslo - git@github.com:marslo/ibook.git :
+#
+# line changes :
+#
+#   files changed ......................... 100% ( 57/57 )
+#   line inserted ......................... 100% ( 2089/2089 )
+#   line deleted  ......................... 100% ( 462/462 )
 # NOTICED: for osx environment
 # $ brew install gawk
 # $ ln -sf /usr/local/bin/gawk /usr/local/bin/awk
@@ -85,9 +93,9 @@ function lineChangesStat() {
            awk '{
                   files=$1; inserted=$2; deleted=$3; userFiles=$4; userInserted=$5; userDeleted=$6; fileRate=$4*100/$1; insertRate=$5*100/$2; deleteRate=$6*100/$3
                 } END {
-                  printf( "\tfiles changed : %s/%s ( %s% ) \n" , userFiles    , files    , fileRate   )
-                  printf( "\tline inserted : %s/%s ( %s% ) \n" , userInserted , inserted , insertRate )
-                  printf( "\tline deleted  : %s/%s ( %s% ) \n" , userDeleted  , deleted  , deleteRate )
+                  printf( "\tfiles changed : %s% ( %s/%s ) \n" , fileRate   , userFiles    , files    )
+                  printf( "\tline inserted : %s% ( %s/%s ) \n" , insertRate , userInserted , inserted )
+                  printf( "\tline deleted  : %s% ( %s/%s ) \n" , deleteRate , userDeleted  , deleted  )
                 }' |
            padRight
 }
@@ -116,7 +124,7 @@ function commitsCount() {
 
   echo -e "${allCount} ${userCount}" |
            awk '{ aCount=$1; uCount=$2; countRate=$2*100/$1; } END \
-                { printf( "\tcommit submitted : %s/%s ( %s% ) \n", uCount, aCount, countRate ) }' |
+                { printf( "\tcommit submitted : %s% ( %s/%s ) \n", countRate, uCount, aCount ) }' |
            padRight
 }
 
@@ -148,8 +156,8 @@ usage="""
 \n\tto list line-changes statistic for particular account
 \t\t$(c G)\$ git stat -l -u <account>$(c) | $(c G)\$ git stat --line-change --account <account>$(c)
 \n\tto list statistic for current user with specific GIT_OPT
-\t\t$(c G)\$ git stat -- --after='2022-01-01' --before='2023-01-01'$(c)
-\t\t$(c G)\$ git stat -- --since='2 weeks 3 days 2 hours 30 minutes 59 seconds ago'$(c)
+\t\t$(c G)\$ git stat -a -- --after='2022-01-01' --before='2023-01-01'$(c)
+\t\t$(c G)\$ git stat -l -- --since='2 weeks 3 days 2 hours 30 minutes 59 seconds ago'$(c)
 """
 
 [[ 0 = "$#" ]] && showHelp

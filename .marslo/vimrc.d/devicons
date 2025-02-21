@@ -2,7 +2,7 @@
 "      FileName : devicons
 "        Author : marslo.jiao@gmail.com
 "       Created : 2024-04-18 17:39:15
-"    LastChange : 2025-01-03 09:56:08
+"    LastChange : 2025-02-17 19:52:06
 " =============================================================================
 
 " ryanoasis/vim-devicons
@@ -19,11 +19,17 @@ let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['gitcommit']        = 
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['Jenkinsfile']      = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['vim']              = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['snippets']         = '󰷺'
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['js']               = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['css']              = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['html']             = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['sql']              = ''
+
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols                         = {}
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['devops']               = '󰘦'
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['vars']                 = '󱆃'
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['src']                  = '󰵮'
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['snips']                = '󰷺'
+
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols                       = {}
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*marslo.*$']        = '󰮯' " 🇨🇳
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*ignore$']          = ''
@@ -48,6 +54,7 @@ let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^headerGenerator$']  = 
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^.*compiler.*$']     = '󰷺' " ''
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^post.*$']           = '󰷺' " ''
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^pre.*$']            = '󰷺' " ''
+
 " all files in pattern of **/jenkinsfile/**
 if index(split( expand('%:p:h'), '/' ), 'jenkinsfile') >= 0
   let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*']               = ''
