@@ -84,7 +84,8 @@ BASH
   find "${topic:-./}" -maxdepth 1 -type f -printf "%T@ %f\n" |
     sort -k1 -rg | sed -e 's/^.*[_ ]//' |
     awk '/:list/ {next} !seen[$1]++' - "$cache_file" |
-    fzf --reverse --print-query --prompt " > $topic" --preview "$ps" --preview-window 75% --info right |
+    fzf --height 80% --reverse --print-query --prompt "> $topic" \
+        --preview "$ps" --preview-window 75% --info right |
     tail -1
 
   return 0

@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-02-14 16:29:12
+#   LastChange : 2025-02-14 16:43:40
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -114,14 +114,14 @@ function cat() {                           # smart cat
 
 # shellcheck disable=SC2089,SC2090
 function fdInRC() {                        # [f]in[d] [in] [rc] files
-  local rcPaths="$HOME/.marslo $HOME/.idlerc $HOME/.ssh $HOME/.jfrog $HOME/.config/nvim $HOME/.cht.sh"
+  local rcPaths="$HOME/.marslo $HOME/.idlerc $HOME/.ssh $HOME/.jfrog $HOME/.pip $HOME/.config/nvim $HOME/.cht.sh"
   local configPaths="cheat github-copilot htop yamllint pip ncdu bat"
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   fdOpt+=' --exec stat --printf="%y | %n\n"'
   (
-    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf' $HOME ${fdOpt}";
-    echo "${rcPaths}"     | fmt -1 | xargs -r -I{} bash -c "fd . {} --exclude ss/ --exclude log*/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
-    echo "${configPaths}" | fmt -1 | xargs -r -I{} bash -c "fd . $HOME/.config/{} --max-depth 1 --exclude *.bak --exclude *backup ${fdOpt} " ;
+    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf' $HOME ${fdOpt}" ;
+    echo "${rcPaths}"     | fmt -1 | xargs -r -I{} bash -c "[[ -d {} ]] && fd . {} --exclude ss/ --exclude log*/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
+    echo "${configPaths}" | fmt -1 | xargs -r -I{} bash -c "[[ -d $HOME/.config/{} ]] && fd . $HOME/.config/{} --max-depth 1 --exclude *.bak --exclude *backup ${fdOpt} " ;
   ) |  sort -ru
 }
 
@@ -209,7 +209,7 @@ function fman() {                          # show [man] page with [f]zf
       --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
       --bind "ctrl-o:+change-preview(${tldrshow})+change-prompt(ﳁ tldr > )" \
       --bind "ctrl-i:+change-preview(${batman})+change-prompt(ᓆ  man > )" \
-      --bind "ctrl-t:+change-preview(${chtshow})+change-prompt(ᓆ  man > )" \
+      --bind "ctrl-t:+change-preview(${chtshow})+change-prompt(ᓆ  cht.sh > )" \
       --bind "enter:execute(${batman})+change-preview(${batman})+change-prompt(ᓆ > )" \
       --bind='ctrl-/:toggle-preview' \
       --header 'CTRL-N/P or SHIFT-↑/↓ to view preview contents; ENTER/Q to maximize/normal preview window' \
@@ -632,20 +632,32 @@ function fif() {                           # [f]ind-[i]n-[f]ile
 # @version     : 1.0.1
 #                - 1.0.1: https://github.com/junegunn/fzf/releases/tag/v0.59.0
 function lsps() {                          # [l]i[s]t [p]roces[s]
-  (date; ps -ef) |
-  fzf --bind 'start,ctrl-r:reload:(date; ps -ef)' \
-      --bind 'ctrl-n:change-nth(8..|1|2|3|4|5|6|7|)' \
-      --bind 'result:transform-prompt:echo "${FZF_NTH}> "' \
-      --preview 'echo {}' --preview-window=down,3,wrap \
-      --style full --layout reverse --header-lines 1 --height 80% \
-      --header-lines-border bottom --no-list-border \
-      --color fg:dim,nth:regular \
-      --bind 'click-header:transform-nth(
-                echo $FZF_CLICK_HEADER_NTH
-              )+transform-prompt(
-                echo "$FZF_CLICK_HEADER_WORD> "
-              )' |
-  awk '{print $2}'
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -p | --pid ) showPid="true" ; shift ;;
+    esac
+  done
+
+  # shellcheck disable=SC2016,SC1078,SC1079
+  #   --header $'Press CTRL-R to reload\n' --header-lines 1 \
+  cmd=""" (date; ps -eof) |
+          fzf --bind 'start,ctrl-r:reload:(date; ps -eof)' \
+              --bind 'ctrl-n:change-nth(8..|1|2|3|4|5|6|7|)' \
+              --bind 'result:transform-prompt:echo \"${FZF_NTH}> \"' \
+              --preview 'echo {}' --preview-window=down,3,wrap \
+              --style full --layout reverse --header-lines 1 --height 80% \
+              --header-lines-border bottom --no-list-border \
+              --color fg:dim,nth:regular \
+              --bind 'click-header:transform-nth(
+                        echo $FZF_CLICK_HEADER_NTH
+                      )+transform-prompt(
+                        echo \"$FZF_CLICK_HEADER_WORD> \"
+                      )'
+  """
+  [[ -z "${showPid:-}" ]] && cmd+=" | awk '{print \$2}'"
+
+  eval "${cmd}"
 }
 
 function killps() {                        # [kill] [p]roces[s]

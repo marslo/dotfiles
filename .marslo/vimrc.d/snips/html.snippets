@@ -1,0 +1,60 @@
+# A valid snippet should starts with:
+#
+#   snippet trigger_word [ "description" [ options ] ]
+#
+# and end with:
+#
+#   endsnippet
+#
+# Snippet options:
+#
+#   b - Beginning of line.
+#   i - In-word expansion.
+#   w - Word boundary.
+#   r - Regular expression
+#   e - Custom context snippet
+#   A - Snippet will be triggered automatically, when condition matches.
+#
+# Basic example:
+#
+#   snippet emitter "emitter properties" b
+#   private readonly ${1} = new Emitter<$2>()
+#   public readonly ${1/^_(.*)/$1/}: Event<$2> = this.$1.event
+#   endsnippet
+#
+# Online reference: https://github.com/SirVer/ultisnips/blob/master/doc/UltiSnips.txt
+
+snippet doctype "doctype HTML 5" bA
+  <!DOCTYPE HTML>
+endsnippet
+
+# generic doctype
+snippet doctype4s "HTML 4.01 Strict" b
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+  "http://www.w3.org/TR/html4/strict.dtd">
+endsnippet
+
+snippet doctype4t "HTML 4.01 Transitional" b
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+endsnippet
+
+snippet doctypexhtml "XHTML 1.0 Frameset" b
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+endsnippet
+
+snippet doctypex1t "XHTML 1.0 Transitional" b
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+endsnippet
+
+snippet doctypex11 "XHTML 1.1" b
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+endsnippet
+
+snippet docxf "XHTML Doctype 1.0 Frameset" b
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">
+endsnippet

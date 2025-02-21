@@ -53,6 +53,7 @@ Library/
 **/.idlerc/recent-files.lst
 .kube/*bak*
 .kube/backup*
+*.bak
 
 .*history
 *.png

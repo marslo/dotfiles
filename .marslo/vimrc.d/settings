@@ -101,6 +101,7 @@ endif
 set laststatus=2                                                    " set status bar
 set exrc
 set secure
+set splitright
 
 " disabled in nvim since v0.11.0-dev-1417+g487c48ec86
 if IsVim()

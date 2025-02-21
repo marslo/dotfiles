@@ -1,9 +1,16 @@
 {
   "//":  "suppress the python not valid/found issue when open nvim",
   "snippets.ultisnips.pythonPrompt": false,
+  "codeLens.enable": true,
+  "groovy.enable": true,
   "//": "$ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk",
   "groovy.java.home": "/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home",
-  "codeLens.enable": true,
+  "groovy.project.referencedLibraries": [
+    "/opt/homebrew/opt/groovy/libexec/lib/*",
+    "/opt/jenkins/latest/WEB-INF/lib/*",
+    "/opt/jenkins/plugins/*/WEB-INF/lib/*"
+  ],
+  "groovy.trace.server": "verbose",
   "java.referencesCodeLens.enabled": true,
   "java.implementationsCodeLens.enabled": true,
   "java.signatureHelp.enabled": true,
@@ -12,10 +19,14 @@
   "diagnostic.infoSign": "ᓆ",
   "diagnostic.warningSign": "ᑹ",
   "diagnostic.hintSign": "➤",
+  "diagnostic.virtualText": true,
+  "diagnostic.virtualTextCurrentLineOnly": false,
+  "diagnostic.checkCurrentLine": false,
   "diagnostic-languageserver.filetypes": {
     "yaml": [ "yamllint" ],
     "vim": "vint",
-    "sh": "shellcheck"
+    "sh": "shellcheck",
+    "groovy": "npm-groovy-lint"
   },
   "html-css-support.styleSheets": [
       "https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css",
@@ -23,22 +34,8 @@
       "style.css"
   ],
   "html-css-support.enabledLanguages": [ "html", "markdown" ],
-  "coc.source.file.ignoreHidden": false,
   "snippets.userSnippetsDirectory": "~/.marslo/vimrc.d/snips",
-  "//": "https://github.com/GroovyLanguageServer/groovy-language-server/issues/17",
-  "languageserver": {
-    "groovy": {
-      "filetypes": ["groovy"],
-      "settings": {
-        "groovy": {
-          "classpath": [
-            "/usr/local/opt/groovy/libexec/lib",
-            "./libs"
-          ]
-        }
-      }
-    }
-  },
+  "coc.source.file.ignoreHidden": false,
   "coc.preferences.extensionUpdateCheck": "daily",
   "coc.preferences.currentFunctionSymbolAutoUpdate": true,
   "git.enableGutters": true,
@@ -47,5 +44,13 @@
       "sha256": "af4ff7fffa2c25ebe61221050cc27f5482b14960f3b049f9abe5cadbf0b08085",
       "allowed": true
     }
-  ]
+  ],
+  "python.formatting.provider": "black",
+  "python.linting.pylintEnabled": true,
+  "python.linting.enabled": true,
+  "python.analysis.useLibraryCodeForTypes": false,
+  "python.analysis.typeCheckingMode": "off",
+  "pyright.inlayHints.functionReturnTypes" : true,
+  "pyright.inlayHints.variableTypes": true,
+  "pyright.inlayHints.parameterTypes": true
 }
