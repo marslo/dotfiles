@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-02-10 14:35:05
+"    LastChange : 2025-02-21 00:17:33
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -33,7 +33,6 @@ Plug 'godlygeek/tabular', { 'commit': '84057252a01e96909cd1a9f0b1395f5d9f61be1e'
 Plug 'tpope/vim-repeat'
 Plug 'Yggdroot/indentLine'                                          " Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
-" Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'dbeniamine/cheat.sh-vim'
@@ -90,8 +89,6 @@ Plug 'dstein64/vim-startuptime'
 
 if has('macunix')
   Plug 'xu-cheng/brew.vim'
-else
-  Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 endif
 
 if IsNvim()
@@ -418,7 +415,8 @@ let g:coc_global_extensions = [
   \   'coc-snippets',
   \   'coc-docker',
   \   'coc-git',
-  \   'coc-emoji'
+  \   'coc-emoji', 'coc-highlight', 'coc-word', 'coc-dictionary', 'coc-tag',
+  \   'coc-diagnostic'
   \ ]
 let g:coc_filetype_map = {
   \   'yaml.ansible': 'ansible',
