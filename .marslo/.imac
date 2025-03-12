@@ -4,15 +4,14 @@
 #   FileName: .imac
 #     Author: marslo.jiao@gmail.com
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2025-02-05 14:08:40
+# LastChange: 2025-03-05 15:17:06
 #   Comments: using `brew --prefix` for $HOMEBEW_PREFIX set as `/opt/homebrew`
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
 
 # should've been set in .bashrc or .bash_profile via `brew shellenv`
 [[ -z "${HOMEBREW_PREFIX}" ]] && export HOMEBREW_PREFIX="$(brew --prefix)"
-# if [[ -x /usr/bin/sw_vers ]] && /usr/bin/sw_vers | grep -E '\s*[mM]ac\s*OS\s*X?' >/dev/null; then
-if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]]; then
+if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   # https://cloud.tencent.com/developer/article/1614039
   # export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles
 
@@ -22,6 +21,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   HOMEBREW_BINS+="${HOMEBREW_PREFIX}/sbin"
 
   INFOZIP_HOME="${HOMEBREW_OPT}/zip"
+  INFOUNZIP_HOME="${HOMEBREW_OPT}/unzip"
   OPENLDAP_HOME="${HOMEBREW_OPT}/openldap"
   CURL_OPENSSL_HOME="${HOMEBREW_OPT}/curl"                        # via: brew install curl-openssl (https://stackoverflow.com/a/49798271/2940319)
   OPENSSL_HOME="${HOMEBREW_OPT}/openssl"                          # OPENSSL_HOME="$(brew --prefix openssl)"
@@ -137,6 +137,7 @@ if [[ -x /usr/bin/sw_vers ]] && [[ 'macOS' = $(/usr/bin/sw_vers --productName) ]
   test -d "${HOMEBREW_OPT}/gettext"      && UTLS_PATH+=":${HOMEBREW_OPT}/gettext/bin"
   test -d "${HOMEBREW_OPT}/file-formula" && UTLS_PATH+=":${HOMEBREW_OPT}/file-formula/bin"
   test -d "${INFOZIP_HOME}"              && UTLS_PATH+=":${INFOZIP_HOME}/bin"
+  test -d "${INFOUNZIP_HOME}"            && UTLS_PATH+=":${INFOUNZIP_HOME}/bin"
   test -d "${OPENLDAP_HOME}"             && UTLS_PATH+=":${OPENLDAP_HOME}/bin"
   test -d "${OPENLDAP_HOME}"             && UTLS_PATH+=":${OPENLDAP_HOME}/sbin"
   test -d "${CURL_OPENSSL_HOME}"         && UTLS_PATH+=":${CURL_OPENSSL_HOME}/bin"
