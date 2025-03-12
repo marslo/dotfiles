@@ -4,7 +4,7 @@
 #     FileName : git-del
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-14 17:55:55
-#   LastChange : 2024-10-04 01:10:22
+#   LastChange : 2025-03-05 17:25:16
 #=============================================================================
 
 source "$HOME"/.marslo/bin/bash-color.sh
@@ -28,10 +28,18 @@ git fetch --tags --prune --prune-tags --quiet
 branches=$(git for-each-ref refs/remotes refs/heads --sort=-committerdate --format='%(refname:short)')
 tags=$(git for-each-ref refs/tags --sort=-committerdate --format='%(refname:lstrip=1)')
 
+plogs="git --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative"
+gpreview="git show --color=always {-1}"
 refname=$( ( echo "${branches}"; echo "${tags}" ) |
              fmt -1 |
              grep --color=never -v 'origin$' |
-             fzf +m --prompt='ref> ' |
+             fzf -0 +m --prompt=' ' \
+                 --preview "${plogs}" \
+                 --height 50% --min-height 10+ \
+                 --style full --no-input-border \
+                 --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
+                 --bind "ctrl-o:execute(${gpreview})+change-preview(${gpreview} -s)+change-prompt( )" \
+                 --bind 'ctrl-/:change-preview-window:up,60%|hidden|right,65%' |
              sed -rn "s:\s*(origin/)?(.*)$:\2:p"
         );
 [[ -z "${refname}" ]] && exit;
