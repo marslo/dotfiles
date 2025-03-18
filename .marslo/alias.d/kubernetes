@@ -4,8 +4,16 @@
 #   FileName: kubernetes
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2024-09-11 17:36:39
+# LastChange: 2025-03-17 10:49:09
 # =============================================================================
+
+function kubecolor() {
+  command kubecolor "$@" 2> >(grep -vE '.*metrics\.k8s\.io/v1beta1.*unable to handle the request' >&2)
+}
+
+function kubectl() {
+  command kubectl "$@" 2> >(grep -vE '^E0317.*metrics\.k8s\.io/v1beta1.*unable to handle the request"$' >&2)
+}
 
 alias kubectl='kubecolor'
 alias k='kubecolor'
