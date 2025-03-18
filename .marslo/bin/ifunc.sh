@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2025-02-06 12:52:46
+#  LastChange : 2025-03-18 00:38:58
 #  Description : ifunctions
 # =============================================================================
 
@@ -509,7 +509,7 @@ function clean() {
       --ds           ) action='ds'     ;  shift    ;;
       --lg           ) action='lg'     ;  shift    ;;
       -h | --help    ) echo -e "${usage}"           ;  return 0 ;;
-      *              ) echo "invalid option $1. type \`-h\`" >&2 ;  return 1 ;;
+      *              ) echo "invalid option $1. try \`-h\`" >&2 ;  return 1 ;;
     esac
   done
 
@@ -520,6 +520,68 @@ function clean() {
     'lg'  ) eval "fdclean --path '${path}' --pattern 'logback.log' ${opt}" ;;
     ''    ) echo -e "$(c R)Error:$(c) action is empty."                    ;;
   esac
+}
+
+function md2html() {
+
+  local title=''
+  local mdfile=''
+  local output=''
+  local pHome="$HOME/.marslo/pandoc"
+  local tDepth='4'
+  local verbose='false'
+  # shellcheck disable=SC2155
+  local usage="""$(c Cs)md2html$(c) - convert markdown to html
+  \nSYNOPSIS:
+  \n\t$(c Gs)\$ md2html $(c)$(c Bis)<path/to/markdown/file>$(c)$(c Gs)
+  \t\t  [ $(c)$(c Bis)-i <path/to/markdown/file>$(c)$(c Gs) | $(c Bis)--input <path/to/markdown/file>$(c)$(c Gs) ]
+  \t\t  [ -h | --help ]
+  \t\t  [ -o <output file> | --output <output file> ]
+  \t\t  [ -t <title> | --title <title> ]
+  \t\t  [ --toc-depth <n> ]
+  \t\t  [ -v | --debug | --verbose ]$(c)
+  """
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -t | --title             ) title="${2}"       ; shift 2  ;;
+      -i | --input             ) mdfile="${2}"      ; shift 2  ;;
+      -o | --output            ) output="${2}"      ; shift 2  ;;
+      --toc-depth              ) tDepth="${2}"      ; shift 2  ;;
+      -v | --debug | --verbose ) verbose='true'     ; shift    ;;
+      -h | --help              ) echo -e "${usage}" ; return 0 ;;
+      *                        )
+        if [[ $1 != -* ]] && [[ -z "${mdfile}" ]]; then
+          mdfile="$1"
+          shift 1
+        else
+          echo "$(c R)ERROR$(c): invalid option $1. try \`-h\`" >&2
+          return 1
+        fi
+    esac
+  done
+
+  [[ -z "${mdfile}" ]] && echo -e "$(c R)Error:$(c) markdown file is empty. check \`-h\` for more details." && return 1
+  [[ -n "${mdfile}" ]] && [[ -z "${output}" ]] && output="${mdfile%.*}.html"
+  if [[ -n "${title}"  ]]; then
+    title="$(sed -E 's/\b(.)/\U\1/g' <<< "${title}")"
+  elif [[ -n "${output}" ]]; then
+    title="$(echo "${output%.*}" | sed 's/[^a-zA-Z]/ /g' | sed -E 's/\b(.)/\U\1/g')"
+  elif [[ -n "${mdfile}" ]]; then
+    title="$(sed -E 's/\b(.)/\U\1/g' <<< ${mdfile%.*})"
+  fi
+  [[ -n "${title}" ]] && pTitle="--metadata title=\"${title}\"" || pTitle=''
+
+  cmd="pandoc -f gfm -t html5 --embed-resources --standalone"
+  cmd+=" --lua-filter=${pHome}/alert.lua"
+  cmd+=" ${pTitle} --metadata date=\"$(date +%Y-%m-%d)\""
+  cmd+=" --toc --toc-depth=${tDepth}"
+  cmd+=" --css ${pHome}/github.css --css ${pHome}/quota.css"
+  cmd+=" --pdf-engine=weasyprint"
+  cmd+=" ${mdfile} -o ${output}"
+
+  [[ 'true' = "${verbose}" ]] && echo -e "$(c Wid)>> [DEBUG]:$(c)\n\t$(c Yi)${cmd}$(c)"
+  eval "${cmd}"
 }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************

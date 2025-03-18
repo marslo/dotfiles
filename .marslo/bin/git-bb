@@ -7,17 +7,18 @@
 #  Description : git branch switcher
 #                 - init : [a83a0ec](https://github.com/marslo/dotfiles/commit/a83a0ec625f154dc096750b777cb39108e50e5f9)
 #                 - latest : add `ctrl-/`, `enter` and `ctrl-y` to modify view and copy commit hash
+#                 -  - E0A0/E725
 #=============================================================================
 
-greview="git show --color=always {-1}"
+gpreview="git show --color=always {-1}"
 branch=$(git for-each-ref refs/remotes refs/heads --sort=-committerdate --format="%(refname:short)" |
          grep --color=never -v "origin$" |
-         fzf +m --prompt=" " -0 \
+         fzf +m --prompt=' ' -0 \
              --height 50% --min-height 10+ \
              --style full --no-input-border \
-             --preview "${greview} -s" \
+             --preview "${gpreview} -s" \
              --preview-window=right,55%,nofollow --preview-label-pos='bottom' \
-             --bind "ctrl-o:execute(${greview})+change-preview(${greview} -s)+change-prompt( )" \
+             --bind "ctrl-o:execute(${gpreview})+change-preview(${gpreview} -s)+change-prompt( )" \
              --bind 'ctrl-/:change-preview-window:up,60%|hidden|right,55%' \
              --bind 'ctrl-y:execute-silent(git log {-1} -1 --pretty=format:"%H" | pbcopy)' |
          sed -rn "s:\s*(origin/)?(.*)$:\2:p"

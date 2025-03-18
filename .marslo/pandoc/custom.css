@@ -1,0 +1,19 @@
+/* custom.css */
+@page {
+  size: A4;
+  margin-top: 3cm;
+  margin-bottom: 3cm;
+
+  @top-center {
+    content: var(--title);
+    font-family: DejaVu Sans, sans-serif;
+    font-size: 11pt;
+  }
+
+  @bottom-right {
+    content: counter(page) "/" counter(pages) " · " var(--author);
+    font-family: DejaVu Sans, sans-serif;
+    font-size: 9pt;
+    color: #666;
+  }
+}

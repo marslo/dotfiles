@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-02-14 16:43:40
+#   LastChange : 2025-02-21 00:26:19
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1618,6 +1618,24 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
 # **************************************************************/
 
 # bat
-function help() { "$@" --help 2>&1 | bat --plain --language=help ; }
+# using `eval` to handle non-commands, i.e.: `git <alias> --help`
+function help() {
+  function countSpaces() { echo "$1" | awk '{ if (match($0, / {6,}/)) { print RLENGTH; exit; } }'; }
+  output=$( eval "$* --help " 2>&1 )
+  if [[ "$(head -1 <<< "${output}")" =~ "' is aliased to '" ]]; then
+    spaces=$( countSpaces "${output}" )
+    new=$( echo "${output}" | sed -rn "s/^[^']*'([^']*)'[^']*'(.*)'\s*$/\2/p" )
+    # shellcheck disable=SC2001
+    [[ 2 -lt "${spaces}" ]] && new=$(echo "${new}" | sed "s/ \{$((spaces - 2))\}/\n/g")
+
+    if [[ "$(wc -l <<< "${new}")" -gt 1 ]]; then
+      bat --style="numbers" --language=bash --theme Nord <<< "${new}"
+    else
+      echo "${output}" | sed -r "s/\x1B?\[(([0-9]+)(;[0-9]+)*)?[mGKHfJ]//g" | bat --plain --language=bash --theme=gruvbox-dark-marslo
+    fi
+  else
+    echo "${output}" | sed -r "s/\x1B?\[(([0-9]+)(;[0-9]+)*)?[mGKHfJ]//g" | bat --plain --language=help
+  fi
+}
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************

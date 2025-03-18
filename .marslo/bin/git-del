@@ -5,6 +5,8 @@
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-14 17:55:55
 #   LastChange : 2025-03-05 17:25:16
+#  Description : delete branch or tag from remote and local
+#                -  - E0A0/E725
 #=============================================================================
 
 source "$HOME"/.marslo/bin/bash-color.sh
@@ -33,7 +35,7 @@ gpreview="git show --color=always {-1}"
 refname=$( ( echo "${branches}"; echo "${tags}" ) |
              fmt -1 |
              grep --color=never -v 'origin$' |
-             fzf -0 +m --prompt=' ' \
+             fzf -0 +m --prompt=' ' \
                  --preview "${plogs}" \
                  --height 50% --min-height 10+ \
                  --style full --no-input-border \
