@@ -42,6 +42,17 @@ if has( 'autocmd' )
       autocmd CmdLineLeave : set smartcase
   augroup END
 
+  augroup AutoDocToc
+    autocmd!
+    autocmd BufWritePost *.md
+      \ let fname = expand('%:p') |
+      \ if fname !~# '\/\v(README|SUMMARY)\.md$' |
+      \   echom 'DocToc Update: '.expand('%') |
+      \   silent! execute 'DocTocUpdate' |
+      \   checktime |                            " force reload file to prevent async modification conflict"
+      \ endif
+  augroup END
+
   augroup DevOps
     autocmd BufRead,BufNewFile *                   setfiletype Jenkinsfile
     autocmd Filetype           Dockerfile          set filetype=dockerfile  syntax=dockerfile
@@ -57,11 +68,12 @@ if has( 'autocmd' )
           \ '<div>':'</div>', '<font>':'</font>', '<a>':'</a>', '<p>':'</p>',
           \ '<table>':'</table>', '<tbody>':'</tbody>',
           \ '<thread>':'</thread>', '<th>':'</th>', '<td>':'</td>',
-          \ '<kbd>':'</kbd>'
+          \ '<kbd>':'</kbd>',
+          \ '<u>':'</u>'
           \ })
-    if index( ['README', 'SUMMARY'], expand('%:r') ) == -1
-      autocmd BufWritePost     *\(.md\)            silent :DocTocUpdate       " automatic build doctoc when save it
-    endif
+    " if index( ['README', 'SUMMARY'], expand('%:r') ) == -1
+    "   autocmd BufWritePost     *\(.md\)            silent :DocTocUpdate       " automatic build doctoc when save it
+    " endif
     if index( ['project.config', 'groups'], expand('%:r') ) == -1
       autocmd BufRead,BufNewFile *.config          set syntax=gitconfig noexpandtab
     endif
