@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2025-01-23 14:23:27
+"    LastChange : 2025-03-18 19:07:16
 " =============================================================================
 
 " /**************************************************************
@@ -38,6 +38,8 @@ cnoremap <C-k>        <C-\>e(strpart(getcmdline(), 0, getcmdpos() - 1))<CR>
 cnoremap sudow!!      w !sudo tee > /dev/null %
 cnoremap sw!!         execute 'silent! write !sudo tee % >/dev/null' <bar> edit!
 nnoremap Y            y$
+" switch mouse model
+nnoremap <M-m> :execute 'set mousemodel=' . (&mousemodel ==# 'extend' ? 'popup_setpos' : 'extend')<CR>
 " silent delete in virtual mode
 " `"_dd` delete without copy to default register: https://til.hashrocket.com/posts/u86r0vdytl-deleting-lines-without-copying-to-default-register
 nnoremap rdd          "_dd
@@ -68,15 +70,36 @@ noremap  [h           :GitGutterPrevHunk<CR>
 " github/copilot.vim - default M+⇢
 imap <C-L>             <Plug>(copilot-accept-word)
 imap <C-M-L>           <Plug>(copilot-accept-line)
+
 " neoclide/coc.nvim
+" GoTo code navigation
 nmap     <silent>[g    <Plug>(coc-diagnostic-prev)
 nmap     <silent>]g    <Plug>(coc-diagnostic-next)
 nmap     <silent>gd    <Plug>(coc-definition)
 nmap     <silent>gy    <Plug>(coc-type-definition)
 nmap     <silent>gi    <Plug>(coc-implementation)
 nmap     <silent>gr    <Plug>(coc-references)
+" coc-snippets ( ctrl-j )
+imap     <C-l>         <Plug>(coc-snippets-expand)
+vmap     <C-j>         <Plug>(coc-snippets-select)
+" run the Code Lens action on the current line
 nmap     <leader>cl    <Plug>(coc-codelens-action)
+" remap keys for applying code actions at the cursor position
+nmap     <leader>ac    <Plug>(coc-codeaction-cursor)
+nmap     <leader>as    <Plug>(coc-codeaction-source)
+" applying code actions to the selected code block, i.e.: `<leader>aap` for current paragraph
+xmap     <leader>a     <Plug>(coc-codeaction-selected)
+nmap     <leader>a     <Plug>(coc-codeaction-selected)
+" apply the most preferred quickfix action to fix diagnostic on the current line
+nmap     <leader>qf    <Plug>(coc-fix-current)
 nnoremap <silent>K     :call ShowDocumentation()<CR>
+" -- Remap <C-f> and <C-b> to scroll float windows/popups
+nnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
+nnoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
+inoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(1)\<cr>" : "\<Right>"
+inoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(0)\<cr>" : "\<Left>"
+vnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
+vnoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
 
 cnoreabbrev W        w
 cnoreabbrev W!       w!
@@ -103,23 +126,22 @@ inoremap <leader>fe  <C-R>=expand("%:t")<CR>
 inoremap <leader>w   <C-O>:w<CR>
 
 nnoremap <leader>zil :g/^/ s//\=line('.').' '/<CR>                  " [i]nsert [l]ine number
-nnoremap <leader>zcm :%s/<C-v><CR>/\r/g<CR>                         " [c]onvert [m] to new line
-nnoremap <leader>zdm :%s/<C-v><CR>//ge<CR>                          " [d]elete [m]()
-nnoremap <leader>zdb :%s/\s\+$//<CR>                                " [d]elete [b]lank ( trailing ) space
-nnoremap <leader>zbl :g/^\s*$/d<CR>                                 " [d]elete [b]lank [l]ine
+nnoremap <leader>zcm :%s/<C-v><CR>/\r/g<CR>                         " [c] onvert [m] <> to new line
+nnoremap <leader>zdm :%s/<C-v><CR>//ge<CR>                          " [d]elete [m] <>
+nnoremap <leader>zdb :%s/\s\+$//<CR>                                " [d]elete [b]lank <trailing> space
 nnoremap <leader>zd2 :%s/​//g<CR>                              " [d]elete <200b>
-nnoremap <leader>zdd :%s/ / /g<CR>                                  " [d]elete [d]ot( ) 0xAO
+nnoremap <leader>zdd :%s/ / /g<CR>                                  " [d]elete [d]ot -   0xAO
 nnoremap <leader>zds :%s/^<span.*span>//g<CR>                       " [d]elete [s]pan tag
 nnoremap <leader>zdi :%s/^\s\+//<CR>                                " [d]elete [i]ndent spaces
-nnoremap <leader>zid i•<ESC>                                        " [i]nsert [d]ot(•) 0x2022
+nnoremap <leader>zid i•<ESC>                                        " [i]nsert [d]ot [•] - 0x2022
 nnoremap <leader>fhl :%s/></>\r</g<CR>                              " [f]ormat [h]tm[l]
+nnoremap <leader>zbl :g/^\s*$/d<CR>                                 " [d]elete [b]lank [l]ine
 " count expr
 nnoremap <leader>cr  0yt=A<C-r>=<C-r>"<CR><Esc>
 " count expr
 nnoremap <leader>*   *<C-O>:%s///gn<CR>
 nnoremap <leader>G   :%s///gn<CR>
-" count the matches numbers ( [w]c -[l] )
-nnoremap <leader>zwl :%s///gn<CR>
+nnoremap <leader>zwl :%s///gn<CR>                                   " count the matches numbers < [w]c -[l] >
 
 iabbrev <leader>/*   /*********************************
 iabbrev <leader>*/   *********************************/

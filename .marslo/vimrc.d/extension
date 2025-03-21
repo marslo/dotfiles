@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-02-21 00:17:33
+"    LastChange : 2025-03-18 20:02:13
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -57,6 +57,7 @@ Plug 'honza/vim-snippets'                                           " coc-snippe
 Plug 'mfussenegger/nvim-lint'
 Plug 'tomtom/tcomment_vim'
 Plug 'preservim/vim-markdown'                                       " markdown
+Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npx --yes yarn install' }
 Plug 'valloric/MatchTagAlways'                                      " web design
 Plug 'tpope/vim-fugitive'                                           " ╮
 Plug 'airblade/vim-gitgutter'                                       " │
@@ -237,7 +238,7 @@ let g:airline_skip_empty_sections                  = 1
 let g:airline_detect_modified                      = 1
 let g:airline_detect_paste                         = 1
 let g:airline#extensions#wordcount#enabled         = 1
-let g:airline#extensions#wordcount#filetypes       = '\vtext|nroff|plaintex'
+let g:airline#extensions#wordcount#filetypes       = '\vtext|nroff|plaintex|markdown|md'
 let g:airline#extensions#quickfix#enabled          = 0
 let g:airline#extensions#quickfix#quickfix_text    = 'Quickfix'
 let g:airline_stl_path_style                       = 'short'
@@ -254,7 +255,7 @@ let g:airline#extensions#fzf#enabled               = 1
 let g:airline#extensions#nerdtree_statusline       = 1
 let g:airline#extensions#syntastic#enabled         = 1
 let g:airline#extensions#coc#enabled               = 1              " ╮
-let g:airline#extensions#coc#show_coc_status       = 0              " │
+let g:airline#extensions#coc#show_coc_status       = 1              " │
 let g:airline#extensions#coc#error_symbol          = ' ✗:'          " ├ coc
 let g:airline#extensions#coc#warning_symbol        = ' ⍨:'          " │
 let g:airline#extensions#coc#stl_format_err        = '%C(␊%L)'      " │
@@ -270,14 +271,28 @@ if !exists('g:airline_symbols') | let g:airline_symbols = {} | endif
 let g:airline_symbols.dirty                        = ' ♪'
 let g:airline_left_sep                             = ''
 let g:airline_right_sep                            = ''
+
+function! CocCurrentFunction()
+  return get(b:, 'coc_current_function', '')
+endfunction
+function! AirlineTimeStamp()
+  return strftime('%H:%M %b-%d %a')
+endfunction
+" +----------------------------------+
+" | A | B | C            | X | Y | Z |
+" +----------------------------------+
 function! AirlineInit()
   let g:airline_section_a = airline#section#create([ '[', 'mode', ']' ])
-  let g:airline_section_y = airline#section#create([ '%{strftime("%H:%M %b-%d %a")} ', '['.&fileformat.']' ])
+  let g:airline_section_y = airline#section#create([ '%{AirlineTimeStamp()}', ' [%{&fileformat}]' ])
   let g:airline_section_c = '%<' . airline#section#create([ '%F' ]) " let g:airline_section_c = '%<' . '%{expand(%:p:~)}'
+  let g:airline_section_x = airline#section#create([ '%{CocCurrentFunction()}' ])
 endfunction
 autocmd User AirlineAfterInit call AirlineInit()
+autocmd User CocStatusChange,CocDiagnosticChange call airline#update_statusline()
+set updatetime=1000
+autocmd CursorHold,CursorHoldI * call airline#update_statusline()
 
-" scrooloose/nerdtree
+" scrooloose/nerd utf-8 tree
 map <C-A-n> :NERDTreeToggle<CR>
 nnoremap <silent> <leader>nt :NERDTreeToggle<CR>
 let NERDTreeShowHidden            = 1
@@ -409,18 +424,23 @@ let g:coc_default_semantic_highlight_groups = 1
 let g:coc_global_extensions = [
   \   'coc-sh',
   \   'coc-groovy', 'coc-java',
-  \   'coc-json',
+  \   'coc-json', 'coc-yaml', 'coc-toml',
   \   'coc-css', 'coc-htmlhint', 'coc-html-css-support',
   \   'coc-pyright',
   \   'coc-snippets',
   \   'coc-docker',
   \   'coc-git',
   \   'coc-emoji', 'coc-highlight', 'coc-word', 'coc-dictionary', 'coc-tag',
-  \   'coc-diagnostic'
+  \   'coc-diagnostic', 'coc-vimlsp'
   \ ]
 let g:coc_filetype_map = {
   \   'yaml.ansible': 'ansible',
   \ }
+" coc-vimlsp
+let g:markdown_fenced_languages = [
+  \ 'vim',
+  \ 'help'
+  \]
 function! CheckBackspace() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'
@@ -434,6 +454,7 @@ function! ShowDocumentation()
 endfunction
 autocmd FileType json syntax match Comment +\/\/.\+$+
 autocmd FileType html let b:coc_root_patterns = ['.git', '.env', 'tailwind.config.js', 'tailwind.config.cjs']
+autocmd CursorHold * silent call CocActionAsync('highlight')
 inoremap <silent><expr> <DOWN>
       \ coc#pum#visible() ? coc#pum#next(1) : CheckBackspace()
       \                   ? "\<DOWN>" : coc#refresh()
@@ -441,9 +462,6 @@ inoremap <expr><UP> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
 inoremap <silent><expr> <C-M>
      \ coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 command! -nargs=0 OR  :call CocActionAsync('runCommand', 'editor.action.organizeImport')
-" coc-snippets ( ctrl-j )
-imap <C-l> <Plug>(coc-snippets-expand)
-vmap <C-j> <Plug>(coc-snippets-select)
 let g:coc_snippet_next = '<c-j>'
 let g:coc_snippet_prev = '<c-k>'
 imap <C-j> <Plug>(coc-snippets-expand-jump)
@@ -560,11 +578,9 @@ let g:fzf_colors                  = {
 
 " vim-syntastic/syntastic
 " info: ࠵ ೲ; error: ஓ ௐ ྾; warning ᓆ ᓍ 𐘿; style_warning: ⍤ ൠ
-set statusline+=%#warningmsg#
-if has('unix')
-  set statusline+=\ %{SyntasticStatuslineFlag()}
-endif
-set statusline+=\ %* |
+" set statusline+=%#warningmsg#
+" if has('unix') | set statusline+=\ %{SyntasticStatuslineFlag()} | endif
+" set statusline+=\ %* |
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list            = 1
 let g:syntastic_check_on_open            = 1
