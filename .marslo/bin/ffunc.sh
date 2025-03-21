@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-02-21 00:26:19
+#   LastChange : 2025-03-18 16:23:28
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -410,8 +410,7 @@ function vim() {                           # magic vim - fzf list in most recent
     [[ '.' = "${1}" ]] && target="${1}" || target=". \"${1}\""
     eval "fd ${target} ${fdOpt}" | fzf ${foption} --bind="enter:become(${VIM} {+})"
   else
-    # shellcheck disable=SC2068
-    "${VIM}" ${voption} $@
+    "${VIM}" ${voption} "$@"
   fi
 }
 

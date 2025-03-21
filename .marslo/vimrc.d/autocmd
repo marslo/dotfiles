@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-01-03 09:56:25
+"    LastChange : 2025-03-18 20:11:16
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -17,23 +17,6 @@
 "
 " **************************************************************/
 if has( 'autocmd' )
-  " autocmd VimLeave         *                               silent :%bd                                          " :windo bd
-  autocmd BufReadPre         *                               setlocal foldmethod=indent
-  " autocmd BufWinEnter      *                               if &foldmethod == 'indent' | setlocal foldmethod=manual | endif
-  autocmd BufWinEnter        *                               silent! loadview                                     " autocmd BufWinLeave * silent! mkview
-  autocmd Syntax             *                               syn match ExtraWhitespace /\s\+$\| \+\ze\t/
-  autocmd BufEnter           *                               if &diff | let g:blamer_enabled=0 | endif            " ╮ disable git blame in diff mode
-  " autocmd BufEnter         *                               if ! empty(&key) | let g:blamer_enabled=0 | endif    " ╯ and encrypt mode
-  autocmd BufWritePre        *                               %s/\s\+$//e | %s/\r$//e   " automatic remove trailing space
-  autocmd BufWritePre        *\(.ltsv\|.config\|.diffs\)\@<! silent! retab!            " automatic retab: https://vim.fandom.com/wiki/Remove_unwanted_spaces
-  autocmd BufRead,BufNewFile *.t                             set filetype=perl
-  autocmd BufRead,BufNewFile *.ltsv                          set filetype=ltsv syntax=groovy noexpandtab
-  autocmd QuickFixCmdPost    *grep*                          cwindow
-  autocmd FileType           make,snippet,robot              setlocal tabstop=4 softtabstop=4 shiftwidth=4
-  autocmd FileType           help                            set nofoldenable
-  autocmd FileType           snippets                        set expandtab tabstop=2 softtabstop=2 shiftwidth=2
-  autocmd FileType           snippets                        setlocal commentstring=#\ %s
-  autocmd Syntax             c,cpp,xml,html,xhtml            normal zM
 
   " assumes set ignorecase smartcase
   augroup dynamic_smartcase
@@ -45,77 +28,78 @@ if has( 'autocmd' )
   augroup AutoDocToc
     autocmd!
     autocmd BufWritePost *.md
-      \ let fname = expand('%:p') |
-      \ if fname !~# '\/\v(README|SUMMARY)\.md$' |
-      \   echom 'DocToc Update: '.expand('%') |
-      \   silent! execute 'DocTocUpdate' |
-      \   checktime |                            " force reload file to prevent async modification conflict"
-      \ endif
+            \ let fname = expand('%:p') |
+            \ if fname !~# '\/\v(README|SUMMARY)\.md$' |
+            \   echom 'DocToc Update: '.expand('%') |
+            \   silent! execute 'DocTocUpdate' |
+            \   checktime |                                                   " force reload file to prevent async modification conflict"
+            \ endif
+    " if index( ['README', 'SUMMARY'], expand('%:r') ) == -1
+    "   autocmd BufWritePost     *\(.md\)            silent :DocTocUpdate     " automatic build doctoc when save it
+    " endif
   augroup END
 
   augroup DevOps
-    autocmd BufRead,BufNewFile *                   setfiletype Jenkinsfile
     autocmd Filetype           Dockerfile          set filetype=dockerfile  syntax=dockerfile
-    autocmd FileType           json,markdown,yaml  set tabstop=2 softtabstop=2 shiftwidth=2
-    autocmd FileType           json,markdown,yaml  setlocal foldmethod=indent
+    autocmd FileType           json,markdown,yaml  set tabstop=2 softtabstop=2 shiftwidth=2 | setlocal foldmethod=indent
     autocmd Syntax             yaml                normal zM
     autocmd BufEnter           *\(.md\|.markdown\) exe 'noremap <F5> :!"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" %:p "--no-gpu"<CR>'
     autocmd BufRead,BufNewFile .*ignore            set filetype=ignore
     autocmd FileType           ignore,gitconfig    setlocal commentstring=#\ %s
     autocmd FileType           json                setlocal commentstring=//\ %s
-    autocmd FileType           markdown,html       let g:AutoPairsCompleteOnlyOnSpace = 0
-    autocmd FileType           markdown,html       let b:AutoPairs = autopairs#AutoPairsDefine({
-          \ '<div>':'</div>', '<font>':'</font>', '<a>':'</a>', '<p>':'</p>',
-          \ '<table>':'</table>', '<tbody>':'</tbody>',
-          \ '<thread>':'</thread>', '<th>':'</th>', '<td>':'</td>',
-          \ '<kbd>':'</kbd>',
-          \ '<u>':'</u>'
-          \ })
-    " if index( ['README', 'SUMMARY'], expand('%:r') ) == -1
-    "   autocmd BufWritePost     *\(.md\)            silent :DocTocUpdate       " automatic build doctoc when save it
-    " endif
+    autocmd FileType           markdown,html
+            \ let g:AutoPairsCompleteOnlyOnSpace = 0 |
+            \ let b:AutoPairs = autopairs#AutoPairsDefine({
+            \   '<div>':'</div>', '<font>':'</font>', '<a>':'</a>', '<p>':'</p>',
+            \   '<table>':'</table>', '<tbody>':'</tbody>',
+            \   '<thread>':'</thread>', '<th>':'</th>', '<td>':'</td>',
+            \   '<kbd>':'</kbd>',
+            \   '<u>':'</u>'
+            \ })
     if index( ['project.config', 'groups'], expand('%:r') ) == -1
       autocmd BufRead,BufNewFile *.config          set syntax=gitconfig noexpandtab
     endif
     autocmd BufNewFile,BufRead                                                " git config files
-          \ *.git/config,.gitconfig,.gitmodules,gitconfig
-          \,~/.marslo/.gitalias
-          \ setfiletype gitconfig
+            \ */.git/config,
+            \ .gitconfig,
+            \ .gitmodules,
+            \ gitconfig,
+            \ ~/.marslo/.gitalias
+            \ setfiletype gitconfig
   augroup END
 
   augroup ShellScript
     autocmd!
-    autocmd   Syntax       bash           set filetype=sh
-    autocmd   FileType     sh,bash,shell  silent :retab!
-    autocmd   FileType     sh,bash,shell  set tabstop=2 softtabstop=2 shiftwidth=2
-    autocmd!  BufWritePre  *.sh           silent :retab!                      " automatic retab
-    autocmd!  BufWritePost *.sh           silent :redraw!                     " automatic redraw for shellcheck
-    " autocmd BufWritePost *.sh           silent !chmod +x %
+    autocmd Syntax       bash           set filetype=sh
+    autocmd FileType     sh,bash,shell
+            \ silent :retab! |
+            \ set tabstop=2 softtabstop=2 shiftwidth=2
+    autocmd BufWritePre  *.sh                                                 " automatic retab
+            \ if &modifiable && !&readonly | silent! keepjumps retab! | endif
+
+    autocmd BufWritePost *.sh                                                 " automatic redraw for shellcheck
+            \ if has('syntax') && exists('g:loaded_shellcheck') | silent! redraw! | endif
+    " autocmd BufWritePost *.sh  silent !chmod +x %
   augroup END
 
   augroup Groovy
     autocmd Filetype   Groovy                set filetype=groovy syntax=groovy
-    autocmd FileType   groovy,Jenkinsfile    set tabstop=2 softtabstop=2 shiftwidth=2
-    autocmd Syntax     groovy,Jenkinsfile    setlocal foldmethod=indent
     autocmd Syntax     groovy,Jenkinsfile    normal zM
+    autocmd FileType   groovy,Jenkinsfile    setlocal foldmethod=indent
+            \| setlocal tabstop=2 softtabstop=2 shiftwidth=2
     autocmd FileType   Jenkinsfile           setlocal commentstring=//\ %s
 
     " https://vim.fandom.com/wiki/Syntax_folding_for_Java
     autocmd FileType   java                  setlocal foldmarker=/**,**/ foldmethod=marker foldcolumn=1
-    " autocmd FileType javascript            syntax clear jsFuncBlock         " rainbow issue #2
-    " autocmd FileType Jenkinsfile           setlocal filetype=groovy syntax=groovy foldmethod=indent
-    " autocmd FileType Jenkinsfile           set syntax=groovy filetype=groovy
-    " autocmd BufNewFile,BufRead             Jenkinsfile setf groovy
-    " autocmd BufNewFile,BufRead,BufReadPost Jenkinsfile setlocal foldmethod=indent
-    if did_filetype()                      |  finish      | endif
-    if getline(1) =~# '^#!.*[/\\]groovy\>' |  setf groovy | endif             " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
+    if did_filetype()                      | finish      | endif
+    if getline(1) =~# '^#!.*[/\\]groovy\>' | setf groovy | endif              " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
   augroup END
 
   augroup Python
     autocmd BufNewFile,BufRead python
-            \ set tabstop=2 softtabstop=2 shiftwidth=2
-            \ setlocal shiftwidth=2 tabstop=2 softtabstop=2 autoindent
-            \ fileformat=unix
+            \ setlocal tabstop=2 softtabstop=2 shiftwidth=2 |
+            \ setlocal shiftwidth=2 tabstop=2 softtabstop=2 autoindent |
+            \ setlocal fileformat=unix
     autocmd FileType python syntax keyword pythonDecorator print self
     autocmd FileType python set isk-=.
     autocmd Syntax   python setlocal foldmethod=indent
@@ -161,23 +145,66 @@ if has( 'autocmd' )
     let w:m1         = matchadd( 'CollumnLimit', pattern, -1 )
   augroup END
 
-  if IsNvim()
-    " autocmd! TermOpen,TermEnter * :IndentLinesDisable
-    " autocmd! BufWinEnter        * if &l:buftype ==# 'help' | :IndentLinesDisable | endif
-    autocmd! TermOpen             * setlocal nonumber norelativenumber modifiable nospell
-    autocmd  TermClose            * echom 'Terminal exited with status '..v:event.status
-  endif
+  augroup TerminalForamt
+    if IsNvim()
+      " autocmd! TermOpen,TermEnter * :IndentLinesDisable
+      " autocmd! BufWinEnter        * if &l:buftype ==# 'help' | :IndentLinesDisable | endif
+      autocmd! TermOpen             * setlocal nonumber norelativenumber modifiable nospell
+      autocmd  TermClose            * echom 'Terminal exited with status '..v:event.status
+    endif
+  augroup END
 
-  if v:version > 703
-    " autocmd FocusLost   * set norelativenumber
-    " autocmd FocusGained * set relativenumber         " impacted NerdTree and terminal mode
-    autocmd InsertEnter * set norelativenumber
-    autocmd InsertLeave * set relativenumber
-    autocmd CmdwinEnter * set norelativenumber
-    autocmd CmdwinLeave * set relativenumber
-    autocmd CmdwinEnter * let b:ei_save = &eventignore | set eventignore=CursorHold,InsertEnter
-    autocmd CmdwinLeave * let &eventignore = b:ei_save
-  endif
+  augroup AutoSavePos
+    if v:version > 703
+      " autocmd FocusLost   * set norelativenumber
+      " autocmd FocusGained * set relativenumber                              " impacted NerdTree and terminal mode
+      autocmd InsertEnter * set norelativenumber
+      autocmd InsertLeave * set relativenumber
+      autocmd CmdwinEnter * set norelativenumber
+      autocmd CmdwinLeave * set relativenumber
+      autocmd CmdwinEnter * let b:ei_save = &eventignore | set eventignore=CursorHold,InsertEnter
+      autocmd CmdwinLeave * let &eventignore = b:ei_save
+    endif
+  augroup END
+
+  augroup Defaults
+
+    " foldmethod to indent for all filetypes except help
+    autocmd BufWinEnter *
+            \ if &filetype !=# 'help' && empty(&filetype) |
+            \   setlocal foldmethod=indent |
+            \ endif
+
+    " for modeline
+    autocmd BufReadPost *
+            \ if getline(1) =~# 'vim:.*ft=help' && &filetype !=# 'help' |
+            \   doautocmd FileType |
+            \ endif
+
+    autocmd BufRead,BufNewFile,BufWinEnter *                   if !did_filetype() && &ft ==# '' | setfiletype jenkinsfile | endif
+    autocmd BufWinEnter        *                               silent! loadview                                     " autocmd BufWinLeave * silent! mkview
+    autocmd Syntax             *                               syn match ExtraWhitespace /\s\+$\| \+\ze\t/
+    autocmd BufEnter           *                               if &diff | let g:blamer_enabled=0 | endif            " ╮ disable git blame in diff mode
+    " autocmd BufEnter         *                               if ! empty(&key) | let g:blamer_enabled=0 | endif    " ╯ and encrypt mode
+    autocmd BufWritePre        *                               %s/\s\+$//e | %s/\r$//e   " automatic remove trailing space
+    autocmd BufWritePre        *\(.ltsv\|.config\|.diffs\)\@<! silent! retab!            " automatic retab: https://vim.fandom.com/wiki/Remove_unwanted_spaces
+    autocmd BufRead,BufNewFile *.t                             set filetype=perl
+    autocmd BufRead,BufNewFile *.ltsv                          set filetype=ltsv syntax=groovy noexpandtab
+    autocmd QuickFixCmdPost    *grep*                          cwindow
+    autocmd FileType           make,snippet,robot              setlocal tabstop=4 softtabstop=4 shiftwidth=4
+    autocmd FileType           snippets
+            \ setlocal expandtab tabstop=2 softtabstop=2 shiftwidth=2 |
+            \ setlocal commentstring=#\ %s
+    autocmd FileType           help                            setlocal nofoldenable
+    autocmd Syntax             c,cpp,xml,html,xhtml            normal zM
+    " autocmd VimLeave         *                               silent :%bd                                          " :windo bd
+  augroup END
+
+  augroup LAST_OVERRIDE                                                       " to disable foldmethod in help file
+    autocmd!
+    autocmd BufWinEnter *
+        \ if &filetype ==# 'help' && &foldenable | setlocal nofoldenable | endif
+  augroup END
 endif
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

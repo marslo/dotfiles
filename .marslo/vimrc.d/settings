@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-01-03 10:05:20
+"    LastChange : 2025-03-18 17:52:15
 " =============================================================================
 
 " /**************************************************************
@@ -15,8 +15,13 @@
 "                           |___/
 "
 " **************************************************************/
-set mouse=c
-set mousemodel=popup_setpos
+set mouse=nvi                                                       " n: normal, v: visual, i: insert
+if has('gui_running') || exists('g:loaded_nerdtree')
+  set mousemodel=popup_setpos
+else
+  set mousemodel=extend
+endif
+set lazyredraw
 set fileformat=unix
 set fileformats=unix
 set nowrap                                                          " no wrap lines
@@ -27,7 +32,6 @@ set history=1000
 set diffopt=filler,context:3
 set spell spelllang=en_us
 set spellfile=~/.vim/spell/en.utf-8.add
-set lazyredraw
 set ttimeout
 set ttimeoutlen=1
 set ttyfast                                                         " enable fast terminal connection.
@@ -109,6 +113,7 @@ if IsVim()
   let &termencoding=&encoding
   set imcmdline                                                     " fix context menu messing
   set guioptions+=a                                                 " visual selection automatically copied to the clipboard
+  if has('patch-8.1.2266') | set ttymouse=sgr | endif
 endif
 
 " set synmaxcol=128
