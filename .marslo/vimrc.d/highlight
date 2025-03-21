@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2025-02-20 17:21:10
+"    LastChange : 2025-03-18 20:13:47
 " =============================================================================
 
 " color table
@@ -23,8 +23,16 @@ highlight! link iCursor     Cursor
 highlight! CursorColumn     ctermbg=236 guibg=#32302f
 highlight! CursorLine       ctermbg=236 guibg=#32302f
 highlight! Folded           cterm=italic ctermfg=241 ctermbg=236 guifg=#616161 guibg=#32302f
-highlight! SpecialGrey      cterm=italic ctermfg=241 gui=italic guifg=#616161
+highlight! SpecialGrey      cterm=italic ctermfg=241 gui=italic  guifg=#616161
 highlight! link Comment     SpecialGrey
+
+" for coc virtual text
+highlight! link VirtualTextWarning SpecialGrey
+highlight! link VirtualTextInfo    SpecialGrey
+highlight! link VirtualTextError   SpecialGrey
+highlight! link VirtualTextHint    SpecialGrey
+highlight! link CocVirtualText     SpecialGrey
+highlight! CocVirtualText   cterm=italic ctermfg=12  gui=italic  guifg=#504945
 
 " coc
 highlight! link CocExplorerHelpHint SpecialGrey
