@@ -158,16 +158,7 @@
                       }; f \
                 "
   # [c]ommit -[a]m
-  ca          = "!f() { \
-                        git add --all $(git rev-parse --show-toplevel); \
-                        declare signed=\"$(git log -n1 --format='%(trailers:key=Signed-off-by,valueonly,separator=%x2C)' | command grep -q \"$(git config user.email)\"; echo $?)\"; \
-                        if [ 0 -eq ${signed} ]; then \
-                          git commit -am \"$1\"; \
-                        else \
-                          git commit -s -am \"$1\"; \
-                        fi; \
-                      }; f \
-                "
+  ca          = "!bash $HOME/.marslo/bin/git-mcx"
   ### [c]omm[i]t --[a]mend
   cia         = "!f() { \
                         declare authorDate=\"${GIT_AUTHOR_DATE}\"; \
