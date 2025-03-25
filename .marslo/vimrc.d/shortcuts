@@ -80,7 +80,7 @@ nmap     <silent>gy    <Plug>(coc-type-definition)
 nmap     <silent>gi    <Plug>(coc-implementation)
 nmap     <silent>gr    <Plug>(coc-references)
 " coc-snippets ( ctrl-j )
-imap     <C-l>         <Plug>(coc-snippets-expand)
+imap     <C-S-j>       <Plug>(coc-snippets-expand)
 vmap     <C-j>         <Plug>(coc-snippets-select)
 " run the Code Lens action on the current line
 nmap     <leader>cl    <Plug>(coc-codelens-action)
