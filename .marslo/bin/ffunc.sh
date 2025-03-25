@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-03-18 16:23:28
+#   LastChange : 2025-03-25 10:59:56
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -51,7 +51,7 @@ _fzf_compgen_dir() {
 #                                        |__/
 # **************************************************************/
 
-# smart copy - using `fzf` to list files and copy the selected file
+# smart copy   : using `fzf` to list files and copy the selected file
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
@@ -82,7 +82,7 @@ function copy() {                          # smart copy
   fi
 }
 
-# smart cat - using bat by default for cat content, respect bat options
+# smart cat    : using bat by default for cat content, respect bat options
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
@@ -132,8 +132,8 @@ function fzfInPath() {                     # return file name via fzf in particu
   eval "fd ${path} ${fdOpt} | fzf --cycle --multi ${*:2} --header 'filter in ${1} :'"
 }
 
-# runrc - filter rc files from "${rcPaths}" and source the selected item(s)
-#         same series: vimrc
+# runrc        : filter rc files from "${rcPaths}" and source the selected item(s)
+#                same series: vimrc
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : default rcPaths: ~/.marslo ~/.config/nvim ~/.*rc ~/.*profile ~/.*ignore
@@ -216,7 +216,7 @@ function fman() {                          # show [man] page with [f]zf
       --exit-0
 }
 
-# imgview - fzf list and preview images
+# imgview      : fzf list and preview images
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
@@ -262,7 +262,7 @@ function b() {                             # chrome [b]ookmarks browser with jq
   [[ -z "${urls}" ]] || "${open}" $(xargs -r <<< "${urls}")
 }
 
-# fmsh - using `fzf` to connect mongodb with mongosh
+# fmsh         : using `fzf` to connect mongodb with mongosh
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
@@ -306,7 +306,7 @@ function fmsh() {                          # connect [m]ongodb with mongo[sh] wi
   eval "${cmd}"
 }
 
-# fpw - using `fzf` to copy password from pass store into clipboard
+# fpw          : using `fzf` to copy password from pass store into clipboard
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @usage       : $ fpw [ -s | --show ]
@@ -365,7 +365,7 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
 #
 # **************************************************************/
 
-# magic vim - fzf list in recent modified order
+# magic vim    : fzf list in recent modified order
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
@@ -414,7 +414,7 @@ function vim() {                           # magic vim - fzf list in most recent
   fi
 }
 
-# v - open files in ~/.vim_mru_files       # https://github.com/junegunn/fzf/wiki/Examples#v
+# v            : open files in ~/.vim_mru_files       # https://github.com/junegunn/fzf/wiki/Examples#v
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : list 10 most recently used files via fzf, and open by regular vim
@@ -427,9 +427,9 @@ function v() {                             # v - open files in ~/.vim_mru_files
   vim ${files//\~/$HOME}
 }
 
-# vimr - open files by [vim] in whole [r]epository
-#        same series: [`cdr`](https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh#L411-L419)
-#        similar with [`:Gfiles`](https://github.com/junegunn/fzf.vim?tab=readme-ov-file#commands)
+# vimr         : open files by [vim] in whole [r]epository
+#                same series: [`cdr`](https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh#L411-L419)
+#                similar with [`:Gfiles`](https://github.com/junegunn/fzf.vim?tab=readme-ov-file#commands)
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
@@ -453,8 +453,8 @@ function vimr() {                          # vimr - open file(s) via [vim] in wh
   fi
 }
 
-# vimrc - open rc files list from "${rcPaths}" to quick update/modify rc files
-#         same series: runrc
+# vimrc        : open rc files list from "${rcPaths}" to quick update/modify rc files
+#                same series: runrc
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
@@ -485,7 +485,7 @@ function vimrc() {                         # vimrc - fzf list all rc files in da
                           --header 'Press CTRL-Y to copy name into clipboard'
 }
 
-# magic vimdiff - using fzf list in recent modified order
+# vimdiff      : magic vimdiff, using fzf list in recent modified order
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
@@ -531,7 +531,7 @@ function vimdiff() {                       # smart vimdiff
   [[ -f "${lFile}" ]] && [[ -f "${rFile}" ]] && $(type -P vim) -d ${var} "${lFile}" "${rFile}"
 }
 
-# vd - open vimdiff loaded files from ~/.vim_mru_files
+# vd           : open vimdiff loaded files from ~/.vim_mru_files
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : list 10 most recently used files via fzf, and open by vimdiff
@@ -625,7 +625,7 @@ function fif() {                           # [f]ind-[i]n-[f]ile
 #                                        |__/
 #
 # **************************************************************/
-# lsps - list processes
+# lsps         : list processes
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @version     : 1.0.1
@@ -669,7 +669,7 @@ function killps() {                        # [kill] [p]roces[s]
   xargs -r kill -9
 }
 
-# knrun - run shell command/script in k8s nodes
+# knrun        : run shell command/script in k8s nodes
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @references  :
@@ -784,7 +784,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
 # @return         : 0 - mounted, 1 - not mounted
 function checkMountPoint() { mount | grep -qE "//[^\ ]+\son\s${1}.+"; echo $?; }
 
-# processMount - porcess mount in WSL ( mount -t cifs ) or OSX ( mount -t smbfs )
+# processMount : porcess mount in WSL ( mount -t cifs ) or OSX ( mount -t smbfs )
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @references  :
@@ -833,6 +833,18 @@ function processMount() {
   fi
 }
 
+# getMounted   : get mounted point and path
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+function getMounted() {
+  local -n _out="$1"
+  # or via:
+  #   mount -t nfs,cifs,smbfs | awk '{print $1}' | sed -rn 's:^//([^@/]*@)?([^/]+).*:\2:p' | paste -sd '|'
+  while read -r _ip _path; do
+    _out["$_ip"]="$_path"
+  done < <(mount -t nfs,cifs,smbfs | awk '{print $1}' | sed -rn 's:^//([^@/]*@)?([^/]+)/([^\$%]*)(%24)?/?$:\2 \3:p')
+}
+
 # fmount       : using fzf to select mount point and mount it
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
@@ -847,23 +859,20 @@ function fmount() {                        # fmount - [mount] with [f]zf
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-        --auto ) fzfOpt='--reverse --bind start:+accept' ; shift ;;
-       --debug ) verbose='true'                          ; shift ;;
-      --silent ) verbose='false'                         ; shift ;;
+      --auto       ) fzfOpt+=' --reverse --bind start:+accept' ; shift   ;;
+      --debug      ) verbose='true'                            ; shift   ;;
+      --silent     ) verbose='false'                           ; shift   ;;
+      -q | --query ) fzfOpt+=" --query $2"                     ; shift 2 ;;
     esac
   done
 
-  # or via:
-  #   mount -t nfs,cifs,smbfs | awk '{print $1}' | sed -rn 's:^//([^@/]*@)?([^/]+).*:\2:p' | paste -sd '|'
-  mounted=()
-  while read -r _i; do
-    mounted+=("${_i}")
-  done < <(mount -t nfs,cifs,smbfs | awk '{print $1}' | sed -rn 's:^//([^@/]*@)?([^/]+).*:\2:p')
+  declare -A mounted=()
+  getMounted mounted
   [[ "${#mounted[@]}" -gt 0 ]] && pattern=$(IFS='|'; echo "${mounted[*]}") || pattern='^$'
 
   mpoint=$( echo "${points}" | fmt -1 |
             awk -v pattern="${pattern}" '$0 !~ pattern' |
-            fzf --prompt="mount point: " ${fzfOpt}
+            fzf --prompt='󰉖 ' ${fzfOpt}
           )
 
   if [[ -z "${mpoint}" ]]; then
@@ -871,49 +880,67 @@ function fmount() {                        # fmount - [mount] with [f]zf
     return
   fi
 
-  host=$(sed -rn 's!^([^:]+):(.+)$!\1!p' <<< "${mpoint}")
-  path=$(sed -rn 's!^([^:]+):(.+)$!\2!p' <<< "${mpoint}")
-
-  processMount "${host}" "${path}" "${verbose}"
+  while read -r host path; do
+    processMount "${host}" "${path}" "${verbose}"
+  done< <( echo "${mpoint}" | fmt -1 | sed -rn 's!^([^:]+):(.+)$!\1 \2!p' )
 }
 
-# fumount - using fzf to select mount point and umount it
+# fumount      : using fzf to select mount point and umount it
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # shellcheck disable=SC2155
 function fumount() {                       # fumount - [umount] with [f]zf
-  local mpoint
-  local force
+  local mpoint=''
+  local force=false
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -f ) force="true" ; shift ;;
-       * ) break                ;;
+      -f ) force=true ; shift ;;
+       * ) break              ;;
     esac
   done
 
-  force="$([[ 'Darwin' = "$(uname)" ]] && [[ 'true' = "${force}" ]] && echo 'force')"
+  force="$([[ 'Darwin' = "$(uname)" ]] && [[ "${force}" ]] && force=true)"
 
-  mpoint=$( mount | sed -rn 's://[^\ ]+\son\s([^\ ]+).*:\1:p' | fzf --prompt="mount point: " )
+  mpoint=$( mount | sed -rn 's://[^\ ]+\son\s([^\ ]+).*:\1:p' | fzf --prompt='󰉖 ' )
   [[ -z "${mpoint}" ]] && echo -e "$(c Wdi)~~> no mount point in current environment ...$(c)" && return
 
-  if [[ '0' = "$(checkMountPoint "${mpoint}")" ]]; then
-    echo -e "$(c Wdi)~~>$(c) $([[ 'force' = "${force}" ]] && echo "$(c Yi)${force}$(c) ")$(c Wdi)umounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)...$(c)"
-    if [[ 'force' = "${force}" ]]; then
-      diskutil unmountDisk force "${mpoint}"
+  while read -r _mpoint; do
+    if [[ '0' = "$(checkMountPoint "${_mpoint}")" ]]; then
+      echo -e "$(c Wdi)~~>$(c) $([[ 'force' = "${force}" ]] && \
+      echo "$(c Yi)${force}$(c) ")$(c Wdi)umounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)...$(c)"
+      if [[ 'force' = "${force}" ]]; then
+        diskutil unmountDisk force "${_mpoint}"
+      else
+        sudo umount "${_mpoint}"
+      fi
+      [[ '0' = "$(checkMountPoint "${_mpoint}")" ]] &&
+        echo -e "$(c Wdi)~~>$(c) $(c Yi)${_mpoint}$(c) $(c Wdi)umount failed ...$(c)" ||
+        echo -e "$(c Wdi)~~>$(c) $(c Gi)${_mpoint}$(c) $(c Wdi)umount successfully ...$(c)"
     else
-      sudo umount "${mpoint}"
+      echo -e "$(c Wdi)~~>$(c) $(c Mi)${_mpoint}$(c) $(c Wdi)is not exit. exit ...$(c)"
+      return
     fi
-    [[ '0' = "$(checkMountPoint "${mpoint}")" ]] &&
-      echo -e "$(c Wdi)~~>$(c) $(c Yi)${mpoint}$(c) $(c Wdi)umount failed ...$(c)" ||
-      echo -e "$(c Wdi)~~>$(c) $(c Gi)${mpoint}$(c) $(c Wdi)umount successfully ...$(c)"
-  else
-    echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint}$(c) $(c Wdi)is not exit. exit ...$(c)"
-    return
-  fi
+  done < <( echo "${mpoint}" | fmt -1 )
 }
 
-# goto - cd to selected path
+# inMounted    : check if the mount point is mounted by IP or Path in the array of mounted points
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# @usage       : inMounted <key|value>
+function inMounted() {
+  local query="$1"
+  declare -A mounted
+  getMounted mounted
+
+  # check key
+  [[ -n "${mounted[$query]+_}" ]] && return 0
+  # check value
+  for val in "${mounted[@]}"; do [[ "$val" == "$query" ]] && return 0; done
+  return 1
+}
+
+# goto         : cd to selected path
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 function goto() {                          # another `cd`
@@ -922,12 +949,15 @@ function goto() {                          # another `cd`
          fmt -1 |
          fzf --prompt "path>"
         )
-  fmount --auto --silent && \
-         [[ -n "${path}" ]] && cd "/tmp/${path}" || \
-         echo -e "$(c Wdi)~~>$(c) $(c Mi)$(awk -F'/' '{print $1}' <<< "${path}")$(c) is not mounted ...$(c)"
+
+  name="$(sed -rn 's:^([^/]+).*:\1:p' <<< "${path}")"
+  inMounted "${name}" || fmount --auto --silent -q "${name}"
+
+  [[ -n "${path}" ]] && cd "/tmp/${path}" || \
+    echo -e "$(c Wdi)~~>$(c) $(c Mi)${name}$(c) is not mounted ...$(c)"
 }
 
-# jcli - execute Jenkins CLI command
+# jcli         : execute Jenkins CLI command
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 function jcli() {                          # [j]enkins [cli]
@@ -944,7 +974,7 @@ function jcli() {                          # [j]enkins [cli]
 #
 # **************************************************************/
 
-# eclr - environment variable clear, support multiple select
+# eclr         : environment variable clear, support multiple select
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : list all environment variable via `fzf`, and unset selected items
@@ -970,7 +1000,7 @@ function eclr() {                          # [e]nvironment variable [c][l]ea[r]
           )
 }
 
-# penv - print environment variable, support multiple select
+# penv         : print environment variable, support multiple select
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @dependency  : https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
@@ -1012,7 +1042,7 @@ function penv() {                          # [p]rint [env]ironment variable
   [[ "${option}" == *-c\ * ]] && [[ -n "${COPY}" ]] && "${COPY}" < <( printf '%s\n' "${array[@]}" | head -c-1 )
 }
 
-# mkclr - compilation environment variable clear, support multiple select
+# mkclr        : compilation environment variable clear, support multiple select
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : list compilation environment variable via `fzf`, and unset for selected items
@@ -1037,7 +1067,7 @@ function mkclr() {                         # [m]a[k]e environment variable [c][l
   # echo -e "\n$(c Wdi)[TIP]>> to list all env via $(c)$(c Wdiu)\$ env | sed -rn 's/^([a-zA-Z0-9]+)=.*$/\1/p'$(c)"
 }
 
-# mkexp - compilation environment variable export, support multiple select
+# mkexp        : compilation environment variable export, support multiple select
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : list compilation environment variable via `fzf`, and export selected items
@@ -1142,7 +1172,7 @@ function mkexp() {                         # [m]a[k]e environment variable [e][x
 }
 
 
-# avpw - select and export the environment variable for ansible vault
+# avpw         : select and export the environment variable for ansible vault
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # shellcheck disable=SC2155
@@ -1162,7 +1192,7 @@ function avpw() {                          # [a]nsible [v]ault [p]ass[w]ord
 #
 # **************************************************************/
 
-# kns - kubectl set default namespace, show pods and sts in preview window dynamically
+# kns          : kubectl set default namespace, show pods and sts in preview window dynamically
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : using `fzf` to list all available namespaces and use the selected namespace as default
@@ -1210,7 +1240,7 @@ function kns() {                           # [k]ubectl [n]ame[s]pace
   return ${exitcode:-0}
 }
 
-# kpo - kubectl show pods status and container logs in current namespace
+# kpo          : kubectl show pods status and container logs in current namespace
 # @inspired    : https://github.com/junegunn/fzf/blob/master/ADVANCED.md#log-tailing
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
@@ -1231,7 +1261,7 @@ function kpo() {
     # --header $'╱ CTRL-R (reload) ╱\n' \
 }
 
-# _can_i - kubectl check permission (auth can-i) for pods component
+# _can_i       : kubectl check permission (auth can-i) for pods component
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : check whether given action is allowed in given namespaces; if namespace not provide, using default namespace
@@ -1253,7 +1283,7 @@ function _can_i() {
   echo -e "${r}";
 }
 
-# kcani - kubectl check permission (auth can-i)
+# kcani        : kubectl check permission (auth can-i)
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : check whether an action is allowed in given namespaces. support multiple selection
@@ -1289,7 +1319,7 @@ function kcani() {                         # [k]ubectl [can]-[i]
   done< <(echo "${namespaces}" | fmt -1)
 }
 
-# kpcani - kubectl check permission (auth can-i) for pods component
+# kpcani       : kubectl check permission (auth can-i) for pods component
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : check whether certain action is allowed in given namespaces
@@ -1329,7 +1359,7 @@ function kpcani() {                        # [k]ubectl [p]od [can]-[i]
 #
 # **************************************************************/
 
-# drclr - docker remote clean images via keywords in tags
+# drclr        : docker remote clean images via keywords in tags
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @references  :
@@ -1406,7 +1436,7 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
   fi
 }
 
-# ddi - delete docker images via keywords in tags in remote server
+# ddi          : delete docker images via keywords in tags in remote server
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @references  :
@@ -1504,7 +1534,7 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
 #                    |_|   |__/
 # **************************************************************/
 
-# activate venv - using `fzf` to list and activate python venv
+# activate venv : using `fzf` to list and activate python venv
 # @author      : marslo
 # @inspired    : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/#virtual-env
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
