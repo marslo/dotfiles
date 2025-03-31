@@ -27,7 +27,7 @@ SYNOPSIS
 ARGUMENTS
   $(c Wd)<$(c)$(c Gi)0$(c)$(c Wd)-$(c)$(c Gi)255$(c)$(c Wd)>$(c)             ANSI color index to convert
   $(c Wd)[$(c)$(c Gi)style$(c)$(c Wd)]$(c)             color style: $(c Mi)normal$(c) (default), $(c Mi)dim$(c), $(c Mi)bright$(c) (also accepts $(c Mi)bold$(c)/$(c Mi)light$(c))
-  $(c Gis)--alpha$(c)$(c Gis)=$(c)$(c Mi)<float>$(c)     brightness scale (overrides style). E.g., $(c Mi)0.65$(c) (dim), $(c Mi)1.35$(c) (bright)
+  $(c Gis)--alpha$(c)$(c Gis)=$(c)$(c Mi)<float>$(c)     brightness scale (overrides style). e.g., $(c Mi)0.65$(c) (dim), $(c Mi)1.35$(c) (bright)
   $(c Gis)--preview$(c)           show all 256 colors in table
   $(c Gis)--no-color$(c)          disable colorized output
   $(c Gis)--help$(c), $(c Gis)-h$(c)          show this help message

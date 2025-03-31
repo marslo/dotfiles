@@ -1,0 +1,29 @@
+# Please write your commit message following the Conventional Commits format.
+#
+# Type (choose one):
+#   feat:     A new feature
+#   fix:      A bug fix
+#   docs:     Documentation changes only
+#   style:    Changes that do not affect the meaning of the code (e.g., formatting)
+#   refactor: A code change that neither fixes a bug nor adds a feature
+#   test:     Adding or updating tests
+#   chore:    Changes to the build process or auxiliary tools
+#
+# Scope (optional): The specific area of the code affected (e.g., component, module)
+#
+# Examples:
+#   feat(parser): support new syntax rules
+#   fix(ui): resolve unresponsive button issue
+#
+# Guidelines:
+# - Limit the subject line to 50 characters
+# - Leave a blank line between subject and body
+# - Use the body to explain *what* and *why*, not *how* (optional)
+
+<type>(<scope>): <short summary>
+
+<detailed description, optional — what changed and why>
+
+BREAKING CHANGE: <description of breaking change, if any>
+
+Footer: <e.g., Closes #123, Ref #456>

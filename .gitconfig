@@ -62,7 +62,7 @@
 [rerere]
   enabled           = true
 [commit]
-  template          = ~/.stCommitMsg
+  template          = ~/.marslo/.gitcommit-template
 [include]
   path              = ~/.marslo/.gitalias
   path              = ~/.marslo/.gitcolors
