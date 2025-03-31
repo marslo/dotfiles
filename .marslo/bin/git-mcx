@@ -5,6 +5,8 @@
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
 #   LastChange : 2025-03-24 16:16:19
+#        Usage : git-mcx             # call getCommitMessage to set commit message
+#                git-mcx [message]   # using $1 as commit message
 #=============================================================================
 
 # git-mcx - [m]rslo [c]ommit pro ma[x]
@@ -25,9 +27,12 @@ source "${HOME}"/.marslo/bin/getCommitMessage.sh
 
 function main() {
   git add --all "$(git rev-parse --show-toplevel)";
-  # local signed
-  # signed="$(git log -n1 --format='%(trailers:key=Signed-off-by,valueonly,separator=%x2C)' | command grep -q "$(git config user.email)"; echo $?)";
-  message="$(getCommitMessage)" || exit 0
+
+  if [[ $# -gt 0 ]]; then
+    message="$1"
+  else
+    message="$(getCommitMessage)" || exit 0
+  fi
 
   # show preview
   if [[ 'true' = "${MCX_SHOW_PREVIEW:-false}" ]]; then
@@ -51,6 +56,6 @@ function main() {
   printf "%s\n" "${message}" | git commit -s -a -F -
 }
 
-main
+main "$@"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

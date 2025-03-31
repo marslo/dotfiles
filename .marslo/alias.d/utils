@@ -88,6 +88,8 @@ alias l='\ls -lvthr --color=always'
 alias la='ls -Alvthr --color=always'
 alias l.='ls -dv .* --color=always'
 alias LS='find -mount -maxdepth 1 -printf "%.5m %10M %#9u:%-9g %#5U:%-5G %TF_%TR %CF_%CR %AF_%AR %#15s [%Y] %p\n" 2>/dev/null'
+alias els='eza -al --group-directories-first --sort=modified --tree !(.git)'
+alias ela='eza -al'
 
 alias tmax='tmux at -t marslo'
 alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
@@ -152,6 +154,6 @@ alias imbusy='cat /dev/urandom | hexdump -C | grep "ca fe"'
 alias weekno='date +"%V"'
 alias daysleft='echo "There are $(($(date +%j -d"Dec 31, $(date +%Y)")-$(date +%j))) left in year $(date +%Y)."'
 alias weather='curl wttr.in/sanjose?mMFn'
-type -P npm-groovy-lint >/dev/null && alias npm-groovy-lint="$(type -P npm-groovy-lint) --failon warning"
+type -P npm-groovy-lint >/dev/null && alias npm-groovy-lint="$(type -P npm-groovy-lint) --failon warning --noserver"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
