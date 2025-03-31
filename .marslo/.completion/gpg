@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # bash completion for gpg                   -*- shell-script -*-
 # inspired from https://github.com/scop/bash-completion/blob/main/completions/gpg
 # has been modified to work with bash-completion@1
@@ -12,7 +13,7 @@ _comp_cmd_gpg()
     case $prev in
         --sign | --clear-sign | --clearsign | --decrypt-files | \
             --load-extension | -${noargopts}s)
-            _comp_compgen_filedir
+            _filedir
             return
             ;;
         --list-keys | --list-public-keys | --locate-keys | \

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 ### git-stats hook (begin) ###
 # Copy last commit hash to clipboard on commit
 commit_hash=$(git rev-parse HEAD)

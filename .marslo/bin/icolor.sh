@@ -92,7 +92,7 @@ function trueHexPrint () {
   g=$(echo "ibase=16; ${b}" | bc)
   b=$(echo "ibase=16; ${c}" | bc)
 
-  printf "\\\\e[%s;2;%s;%s;%sm" "${fgbg}" "${r}" "${g}" "${b}" # Remove one set of '\\' to utilize
+  printf "\\\\033[%s;2;%s;%s;%sm" "${fgbg}" "${r}" "${g}" "${b}" # remove one set of '\\' to utilize
 }
 
 # Generates 256 Color code table with RGB and Hex values
