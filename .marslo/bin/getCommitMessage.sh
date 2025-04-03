@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 # shellcheck source=/dev/null
+#=============================================================================
+#     FileName : getCommitMessage.sh
+#       Author : marslo.jiao@gmail.com
+#      Created : 2025-03-21 01:32:35
+#   LastChange : 2025-04-03 03:16:12
+#=============================================================================
 
 # | ENVIRONMENT       | DESCRIPTION               | DEFAULT |
 # |-------------------|---------------------------|---------|
+# | MCX_ENABLE_SCOPE  | is enable commit scope    | true    |
+# | MCX_LINT_ENABLE   | is enable commit lint     | true    |
 # | MCX_ENABLE_BODY   | is enable commit body     | false   |
 # | MCX_ENABLE_FOOTER | is enable commit footer   | false   |
-# | MCX_ENABLE_SCOPE  | is enable commit scope    | false   |
 # | MCX_SHOW_PREVIEW  | is show commit preview    | false   |
 # | MCX_SHOW_DIFF     | is show diff after commit | false   |
-# | MCX_LINT_ENABLE   | is enable commit lint     | true    |
-# | MCX_ALLOW_EMPTY   | is enable commit lint     | false   |
-
 
 set -euo pipefail
 
@@ -30,7 +34,7 @@ types=(
   "revert:   $(c Wdi)reverts a previous commit$(c)"
 )
 
-function die() { echo -e "$(c Ri)ERROR$(c) : $*. exit ..." >&2; exit 1; }
+function die() { echo -e "$(c Ri)ERROR$(c) $(c Wdi): $*. exit ...$(c)" >&2; exit 1; }
 
 # @usage       : runInteractive <varname> <command string>
 # @description : executes a dynamic or piped shell command and assigns its stdout output to a variable.
@@ -62,10 +66,12 @@ function getCommitMessage() {
   [[ -n "${selected}" ]] || die 'no commit type selected'
   type=$(echo "${selected}" | awk -F: '{print $1}')
 
-  read -rp "$(printf "$(c Mi)%s$(c)" 'scope (optional): ')" scope
-  [[ -n "${scope}" ]] && scope="(${scope})"
+  if [[ 'true' = "${MCX_ENABLE_SCOPE:-true}" ]]; then
+    read -rep "$(printf "$(c Mi)%s$(c)" 'scope (optional): ')" scope
+    [[ -n "${scope}" ]] && scope="(${scope})"
+  fi
 
-  read -rp "$(printf "$(c Mi)%s$(c)" 'commit message subject: ')" subject
+  read -rep "$(printf "$(c Mi)%s$(c)" 'commit message subject: ')" subject
   [[ -z "${subject}" ]] && die 'no commit subject entered'
 
   if [[ 'true' = "${MCX_ENABLE_BODY:-false}" ]]; then
