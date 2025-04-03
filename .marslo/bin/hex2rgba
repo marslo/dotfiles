@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null disable=SC2155
+#=============================================================================
+#     FileName : hex2rgba
+#       Author : marslo.jiao@gmail.com
+#      Created : 2025-04-03 00:21:35
+#   LastChange : 2025-04-03 01:28:09
+#=============================================================================
+
+set -euo pipefail
+source "${HOME}"/.marslo/bin/bash-color.sh
+
+# shellcheck disable=SC2155
+declare usage="""
+NAME
+  $(c Ys)hex2rgba$(c) - HEX to RGBA Converter with ANSI Color Preview
+
+USAGE
+  $(c Ys)hex2rgba$(c) $(c Gis)[OPTIONS]$(c) $(c Ms)'HEX_COLOR_CODE'$(c)
+
+OPTIONS
+  $(c Gis)-a$(c), $(c Gis)--alpha$(c)       override alpha value ( $(c Wdi)0.00$(c) ~ $(c Wdi)1.00$(c) )
+  $(c Gis)-b$(c), $(c Gis)--background$(c)  set background color ( $(c Wdi)#FFFFFF$(c)/$(c Wdi)#FFF$(c) or $(c Wdi)R,G,B$(c), default: $(c Wi)#FFFFFF$(c) )
+  $(c Gis)-h$(c), $(c Gis)--help$(c)        show this help message
+
+EXAMPLES
+  $(c Wi)# show the RGBA values of alphas from 0.1 to 1.0 sequentially.$(c)
+  \$ $(c Yis)hex2rgba$(c) $(c Ms)'#D3869B'$(c)
+
+  $(c Wi)# show the RGBA values with alpha 0.5.$(c)
+  \$ $(c Yis)hex2rgba$(c) $(c Ms)'#D3869B'$(c) $(c Gis)--alpha 0.5$(c)
+
+  $(c Wi)# show the RGBA values for alphas from 0.1 to 1.0 sequentially with background color #000000.$(c)
+  \$ $(c Yis)hex2rgba$(c) $(c Ms)'#D3869B'$(c) $(c Gis)--background '#000000'$(c)
+
+  $(c Wi)# show the RGBA values with alpha 0.3 with background color red ( #FF0000 ).$(c)
+  \$ $(c Yis)hex2rgba$(c) $(c Ms)D3869B$(c) $(c Gis)--background 255,0,0$(c) $(c Gis)--alpha 0.3$(c)
+
+NOTES
+  • Alpha values will clamp to [ $(c Gi)0.00$(c) ~ $(c Gi)1.00$(c) ]
+  • The hex color code and background color code support both $(c Mi)with$(c) or $(c Mi)without hashtag$(c) ( $(c Wi)'#'$(c) )
+  • Using $(c Mi)single quotes$(c) for color code with $(c Wi)'#'$(c) to avoid shell command line break
+  • Output includes ANSI color preview (requires truecolor terminal support)
+"""
+
+function die() {
+  echo -e "$(c Rsi)ERROR$(c) : $*. try $(c Gi)-h$(c)/$(c Gi)--help$(c). exit ..." >&2;
+  exit 2;
+}
+
+function parseHex() {
+  local hex="$1"
+  hex="${hex^^}"
+  hex="${hex//#/}"
+  local len=${#hex}
+  if [[ ${len} -eq 3 ]]; then
+    hex="${hex:0:1}${hex:0:1}${hex:1:1}${hex:1:1}${hex:2:1}${hex:2:1}"
+    len=6
+  fi
+  [[ ${len} -ne 6 ]] && die "invalid hex code: ${hex}"
+  r=$((16#${hex:0:2}))
+  g=$((16#${hex:2:2}))
+  b=$((16#${hex:4:2}))
+}
+
+function parseBackground() {
+  local bg="$1"
+  if [[ "$bg" == *,*,* ]]; then
+    IFS=',' read -ra parts <<< "$bg"
+    [[ ${#parts[@]} -ne 3 ]] && die "invalid background RGB format: ${bg}"
+    bgR=${parts[0]}
+    bgG=${parts[1]}
+    bgB=${parts[2]}
+    for c in ${bgR} ${bgG} ${bgB}; do
+      if [[ ! $c =~ ^[0-9]+$ ]] || (( c < 0 || c > 255 )); then
+        die "invalid RGB value in background: ${c}"
+      fi
+    done
+  else
+    bg="${bg//#/}"
+    local len=${#bg}
+    if [[ ${len} -eq 3 ]]; then
+      bg="${bg:0:1}${bg:0:1}${bg:1:1}${bg:1:1}${bg:2:1}${bg:2:1}"
+      len=6
+    fi
+    [[ ${len} -ne 6 ]] && die "invalid background hex code: ${bg}"
+    bgR=$((16#${bg:0:2}))
+    bgG=$((16#${bg:2:2}))
+    bgB=$((16#${bg:4:2}))
+  fi
+}
+
+function getMixedRGB() {
+  local fgR=$1
+  local fgG=$2
+  local fgB=$3
+  local alpha=$4
+  rMixed=$(echo "scale=0; (${fgR} * ${alpha} + ${bgR} * (1 - ${alpha})) / 1" | bc)
+  gMixed=$(echo "scale=0; (${fgG} * ${alpha} + ${bgG} * (1 - ${alpha})) / 1" | bc)
+  bMixed=$(echo "scale=0; (${fgB} * ${alpha} + ${bgB} * (1 - ${alpha})) / 1" | bc)
+  rMixed=$(( rMixed < 0 ? 0 : ( rMixed > 255 ? 255 : rMixed ) ))
+  gMixed=$(( gMixed < 0 ? 0 : ( gMixed > 255 ? 255 : gMixed ) ))
+  bMixed=$(( bMixed < 0 ? 0 : ( bMixed > 255 ? 255 : bMixed ) ))
+  echo "${rMixed} ${gMixed} ${bMixed}"
+}
+
+function rgbToHex() {
+  printf "#%02X%02X%02X" "${1}" "${2}" "${3}"
+}
+
+function showOutput() {
+  local alphaValue=$1
+  local precision=$2
+
+  # format alphaValue to 2 decimal places
+  local formattedAlpha=$(printf "%.${precision}f" "${alphaValue}")
+
+  # get mixed RGB values
+  local rgbMixed=$(getMixedRGB "${r}" "${g}" "${b}" "${alphaValue}")
+
+  # analysis the mixed RGB values with IFS
+  IFS=' ' read -r rMixed gMixed bMixed <<< "${rgbMixed}"
+
+  # generate HEX color code
+  local hexResult=$(rgbToHex "${rMixed}" "${gMixed}" "${bMixed}")
+
+  # generate ANSI color code
+  local ansiMixed="\033[38;2;${rMixed};${gMixed};${bMixed}m"
+
+  # output
+  echo -e "${ansiHexOrg}#${hexOrg//#/}\033[0m -> ${ansiMixed}rgba(${r}, ${g}, ${b}, ${formattedAlpha})\033[0m -> ${ansiMixed}${hexResult}\033[0m"
+}
+
+main() {
+  local hex=''
+  local alpha=''
+  local background='FFFFFF'
+  local hexOrg=''
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -a | --alpha      ) alpha="$2"            ; shift 2 ;;
+        -b | --background ) background="${2//#/}" ; shift 2 ;;
+        -h | --help       ) echo -e "${usage}"    ; exit 0  ;;
+        *                 ) if [[ -z "$hex" ]]; then
+                              hexOrg="$1"
+                              hex="${1//#/}"
+                            else
+                              echo "ERROR: Unexpected argument: $1" >&2
+                              exit 1
+                            fi
+                            shift
+                        ;;
+    esac
+  done
+
+  parseHex "${hex}"
+
+  if [[ -n "${background}" ]]; then
+    parseBackground "${background}"
+  else
+    bgR=255
+    bgG=255
+    bgB=255
+  fi
+
+  local ansiHexOrg="\033[38;2;${r};${g};${b}m"
+
+  if [[ -n "${alpha}" ]]; then
+    if ! [[ "${alpha}" =~ ^[0]?\.?[0-9]+$ ]] || (( $(echo "$alpha < 0.0 || $alpha > 1.0" | bc -l) )); then
+      echo "Invalid alpha value: $alpha" >&2
+      exit 1
+    fi
+    showOutput "${alpha}" 2
+  else
+    for alpha in $(seq 0.1 0.1 1.0); do
+      showOutput "${alpha}" 1
+    done
+  fi
+}
+
+main "$@"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

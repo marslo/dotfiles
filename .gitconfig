@@ -1,6 +1,6 @@
 [user]
   name              = marslo
-  email             = marslo.jiao@gmail.com
+  email             = marslo@domain.com
 [gitreview]
   username          = marslo
   remote            = origin
@@ -63,21 +63,10 @@
   enabled           = true
 [commit]
   template          = ~/.marslo/.gitcommit-template
-[include]
-  path              = ~/.marslo/.gitalias
-  path              = ~/.marslo/.gitcolors
-
 [http]
   sslVerify         = false
   postBuffer        = 1048576000
   # sslBackend      = openssl
-[url "ssh://marslo@vgitcentral.sample.com:29418/"]
-  insteadOf         = ssh://srv-ssd-fw-devops@vgitcentral.sample.com:29418/
-# [url "git@ssh.github.com"]
-#   insteadOf       = git@github.com
-# [url "git@ssh.github.com:"]
-#   insteadOf       = https://github.com/
-
 [advice]
   detachedHead      = false
   objectNameWarning = false
@@ -102,18 +91,26 @@
 ############################################################
 # for environment failed in $ ssh -vT git@github.com -p 22 #
 ############################################################
+[url "ssh://marslo@vgitcentral.domain.com:29418/"]
+  insteadOf         = ssh://srv-ssd-fw-devops@vgitcentral.domain.com:29418/
+# [url "git@ssh.github.com"]
+#   insteadOf       = git@github.com
+# [url "git@ssh.github.com:"]
+#   insteadOf       = https://github.com/
 [url "https://github.com/"]
   insteadOf         = git@ssh.github.com:
 [url "https://github.com/"]
   insteadOf         = git@github.com:
-[credential]
-  helper            = store --file ~/.git-credentials
-  # helper          = cache --timeout 30000
-  # helper          = wincred
+
 [git-extras]
+  # iMarslo
   github-personal-access-token = ghp_***********************************x
 
 # GIT_USERNAME/GIT_ASKPASS for token: https://git-scm.com/docs/gitcredentials
+[credential]
+  helper            = store --file ~/.marslo/.git-credentials
+  # helper          = cache --timeout 30000
+  # helper          = wincred
 [credential "https://github.com/marslo"]
   username          = marslo
 [credential "https://github.com/marsloijao-mvl"]
@@ -125,5 +122,11 @@
   ifmissing         = add
   ifexists          = doNothing
   command           = echo \"$(git config user.name) <$(git config user.email)>\"
+
+[include]
+  path              = ~/.marslo/.gitalias
+  path              = ~/.marslo/.gitcolors
+[includeIf "gitdir:~/iMarslo/tools/git/"]
+  path = ~/.marslo/.gitconfig
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker

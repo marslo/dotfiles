@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null
+#=============================================================================
+#     FileName : rgba2hex
+#       Author : marslo.jiao@gmail.com
+#      Created : 2025-04-02 22:02:37
+#   LastChange : 2025-04-02 23:13:30
+#=============================================================================
+
+set -euo pipefail
+source "${HOME}"/.marslo/bin/bash-color.sh
+
+declare alpha=""
+declare colorCode=""
+declare background=255   # white background by default
+# shellcheck disable=SC2155
+declare usage="""
+NAME
+  $(c Ys)rgba2hex$(c) - RGBA to HEX Converter with ANSI Color Preview
+
+USAGE
+  $(c Ys)rgba2hex$(c) $(c Gis)[OPTIONS]$(c) $(c Ms)'COLOR_INPUT'$(c)
+
+OPTIONS
+  $(c Gis)-a$(c), $(c Gis)--alpha$(c)       override alpha value ( $(c Wdi)0.00$(c)-$(c Wdi)1.00$(c) )
+  $(c Gis)-b$(c), $(c Gis)--background$(c)  set background color ( $(c Wdi)0$(c)-$(c Wdi)255$(c), default: $(c Wi)255$(c) )
+  $(c Gis)-h$(c), $(c Gis)--help$(c)        show this help message
+
+COLOR INPUT FORMATS
+  • $(c Msi)'rgba(R, G, B, A)'$(c)
+  • $(c Msi)'R, G, B, A'$(c)
+  • $(c Msi)'R, G, B'$(c)       $(c Wdi)alpha=1.00 by default$(c)
+
+EXAMPLES
+  \$ $(c Yis)rgba2hex$(c) $(c Ms)'250, 240, 170'$(c) $(c Gis)--alpha 0.5$(c)
+  \$ $(c Yis)rgba2hex$(c) $(c Ms)'rgba(255, 200.5, 100, 0.8)'$(c)
+  \$ $(c Yis)rgba2hex$(c) $(c Ms)'255,255,255'$(c) $(c Gis)--background 0$(c)
+  \$ $(c Yis)rgba2hex$(c) $(c Ms)'204 , 108 , 204 , 0.8'$(c)
+
+NOTES
+  • Alpha values will clamp to [ $(c Gi)0.00$(c) ~ $(c Gi)1.00$(c) ]
+  • RGB values will be rounded to nearest integer
+  • Output includes ANSI color preview (requires truecolor terminal support)
+"""
+
+# params
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -a | --alpha      ) alpha="$2"         ;  shift 2 ;;
+    -b | --background ) background="$2"    ;  shift 2 ;;
+    -h | --help       ) echo -e "${usage}" ;  exit 0  ;;
+    *                 ) if [ -z "${colorCode}" ]; then
+                          colorCode="$1"
+                          shift
+                        else
+                          echo "ERROR: Multiple color input arguments detected" >&2
+                          exit 1
+                        fi
+                        ;;
+  esac
+done
+
+# clear/format the colorCode
+values=$(echo "${colorCode}" |
+    sed -E '
+        s/[^0-9.,-]//g;                         # remove non-numeric characters
+        s/^[[:space:]]+//;                      # remove leading spaces
+        s/[[:space:]]+$//;                      # remove trailing spaces
+        s/[[:space:]]*,[[:space:]]*/,/g;        # remove spaces around commas (,)
+        s/,+/,/g;                               # combine multiple/consecutive commas
+        s/^,//; s/,$//;                         # remove leading/trailing commas
+    ')
+
+IFS=',' read -ra vals <<< "$values"
+
+# validate input count
+if [[ ${#vals[@]} -lt 3 || ${#vals[@]} -gt 4 ]]; then
+  echo "Error: Expected 3 or 4 values, input contained ${#vals[@]}" >&2
+  exit 1
+fi
+
+# numeric processing (return decimal)
+function formatNumber() {
+  awk -v n="$1" 'BEGIN {
+    n = (n == "" ? 0 : n)
+    if (n ~ /\..*5$/) { printf "%.0f", n + 0.5 }
+    else { printf "%.0f", n }
+  }'
+}
+
+# parse the original value (decimal)
+rOrig=$(formatNumber "${vals[0]}")
+gOrig=$(formatNumber "${vals[1]}")
+bOrig=$(formatNumber "${vals[2]}")
+aOrig=${vals[3]:-1.0}
+
+# alpha overlays
+[ -n "$alpha" ] && aOrig=$alpha
+
+# verify the range of RGB ( 0 - 255 )
+function validateRange() {
+  if [ "$1" -lt 0 ] || [ "$1" -gt 255 ]; then
+    echo "ERROR: the value '$3' for $2 is invalid (0-255)" >&2
+    exit 1
+  fi
+}
+
+validateRange "${rOrig}" "R" "${vals[0]}"
+validateRange "${gOrig}" "G" "${vals[1]}"
+validateRange "${bOrig}" "B" "${vals[2]}"
+
+# get the final alpha value (0.00-1.00)
+a=$(awk -v a="$aOrig" 'BEGIN {
+  a = (a + 0 == a ? a : 1)                    # using 1 if not a number
+  printf "%.2f", (a < 0 ? 0 : (a > 1 ? 1 : a))
+}')
+
+# color mixing calculation (returns decimal)
+function mixChannel() {
+  awk -v c="$1" -v a="$2" -v bg="${background}" 'BEGIN {
+    result = c * a + bg * (1 - a)
+    printf "%d\n", (result < 0 ? 0 : (result > 255 ? 255 : result))
+  }'
+}
+
+# get the mixed decimal value
+rMixed=$(mixChannel "${rOrig}" "${a}")
+gMixed=$(mixChannel "${gOrig}" "${a}")
+bMixed=$(mixChannel "${bOrig}" "${a}")
+
+# get the HEX code (hexadecimal)
+hexCode="#$(printf "%02X%02X%02X" "${rMixed}" "${gMixed}" "${bMixed}")"
+
+# construct ANSI code (decimal RGB)
+ansiStart="\033[38;2;${rMixed};${gMixed};${bMixed}m"
+ansiReset="\033[0m"
+
+# keep original input display
+rgbaDisplay="rgba(${vals[0]}, ${vals[1]}, ${vals[2]}, $(printf "%.2f" "${a}"))"
+
+# output
+echo -e "${ansiStart}${rgbaDisplay}${ansiReset} -> ${ansiStart}${hexCode}${ansiReset}"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
