@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-03-18 17:52:15
+"    LastChange : 2025-04-03 03:19:32
 " =============================================================================
 
 " /**************************************************************
@@ -106,6 +106,8 @@ set laststatus=2                                                    " set status
 set exrc
 set secure
 set splitright
+set modeline modelineexpr
+set modelines=5
 
 " disabled in nvim since v0.11.0-dev-1417+g487c48ec86
 if IsVim()
