@@ -97,10 +97,12 @@
 #   insteadOf       = git@github.com
 # [url "git@ssh.github.com:"]
 #   insteadOf       = https://github.com/
-[url "https://github.com/"]
-  insteadOf         = git@ssh.github.com:
-[url "https://github.com/"]
-  insteadOf         = git@github.com:
+# ------ set if ssh is unstable ------
+# [url "https://github.com/"]
+#   insteadOf         = git@ssh.github.com:
+# [url "https://github.com/"]
+#   insteadOf         = git@github.com:
+# ------ set if ssh is unstable ------
 
 [git-extras]
   # iMarslo
@@ -127,6 +129,8 @@
   path              = ~/.marslo/.gitalias
   path              = ~/.marslo/.gitcolors
 [includeIf "gitdir:~/iMarslo/tools/git/"]
-  path = ~/.marslo/.gitconfig
+  path = ~/.ssh/marslo/.gitconfig
+[includeIf "gitdir:~/iMarslo/job/code/github"]
+  path = ~/.ssh/marslo@domain/.gitconfig
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker
