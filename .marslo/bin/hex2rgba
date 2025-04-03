@@ -4,7 +4,7 @@
 #     FileName : hex2rgba
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-03 00:21:35
-#   LastChange : 2025-04-03 01:28:09
+#   LastChange : 2025-04-03 02:13:30
 #=============================================================================
 
 set -euo pipefail
@@ -48,45 +48,50 @@ function die() {
   exit 2;
 }
 
-function parseHex() {
-  local hex="$1"
-  hex="${hex^^}"
+function parseColor() {
+  local input="$1"
+
+  # for RGB format: R,G,B
+  if [[ "$input" == *,*,* ]]; then
+    IFS=',' read -ra parts <<< "$input"
+    [[ ${#parts[@]} -ne 3 ]] && die "Invalid RGB format: $input"
+    local r=${parts[0]} g=${parts[1]} b=${parts[2]}
+
+    # verify the range of RGB values
+    for c in $r $g $b; do
+      if [[ ! $c =~ ^[0-9]+$ ]] || (( c < 0 || c > 255 )); then
+        die "invalid RGB value: $c"
+      fi
+    done
+
+    echo "${r} ${g} ${b}"
+    return 0
+  fi
+
+  # for HEX format
+  local hex="${input^^}"
   hex="${hex//#/}"
   local len=${#hex}
-  if [[ ${len} -eq 3 ]]; then
+
+  # extend XYZ to XXYYZZ
+  if [[ $len -eq 3 ]]; then
     hex="${hex:0:1}${hex:0:1}${hex:1:1}${hex:1:1}${hex:2:1}${hex:2:1}"
     len=6
   fi
-  [[ ${len} -ne 6 ]] && die "invalid hex code: ${hex}"
-  r=$((16#${hex:0:2}))
-  g=$((16#${hex:2:2}))
-  b=$((16#${hex:4:2}))
+
+  [[ $len -ne 6 ]] && die "invalid color format: ${input}" >&2
+
+  local r="$(( 16#${hex:0:2} ))"
+  local g="$(( 16#${hex:2:2} ))"
+  local b="$(( 16#${hex:4:2} ))"
+
+  echo "${r} ${g} ${b}"
 }
 
 function parseBackground() {
   local bg="$1"
-  if [[ "$bg" == *,*,* ]]; then
-    IFS=',' read -ra parts <<< "$bg"
-    [[ ${#parts[@]} -ne 3 ]] && die "invalid background RGB format: ${bg}"
-    bgR=${parts[0]}
-    bgG=${parts[1]}
-    bgB=${parts[2]}
-    for c in ${bgR} ${bgG} ${bgB}; do
-      if [[ ! $c =~ ^[0-9]+$ ]] || (( c < 0 || c > 255 )); then
-        die "invalid RGB value in background: ${c}"
-      fi
-    done
-  else
-    bg="${bg//#/}"
-    local len=${#bg}
-    if [[ ${len} -eq 3 ]]; then
-      bg="${bg:0:1}${bg:0:1}${bg:1:1}${bg:1:1}${bg:2:1}${bg:2:1}"
-      len=6
-    fi
-    [[ ${len} -ne 6 ]] && die "invalid background hex code: ${bg}"
-    bgR=$((16#${bg:0:2}))
-    bgG=$((16#${bg:2:2}))
-    bgB=$((16#${bg:4:2}))
+  if ! IFS=' ' read -r bgR bgG bgB <<< "$(parseColor "${bg}")"; then
+    exit 1
   fi
 }
 
@@ -134,7 +139,7 @@ function showOutput() {
 main() {
   local hex=''
   local alpha=''
-  local background='FFFFFF'
+  local background='#FFFFFF'
   local hexOrg=''
 
   while [[ $# -gt 0 ]]; do
@@ -154,7 +159,9 @@ main() {
     esac
   done
 
-  parseHex "${hex}"
+  if ! IFS=' ' read -r r g b <<< "$(parseColor "${hex}")"; then
+    exit 1
+  fi
 
   if [[ -n "${background}" ]]; then
     parseBackground "${background}"
