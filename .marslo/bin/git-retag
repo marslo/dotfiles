@@ -46,27 +46,36 @@ function grt() {
 }
 
 usage="""
-\t $(c B)g$(c)it $(c M)r$(c)e-$(c R)t$(c)ag - re-tag with original committer and date to new revision
-\nSYNOPSIS$(c sY)
-\t\$ git retag [ <p|-p|push|--push> | <REVISION> ] <SOURCE_TAG> <NEW_TAG> $(c)
-\nEXAMPLE
-\n\tshow help$(c G)
-\t\t\$ git retag$(c)
-\n\tre-tag docker.v2.0 to docker.x$(c G)
-\t\t\$ git retag        docker.v2.0           docker.x
-\t\t\$ git retag        docker.v2.0           refs/tags/docker.x
-\t\t\$ git retag        refs/tags/docker.v2.0 docker.x
-\t\t\$ git retag        refs/tags/docker.v2.0 refs/tags/docker.x$(c)
-\n\tre-tag docker.v2.0 to docker.x and push into remote repository$(c G)
-\t\t\$ git retag -p     refs/tags/docker.v2.0 docker.x
-\t\t\$ git retag --push refs/tags/docker.v2.0 docker.x$(c)
-\n\tmove tag docker.v2.0 to docker.x on HEAD$(c G)
-\t\t\$ git retag        docker.v2.0           docker.x            HEAD$(c)
-\n\tmove tag docker.v2.0 to docker.x on HEAD and push to remote repository$(c G)
-\t\t\$ git retag -p     docker.v2.0           docker.x            HEAD
-\t\t\$ git retag --push docker.v2.0           refs/tags/docker.x  HEAD$(c)
-\nOPT
-\t$(c B)p$(c), $(c B)-p$(c), $(c B)push$(c), $(c B)--push$(c) : push changes into remote repository
+NAME
+\tgit retag - re-tag with original committer and date to new revision
+
+SYNOPSIS
+\t$(c sY)\$ git retag$(c) [ $(c Bi)<p|-p|push|--push>$(c) | $(c Bi)<REVISION>$(c) ] $(c M)<SOURCE_TAG>$(c) $(c Y)<NEW_TAG>$(c) $(c)
+
+EXAMPLE
+
+\t$(c Wdi)show help$(c)
+\t\t$(c G)\$ git retag$(c)
+
+\t$(c Wdi)re-tag docker.v2.0 to docker.x$(c)
+\t\t$(c G)\$ git retag$(c)        $(c Mi)docker.v2.0$(c)           $(c Yi)docker.x$(c)
+\t\t$(c G)\$ git retag$(c)        $(c Mi)docker.v2.0$(c)           $(c Yi)refs/tags/docker.x$(c)
+\t\t$(c G)\$ git retag$(c)        $(c Mi)refs/tags/docker.v2.0$(c) $(c Yi)docker.x$(c)
+\t\t$(c G)\$ git retag$(c)        $(c Mi)refs/tags/docker.v2.0$(c) $(c Yi)refs/tags/docker.x$(c)
+
+\t$(c Wdi)re-tag docker.v2.0 to docker.x and push into remote repository$(c)
+\t\t$(c G)\$ git retag$(c) $(c B)-p$(c)     $(c Mi)refs/tags/docker.v2.0$(c) $(c Yi)docker.x$(c)
+\t\t$(c G)\$ git retag$(c) $(c B)--push$(c) $(c Mi)refs/tags/docker.v2.0$(c) $(c Yi)docker.x$(c)
+
+\t$(c Wdi)move tag docker.v2.0 to docker.x on HEAD$(c)
+\t\t$(c G)\$ git retag$(c)        $(c Mi)docker.v2.0$(c)           $(c Yi)docker.x$(c)            $(c Bi)HEAD$(c)
+
+\t$(c Wdi)move tag docker.v2.0 to docker.x on HEAD and push to remote repository$(c)
+\t\t$(c G)\$ git retag$(c) $(c B)-p$(c)     $(c Mi)docker.v2.0$(c)           $(c Yi)docker.x$(c)            $(c Bi)HEAD$(c)
+\t\t$(c G)\$ git retag$(c) $(c B)--push$(c) $(c Mi)docker.v2.0$(c)           $(c Yi)refs/tags/docker.x$(c)  $(c Bi)HEAD$(c)
+
+OPTIONS
+\t$(c Bi)p$(c), $(c Bi)-p$(c), $(c Bi)push$(c), $(c Bi)--push$(c) : push changes into remote repository
 """
 
 declare push='false'
