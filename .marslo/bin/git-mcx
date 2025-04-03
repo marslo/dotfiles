@@ -4,21 +4,22 @@
 #     FileName : git-mcx
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2025-04-03 03:16:12
+#   LastChange : 2025-04-03 03:28:47
 #        Usage : git-mcx             # call getCommitMessage to set commit message
 #                git-mcx [message]   # using $1 as commit message
 #=============================================================================
 
 # git-mcx - [m]rslo [c]ommit pro ma[x]
 #
-# | ENVIRONMENT       | DESCRIPTION               | DEFAULT |
-# |-------------------|---------------------------|---------|
-# | MCX_ENABLE_SCOPE  | is enable commit scope    | true    |
-# | MCX_LINT_ENABLE   | is enable commit lint     | true    |
-# | MCX_ENABLE_BODY   | is enable commit body     | false   |
-# | MCX_ENABLE_FOOTER | is enable commit footer   | false   |
-# | MCX_SHOW_PREVIEW  | is show commit preview    | false   |
-# | MCX_SHOW_DIFF     | is show diff after commit | false   |
+#| ENVIRONMENT        | DESCRIPTION                  | DEFAULT  |
+#| -------------------| -----------------------------| ---------|
+#| MCX_ENABLE_SCOPE   | is enable commit scope       | true     |
+#| MCX_LINT_ENABLE    | is enable commit lint        | true     |
+#| MCX_ENABLE_BODY    | is enable commit body        | false    |
+#| MCX_ENABLE_FOOTER  | is enable commit footer      | false    |
+#| MCX_SHOW_PREVIEW   | is show commit preview       | false    |
+#| MCX_SHOW_DIFF      | is show diff after commit    | false    |
+#| MCX_GLOBAL_LINTRC  | force using global commitlint| false    |
 
 set -euo pipefail
 
@@ -51,8 +52,12 @@ function main() {
 
   # commitlint check
   if command -v commitlint >/dev/null 2>&1 && [[ 'true' = "${MCX_LINT_ENABLE:-true}" ]]; then
+    [[ 'true' = "${MCX_GLOBAL_LINTRC:-false}" ]] \
+      && CONFIG_OPT="--config ${HOME}/.commitlintrc.js" \
+      || CONFIG_OPT=''
     printf "%b\n" "$(c Yi)commitlint checking ...$(c)"
-    echo "${message}" | commitlint --config ~/.commitlintrc.js || { printf "%b\n" "$(c Ri)commitlint failed ... $(c)"; }
+    # shellcheck disable=SC2086
+    echo "${message}" | commitlint ${CONFIG_OPT} || { printf "%b\n" "$(c Ri)commitlint failed ... $(c)"; }
   fi
 
   printf "%s\n" "${message}" | git commit -s -a -F -
