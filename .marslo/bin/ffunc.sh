@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-03-25 10:59:56
+#   LastChange : 2025-04-02 12:16:47
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1649,13 +1649,32 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
 # bat
 # using `eval` to handle non-commands, i.e.: `git <alias> --help`
 function help() {
+  # count the first consecutive spaces
+  # shellcheck disable=SC2329
   function countSpaces() { echo "$1" | awk '{ if (match($0, / {6,}/)) { print RLENGTH; exit; } }'; }
-  output=$( eval "$* --help " 2>&1 )
+  # count the minimal consecutive spaces
+  function countMiniSpaces() {
+    # grep -Eo '[ ]{2,}' <<<"$1" | awk '{print length}' | sort -n | head -n1
+    awk 'BEGIN { min=999 } {
+        cnt=0;
+        for(i=1; i<=length; i++) {
+            if(substr($0,i,1)==" ") { cnt++ }
+            else { if(cnt>=2 && cnt<min) min=cnt; cnt=0 }
+        }
+        if(cnt>=2 && cnt<min) min=cnt
+    } END { print (min!=999 ? min : 0) }' <<< "$1"
+  }
+
+  # combine all lines into one line
+  output=$( eval "$* --help" 2>&1 | paste -sd '' )
+
   if [[ "$(head -1 <<< "${output}")" =~ "' is aliased to '" ]]; then
-    spaces=$( countSpaces "${output}" )
+    spaces=$( countMiniSpaces "${output}" )                     # spaces=$( countSpaces "${output}" )
+    indent=5
+
     new=$( echo "${output}" | sed -rn "s/^[^']*'([^']*)'[^']*'(.*)'\s*$/\2/p" )
     # shellcheck disable=SC2001
-    [[ 2 -lt "${spaces}" ]] && new=$(echo "${new}" | sed "s/ \{$((spaces - 2))\}/\n/g")
+    [[ 2 -lt "${spaces}" ]] && new=$(echo "${new}" | sed "s/ \{$((spaces + "${indent}"))\}/\n/g")
 
     if [[ "$(wc -l <<< "${new}")" -gt 1 ]]; then
       bat --style="numbers" --language=bash --theme Nord <<< "${new}"
