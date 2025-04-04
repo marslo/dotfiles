@@ -4,7 +4,7 @@
 #     FileName : iweather
 #       Author : marslo
 #      Created : 2023-08-11 03:05:27
-#   LastChange : 2024-01-02 17:23:34
+#   LastChange : 2024-09-20 15:00:46
 # ===========================================================================
 
 shopt -s extglob
@@ -23,7 +23,7 @@ function capitalized() {
 
 function windDirection() {
   direction=$1
-  if ((   $(echo "0     < ${direction}" | bc -l) && $(echo "${direction} <= 22.5"  | bc -l) )); then
+  if ((   $(echo "0     <= ${direction}" | bc -l) && $(echo "${direction} <= 22.5"  | bc -l) )); then
     echo '→'
   elif (( $(echo "22.5  < ${direction}" | bc -l) && $(echo "${direction} <= 67.5"  | bc -l) )); then
     echo '↗'
