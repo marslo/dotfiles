@@ -4,7 +4,7 @@
 #     FileName : ansi2hex
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-24 14:30:33
-#   LastChange : 2025-03-25 07:59:29
+#   LastChange : 2025-03-31 11:22:01
 #=============================================================================
 
 source "${HOME}"/.marslo/bin/bash-color.sh
@@ -14,47 +14,59 @@ declare noColor=false
 declare showHelp=false
 declare style=''
 declare alpha=''
-declare index=''
+declare -a indices=()
 # shellcheck disable=SC2155
 declare help="""
 NAME
   $(c Ys)ansi2hex$(c) - convert ANSI color index to HEX color code
 
 SYNOPSIS
-  $(c Ys)\$ ansi2hex$(c) $(c Wd)<$(c)$(c Gi)0$(c)$(c Wd)-$(c)$(c Gi)255$(c)$(c Wd)>$(c) $(c Wd)[ $(c)$(c Gi)style$(c) $(c Wd)] [$(c) $(c Gis)--alpha$(c)$(c Gis)=$(c)$(c Mi)<float>$(c) $(c Wd)] [$(c) $(c Gis)--no-color$(c) $(c Wd)]$(c)
-  $(c Ys)\$ ansi2hex$(c) $(c Gis)--preview$(c) $(c Wd)[$(c) $(c Gi)style$(c) $(c Wd)] [$(c) $(c Gis)--alpha$(c)$(c Gis)=$(c)$(c Mi)<float>$(c) $(c Wd)] [$(c) $(c Gis)--no-color$(c) $(c Wd)]$(c)
+  $(c Ys)\$ ansi2hex$(c) $(c Gi)<index>...$(c) [$(c Gi)style$(c)] [$(c Gis)--alpha=$(c)$(c Mi)<float>$(c)] [$(c Gis)--no-color$(c)]
+  $(c Ys)\$ ansi2hex$(c) $(c Gis)--preview$(c) [$(c Gi)style$(c)] [$(c Gis)--alpha=$(c)$(c Mi)<float>$(c)] [$(c Gis)--no-color$(c)]
 
 ARGUMENTS
-  $(c Wd)<$(c)$(c Gi)0$(c)$(c Wd)-$(c)$(c Gi)255$(c)$(c Wd)>$(c)             ANSI color index to convert
-  $(c Wd)[$(c)$(c Gi)style$(c)$(c Wd)]$(c)             color style: $(c Mi)normal$(c) (default), $(c Mi)dim$(c), $(c Mi)bright$(c) (also accepts $(c Mi)bold$(c)/$(c Mi)light$(c))
-  $(c Gis)--alpha$(c)$(c Gis)=$(c)$(c Mi)<float>$(c)     brightness scale (overrides style). e.g., $(c Mi)0.65$(c) (dim), $(c Mi)1.35$(c) (bright)
-  $(c Gis)--preview$(c)           show all 256 colors in table
-  $(c Gis)--no-color$(c)          disable colorized output
-  $(c Gis)--help$(c), $(c Gis)-h$(c)          show this help message
+  $(c Gi)<index>$(c)              one or more ANSI color indices ($(c Wdi)0$(c) ~ $(c Wdi)255$(c))
+  $(c Gi)style$(c)                optional color style: $(c Mi)normal$(c) (default), $(c Mi)dim$(c), $(c Mi)bright$(c), $(c Mi)bold$(c), $(c Mi)light$(c)
+  $(c Gis)--alpha=$(c)$(c Mi)<float>$(c)      brightness adjustment factor (overrides style), e.g., $(c Wi)0.65$(c) ($(c Mi)dim$(c)), $(c Wi)1.35$(c) ($(c Mi)bright$(c))
+  $(c Gis)--no-color$(c)           disable colorized output
+  $(c Gis)--preview$(c)            show all 256 ANSI colors with the specified style and alpha
+  $(c Gis)--help$(c), $(c Gis)-h$(c)           show this help message
+
+VALIDATION
+  - Each $(c Wd)<index>$(c) must be an integer between 0 and 255.
+  - Unknown arguments will result in an error.
+  - Multiple indices and options can be combined.
 
 EXAMPLES
-  $(c Yis)\$ ansi2hex$(c) $(c Gi)213$(c)
+  $(c Yis)\$ ansi2hex$(c) $(c Gi)213$(c) $(c Gi)45$(c) $(c Gi)100$(c)
   $(c Yis)\$ ansi2hex$(c) $(c Gi)213$(c) $(c Mi)dim$(c)
-  $(c Yis)\$ ansi2hex$(c) $(c Gi)213$(c) $(c Gi)--alpha=$(c)$(c Mi)1.15$(c)
+  $(c Yis)\$ ansi2hex$(c) $(c Gi)213$(c) $(c Gi)45$(c) $(c Gi)--alpha=$(c)$(c Mi)1.15$(c)
   $(c Yis)\$ ansi2hex$(c) $(c Gi)--preview$(c) $(c Mi)dim$(c)
   $(c Yis)\$ ansi2hex$(c) $(c Gi)--preview$(c) $(c Gi)--alpha=$(c)$(c Wi)0.85$(c) $(c Gi)--no-color$(c)
 """
 
-# Parse args
-for arg in "$@"; do
-  if [[ "$arg" == "--preview" ]]; then
-    isPreview=true
-  elif [[ "$arg" == "--no-color" ]]; then
-    noColor=true
-  elif [[ "$arg" == "--help" || "$arg" == "-h" ]]; then
-    showHelp=true
-  elif [[ "$arg" =~ ^--alpha= ]]; then
-    alpha="${arg#--alpha=}"
-  elif [[ "$arg" =~ ^[0-9]+$ ]]; then
-    index="$arg"
-  elif [[ "$arg" =~ ^[a-zA-Z]+$ ]]; then
-    style="$arg"
-  fi
+function isValidIndex() {
+  [[ "$1" =~ ^[0-9]+$ && "$1" -ge 0 && "$1" -le 255 ]]
+}
+
+# parse args
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --alpha=*                    ) alpha="${1#--alpha=}" ;  shift ;;
+    --preview                    ) isPreview=true        ;  shift ;;
+    --no-color                   ) noColor=true          ;  shift ;;
+    --help|-h                    ) showHelp=true         ;  shift ;;
+    dim|bright|bold|light|normal ) style="$1"            ;  shift ;;
+    [0-9]*                       ) if isValidIndex "$1"; then
+                                     indices+=("$1")
+                                   else
+                                     echo "Invalid color index: $1" >&2
+                                     exit 1
+                                   fi
+                                   shift
+                                   ;;
+    *                            ) showUsage             ; exit 0  ;;
+  esac
 done
 
 # normalize style
@@ -74,9 +86,8 @@ if [[ -z "$alpha" ]]; then
 fi
 
 # brightness adjustment
-function adjust() {
+adjust() {
   local val="$1"
-  local alpha="$2"
   awk -v v="$val" -v a="$alpha" 'BEGIN {
     if (a < 1.0)
       printf "%d", v * a
@@ -88,8 +99,8 @@ function adjust() {
 }
 
 # convert ansi index to rgb
-function ansiToRgb() {
-  local idx="$1" alpha="$2"
+ansiToRgb() {
+  local idx="$1"
   local r g b
 
   if (( idx < 16 )); then
@@ -102,7 +113,6 @@ function ansiToRgb() {
     r=${colors[idx*3]}
     g=${colors[idx*3+1]}
     b=${colors[idx*3+2]}
-
   elif (( idx >= 16 && idx <= 231 )); then
     local base=$(( idx - 16 ))
     local r6=$(( base / 36 ))
@@ -112,28 +122,27 @@ function ansiToRgb() {
     r=$(( r6 == 0 ? 0 : r6 * 40 + 55 ))
     g=$(( g6 == 0 ? 0 : g6 * 40 + 55 ))
     b=$(( b6 == 0 ? 0 : b6 * 40 + 55 ))
-
   else
     local gray=$(( 8 + (idx - 232) * 10 ))
     r=$gray; g=$gray; b=$gray
   fi
 
-  r=$(adjust "$r" "$alpha")
-  g=$(adjust "$g" "$alpha")
-  b=$(adjust "$b" "$alpha")
+  r=$(adjust "$r")
+  g=$(adjust "$g")
+  b=$(adjust "$b")
 
   echo "$r $g $b"
 }
 
 # RGB to HEX
-function rgbToHex() {
+rgbToHex() {
   printf "#%02X%02X%02X\n" "$1" "$2" "$3"
 }
 
-# reusable print function
-function printColorInfo() {
+# print function
+printColorInfo() {
   local idx="$1"
-  read -r r g b <<< "$(ansiToRgb "$idx" "$alpha")"
+  read -r r g b <<< "$(ansiToRgb "$idx")"
   local hex
   hex=$(rgbToHex "$r" "$g" "$b")
 
@@ -148,10 +157,12 @@ function printColorInfo() {
   fi
 }
 
-# show usage
-function showUsage() { echo -e "${help}"; exit 0; }
+showUsage() { echo -e "${help}"; exit 0; }
 
-# preview mode: loop through 0–255
+if [[ "$showHelp" == true ]]; then
+  showUsage
+fi
+
 if ${isPreview}; then
   for i in {0..255}; do
     printColorInfo "$i"
@@ -159,8 +170,14 @@ if ${isPreview}; then
   exit 0
 fi
 
-# standard single output
-[[ -z "${index}" ]] && showUsage
-[[ "$showHelp" == true ]] && showUsage
+# if no index provided
+if [[ ${#indices[@]} -eq 0 ]]; then
+  showUsage
+fi
 
-printColorInfo "$index"
+# loop over indices
+for idx in "${indices[@]}"; do
+  printColorInfo "$idx"
+done
+
+# vim: tabstop=2 softtabstop=2 shiftwidth=2 expandtab filetype=sh:

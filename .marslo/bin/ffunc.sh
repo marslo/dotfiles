@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-04-02 12:16:47
+#   LastChange : 2025-04-04 00:12:45
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -119,9 +119,9 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
   fdOpt+=' --exec stat --printf="%y | %n\n"'
   (
-    eval "fd --max-depth 1 --hidden '.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf' $HOME ${fdOpt}" ;
-    echo "${rcPaths}"     | fmt -1 | xargs -r -I{} bash -c "[[ -d {} ]] && fd . {} --exclude ss/ --exclude log*/ --exclude .completion/ --exclude bin/bash-completion/ ${fdOpt}" ;
-    echo "${configPaths}" | fmt -1 | xargs -r -I{} bash -c "[[ -d $HOME/.config/{} ]] && fd . $HOME/.config/{} --max-depth 1 --exclude *.bak --exclude *backup ${fdOpt} " ;
+    eval "fd --max-depth 1 --hidden --exclude '*archive*' '.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf' $HOME ${fdOpt}" ;
+    echo "${rcPaths}"     | fmt -1 | xargs -P"$(nproc)" -r -I{} bash -c "[[ -d {} ]] && fd . {} --exclude 'ss/' --exclude 'log*/' --exclude '.completion/' --exclude 'bin/bash-completion/' ${fdOpt}" ;
+    echo "${configPaths}" | fmt -1 | xargs -P"$(nproc)" -r -I{} bash -c "[[ -d $HOME/.config/{} ]] && fd . $HOME/.config/{} --max-depth 1 --exclude '*.bak' --exclude '*backup' ${fdOpt} " ;
   ) |  sort -ru
 }
 

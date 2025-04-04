@@ -39,7 +39,7 @@ fzf ${option:-} \
     --ansi \
     --no-multi \
     --tiebreak=begin \
-    --prompt='ᓆ > ' \
+    --prompt='ᓆ ‣ ' \
     --color='prompt:#80638c' \
     --preview-window 'up,70%,wrap,rounded,<50(up,85%,border-bottom)' \
     --preview "${batman}" \

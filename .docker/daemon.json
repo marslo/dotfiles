@@ -5,5 +5,12 @@
       "enabled": true
     }
   },
-  "experimental": true
+  "experimental": true,
+  "insecure-registries": [
+    "artifactory-1.marvell.com",
+    "dockerreg1-sc:5000",
+    "dockerreg1-sc:5001",
+    "dockerreg1-sc.marvell.com:5000",
+    "dockerreg1-sc.marvell.com:5001"
+  ]
 }
