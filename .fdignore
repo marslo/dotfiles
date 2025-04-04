@@ -10,6 +10,7 @@
 .cargo
 .sdkman
 .cache
+.tmp
 .beacon/
 .gradle/
 .oracle_jre_usage/
@@ -29,6 +30,7 @@ cache/
 undo/
 nundo/
 log/
+**/.ssh/.backup/
 
 Pictures/
 Music/
