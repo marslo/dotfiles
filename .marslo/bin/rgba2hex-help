@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null
+
+source "${HOME}"/.marslo/bin/bash-color.sh
+
+# shellcheck disable=SC2155
+declare usage="""
+NAME
+  $(c Ys)rgba2hex$(c) - RGBA to HEX Converter with ANSI Color Preview
+
+USAGE
+  $(c Ys)rgba2hex$(c) $(c Gis)[OPTIONS]$(c) $(c Ms)'COLOR_INPUT'$(c)
+
+OPTIONS
+  $(c Gis)-a$(c), $(c Gis)--alpha$(c)       override alpha value ( $(c Wdi)0.00$(c)-$(c Wdi)1.00$(c) )
+  $(c Gis)-b$(c), $(c Gis)--background$(c)  set background color ( $(c Wdi)0-255$(c)/$(c Wdi)R,G,B$(c)/$(c Wdi)#RGB/#RRGGBB$(c), default: $(c Wi)255,255,255$(c) )
+  $(c Gis)-h$(c), $(c Gis)--help$(c)        show this help message
+
+COLOR INPUT FORMATS
+  • $(c Msi)'rgba(R, G, B, A)'$(c)
+  • $(c Msi)'R, G, B, A'$(c)
+  • $(c Msi)'rgb(R, G, B)'$(c)  $(c Wdi)generates alpha from 0.0 to 1.0 sequentially$(c)
+  • $(c Msi)'R, G, B'$(c)       $(c Wdi)generates alpha from 0.0 to 1.0 sequentially$(c)
+
+EXAMPLES
+  $(c iu)WITH$(c) $(c Bs)ALPHA$(c) $(c i)- SHOW SINGLE HEX COLOR CODE$(c)
+    $(c Wi)# show the HEX color code with given RGBA.$(c)
+    \$ $(c Yis)rgba2hex$(c) $(c Ms)'rgba(255, 200.5, 100, 0.8)'$(c)
+    \033[38;2;255;211;131mrgba(255, 200.5, 100, 0.80)\033[0m -> \033[38;2;255;211;131m#FFD383\033[0m
+
+    $(c Wi)# show the HEX color code with alpha mixed background: $(c)\033[48;2;128;0;128m#800080\033[0m
+    \$ $(c Yis)rgba2hex$(c) $(c Ms)'204 , 108 , 204 , 0.8'$(c) $(c Gis)-b 128,0,128$(c)
+    \033[38;2;188;86;188mrgba(204, 108, 204, 0.80)\033[0m -> \033[38;2;188;86;188m#BC56BC\033[0m
+
+  $(c iu)WITHOUT$(c) $(c Bs)ALPHA$(c) $(c i)- SHOW WITH ALPHA FROM 0.1 TO 1.0 SEQUENTIALLY$(c)
+    $(c Wi)# show HEX color codes with default background: $(c) \033[48;2;255;255;255;3m#FFFFFF\033[0m
+    \$ $(c Yis)rgba2hex$(c) $(c Ms)'250, 240, 170'$(c) == \$ $(c Yis)rgba2hex$(c) $(c Ms)'rgb(250, 240, 170)'$(c) $(c Gis)--background 255$(c)
+    \033[38;2;255;255;255mrgba(250, 240, 170, 0.00)\033[0m -> \033[38;2;255;255;255m#FFFFFF\033[0m
+    \033[38;2;254;253;246mrgba(250, 240, 170, 0.10)\033[0m -> \033[38;2;254;253;246m#FEFDF6\033[0m
+    \033[38;2;254;252;238mrgba(250, 240, 170, 0.20)\033[0m -> \033[38;2;254;252;238m#FEFCEE\033[0m
+    \033[38;2;253;250;229mrgba(250, 240, 170, 0.30)\033[0m -> \033[38;2;253;250;229m#FDFAE5\033[0m
+    \033[38;2;253;249;221mrgba(250, 240, 170, 0.40)\033[0m -> \033[38;2;253;249;221m#FDF9DD\033[0m
+    \033[38;2;252;247;212mrgba(250, 240, 170, 0.50)\033[0m -> \033[38;2;252;247;212m#FCF7D4\033[0m
+    \033[38;2;252;246;204mrgba(250, 240, 170, 0.60)\033[0m -> \033[38;2;252;246;204m#FCF6CC\033[0m
+    \033[38;2;251;244;195mrgba(250, 240, 170, 0.70)\033[0m -> \033[38;2;251;244;195m#FBF4C3\033[0m
+    \033[38;2;251;243;187mrgba(250, 240, 170, 0.80)\033[0m -> \033[38;2;251;243;187m#FBF3BB\033[0m
+    \033[38;2;250;241;178mrgba(250, 240, 170, 0.90)\033[0m -> \033[38;2;250;241;178m#FAF1B2\033[0m
+    \033[38;2;250;240;170mrgba(250, 240, 170, 1.00)\033[0m -> \033[38;2;250;240;170m#FAF0AA\033[0m
+
+    $(c Wi)# show HEX color codes with given background: $(c) \033[48;2;34;85;102;3m#225566\033[0m
+    \$ $(c Yis)rgba2hex$(c) $(c Ms)'250,240,170'$(c) $(c Gis)--background '#256'$(c) == \$ $(c Yis)rgba2hex$(c) $(c Gis)--background '#256'$(c) $(c Ms)'rgb(250,240,170)'$(c)
+    \033[38;2;34;85;102mrgba(250, 240, 170, 0.00)\033[0m -> \033[38;2;34;85;102m#225566\033[0m
+    \033[38;2;55;100;93mrgba(250, 240, 170, 0.10)\033[0m -> \033[38;2;55;100;93m#37645D\033[0m
+    \033[38;2;77;116;102mrgba(250, 240, 170, 0.20)\033[0m -> \033[38;2;77;116;102m#4D7466\033[0m
+    \033[38;2;98;131;110mrgba(250, 240, 170, 0.30)\033[0m -> \033[38;2;98;131;110m#62836E\033[0m
+    \033[38;2;120;147;119mrgba(250, 240, 170, 0.40)\033[0m -> \033[38;2;120;147;119m#789377\033[0m
+    \033[38;2;142;162;127mrgba(250, 240, 170, 0.50)\033[0m -> \033[38;2;142;162;127m#8EA27F\033[0m
+    \033[38;2;163;178;136mrgba(250, 240, 170, 0.60)\033[0m -> \033[38;2;163;178;136m#A3B288\033[0m
+    \033[38;2;185;193;144mrgba(250, 240, 170, 0.70)\033[0m -> \033[38;2;185;193;144m#B9C190\033[0m
+    \033[38;2;206;209;153mrgba(250, 240, 170, 0.80)\033[0m -> \033[38;2;206;209;153m#CED199\033[0m
+    \033[38;2;228;224;161mrgba(250, 240, 170, 0.90)\033[0m -> \033[38;2;228;224;161m#E4E0A1\033[0m
+    \033[38;2;250;240;170mrgba(250, 240, 170, 1.00)\033[0m -> \033[38;2;250;240;170m#FAF0AA\033[0m
+
+NOTES
+  • All color components clamp to [ $(c Gi)0$(c) ~ $(c Gi)255$(c) ]
+  • Alpha values clamp to [ $(c Gi)0.00$(c) ~ $(c Gi)1.00$(c) ]
+  • RGB values are rounded to nearest integer
+  • ANSI preview requires truecolor terminal support
+"""
+
+function showHelp() { echo -e "$usage"; }
