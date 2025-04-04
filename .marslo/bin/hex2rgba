@@ -4,7 +4,7 @@
 #     FileName : hex2rgba
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-03 00:21:35
-#   LastChange : 2025-04-03 02:13:30
+#   LastChange : 2025-04-04 00:07:47
 #=============================================================================
 
 set -euo pipefail
@@ -24,7 +24,7 @@ OPTIONS
   $(c Gis)-h$(c), $(c Gis)--help$(c)        show this help message
 
 EXAMPLES
-  $(c Wi)# show the RGBA values of alphas from 0.1 to 1.0 sequentially.$(c)
+  $(c Wi)# show the RGBA values of alphas from 0.0 to 1.0 sequentially.$(c)
   \$ $(c Yis)hex2rgba$(c) $(c Ms)'#D3869B'$(c)
 
   $(c Wi)# show the RGBA values with alpha 0.5.$(c)
@@ -180,7 +180,7 @@ main() {
     fi
     showOutput "${alpha}" 2
   else
-    for alpha in $(seq 0.1 0.1 1.0); do
+    for alpha in $(seq 0 0.1 1.0); do
       showOutput "${alpha}" 1
     done
   fi
