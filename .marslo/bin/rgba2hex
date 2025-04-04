@@ -1,83 +1,126 @@
 #!/usr/bin/env bash
-# shellcheck source=/dev/null
+# shellcheck source=/dev/null disable=SC2155
 #=============================================================================
 #     FileName : rgba2hex
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-02 22:02:37
-#   LastChange : 2025-04-02 23:13:30
+#   LastChange : 2025-04-03 23:48:01
 #=============================================================================
 
 set -euo pipefail
 source "${HOME}"/.marslo/bin/bash-color.sh
+source "${HOME}"/.marslo/bin/rgba2hex-help
 
-declare alpha=""
-declare colorCode=""
-declare background=255   # white background by default
-# shellcheck disable=SC2155
-declare usage="""
-NAME
-  $(c Ys)rgba2hex$(c) - RGBA to HEX Converter with ANSI Color Preview
+declare alpha=''
+declare colorCode=''
+# default background - #FFFFFF ( white )
+declare bgR=255 bgG=255 bgB=255
 
-USAGE
-  $(c Ys)rgba2hex$(c) $(c Gis)[OPTIONS]$(c) $(c Ms)'COLOR_INPUT'$(c)
+function die() {
+  echo -e "$(c Rsi)ERROR$(c) : $*. try $(c Gi)-h$(c)/$(c Gi)--help$(c). exit ..." >&2;
+  exit 2;
+}
 
-OPTIONS
-  $(c Gis)-a$(c), $(c Gis)--alpha$(c)       override alpha value ( $(c Wdi)0.00$(c)-$(c Wdi)1.00$(c) )
-  $(c Gis)-b$(c), $(c Gis)--background$(c)  set background color ( $(c Wdi)0$(c)-$(c Wdi)255$(c), default: $(c Wi)255$(c) )
-  $(c Gis)-h$(c), $(c Gis)--help$(c)        show this help message
+# generate the hex color code: $1 - R, $2 - G, $3 - B
+function toHex() { printf "#%02X%02X%02X" "$1" "$2" "$3"; }
 
-COLOR INPUT FORMATS
-  • $(c Msi)'rgba(R, G, B, A)'$(c)
-  • $(c Msi)'R, G, B, A'$(c)
-  • $(c Msi)'R, G, B'$(c)       $(c Wdi)alpha=1.00 by default$(c)
+function parseArguments() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -a | --alpha      ) if ! awk -v a="$2" 'BEGIN{exit (a >= 0 && a <= 1) ? 0 : 1}' ; then
+                            die "$(c Gi)--alpha$(c) value must be between $(c Bi)0.00$(c) and $(c Bi)1.00$(c). $(c Mi)'${2}'$(c) is invalid" >&2
+                          fi
+                          alpha="$2"
+                          shift 2
+                          ;;
+      -b | --background ) local inputBG="$2"
+                          local bgRGB
+                          bgRGB=$(parseBackground "$inputBG")
+                          IFS=' ' read -r bgR bgG bgB <<< "${bgRGB}"
+                          shift 2
+                          ;;
+      -h | --help       ) showHelp; exit 0 ;;
+      *                 ) if [[ -z "${colorCode}" ]]; then
+                            colorCode="$1"
+                            shift
+                          else
+                            die 'multiple color input arguments detected'
+                          fi
+                          ;;
+    esac
+  done
+}
 
-EXAMPLES
-  \$ $(c Yis)rgba2hex$(c) $(c Ms)'250, 240, 170'$(c) $(c Gis)--alpha 0.5$(c)
-  \$ $(c Yis)rgba2hex$(c) $(c Ms)'rgba(255, 200.5, 100, 0.8)'$(c)
-  \$ $(c Yis)rgba2hex$(c) $(c Ms)'255,255,255'$(c) $(c Gis)--background 0$(c)
-  \$ $(c Yis)rgba2hex$(c) $(c Ms)'204 , 108 , 204 , 0.8'$(c)
+# background color analysis
+function parseBackground() {
+  local inputBG="$1"
+  local r g b
 
-NOTES
-  • Alpha values will clamp to [ $(c Gi)0.00$(c) ~ $(c Gi)1.00$(c) ]
-  • RGB values will be rounded to nearest integer
-  • Output includes ANSI color preview (requires truecolor terminal support)
-"""
+  # numerical format checking
+  if [[ "${inputBG}" =~ ^[0-9]+$ ]]; then
+    r="${inputBG}"
+    g="${inputBG}"
+    b="${inputBG}"
+  elif [[ "${inputBG}" =~ ^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$ ]]; then
+    local hex=${inputBG#\#}
+    if [ "${#hex}" -eq 3 ]; then
+      hex="${hex:0:1}${hex:0:1}${hex:1:1}${hex:1:1}${hex:2:1}${hex:2:1}"
+    fi
+    r=$((16#${hex:0:2}))
+    g=$((16#${hex:2:2}))
+    b=$((16#${hex:4:2}))
+  elif [[ "${inputBG}" =~ ^[0-9]+,[0-9]+,[0-9]+$ ]]; then
+    IFS=',' read -r r g b <<< "${inputBG}"
+  else
+    die "invalid background format: ${inputBG}"
+  fi
 
-# params
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    -a | --alpha      ) alpha="$2"         ;  shift 2 ;;
-    -b | --background ) background="$2"    ;  shift 2 ;;
-    -h | --help       ) echo -e "${usage}" ;  exit 0  ;;
-    *                 ) if [ -z "${colorCode}" ]; then
-                          colorCode="$1"
-                          shift
-                        else
-                          echo "ERROR: Multiple color input arguments detected" >&2
-                          exit 1
-                        fi
-                        ;;
-  esac
-done
+  verifyRange "${r}" "Background R" "${r}"
+  verifyRange "${g}" "Background G" "${g}"
+  verifyRange "${b}" "Background B" "${b}"
 
-# clear/format the colorCode
-values=$(echo "${colorCode}" |
-    sed -E '
-        s/[^0-9.,-]//g;                         # remove non-numeric characters
-        s/^[[:space:]]+//;                      # remove leading spaces
-        s/[[:space:]]+$//;                      # remove trailing spaces
-        s/[[:space:]]*,[[:space:]]*/,/g;        # remove spaces around commas (,)
-        s/,+/,/g;                               # combine multiple/consecutive commas
-        s/^,//; s/,$//;                         # remove leading/trailing commas
-    ')
+  echo "${r} ${g} ${b}"
+}
 
-IFS=',' read -ra vals <<< "$values"
+function parseColor() {
+  local input="$1"
+  local trimmed=$(echo "${input}" | sed -E '
+             s/^[^(]*\(([^)]+)\).*$/\1/;             # extract content within parentheses
+             s/^[[:space:]]+//;                      # remove leading spaces
+             s/[[:space:]]+$//;                      # remove trailing spaces
+             s/[[:space:]]*,[[:space:]]*/,/g;        # remove spaces around commas (,)
+             s/,+/,/g;                               # combine multiple/consecutive commas
+             s/^,//; s/,$//;                         # remove leading/trailing commas
+         ')
 
-# validate input count
-if [[ ${#vals[@]} -lt 3 || ${#vals[@]} -gt 4 ]]; then
-  echo "Error: Expected 3 or 4 values, input contained ${#vals[@]}" >&2
-  exit 1
-fi
+  IFS=',' read -ra parts <<< "${trimmed}"
+  local pCount=${#parts[@]}
+
+  # RGBA
+  if [[ "$(awk -F ',' '{print NF-1}' <<< "${trimmed}")" -eq 3 ]];then
+    if (( pCount != 4 )); then echo "INVALID_RGBA_FORMAT|4" >&2; return 1; fi
+
+    # verify alpha value is numeric
+    local alpha="${parts[3]}"
+    if [[ ! "${alpha}" =~ ^-?[0-9]*\.?[0-9]+$ ]]; then echo "INVALID_ALPHA|${alpha}" >&2; return 1; fi
+
+    # verify alpha value is in range [0.0-1.0]
+    if awk -v a="${alpha}" 'BEGIN { if (a < 0 || a > 1) exit 1 }'; then
+      :
+    else
+      echo "ALPHA_OUT_OF_RANGE|${alpha}" >&2
+      return 1
+    fi
+
+  # RGB
+  elif [[ "$(awk -F ',' '{print NF-1}' <<< "${trimmed}")" -eq 2 ]];then
+    if (( pCount != 3 )); then echo "INVALID_RGB_FORMAT|3" >&2; return 1; fi
+  fi
+
+  # cleaned - remove non-numeric characters and trim spaces
+  echo "${trimmed}" | sed -E 's/[^0-9.,-]//g; s/^[[:space:]]+//; s/[[:space:]]+$//;'
+  return 0
+}
 
 # numeric processing (return decimal)
 function formatNumber() {
@@ -88,57 +131,110 @@ function formatNumber() {
   }'
 }
 
-# parse the original value (decimal)
-rOrig=$(formatNumber "${vals[0]}")
-gOrig=$(formatNumber "${vals[1]}")
-bOrig=$(formatNumber "${vals[2]}")
-aOrig=${vals[3]:-1.0}
-
-# alpha overlays
-[ -n "$alpha" ] && aOrig=$alpha
-
 # verify the range of RGB ( 0 - 255 )
-function validateRange() {
-  if [ "$1" -lt 0 ] || [ "$1" -gt 255 ]; then
-    echo "ERROR: the value '$3' for $2 is invalid (0-255)" >&2
-    exit 1
+function verifyRange() {
+  local value="$1"
+  local name="$2"
+  local original="$3"
+  if [[ "${value}" -lt 0 || "${value}" -gt 255 ]]; then
+    die "invalid ${name} value '${original}' (0-255)"
   fi
 }
 
-validateRange "${rOrig}" "R" "${vals[0]}"
-validateRange "${gOrig}" "G" "${vals[1]}"
-validateRange "${bOrig}" "B" "${vals[2]}"
+# verify alpha value range ( 0.00 ~ 1.00 )
+function clampAlpha() {
+  local alphaInput=$(parseColor "$1") || exit 2
 
-# get the final alpha value (0.00-1.00)
-a=$(awk -v a="$aOrig" 'BEGIN {
-  a = (a + 0 == a ? a : 1)                    # using 1 if not a number
-  printf "%.2f", (a < 0 ? 0 : (a > 1 ? 1 : a))
-}')
+  local numericValue
+  numericValue=$(awk -v a="${alphaInput}" 'BEGIN { print a + 0 }')
 
-# color mixing calculation (returns decimal)
+  # clamp to range [0.0, 1.0]
+  if (( $(echo "${numericValue} < 0.0" | bc -l) )); then
+      numericValue=0.0
+  elif (( $(echo "${numericValue} > 1.0" | bc -l) )); then
+      numericValue=1.0
+  fi
+
+  # format to 2 decimal places
+  printf "%.2f" "${numericValue}"
+}
+
+# mix channel: $1 - color, $2 - alpha, $3 - background
 function mixChannel() {
-  awk -v c="$1" -v a="$2" -v bg="${background}" 'BEGIN {
+  awk -v c="$1" -v a="$2" -v bg="$3" 'BEGIN {
     result = c * a + bg * (1 - a)
     printf "%d\n", (result < 0 ? 0 : (result > 255 ? 255 : result))
   }'
 }
 
-# get the mixed decimal value
-rMixed=$(mixChannel "${rOrig}" "${a}")
-gMixed=$(mixChannel "${gOrig}" "${a}")
-bMixed=$(mixChannel "${bOrig}" "${a}")
+# show output with alpha mixing
+function showOutput() {
+  local inputA="$1"
+  local r="$2" g="$3" b="$4"
+  local bgR="$5" bgG="$6" bgB="$7"
 
-# get the HEX code (hexadecimal)
-hexCode="#$(printf "%02X%02X%02X" "${rMixed}" "${gMixed}" "${bMixed}")"
+  local a=$(clampAlpha "${inputA}")
+  local mixedR=$(mixChannel "${r}" "${a}" "${bgR}")
+  local mixedG=$(mixChannel "${g}" "${a}" "${bgG}")
+  local mixedB=$(mixChannel "${b}" "${a}" "${bgB}")
 
-# construct ANSI code (decimal RGB)
-ansiStart="\033[38;2;${rMixed};${gMixed};${bMixed}m"
-ansiReset="\033[0m"
+  local hexCode=$(toHex "${mixedR}" "${mixedG}" "${mixedB}")
+  local rgbDisplay="rgba(${r}, ${g}, ${b}, $(printf "%.2f" "${a}"))"
+  local ansiStart="\033[38;2;${mixedR};${mixedG};${mixedB}m"
+  local ansiReset="\033[0m"
 
-# keep original input display
-rgbaDisplay="rgba(${vals[0]}, ${vals[1]}, ${vals[2]}, $(printf "%.2f" "${a}"))"
+  echo -e "${ansiStart}${rgbDisplay}${ansiReset} -> ${ansiStart}${hexCode}${ansiReset}"
+}
 
-# output
-echo -e "${ansiStart}${rgbaDisplay}${ansiReset} -> ${ansiStart}${hexCode}${ansiReset}"
+function main() {
+  # read input
+  parseArguments "$@"
+  [ -z "${colorCode}" ] && { die 'missing color input'; }
+
+  # capture both errTag and errValue, to avoid `exit 1` cannot stop in subshell
+  local parsedColor
+  if ! parsedColor=$(parseColor "${colorCode}" 2>&1); then
+    IFS='|' read -r errTag errValue <<< "$parsedColor"
+    case "${errTag}" in
+      INVALID_RGBA_FORMAT  ) die "invalid RGBA format: expected ${errValue:-4} components $(c Mi)rgba(R,G,B,A)$(c)" ;;
+      INVALID_RGB_FORMAT   ) die "invalid rgb format: Expected ${errValue:-3} components $(c Mi)rgb(R,G,B)$(c)" ;;
+      INVALID_ALPHA        ) die "invalid $(c ui)alpha$(c) value $(c Mi)'${errValue}'$(c) in R,G,B,$(c Mi)A$(c)" ;;
+      ALPHA_OUT_OF_RANGE   ) die "invalid $(c ui)alpha$(c) value $(c Mi)${errValue}$(c), must be between $(c Bi)0.00$(c) and $(c Bi)1.00$(c)" ;;
+      INVALID_COLOR_FORMAT ) die "Unrecognized color format" ;;
+      *                    ) die "Unknown error in color parsing" ;;
+    esac
+  fi
+  IFS=',' read -ra vals <<< "${parsedColor}"
+
+  # input verify
+  if [[ ${#vals[@]} -lt 3 || ${#vals[@]} -gt 4 ]]; then
+    die "expected 3 or 4 values, got $(c Mi)${#vals[@]}$(c)"
+  fi
+
+  # format numbers
+  local orgR="$(formatNumber "${vals[0]}")"
+  local orgG="$(formatNumber "${vals[1]}")"
+  local orgB="$(formatNumber "${vals[2]}")"
+
+  verifyRange "${orgR}" "R" "${vals[0]}"
+  verifyRange "${orgG}" "G" "${vals[1]}"
+  verifyRange "${orgB}" "B" "${vals[2]}"
+
+  # alpha
+  if [[ ${#vals[@]} -eq 3 && -z "${alpha}" ]]; then
+    for a in $(seq 0.0 0.1 1.0); do
+      showOutput "${a}" \
+                 "${orgR}" "${orgG}" "${orgB}" \
+                 "${bgR}" "${bgG}" "${bgB}"
+    done
+  else
+    local finalAlpha="${alpha:-${vals[3]:-1.0}}"
+    showOutput "${finalAlpha}" \
+               "${orgR}" "${orgG}" "${orgB}" \
+               "${bgR}" "${bgG}" "${bgB}"
+  fi
+}
+
+main "$@"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
