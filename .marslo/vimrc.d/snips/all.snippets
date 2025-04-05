@@ -26,12 +26,19 @@
 
 snippet #!! "shebang" b
 #!/usr/bin/env ${1:bash}
-${3}
-${2://} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/\w+/\u$0/g}
+
+${4}
+
+${3://} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${2:${1/\w+/\u$0/g}}:
 endsnippet
 
-snippet :vim: "for vim format settings" b
-${1://} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${2:Groovy}
+snippet modeline "vim modeline" b
+${1:#} vim`!v ':set '. (&expandtab ? printf('expandtab:shiftwidth=%i:tabstop=%i:softtabstop=%i', &sw, &ts, &sts) : printf('noexpandtab:sts=%i:sw=%i:ts=%i', &sts, &sw, &ts)) . (&tw ? ':tw='. &tw : '') . (':filetype=' . (len(&ft) ? &ft : 'sh') ). ':'`
+endsnippet
+
+snippet "mode(line)?( (\S+))?" "vim modeline" br
+${1:#} vim`!v ':set '. (&expandtab ? printf('expandtab shiftwidth=%i tabstop=%i softtabstop=%i', &sw, &ts, &sts) : printf('noexpandtab:sts=%i:sw=%i:ts=%i', &sts, &sw, &ts)) . (&tw ? ':tw='. &tw : '') . (':filetype=')`${2:`!p
+snip.rv = match.group(3) if match.group(2) is not None else "sh"`}:
 endsnippet
 
 snippet today
@@ -42,4 +49,27 @@ snippet now
 `date "+%Y-%m-%d %H:%M:%S"`
 endsnippet
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=snippet
+snippet "be(gin)?( (\S+))?" "begin{} / end{}" br
+\begin{${1:`!p
+snip.rv = match.group(3) if match.group(2) is not None else "something"`}}
+  ${2:${VISUAL}}
+\end{$1}$0
+endsnippet
+
+# `!p ..`: using python
+snippet wow
+${1:Text}`!p snip.rv = (75-2*len(t[1]))*' '+t[1].upper()`
+endsnippet
+
+# dorp down menu
+snippet query
+Your age: ${1|<18,18~60,>60|}
+Your height: ${2|<120cm,120cm~180cm,>180cm|}
+endsnippet
+
+# automatic expand when `p` is in the beginning of the line
+snippet "^p" "package" rbA
+package ${1:main}
+endsnippet
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=snippet:
