@@ -11,6 +11,7 @@
 .sdkman
 .cache
 .tmp
+.temp
 .beacon/
 .gradle/
 .oracle_jre_usage/
@@ -31,6 +32,7 @@ undo/
 nundo/
 log/
 **/.ssh/.backup/
+**/temp/
 
 Pictures/
 Music/

@@ -30,7 +30,7 @@ snippet #!! "shebnag" b
 import sys
 ${2}
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/(.*)[0-9]+/$1/}
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/(.*)[0-9]+/$1/}:
 endsnippet
 
 snippet shebang "shebnag" b
@@ -39,7 +39,15 @@ snippet shebang "shebnag" b
 import sys
 ${3}
 
-${2:#} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/(.*)[0-9]+/$1/}
+${2:#} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/(.*)[0-9]+/$1/}:
 endsnippet
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=snippet
+snippet modeline "vim modeline" b
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=python:
+endsnippet
+
+snippet :vim "vim modeline" b
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=python:
+endsnippet
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=snippet:

@@ -29,7 +29,7 @@ snippet #!! "shebnag" b
 import groovy.transform.Field
 ${3}
 
-// vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/\w+/\l$0/g}
+// vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/\w+/\l$0/g}:
 endsnippet
 
 snippet shebang "shebnag" b
@@ -37,14 +37,23 @@ snippet shebang "shebnag" b
 
 import groovy.transform.Field
 
-${2://} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/\w+/\l$0/g}
+${2://} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/\w+/\l$0/g}:
 endsnippet
 
 snippet //vim "modeline" b
-// vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1:groovy}
+// vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1:groovy}:
 endsnippet
 
-snippet importall "import generic libs" b
+snippet modeline "vim modeline" b
+// vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1:groovy}:
+endsnippet
+
+snippet import "import" b
+import ${1|groovy.transform.Field,static groovy.json.JsonOutput.*,java.net.URLEncoder,java.nio.file.Paths,jenkins.model.*|}
+${2}
+endsnippet
+
+snippet importa "import all generic libs" b
 import groovy.transform.Field
 import static groovy.json.JsonOutput.*
 import java.net.URLEncoder
@@ -54,7 +63,7 @@ ${1}
 endsnippet
 
 snippet importj "import jenkins.model.*" b
-import jenkins.model.*
+${1:import jenkins.model.*}
 endsnippet
 
 snippet /*gld "insert groovylint-disable"
@@ -79,4 +88,4 @@ snippet /** "block comments" b
 **/
 endsnippet
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=snippet
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=snippet:
