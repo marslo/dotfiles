@@ -84,4 +84,4 @@ echo "${output}" |
     echo ".. story points : ${_points}"
   done
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

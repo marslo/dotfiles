@@ -3,7 +3,7 @@
 #     FileName : icolor.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-05-01 23:54:35
-#   LastChange : 2024-05-16 01:16:35
+#   LastChange : 2025-04-06 16:35:04
 #=============================================================================
 
 # ***************************************************************
@@ -273,4 +273,4 @@ function showLSColors() {
   )
 }
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

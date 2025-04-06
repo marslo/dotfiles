@@ -76,4 +76,4 @@ sudo cp -f ${VIMCMD} ${PREFIX}/bin
 md5sum "${VIMCMD}"
 md5sum "${PREFIX}/bin/vim"
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

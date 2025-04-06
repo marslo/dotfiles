@@ -4,7 +4,7 @@
 #     FileName : tlrc-update
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-02-13 13:44:36
-#   LastChange : 2025-02-13 15:15:28
+#   LastChange : 2025-04-06 16:36:02
 #  Description : workaround for `error: io: invalid peer certificate: UnknownIssuer`
 #                @see https://github.com/tldr-pages/tlrc/issues/111#issuecomment-2657620327
 #=============================================================================
@@ -45,4 +45,4 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

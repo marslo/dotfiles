@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-04-04 00:12:45
+#   LastChange : 2025-04-06 16:35:19
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1650,7 +1650,7 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
 # using `eval` to handle non-commands, i.e.: `git <alias> --help`
 function help() {
   # count the first consecutive spaces
-  # shellcheck disable=SC2329
+  # shellcheck disable=SC2329,SC2317
   function countSpaces() { echo "$1" | awk '{ if (match($0, / {6,}/)) { print RLENGTH; exit; } }'; }
   # count the minimal consecutive spaces
   function countMiniSpaces() {
@@ -1686,4 +1686,4 @@ function help() {
   fi
 }
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************:

@@ -366,4 +366,4 @@ function fetchall() {
 }
 
 
-# vim:ts=2:sts=2:sw=2:et:ft=sh
+# vim:ts=2:sts=2:sw=2:et:ft=sh:

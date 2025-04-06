@@ -4,7 +4,7 @@
 #     FileName : git-del
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-14 17:55:55
-#   LastChange : 2025-03-05 17:25:16
+#   LastChange : 2025-04-06 09:48:59
 #  Description : delete branch or tag from remote and local
 #                -  - E0A0/E725
 #=============================================================================
@@ -80,4 +80,4 @@ if [[ 'false' = "${remoteOnly}" ]]; then
   fi;
 fi
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

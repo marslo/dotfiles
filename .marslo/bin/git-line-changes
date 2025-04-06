@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2048,SC2164,SC2086,SC2162,SC2059
+# credit belongs to https://gist.github.com/ccw/6a43efb2468ac20ec4c19240c210e0e4
+
+# make a temporary file
+git_extra_mktemp() {
+    mktemp -t "$(basename "$0")".XXXXXXX
+}
+
+for param in $*
+do
+    case $param in
+        -h)
+            echo 'Usage: git-line-changes [<options>] <since> <until>'
+            echo 'Calculates the change of files in blame between two revisions'
+            echo 'Example: git line-changes HEAD~3 HEAD'
+            echo
+            echo 'Options:'
+            echo
+            echo '  -h, --help               output usage information'
+            echo '  -w, --ignore-whitespace  ignore whitespace only changes when attributing blame'
+            echo '  -d, --debug              output debug information'
+            exit 0
+            ;;
+        -w|--ignore-whitespace )
+            NOT_WHITESPACE='-w'
+            shift
+            ;;
+        -d|--debug )
+            DEBUG=$(git_extra_mktemp)
+            shift
+            ;;
+    esac
+done
+
+cd "$(git-root)" # cd for git blame
+MERGED_LOG=$(git_extra_mktemp)
+echo "$MERGED_LOG"
+PATTERN='s/^filename //p'
+
+for file in $(git diff --name-only "$@")
+do
+    MIME_TYPE=$(/usr/bin/file -I $file | awk '{print $3}')
+    if [[ $MIME_TYPE == "charset=binary" ]]; then
+        continue
+    fi
+
+    test -n "$DEBUG" && echo "git blame $file"
+
+    if [[ $MIME_TYPE == "charset=iso-8859-1" ]]; then
+        # $1 - since $2 - until
+        git blame $NOT_WHITESPACE --line-porcelain "$1" -- "$file" 2> /dev/null |
+            iconv -f ISO-8859-1 | sed -n "$PATTERN" |
+            sort | uniq -c | sed -E "s@^(.*) (.*)@+ \1 ${file}@" >> $MERGED_LOG
+        # if $2 not given, use current commit as "until"
+        git blame $NOT_WHITESPACE --line-porcelain "${2-@}" -- "$file" 2> /dev/null |
+            iconv -f ISO-8859-1 | sed -n "$PATTERN" |
+            sort | uniq -c | sed -E "s@^(.*) (.*)@- \1 ${file}@" >> $MERGED_LOG
+    else
+        # $1 - since $2 - until
+        git blame $NOT_WHITESPACE --line-porcelain "$1" -- "$file" 2> /dev/null |
+            sed -n "$PATTERN" | sort | uniq -c | sed -E "s@^(.*) (.*)@+ \1 ${file}@" >> $MERGED_LOG
+        # if $2 not given, use current commit as "until"
+        git blame $NOT_WHITESPACE --line-porcelain "${2-@}" -- "$file" 2> /dev/null |
+            sed -n "$PATTERN" | sort | uniq -c | sed -E "s@^(.*) (.*)@- \1 ${file}@" >> $MERGED_LOG
+    fi
+done
+
+DEBUG="$DEBUG" awk '
+NR==1 {
+    # the index of $2 does not change in each line
+    name_start_at = index($0, $3)
+}
+/^\+/ {
+    changes[substr($0, name_start_at)] += $2
+}
+/^-/ {
+    changes[substr($0, name_start_at)] -= $2
+}
+END {
+    for (filename in changes) {
+        if (ENVIRON["DEBUG"]) {
+           printf("%d %s\n", changes[filename], filename) >> ENVIRON["DEBUG"]
+        }
+        if (changes[filename] != 0) {
+            printf("%d %s\n", changes[filename], filename)
+        }
+    }
+}' $MERGED_LOG | sort -nr | # only gawk supports built-in sort function
+while read line
+do
+    filename=${line#* }
+    num=${line%% *}
+    len=${#num}
+    sign="+"
+    color="32m"
+
+    if [[ $num -lt 0 ]]
+    then
+        sign="-"
+        num=$((0-num))
+        color="31m"
+    fi
+
+    printf "%-85s \033[00;${color}" "$filename"
+    if [[ $num -ge 100 ]]
+    then
+        for (( i = 0; i < 48 - len; i++ ))
+        do
+            printf "$sign"
+        done
+    else
+        for (( i = 0; i + 2 + len <= num/2; i++ ))
+        do
+            printf "$sign"
+        done
+    fi
+    printf "(%s)" $num
+    printf "\033[00m\n"
+done
+
+test -n "$DEBUG" && sort -nr "$DEBUG"

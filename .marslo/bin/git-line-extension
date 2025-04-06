@@ -3,7 +3,7 @@
 #     FileName : git-line-extension
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-01-26 23:18:38
-#   LastChange : 2024-01-31 02:06:45
+#   LastChange : 2025-04-06 09:53:30
 #     comments : for csv foramt requires `rs` installed
 #=============================================================================
 
@@ -31,10 +31,10 @@ extensions=$( echo "${output}" | wc -l | awk '{print $1}' )
 
 if [[ 'true' = "${csv}" ]]; then
   name="$(basename "$(pwd)")"
-  rs -c, -C, -T <<< "${output}" | tac                                                             > "${name}.csv"
+  rs -c, -C, -T <<< "${output}" | tac                                                            > "${name}.csv"
   # shellcheck disable=SC2129
-  echo "TOTAL LINES,$(awk '{print $1}' <<< "${total}")"                                          >> "${name}.csv"
-  echo "TOTAL EXTENSIONS,${extensions}"                                                          >> "${name}.csv"
+  echo "TOTAL LINES,$(awk '{print $1}' <<< "${total}")"                                         >> "${name}.csv"
+  echo "TOTAL EXTENSIONS,${extensions}"                                                         >> "${name}.csv"
   echo "TITLE,${total} lines total ${extensions} extensions total" | tr '[:lower:]' '[:upper:]' >> "${name}.csv"
   echo ">> csv file: $(realpath "${name}".csv)"
 else
@@ -42,4 +42,4 @@ else
   awk -F',' '{printf ("%4s %-6s %s\n", " ", $1, $2)}' <<< "${output}"
 fi
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
