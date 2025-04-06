@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # shellcheck source=/dev/null
+#=============================================================================
+#     FileName : rgba2hex-help
+#       Author : marslo.jiao@gmail.com
+#      Created : 2025-04-02 22:02:37
+#   LastChange : 2025-04-06 16:36:35
+#=============================================================================
 
 source "${HOME}"/.marslo/bin/bash-color.sh
 
@@ -69,3 +75,5 @@ NOTES
 """
 
 function showHelp() { echo -e "$usage"; }
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

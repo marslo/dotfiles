@@ -12,4 +12,4 @@ nohup pmset noidle >/dev/null 2>&1 &
 
 pmset -g stats
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

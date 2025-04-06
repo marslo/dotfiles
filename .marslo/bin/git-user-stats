@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+#
+# Show user stats (commits, files modified, insertions, deletions, and total
+# lines modified) for a repo
+#
+# author: https://gist.github.com/shitchell/783cc8a892ed1591eca2afeb65e8720a
+#
+# usage :
+# $ git user-stats --after="2022-01-01"
+# Email                           Commits     Files       Insertions  Deletions   Total Lines
+# -----                           -------     -----       ----------  ---------   -----------
+# marslo@marvell.com              101         169         14090       8877        22967
+# dclark@marvell.com              65          136         3124        1901        5025
+# gperez@marvell.com              8           12          507         355         862
+# rjagdale@marvell.com            2           8           274         11          285
+# phuang@marvell.com              3           5           99          9           108
+# whar@marvell.com                1           2           17          0           17
+
+git_log_opts=( "$@" )
+
+git log "${git_log_opts[@]}" --format='author: %ae' --numstat \
+    | tr '[A-Z]' '[a-z]' \
+    | grep -v '^$' \
+    | grep -v '^-' \
+    | awk '
+        {
+            if ($1 == "author:") {
+                author = $2;
+                commits[author]++;
+            } else {
+                insertions[author] += $1;
+                deletions[author] += $2;
+                total[author] += $1 + $2;
+                # if this is the first time seeing this file for this
+                # author, increment their file count
+                author_file = author ":" $3;
+                if (!(author_file in seen)) {
+                    seen[author_file] = 1;
+                    files[author]++;
+                }
+            }
+        }
+        END {
+            # Print a header
+            printf("%-30s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\n",
+                   "Email", "Commits", "Files",
+                   "Insertions", "Deletions", "Total Lines");
+            printf("%-30s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\n",
+                   "-----", "-------", "-----",
+                   "----------", "---------", "-----------");
+
+            # Print the stats for each user, sorted by total lines
+            n = asorti(total, sorted_emails, "@val_num_desc");
+            for (i = 1; i <= n; i++) {
+                email = sorted_emails[i];
+                printf("%-30s\t%-10s\t%-10s\t%-10s\t%-10s\t%-10s\n",
+                       email, commits[email], files[email],
+                       insertions[email], deletions[email], total[email]);
+            }
+        }
+'
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
