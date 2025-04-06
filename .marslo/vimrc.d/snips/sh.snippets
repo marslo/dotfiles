@@ -47,6 +47,10 @@ snippet "s(hell)?c(heck)?( (\S+))?" "shellcheck" br
 snip.rv = match.group(3) if match.group(2) is not None else "2015"`}
 endsnippet
 
+snippet #shellcheck "shellcheck" b
+# shellcheck source=/dev/null
+endsnippet
+
 snippet #sc "shellcheck" b
 # shellcheck disable=${1}
 endsnippet

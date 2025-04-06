@@ -82,4 +82,4 @@ function cpick() {
   fi
 }
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

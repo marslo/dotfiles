@@ -4,7 +4,7 @@
 #     FileName : ff
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-15 23:23:39
-#   LastChange : 2023-12-20 23:17:08
+#   LastChange : 2025-04-06 16:36:31
 #      example :
 #                - find all .DS_* and remove
 #                  $ fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --glob '*\.DS_*' $HOME | xargs -r rm
@@ -104,4 +104,4 @@ eval "${cmd}"
 
 unset cmd
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

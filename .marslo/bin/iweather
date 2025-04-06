@@ -4,7 +4,7 @@
 #     FileName : iweather
 #       Author : marslo
 #      Created : 2023-08-11 03:05:27
-#   LastChange : 2024-09-20 15:00:46
+#   LastChange : 2025-04-06 16:36:07
 # ===========================================================================
 
 shopt -s extglob
@@ -194,4 +194,4 @@ tput rc
 
 rm -rf "${tempfile}" "${locFile}"
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

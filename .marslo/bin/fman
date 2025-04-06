@@ -51,4 +51,4 @@ fzf ${option:-} \
     --header 'CTRL-N/P or SHIFT-↑/↓ to view preview contents; ENTER/Q to maximize/normal preview window' \
     --exit-0
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

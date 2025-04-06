@@ -4,7 +4,7 @@
 #     FileName : git-st
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-02-01 03:39:19
-#   LastChange : 2024-09-08 22:01:16
+#   LastChange : 2025-04-06 09:47:35
 #   references : https://stackoverflow.com/q/77919418/2940319
 #=============================================================================
 
@@ -45,4 +45,4 @@ if [[ -z "${gdiff}" ]]; then
   fi
 fi
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

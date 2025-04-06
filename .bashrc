@@ -45,9 +45,6 @@ function bello() { source ~/.bash_profile; }
 # export FIGNORE="Application Scripts:Applications (Parallels):ScrivWatcher:ScriptingAdditions"
 # [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
-# generated for envman. do not edit.
-# [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
-
 # generated for tt
 [[ -f "$HOME/.tt/.ttenv" ]] && source "$HOME/.tt/.ttenv"
 
