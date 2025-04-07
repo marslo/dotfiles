@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2025-03-18 00:38:58
+#  LastChange : 2025-03-18 01:51:50
 #  Description : ifunctions
 # =============================================================================
 
@@ -570,18 +570,39 @@ function md2html() {
   elif [[ -n "${mdfile}" ]]; then
     title="$(sed -E 's/\b(.)/\U\1/g' <<< ${mdfile%.*})"
   fi
-  [[ -n "${title}" ]] && pTitle="--metadata title=\"${title}\"" || pTitle=''
+
+  if [[ -n "${title}" ]]; then
+    echo """
+      sed -i "s/\(--title: \"\)[^\"]*/\1${title}/" ${pHome}/header.html
+      title: ${title}
+    """
+    /bin/cat ${pHome}/header.html
+    /bin/cat ${pHome}/header.html | sed "s/\(--title: \\"\)[^\\"]*/\1${title}/"
+    sedCmd="/bin/cat ${pHome}/header.html"
+    sedCmd+=" | sed \"s/\(--title: \\"\)[^\\"]*/\1${title}/\""
+    eval "${sedCmd}"
+    # sed -i "s/\(--title: \\"\)[^\\"]*/\1${title}/" ${pHome}/header.html
+    pHeader="--include-in-header ${pHome}/header.html"
+    pTitle="--metadata title=\"${title}\""
+  else
+    pHeader=''
+    pTitle=''
+  fi
 
   cmd="pandoc -f gfm -t html5 --embed-resources --standalone"
   cmd+=" --lua-filter=${pHome}/alert.lua"
   cmd+=" ${pTitle} --metadata date=\"$(date +%Y-%m-%d)\""
   cmd+=" --toc --toc-depth=${tDepth}"
-  cmd+=" --css ${pHome}/github.css --css ${pHome}/quota.css"
+  cmd+=" --css ${pHome}/github.css --css ${pHome}/alert.css --css ${pHome}/header-footer.css"
+  cmd+=" ${pHeader}"
   cmd+=" --pdf-engine=weasyprint"
   cmd+=" ${mdfile} -o ${output}"
 
   [[ 'true' = "${verbose}" ]] && echo -e "$(c Wid)>> [DEBUG]:$(c)\n\t$(c Yi)${cmd}$(c)"
   eval "${cmd}"
+
+  # revert header.html
+  sed -i "s/\(--title: \"\)[^\"]*/\1Title Here/" ${pHome}/header.html
 }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************:
