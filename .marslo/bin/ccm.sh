@@ -4,7 +4,7 @@
 #     FileName : ccm.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 03:34:24
-#   LastChange : 2025-04-07 16:57:05
+#   LastChange : 2025-04-07 15:23:48
 #  Description : ccm - [c]hatgpt [c]ommit [m]essage generator
 #                +----------------------+--------------------+------------+
 #                | ENVIRONMENT VARIABLE | DEFAULT VALUE      | NOTES      |
@@ -39,6 +39,8 @@ source "${HOME}"/.marslo/bin/bash-color.sh
 # +----------------------------+------------------+
 
 function showHelp() { echo -e "${USAGE}"; }
+function die() { echo -e "$(c R)ERROR$(c) : $*. exit ..." >&2; exit 1; }
+function showError() { echo -e "$(c R)ERROR$(c) : $*. exit ..." >&2; }
 
 declare model="${COMMITX_MODEL:-gpt-4-1106-preview}"
 declare temperature="${COMMITX_TEMPERATURE:-0.3}"
@@ -69,13 +71,53 @@ ENVIRONMENT VARIABLES
   OPENAI_API_KEY$(c R)*$(c)       your OpenAI API key ($(c Ri)required$(c), read from $(c i)environment variables$(c))
 """
 declare -a diffOpt=()
+declare doUntracked=true
+declare doFzf=false
+declare diff
+
+function getDiff() {
+  local modified
+  modified=$(git --no-pager diff --color=never "${diffOpt[@]}")
+
+  [[ "${doUntracked}" == false ]] && { echo "${modified}"; return; }
+
+  local untracked=''
+  local -a selectedFiles=()
+  local -a allFiles=()
+
+  mapfile -t allFiles < <(git ls-files --others --exclude-standard)
+
+  if [[ "${#allFiles[@]}" -gt 0 ]]; then
+    if [[ "${doFzf}" == true ]]; then
+      type -P fzf >/dev/null 2>&1 || { showError "--fzf provided but fzf is not installed"; exit 1; }
+      mapfile -t selectedFiles < <( printf "%s\n" "${allFiles[@]}" |
+                                    fzf --multi --prompt="untracked files> "
+                                  )
+    else
+      selectedFiles=("${allFiles[@]}")
+    fi
+
+    for file in "${selectedFiles[@]}"; do
+      test -d "${file}" && continue
+      file_diff=$(git --no-pager diff --no-index --color=never /dev/null "${file}" 2>/dev/null || true)
+      untracked+=$'\n'"$file_diff"
+    done
+  fi
+
+  echo "${modified}${untracked}"
+}
+
+diff="$(getDiff)"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --help | -h ) showHelp; exit 0 ;;
+    --help | -h    ) showHelp          ; exit 0    ;;
+    --untracked    ) doUntracked=true  ; shift     ;;
+    --no-untracked ) doUntracked=false ; shift     ;;
+    --fzf          ) doFzf=true        ; shift     ;;
     # pass everything after -- to git
-    --          ) shift; diffOpt+=("$@"); break ;;
-    *           ) echo -e "$(c Ri)ERROR$(c): unknown option: '$(c Mi)$1$(c)'. try $(c Gi)-h$(c)/$(c Gi)--help$(c). exit ..." >&2; exit 1 ;;
+    --             ) shift; diffOpt+=("$@"); break ;;
+    *              ) echo -e "$(c Ri)ERROR$(c): unknown option: '$(c Mi)$1$(c)'. try $(c Gi)-h$(c)/$(c Gi)--help$(c). exit ..." >&2; exit 1 ;;
   esac
 done
 
