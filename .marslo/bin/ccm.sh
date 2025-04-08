@@ -4,7 +4,7 @@
 #     FileName : ccm.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 03:34:24
-#   LastChange : 2025-04-08 11:49:56
+#   LastChange : 2025-04-08 12:02:42
 #  Description : ccm - [c]hatgpt [c]ommit [m]essage generator
 #                +----------------------+--------------------+------------+
 #                | ENVIRONMENT VARIABLE | DEFAULT VALUE      | NOTES      |
@@ -120,11 +120,20 @@ function createDiff() {
   echo "${modified}${untracked}"
 }
 
+# more spinner format can be found in https://gist.github.com/marslo/96f5d6e796f59ba79de2b1a12b3b318f
 function withSpinner() {
   local msg="$1"; shift
   local __resultvar="$1"; shift
-  local spinner=( '⣾' '⣽' '⣻' '⢿' '⡿' '⣟' '⣯' '⣷' '⣿' )
-  # local spinner=( '⠁' '⠂' '⠄' '⡀' '⢀' '⠠' '⠐' '⠈' )
+  local spinner=(
+    "$(c Rs)⣾$(c)"
+    "$(c Ys)⣽$(c)"
+    "$(c Gs)⣻$(c)"
+    "$(c Cs)⢿$(c)"
+    "$(c Rs)⡿$(c)"
+    "$(c Ys)⣟$(c)"
+    "$(c Gs)⣯$(c)"
+    "$(c Cs)⣷$(c)"
+  )
   local frame=0
   local output
   local cmd_pid
@@ -159,7 +168,7 @@ function withSpinner() {
 
       # update the spinner while the command is running
       while kill -0 "$cmd_pid" 2>/dev/null && (( interrupted == 0 )); do
-        printf "\r\033[K%s %s" "$msg" "${spinner[frame]}" >&2
+        printf "\r\033[K%s %b" "${msg}" "${spinner[frame]}" >&2
         ((frame = (frame + 1) % ${#spinner[@]}))
         sleep 0.08
       done
