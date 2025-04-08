@@ -4,7 +4,7 @@
 #     FileName : ccm.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 03:34:24
-#   LastChange : 2025-04-08 12:02:42
+#   LastChange : 2025-04-08 12:07:02
 #  Description : ccm - [c]hatgpt [c]ommit [m]essage generator
 #                +----------------------+--------------------+------------+
 #                | ENVIRONMENT VARIABLE | DEFAULT VALUE      | NOTES      |
@@ -74,7 +74,7 @@ ENVIRONMENT VARIABLES
 """
 
 function showHelp() { echo -e "${USAGE}"; }
-function die() { echo -e "$(c R)ERROR$(c) : $*. exit ..." >&2; exit 1; }
+function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -211,6 +211,7 @@ function main() {
 
   Use multiple scopes if the diff includes changes in multiple areas.
   Use markdown-style bullet points for details.
+  Ignore timestamp changes in script metadata.
   Do not include explanations or code.
   Base it on the following diff:
 
