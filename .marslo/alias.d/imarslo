@@ -4,7 +4,7 @@
 #   FileName : imarslo
 #     Author : marslo.jiao@gmail.com
 #    Created : 2017-10-30 19:07:45
-# LastChange : 2024-07-26 19:30:51
+# LastChange : 2025-04-08 23:59:13
 # =============================================================================
 
 MYWORKSPACE="$HOME/iMarslo"
@@ -24,9 +24,6 @@ alias onf="cd ${MYWORKSPACE}/job/code/tool-config"
 
 alias st="cd ${MYWORKSPACE}/study"
 if [[ -d "${MYWORKSPACE}/study" ]]; then
-  alias sc="cd ${MYWORKSPACE}/study/code"
-  alias sts="cd ${MYWORKSPACE}/study/scripts"
-
   alias sg="cd ${MYWORKSPACE}/study/mystudy/groovy"
   alias sp="cd ${MYWORKSPACE}/study/mystudy/python"
   alias spc="cd ${MYWORKSPACE}/study/mystudy/python/leetcode"
@@ -35,6 +32,7 @@ if [[ -d "${MYWORKSPACE}/study" ]]; then
   alias cdku="cd ${MYWORKSPACE}/study/mystudy/kubernetes"
 
   alias mco="cd ${MYWORKSPACE}/study/mycode"
+  alias scs="cd ${MYWORKSPACE}/study/mycode/scripts"
   alias cdj="cd ${MYWORKSPACE}/study/mycode/devops"
   alias cdba="cd ${MYWORKSPACE}/study/code/backups"
   alias cdmac="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/mac"
