@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-04-06 16:35:19
+#   LastChange : 2025-04-08 22:48:42
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1650,27 +1650,45 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
 # using `eval` to handle non-commands, i.e.: `git <alias> --help`
 function help() {
   # count the first consecutive spaces
-  # shellcheck disable=SC2329,SC2317
-  function countSpaces() { echo "$1" | awk '{ if (match($0, / {6,}/)) { print RLENGTH; exit; } }'; }
+  function countFirstSpaces() { echo "$1" | awk '{ if (match($0, / {6,}/)) { print RLENGTH; exit; } }'; }
   # count the minimal consecutive spaces
   function countMiniSpaces() {
     # grep -Eo '[ ]{2,}' <<<"$1" | awk '{print length}' | sort -n | head -n1
     awk 'BEGIN { min=999 } {
-        cnt=0;
-        for(i=1; i<=length; i++) {
-            if(substr($0,i,1)==" ") { cnt++ }
-            else { if(cnt>=2 && cnt<min) min=cnt; cnt=0 }
-        }
-        if(cnt>=2 && cnt<min) min=cnt
+      cnt=0;
+      for(i=1; i<=length; i++) {
+        if(substr($0,i,1)==" ") { cnt++ }
+        else { if(cnt>=2 && cnt<min) min=cnt; cnt=0 }
+      }
+      if(cnt>=2 && cnt<min) min=cnt
     } END { print (min!=999 ? min : 0) }' <<< "$1"
   }
+  # count the consecutive spaces before the last }
+  function countSpaces() {
+    awk '{
+      s = $0;
+      last = 0;
+      while (match(s, /[^ ] +}/)) {
+        spLen = RLENGTH - 2;
+        if (spLen >= 0) { last = spLen; }
+        s = substr(s, RSTART + RLENGTH);
+      }
+      print last;
+    }' <<< "$1"
+  }
 
-  # combine all lines into one line
-  output=$( eval "$* --help" 2>&1 | paste -sd '' )
+  output=$( eval "$* --help" 2>&1 )
 
   if [[ "$(head -1 <<< "${output}")" =~ "' is aliased to '" ]]; then
-    spaces=$( countMiniSpaces "${output}" )                     # spaces=$( countSpaces "${output}" )
+    # combine all lines into one line
+    output=$( paste -sd '' <<< "${output}" )
+
+    firstSpace=$( countFirstSpaces "${output}" )
+    spaces=$( countSpaces "${output}" )
+    [[ 0 = "${spaces}" ]] && spaces="$( countMiniSpaces "${output}" )"
+
     indent=5
+    (( "${firstSpace}" - "${spaces}" < "${indent}" )) && indent=0
 
     new=$( echo "${output}" | sed -rn "s/^[^']*'([^']*)'[^']*'(.*)'\s*$/\2/p" )
     # shellcheck disable=SC2001
