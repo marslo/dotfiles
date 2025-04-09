@@ -42,21 +42,13 @@ ${3}
 ${2:#} vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=${1/^ba(.*)/$1/}:
 endsnippet
 
-snippet "s(hell)?c(heck)?( (\S+))?" "shellcheck" br
+snippet "s(hell)?c(heck)?( (\S+))?" "shellcheck python expression" br
 # shellcheck source=/dev/null disable=SC${1:`!p
-snip.rv = match.group(3) if match.group(2) is not None else "2015"`}
+snip.rv = match.group(4) if match.group(3) is not None else "2015"`}
 endsnippet
 
-snippet #shellcheck "shellcheck" b
-# shellcheck source=/dev/null
-endsnippet
-
-snippet #sc "shellcheck" b
-# shellcheck disable=${1}
-endsnippet
-
-snippet #modeline "vim modeline" b
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
+snippet #scc "shellcheck dropdown" r
+# shellcheck ${1|source=/dev/null,disable=|}
 endsnippet
 
 snippet modeline "vim modeline" b
@@ -67,7 +59,7 @@ snippet //vim "vim modeline" b
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
 endsnippet
 
-snippet case
+snippet case "case .. esac"
 case ${1:word} in
   ${2:pattern} ) $0;;
 esac

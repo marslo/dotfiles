@@ -2,7 +2,7 @@
 #     FileName : .gitalias
 #       Author : marslo.jiao@gmail.com
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2025-02-17 19:49:31
+#   LastChange : 2025-04-08 22:56:51
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #-----------------------------------------------------------------------------#
 
@@ -634,39 +634,41 @@
   # {{{
   # https://stackoverflow.com/q/53841043/2940319
   ### show [g]it alia[s]
-  as         = "!bash -c '''grep --no-group-separator --color=never -A1 -e \"^\\s*### \" \"$HOME\"/.marslo/.gitalias | \n\
-                             awk \"END{if((NR%2))print p}!(NR%2){print\\$0p}{p=\\$0}\" | \n\
-                             grep --color=never -v -e \"^\\s*#\" | \n\
-                             sed -re \"s/(\\s*=)(.*)(###)/*/g\" | \n\
-                             sort -t \"*\" -n -k1 | \n\
-                             sed -re \"s:[][]::g\" | \n\
-                             awk -F* \"{printf \\\"\\033[38;5;178m%20s\\033[0m :\\033[3;37m%s\\033[0m\\n\\\", \\$1, \\$2}\" \n\
-                         ''' \n\
-                "
+  as              = "!bash -c '''grep --no-group-separator --color=never -A1 -e \"^\\s*### \" \"$HOME\"/.marslo/.gitalias | \n\
+                                 awk \"END{if((NR%2))print p}!(NR%2){print\\$0p}{p=\\$0}\" | \n\
+                                 grep --color=never -v -e \"^\\s*#\" | \n\
+                                 sed -re \"s/(\\s*=)(.*)(###)/*/g\" | \n\
+                                 sort -t \"*\" -n -k1 | \n\
+                                 sed -re \"s:[][]::g\" | \n\
+                                 awk -F* \"{printf \\\"\\033[38;5;178m%8s\\033[0m :\\033[3;37m%s\\033[0m\\n\\\", \\$1, \\$2}\" \n\
+                              ''' \n\
+                     "
+  ### [find] [a][lias] by keywords
+  find-alias      = "!bash -c \"$HOME/.marslo/bin/help git $*\""
   # https://brettterpstra.com/2014/08/04/shell-tricks-one-git-alias-to-rule-them-all/
-  ### [find] [a]lias by keywords
-  finda = "!grepalias() { git config --get-regexp alias | \
-                          grep -i \"alias.$1\" | \
-                          awk -v nr=2 '{ \
-                                         sub(/^alias\\./,\"\") }; \
-                                         {printf \"\\033[38;5;178m%15s :\\033[3;37m\", $1}; \
-                                         {sep=FS}; \
-                                          { for (x=nr; x<=NF; x++) {printf \"%s%s\", sep, $x; }; print \"\\033[0;39m\" \
-                                      }'; \
-                        }; grepalias"
+  finda           = "!f() { \
+                            git config --get-regexp alias | \
+                            grep -i \"alias.$1\" | \
+                            awk -v nr=2 '{ \
+                                           sub(/^alias\\./,\"\") }; \
+                                           {printf \"\\033[38;5;178m%8s :\\033[3;37m\", $1}; \
+                                           {sep=FS}; \
+                                           { for (x=nr; x<=NF; x++) {printf \"%s%s\", sep, $x; }; print \"\\033[0;39m\" \
+                                        }'; \
+                          }; f"
   # [m]arslo [h]elp
-  mh          = "!f() { \
-                        printf \"\\033[38;5;178m%15s\\033[0m : \\033[3;37m%s\\033[0m\n\" \"$1\" \"$2\"; \
-                      }; \
-                      f 'ca'  'git commit -s -am'; \
-                      f 'cae' 'git commit --signoff --allow-empty -am'; \
-                      f 'caa' 'git add --all && git commit --signoff --amend --no-edit --allow-empty'; \
-                      f 'cia' 'git commit --signoff --amend --allow-empty [-m <comments>]'; \
-                      f 'cin' 'commit --signoff --amend --no-edit --allow-empty'; \
-                      f 'mp'  'git caa & git push --force -u <current-branch>'; \
-                      f 'mw'  'git caa & git review <current-branch>'; \
-                      f 'ro'  'git fetch all & git reset --hard origin/<current-branch>'; \
-                "
+  mh              = "!f() { \
+                            printf \"\\033[38;5;178m%8s\\033[0m : \\033[3;37m%s\\033[0m\n\" \"$1\" \"$2\"; \
+                          }; \
+                          f 'ca'  'git commit -s -am'; \
+                          f 'cae' 'git commit --signoff --allow-empty -am'; \
+                          f 'caa' 'git add --all && git commit --signoff --amend --no-edit --allow-empty'; \
+                          f 'cia' 'git commit --signoff --amend --allow-empty [-m <comments>]'; \
+                          f 'cin' 'commit --signoff --amend --no-edit --allow-empty'; \
+                          f 'mp'  'git caa & git push --force -u <current-branch>'; \
+                          f 'mw'  'git caa & git review <current-branch>'; \
+                          f 'ro'  'git fetch all & git reset --hard origin/<current-branch>'; \
+                    "
 
   # $ git --list-cmds=alias
   # https://stackoverflow.com/a/62772985/2940319

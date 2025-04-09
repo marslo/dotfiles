@@ -4,7 +4,7 @@
 #     FileName : getCommitMessage.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2025-04-08 17:22:34
+#   LastChange : 2025-04-08 23:58:09
 #=============================================================================
 
 # | ENVIRONMENT       | DESCRIPTION               | DEFAULT |
