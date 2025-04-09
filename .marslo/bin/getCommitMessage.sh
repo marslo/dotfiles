@@ -4,7 +4,7 @@
 #     FileName : getCommitMessage.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2025-04-03 03:16:12
+#   LastChange : 2025-04-08 17:22:34
 #=============================================================================
 
 # | ENVIRONMENT       | DESCRIPTION               | DEFAULT |
@@ -59,6 +59,9 @@ function runInteractive() {
   printf -v "$__varname" "%s" "$output"
 }
 
+# SOH: `\001` - Start of Heading
+# STX: `\002` - Start of Text
+# have `\001` and `\002` surrounding the colorized string to handle multiple lines input
 function getCommitMessage() {
   selected=$( printf "%b\n" "${types[@]}" |
               fzf --prompt="commit type: " --height=10 --border --ansi --color=fg+:#979736,hl+:#979736
@@ -67,11 +70,11 @@ function getCommitMessage() {
   type=$(echo "${selected}" | awk -F: '{print $1}')
 
   if [[ 'true' = "${MCX_ENABLE_SCOPE:-true}" ]]; then
-    read -rep "$(printf "$(c Mi)%s$(c)" 'scope (optional): ')" scope
+    read -rep "$(printf "\001$(c Mi)\002%s\001$(c)\002" 'scope (optional): ')" scope
     [[ -n "${scope}" ]] && scope="(${scope})"
   fi
 
-  read -rep "$(printf "$(c Mi)%s$(c)" 'commit message subject: ')" subject
+  read -rep "$(printf "\001$(c Mi)\002%s\001$(c)\002" 'commit message subject: ')" subject
   [[ -z "${subject}" ]] && die 'no commit subject entered'
 
   if [[ 'true' = "${MCX_ENABLE_BODY:-false}" ]]; then
