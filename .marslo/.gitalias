@@ -2,7 +2,7 @@
 #     FileName : .gitalias
 #       Author : marslo.jiao@gmail.com
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2025-04-08 22:56:51
+#   LastChange : 2025-04-10 01:22:05
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #-----------------------------------------------------------------------------#
 
@@ -159,7 +159,7 @@
                       }; f \
                 "
   # [c]ommit -[a]m
-  ca          = "!bash $HOME/.marslo/bin/git-mcx"
+  ca          = "!bash -c '\"$HOME/.marslo/bin/git-mcx\" \"$@\"' _"
   ### [c]omm[i]t --[a]mend
   cia         = "!f() { \
                         declare authorDate=\"${GIT_AUTHOR_DATE}\"; \

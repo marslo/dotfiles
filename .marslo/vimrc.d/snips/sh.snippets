@@ -48,7 +48,7 @@ snip.rv = match.group(4) if match.group(3) is not None else "2015"`}
 endsnippet
 
 snippet #scc "shellcheck dropdown" r
-# shellcheck ${1|source=/dev/null,disable=|}
+# shellcheck ${1|disable=SC,source=/dev/null|}
 endsnippet
 
 snippet modeline "vim modeline" b
