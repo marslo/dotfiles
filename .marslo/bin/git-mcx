@@ -4,7 +4,7 @@
 #     FileName : git-mcx
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2025-04-06 09:49:18
+#   LastChange : 2025-04-10 01:23:22
 #        Usage : git-mcx             # call getCommitMessage to set commit message
 #                git-mcx [message]   # using $1 as commit message
 #=============================================================================
@@ -26,7 +26,88 @@ set -euo pipefail
 source "${HOME}"/.marslo/bin/bash-color.sh
 source "${HOME}"/.marslo/bin/getCommitMessage.sh
 
+function showHelp() { echo -e "${USAGE}"; }
+function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
+
+# shellcheck source=/dev/null disable=SC2155
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
+# flag
+declare MCX_ENABLE_SCOPE="${MCX_ENABLE_SCOPE:-true}"
+declare MCX_LINT_ENABLE="${MCX_LINT_ENABLE:-true}"
+declare MCX_ENABLE_BODY="${MCX_ENABLE_BODY:-false}"
+declare MCX_ENABLE_FOOTER="${MCX_ENABLE_FOOTER:-false}"
+declare MCX_SHOW_PREVIEW="${MCX_SHOW_PREVIEW:-false}"
+declare MCX_SHOW_DIFF="${MCX_SHOW_DIFF:-false}"
+declare MCX_GLOBAL_LINTRC="${MCX_GLOBAL_LINTRC:-false}"
+declare LINTRC_FILE="${HOME}/.commitlintrc.js"
+# shellcheck source=/dev/null disable=SC2155
+declare -r USAGE="""
+NAME
+  $(c Y)${ME}$(c) - [m]arslo [c]ommit pro ma[x] - Git commit message helper
+
+USAGE
+  $(c Y)\$ ${ME}$(c) $(c Wdi)[$(c)$(c Gi)options$(c)$(c Wdi)]$(c)
+
+OPTIONS
+
+  $(c Gi)--body$(c)               enable the commit message body section
+  $(c Gi)--no-body$(c)$(c Y)*$(c)           disable the body section
+
+  $(c Gi)--footer$(c)             enable the footer section (e.g.: $(c Wi)issue refs$(c), $(c Wi)breaking changes$(c))
+  $(c Gi)--no-footer$(c)$(c Y)*$(c)         disable the footer section
+
+  $(c Gi)--diff$(c)               show Git diff preview $(c i)(if applicable)$(c)
+  $(c Gi)--no-diff$(c)$(c Y)*$(c)           suppress Git diff preview
+
+  $(c Gi)--preview$(c)            enable full preview of the final commit message
+  $(c Gi)--no-preview$(c)$(c Y)*$(c)        disable commit preview output
+
+  $(c Gi)--scope$(c)$(c Y)*$(c)             prompt for Conventional Commit 'scope' input
+  $(c Gi)--no-scope$(c)           skip scope input
+
+  $(c Gi)--lint$(c)$(c Y)*$(c)              enable commit message linting $(c i)(via commitlint - if applicable)$(c)
+  $(c Gi)--no-lint$(c)            disable lint checks
+
+  $(c Gi)--global-lintrc$(c)      force use global commitlint configuration (default: $(c Mi)~/.commitlintrc$(c))
+  $(c Gi)--no-global-lintrc$(c)$(c Y)*$(c)  use local commitlint configuration by default
+  $(c Gi)--lintrc$(c) $(c Wi)<file>$(c)      specify a custom commitlint configuration file
+                       example: $(c Gi)--lintrc$(c) $(c Wi)\"\$HOME/path/to/.commitlintrc.json\"$(c)
+
+
+  $(c Gi)-h$(c), --help           show this help message and exit
+
+EXAMPLES
+
+  $(c Y)\$ ${ME}$(c) $(c Bi)--$(c) $(c Gi)--help$(c)            $(c Wdi)# show help$(c)
+  $(c Y)\$ ${ME}$(c) $(c Gi)--body --footer --diff --lint$(c)
+  $(c Y)\$ ${ME}$(c) $(c Gi)--no-preview --no-scope --lintrc$(c) $(c Wi)./custom-lintrc.json$(c)
+  $(c Y)\$ ${ME}$(c) $(c Gi)--no-lint --no-footer --no-body$(c)
+"""
+
 # TODO: add --help/-h for usage
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --no-body          ) MCX_ENABLE_BODY=false   ; shift     ;;
+    --body             ) MCX_ENABLE_BODY=true    ; shift     ;;
+    --no-footer        ) MCX_ENABLE_FOOTER=false ; shift     ;;
+    --footer           ) MCX_ENABLE_FOOTER=true  ; shift     ;;
+    --diff             ) MCX_SHOW_DIFF=true      ; shift     ;;
+    --no-diff          ) MCX_SHOW_DIFF=false     ; shift     ;;
+    --preview          ) MCX_SHOW_PREVIEW=true   ; shift     ;;
+    --no-preview       ) MCX_SHOW_PREVIEW=false  ; shift     ;;
+    --scope            ) MCX_ENABLE_SCOPE=true   ; shift     ;;
+    --no-scope         ) MCX_ENABLE_SCOPE=false  ; shift     ;;
+    --lint             ) MCX_LINT_ENABLE=true    ; shift     ;;
+    --no-lint          ) MCX_LINT_ENABLE=false   ; shift     ;;
+    --lintrc           ) LINTRC_FILE="$2"        ; shift 2   ;;
+    --global-lintrc    ) MCX_GLOBAL_LINTRC=true  ; shift     ;;
+    --no-global-lintrc ) MCX_GLOBAL_LINTRC=false ; shift     ;;
+    --                 ) shift                               ;;
+    -h | --help        ) showHelp                ; exit 0    ;;
+    *                  ) die "$(c Ri)Unknown option: $1$(c)" ;;
+  esac
+done
 
 function main() {
   git add --all "$(git rev-parse --show-toplevel)";
@@ -53,7 +134,7 @@ function main() {
   # commitlint check
   if command -v commitlint >/dev/null 2>&1 && [[ 'true' = "${MCX_LINT_ENABLE:-true}" ]]; then
     [[ 'true' = "${MCX_GLOBAL_LINTRC:-false}" ]] \
-      && CONFIG_OPT="--config ${HOME}/.commitlintrc.js" \
+      && CONFIG_OPT="--config '${LINTRC_FILE}'" \
       || CONFIG_OPT=''
     printf "%b\n" "$(c Yi)commitlint checking ...$(c)"
     # shellcheck disable=SC2086

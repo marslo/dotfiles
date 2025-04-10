@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null disable=SC2155
+#=============================================================================
+#     FileName : rrun
+#       Author : marslo.jiao@gmail.com
+#      Created : 2025-04-09 16:43:02
+#   LastChange : 2025-04-10 01:35:12
+#=============================================================================
+
+set -euo pipefail
+source "${HOME}/.marslo/bin/bash-color.sh"
+
+declare FILE=""
+declare CMD=''
+declare USER=""
+declare IPS=""
+declare SSH_CONFIG="${HOME}/.ssh/config"
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
+# shellcheck disable=SC1079
+declare USAGE="""
+NAME
+  $(c Ys)${ME}$(c) - $(c Ys)r$(c)emote $(c Ys)run$(c) - execute a local shell script or command on multiple remote hosts via SSH
+
+USAGE
+  $(c Ys)\$ ${ME}$(c) $(c Wdi)[$(c)$(c Gi)OPTIONS$(c)$(c Wdi)]$(c)
+
+OPTIONS
+  $(c Gi)--ip$(c) $(c Wdi)'ip1,ip2,...'$(c)             comma-separated list of target host IPs
+  $(c Gi)--config$(c) $(c Wdi)'~/.ssh/config'$(c)       the $(c Bi)SSH Config$(c) file to be used
+  $(c Gi)-u$(c), $(c Gi)--user$(c) $(c Wdi)'username'$(c)          the $(c Bi)SSH username$(c) for remote connection
+  $(c Gi)-f$(c), $(c Gi)--file$(c) $(c Wdi)'script.sh'$(c)         local shell script to execute remotely
+  $(c Gi)-c$(c), $(c Gi)--cmd$(c) $(c Wdi)'command'$(c)            command to run directly on remote hosts (alternative to -f)
+  $(c Gi)-q$(c), $(c Gi)--quiet$(c)                    quiet mode; suppress most output
+  $(c Gi)-v$(c), $(c Gi)--verbose$(c)                  verbose mode; show detailed logs
+  $(c Gi)-h$(c), $(c Gi)--help$(c)                     show this help message and exit
+
+EXAMPLES
+  $(c Wdi)# execute a local script on multiple remote hosts$(c)
+  $(c Ys)\$ ${ME}$(c) $(c Gi)-f$(c) $(c Mi)/path/to/deploy.sh$(c) $(c Gi)--ip$(c) $(c Mi)'192.168.0.10,192.168.0.11'$(c) $(c Gi)-u$(c) $(c Mi)root$(c)
+
+  $(c Wdi)# run a single command remotely$(c)
+  $(c Ys)\$ ${ME}$(c) $(c Gi)-c$(c) $(c Mi)'uptime'$(c) $(c Gi)--ip$(c) $(c Mi)'10.0.0.1,10.0.0.2'$(c) $(c Gi)-u$(c) $(c Mi)ubuntu$(c)
+
+NOTES
+  • $(c Gs)--user$(c) are mandatory
+  • $(c Gsi)--ip$(c) or $(c Gsi)--config$(c) are required - $(c i)for remote hosts$(c)
+  • $(c Gsi)--file$(c) or $(c Gis)--cmd$(c) are required - $(c i)for remote execution$(c)
+  • It's recommended to set up SSH key-based authentication or use $(c Ci)~/.ssh/config$(c) for seamless access.
+"""
+
+declare quiet=false
+declare verbose='false'
+
+function showHelp() { echo -e "${USAGE}"; }
+function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --ip         ) IPS="$2"        ; shift 2 ;;
+    --config     ) SSH_CONFIG="$2" ; shift 2 ;;
+    -u|--user    ) USER="$2"       ; shift 2 ;;
+    -f|--file    ) FILE="$2"       ; shift 2 ;;
+    -c|--cmd     ) CMD="$2"        ; shift 2 ;;
+    -q|--quiet   ) quiet=true      ; shift   ;;
+    -v|--verbose ) verbose=true    ; shift   ;;
+    -h|--help    ) showHelp        ; exit 0  ;;
+    *            ) die "unknown option: $1"  ;;
+  esac
+done
+
+[[ -z "${USER}" ]] && die "SSH username ( $(c Mi)'--user'$(c) ) is mandatory"
+[[ -z "${IPS}"  && -z "${SSH_CONFIG}" ]] && die "provide a list of IPs ( $(c Mi)\`--ip\`$(c) ) or SSH config file ( $(c Mi)\`--config\`$(c) )";
+[[ -z "${FILE}" && -z "${CMD}" ]] && die "provide a shell script file ( $(c Mi)\`--file\`$(c) ) or command ( $(c Mi)\`--cmd\`$(c) )to run";
+
+[[ -n "${FILE}" ]] && [[ ! -f "${FILE}" ]] && die "$(c Mi)'--file'$(c) is not exist";
+[[ -n "${SSH_CONFIG}" ]] && [[ ! -f "${SSH_CONFIG}" ]] && die "the SSH config file: $(c Ci)'${SSH_CONFIG}'$(c) is not exist";
+
+IPS=$(awk '
+    BEGIN {
+      colorStart = "\033[37;2;3m"
+      colorEnd = "\033[0m"
+    }
+    /^[[:space:]]*#/ { next }                   # skip comments
+    NF == 0          { next }                   # skip empty lines
+    $1 == "Host"     { host=$2; next }          # take only the first alias
+    $1 == "Hostname" && host != "" {
+      printf "%s : %s%s%s\n", $2, colorStart, host, colorEnd
+      host = ""                                 # reset for next block
+    }
+  ' "${SSH_CONFIG}" |
+  column -t |
+  sort -k2 |
+  fzf --prompt='󱚥 ' --color=fg+:#979736,hl+:#979736 |
+  awk -F':' '
+    {
+      gsub(/^[ \t]+|[ \t]+$/, "", $1)           # trim leading/trailing whitespace
+      if ($1 != "") { s = s $1 "," }            # skip empty lines
+    }
+    END { sub(/,$/, "", s); print s }           # remove trailing comma
+  '
+)
+
+trap exit SIGINT SIGTERM; while read -r IP; do
+  declare sshCmd=''
+  ! "${quiet}" && printf "\n$(c Wd)>>$(c) $(c Ys)%s$(c) - $(c Ys)%s$(c) $(c Wd)<<$(c)\n" "${IP}" "$(ssh -n "${USER}@${IP}" 'echo $(hostname)')"
+  [[ -n "${FILE}" ]] && sshCmd+="ssh -q ${USER}@${IP} 'bash -s' < '${FILE}';"
+  [[ -n "${CMD}"  ]] && sshCmd+="ssh -n ${USER}@${IP} \"${CMD}\";"
+  "${verbose}" && printf "$(c Wdi)>> [DEBUG]:$(c) $(c Wi)%s$(c)\n" "${sshCmd}"
+
+  eval "${sshCmd}"
+done < <(echo "${IPS}" | tr ',' '\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
