@@ -3,7 +3,7 @@
 #     FileName : help
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-10-08 06:57:15
-#   LastChange : 2025-04-09 00:21:59
+#   LastChange : 2025-04-10 01:37:53
 #=============================================================================
 
 set -euo pipefail
@@ -58,7 +58,7 @@ function help() {
     if [[ "$(wc -l <<< "${new}")" -gt 1 ]]; then
       bat --style="numbers" --language=bash --theme Nord <<< "${new}"
     else
-      echo "${output}" | sed -r "s/\x1B?\[(([0-9]+)(;[0-9]+)*)?[mGKHfJ]//g" | bat --plain --language=bash --theme=gruvbox-dark-marslo
+      echo "${output}" | sed -r "s/\x1B?\[(([0-9]+)(;[0-9]+)*)?[mGKHfJ]//g" | bat --plain --language=bash --theme=Nord
     fi
   else
     echo "${output}" | sed -r "s/\x1B?\[(([0-9]+)(;[0-9]+)*)?[mGKHfJ]//g" | bat --plain --language=help
