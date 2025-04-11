@@ -4,7 +4,7 @@
 #     FileName : rrun
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-09 16:43:02
-#   LastChange : 2025-04-10 01:35:12
+#   LastChange : 2025-04-11 01:41:42
 #=============================================================================
 
 set -euo pipefail
@@ -28,8 +28,8 @@ OPTIONS
   $(c Gi)--ip$(c) $(c Wdi)'ip1,ip2,...'$(c)             comma-separated list of target host IPs
   $(c Gi)--config$(c) $(c Wdi)'~/.ssh/config'$(c)       the $(c Bi)SSH Config$(c) file to be used
   $(c Gi)-u$(c), $(c Gi)--user$(c) $(c Wdi)'username'$(c)          the $(c Bi)SSH username$(c) for remote connection
-  $(c Gi)-f$(c), $(c Gi)--file$(c) $(c Wdi)'script.sh'$(c)         local shell script to execute remotely
-  $(c Gi)-c$(c), $(c Gi)--cmd$(c) $(c Wdi)'command'$(c)            command to run directly on remote hosts (alternative to -f)
+  $(c Gi)-f$(c), $(c Gi)--file$(c) $(c Wdi)'script.sh'$(c)         local shell script to execute remotely $(c i)(alternative to $(c 0Bi)-c$(c 0i))$(c)
+  $(c Gi)-c$(c), $(c Gi)--cmd$(c) $(c Wdi)'command'$(c)            command to run directly on remote hosts $(c i)(alternative to $(c 0Bi)-f$(c 0i))$(c)
   $(c Gi)-q$(c), $(c Gi)--quiet$(c)                    quiet mode; suppress most output
   $(c Gi)-v$(c), $(c Gi)--verbose$(c)                  verbose mode; show detailed logs
   $(c Gi)-h$(c), $(c Gi)--help$(c)                     show this help message and exit
@@ -42,9 +42,9 @@ EXAMPLES
   $(c Ys)\$ ${ME}$(c) $(c Gi)-c$(c) $(c Mi)'uptime'$(c) $(c Gi)--ip$(c) $(c Mi)'10.0.0.1,10.0.0.2'$(c) $(c Gi)-u$(c) $(c Mi)ubuntu$(c)
 
 NOTES
-  • $(c Gs)--user$(c) are mandatory
-  • $(c Gsi)--ip$(c) or $(c Gsi)--config$(c) are required - $(c i)for remote hosts$(c)
-  • $(c Gsi)--file$(c) or $(c Gis)--cmd$(c) are required - $(c i)for remote execution$(c)
+  • $(c G)--user$(c) are mandatory
+  • $(c Gi)--ip$(c) or $(c Gi)--config$(c) are required - $(c i)for remote hosts$(c)
+  • $(c Gi)--file$(c) or $(c Gi)--cmd$(c) are required - $(c i)for remote execution$(c)
   • It's recommended to set up SSH key-based authentication or use $(c Ci)~/.ssh/config$(c) for seamless access.
 """
 
