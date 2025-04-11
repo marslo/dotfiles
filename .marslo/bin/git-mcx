@@ -50,7 +50,7 @@ OPTIONS
   $(c Gi)--body$(c)               enable the commit message body section
   $(c Gi)--no-body$(c 0Y)*$(c)           disable the body section
 
-  $(c Gi)--footer$(c)             enable the footer section (e.g.: $(c Wi)issue refs$(c), $(c Wi)breaking changes$(c))
+  $(c Gi)--footer$(c)             enable the footer section $(c i)(e.g.: $(c W)issue refs, $(c 0Wi)breaking changes$(c 0i))$(c)
   $(c Gi)--no-footer$(c 0Y)*$(c)         disable the footer section
 
   $(c Gi)--diff$(c)               show Git diff preview $(c i)(if applicable)$(c)

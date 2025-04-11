@@ -615,8 +615,8 @@ autocmd BufReadPre *
     \ | if f > 100000 || f == -2
     \ |   let b:copilot_enabled = v:false
     \ | endif
-" invpaste -> paste in insert/normal/visual mode
-noremap <leader>pp :set invpaste<cr>
+" invpaste <-> paste in insert/normal/visual mode ( toggle paste mode )
+nnoremap <leader>pp :set invpaste paste?<CR>
 map <silent> <F2>  :Copilot disable<CR>
 
 " sheerun/vim-polyglot
