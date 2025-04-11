@@ -4,7 +4,7 @@
 #     FileName : git-mcx
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2025-04-10 02:18:33
+#   LastChange : 2025-04-11 01:56:58
 #        Usage : git-mcx [OPTION]             # call getCommitMessage to set commit message
 #                git-mcx [OPTION] [message]   # using `[message]` as commit message
 #=============================================================================
@@ -28,7 +28,7 @@ function showHelp() { echo -e "${USAGE}"; }
 function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
 
 # shellcheck source=/dev/null disable=SC2155
-declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /g')"
 # flag
 declare MCX_ENABLE_SCOPE="${MCX_ENABLE_SCOPE:-true}"
 declare MCX_LINT_ENABLE="${MCX_LINT_ENABLE:-true}"
@@ -41,10 +41,10 @@ declare LINTRC_FILE="${HOME}/.commitlintrc.js"
 # shellcheck source=/dev/null disable=SC2155
 declare -r USAGE="""
 NAME
-  $(c Y)${ME}$(c) - $(c Y)m$(c)arslo $(c Yi)c$(c)ommit pro ma$(c Y)x$(c) - Git commit message helper
+  $(c Ys)${ME}$(c) - $(c Ysi)m$(c)arslo $(c Ysi)c$(c)ommit pro ma$(c Ysi)x$(c) - Git commit message helper
 
 USAGE
-  $(c Y)\$ ${ME} $(c 0Wdi)[$(c 0Gi)options$(c 0Wdi)] [$(c 0Mi)message$(c 0Wdi)]$(c)
+  $(c Ys)\$ ${ME} $(c 0Wdi)[$(c 0Gi)options$(c 0Wdi)] [$(c 0Mi)message$(c 0Wdi)]$(c)
 
 OPTIONS
   $(c Gi)--body$(c)               enable the commit message body section
@@ -74,10 +74,10 @@ OPTIONS
   $(c Gi)-h$(c), $(c Gi)--help$(c)           show this help message and exit
 
 EXAMPLES
-  $(c Y)\$ ${ME} $(c 0Bi)-- $(c 0Gi)--help            $(c 0Wdi)# show help$(c)
-  $(c Y)\$ ${ME} $(c 0Gi)--body --footer --diff --lint$(c)
-  $(c Y)\$ ${ME} $(c 0Gi)--no-preview --no-scope --lintrc $(c 0Wi)./custom-lintrc.json$(c)
-  $(c Y)\$ ${ME} $(c 0Gi)--no-lint --no-footer --no-body$(c)
+  $(c Ys)\$ ${ME} $(c 0Bi)--$(c 0Gi) --help            $(c 0Wdi)# show help$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--body --footer --diff --lint$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--no-preview --no-scope --lintrc $(c 0Wi)./custom-lintrc.json$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--no-lint --no-footer --no-body$(c)
 """
 
 while [[ $# -gt 0 ]]; do
@@ -99,7 +99,7 @@ while [[ $# -gt 0 ]]; do
     --no-global-lintrc ) MCX_GLOBAL_LINTRC=false ; shift     ;;
     --                 ) shift                               ;;
     -h | --help        ) showHelp                ; exit 0    ;;
-    *                  ) die "$(c Ri)Unknown option: $1$(c)" ;;
+    *                  ) die "$(c i)Unknown option: $(c M)'$1'$(c 0i). try$(c) $(c Gi)\`\$ ${ME} -- --help\`$(c)" ;;
   esac
 done
 
