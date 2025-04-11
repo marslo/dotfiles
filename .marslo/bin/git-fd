@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck source=/dev/null
 #=============================================================================
-#     FileName : git-find
+#     FileName : git-fd
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-10 19:59:15
-#   LastChange : 2025-04-11 01:41:15
+#   LastChange : 2025-04-11 01:54:46
 #=============================================================================
 
 set -euo pipefail
@@ -16,7 +16,7 @@ declare FILE_PATTERN=''
 declare GREP_PATTERN=''
 AUTHOR="$(git config user.email 2>/dev/null || echo "")"
 # shellcheck disable=SC2155
-declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
 # shellcheck disable=SC2155
 declare -r USAGE="""
 USAGE
