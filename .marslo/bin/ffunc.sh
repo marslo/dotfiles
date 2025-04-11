@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-04-08 22:48:42
+#   LastChange : 2025-04-11 01:43:58
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -593,8 +593,13 @@ function cdr() {                           # cdd - [c][d] to selected [r]epo dir
 function cdf() {                           # [c][d] into the directory of the selected [f]ile
   local file
   local dir
-  # shellcheck disable=SC2164
-  file=$(fzf --multi --query "$1") && dir=$(dirname "${file}") && cd "${dir}"
+  if [[ -n "$1" ]]; then
+    file="$1"
+    cd "$(dirname "${file}")" || return
+  else
+    # shellcheck disable=SC2164
+    file=$(fzf --multi --query "$1") && dir=$(dirname "${file}") && cd "${dir}"
+  fi
 }
 
 # references:
@@ -1645,63 +1650,7 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
 # |____/ \_||_|\___)
 #
 # **************************************************************/
-
 # bat
-# using `eval` to handle non-commands, i.e.: `git <alias> --help`
-function help() {
-  # count the first consecutive spaces
-  function countFirstSpaces() { echo "$1" | awk '{ if (match($0, / {6,}/)) { print RLENGTH; exit; } }'; }
-  # count the minimal consecutive spaces
-  function countMiniSpaces() {
-    # grep -Eo '[ ]{2,}' <<<"$1" | awk '{print length}' | sort -n | head -n1
-    awk 'BEGIN { min=999 } {
-      cnt=0;
-      for(i=1; i<=length; i++) {
-        if(substr($0,i,1)==" ") { cnt++ }
-        else { if(cnt>=2 && cnt<min) min=cnt; cnt=0 }
-      }
-      if(cnt>=2 && cnt<min) min=cnt
-    } END { print (min!=999 ? min : 0) }' <<< "$1"
-  }
-  # count the consecutive spaces before the last }
-  function countSpaces() {
-    awk '{
-      s = $0;
-      last = 0;
-      while (match(s, /[^ ] +}/)) {
-        spLen = RLENGTH - 2;
-        if (spLen >= 0) { last = spLen; }
-        s = substr(s, RSTART + RLENGTH);
-      }
-      print last;
-    }' <<< "$1"
-  }
-
-  output=$( eval "$* --help" 2>&1 )
-
-  if [[ "$(head -1 <<< "${output}")" =~ "' is aliased to '" ]]; then
-    # combine all lines into one line
-    output=$( paste -sd '' <<< "${output}" )
-
-    firstSpace=$( countFirstSpaces "${output}" )
-    spaces=$( countSpaces "${output}" )
-    [[ 0 = "${spaces}" ]] && spaces="$( countMiniSpaces "${output}" )"
-
-    indent=5
-    (( "${firstSpace}" - "${spaces}" < "${indent}" )) && indent=0
-
-    new=$( echo "${output}" | sed -rn "s/^[^']*'([^']*)'[^']*'(.*)'\s*$/\2/p" )
-    # shellcheck disable=SC2001
-    [[ 2 -lt "${spaces}" ]] && new=$(echo "${new}" | sed "s/ \{$((spaces + "${indent}"))\}/\n/g")
-
-    if [[ "$(wc -l <<< "${new}")" -gt 1 ]]; then
-      bat --style="numbers" --language=bash --theme Nord <<< "${new}"
-    else
-      echo "${output}" | sed -r "s/\x1B?\[(([0-9]+)(;[0-9]+)*)?[mGKHfJ]//g" | bat --plain --language=bash --theme=gruvbox-dark-marslo
-    fi
-  else
-    echo "${output}" | sed -r "s/\x1B?\[(([0-9]+)(;[0-9]+)*)?[mGKHfJ]//g" | bat --plain --language=help
-  fi
-}
+alias help='$HOME/.marslo/bin/help'
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************:

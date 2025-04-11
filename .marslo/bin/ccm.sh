@@ -4,7 +4,7 @@
 #     FileName : ccm.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 03:34:24
-#   LastChange : 2025-04-08 12:07:02
+#   LastChange : 2025-04-11 01:44:57
 #  Description : ccm - [c]hatgpt [c]ommit [m]essage generator
 #                +----------------------+--------------------+------------+
 #                | ENVIRONMENT VARIABLE | DEFAULT VALUE      | NOTES      |
@@ -125,14 +125,15 @@ function withSpinner() {
   local msg="$1"; shift
   local __resultvar="$1"; shift
   local spinner=(
-    "$(c Rs)⣾$(c)"
-    "$(c Ys)⣽$(c)"
-    "$(c Gs)⣻$(c)"
-    "$(c Cs)⢿$(c)"
-    "$(c Rs)⡿$(c)"
-    "$(c Ys)⣟$(c)"
-    "$(c Gs)⣯$(c)"
-    "$(c Cs)⣷$(c)"
+    "$(c Rs)⣄$(c)"
+    "$(c Ys)⣆$(c)"
+    "$(c Gs)⡇$(c)"
+    "$(c Bs)⠏$(c)"
+    "$(c Ms)⠋$(c)"
+    "$(c Ys)⠹$(c)"
+    "$(c Gs)⢸$(c)"
+    "$(c Bs)⣰$(c)"
+    "$(c Ms)⣠$(c)"
   )
   local frame=0
   local output

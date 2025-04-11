@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null
+#=============================================================================
+#     FileName : git-find
+#       Author : marslo.jiao@gmail.com
+#      Created : 2025-04-10 19:59:15
+#   LastChange : 2025-04-11 01:41:15
+#=============================================================================
+
+set -euo pipefail
+source "${HOME}/.marslo/bin/bash-color.sh"
+
+declare EXT=''
+declare AUTHOR=''
+declare FILE_PATTERN=''
+declare GREP_PATTERN=''
+AUTHOR="$(git config user.email 2>/dev/null || echo "")"
+# shellcheck disable=SC2155
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
+# shellcheck disable=SC2155
+declare -r USAGE="""
+USAGE
+  $(c Ys)\$ ${ME} $(c 0Wdi)[$(c 0Gi)OPTIONS$(c 0Wdi)]$(c)
+
+OPTIONS
+  $(c Gi)-u$(c), $(c Gi)--author $(c 0Wi)<email>$(c)    override author $(c Wi)(default: \`$(c 0Bi)git config user.email$(c 0Wi)\`)$(c)
+  $(c Gi)-e$(c), $(c Gi)--ext $(c 0Wi)<ext>$(c)         filter file extension $(c Wi)(e.g. sh, py)$(c).
+  $(c Gi)-f$(c), $(c Gi)--file $(c 0Wi)<pattern>$(c)    fuzzy match filenames $(c Wi)(including path, case-insensitive)$(c)
+  $(c Gi)-g$(c), $(c Gi)--grep $(c 0Wi)<pattern>$(c)    search file contents and return matching files
+  $(c Gi)-h$(c), $(c Gi)--help$(c)              show this help message
+
+EXAMPLES
+  $(c Wdi)# find files with current user$(c)
+  $(c Ys)\$ ${ME}$(c)
+
+  $(c Wdi)# filter files by the $(c 0Bi)'user' $(c 0Wdi)involving $(c 0Bi)*.sh$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)-u $(c 0Mi)user@example.com $(c 0Gi)--ext $(c 0Mi)sh$(c)
+
+  $(c Wdi)# filter files by the $(c 0Bi)'user' $(c 0Wdi)involving files with $(c 0Bi)'config' $(c 0Wdi)in the path$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--author $(c 0Mi)user@example.com $(c 0Gi)--file $(c 0Mi)config$(c)
+
+  $(c Wdi)# filter files that added/removed $(c 0Bi)'TODO' $(c 0Wdi)anywhere in the code$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)-u $(c 0Mi)user@example.com $(c 0Gi)--grep $(c 0Mi)'TODO'$(c)
+
+  $(c Wdi)# find files where file path/name contains $(c 0Bi)'log' $(c 0Wdi)and content contains $(c 0Bi)'init'$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)-f $(c 0Mi)log $(c 0Gi)-g $(c 0Mi)'init'$(c)
+
+NOTES
+  • $(c Bi)--file$(c) and $(c Bi)--grep$(c) can be combined to narrow results to files that match both path and content
+  • $(c Bi)--ext$(c) will further filter the result set based on file extension
+  • The effective file list will be passed to $(c Ci)fzf$(c) for selection and preview
+"""
+
+function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
+function showHelp() { echo -e "${USAGE}"; exit 0; }
+
+function preview_commit_detail() {
+  local rev="$1"
+
+  git show -s "${rev}"
+  echo -e "\n\033[1;34m--- CHANGED FILES ---\033[0m"
+  git --no-pager diff --stat --relative "${rev}^" "${rev}" | awk '
+    {
+      lines[NR] = $0
+    }
+    END {
+      for (i = 1; i < NR; ++i)
+        printf("  • %s\n", lines[i])
+      if (NR > 0)
+        printf("\033[2m%s\033[0m\n", lines[NR])
+    }
+  '
+  echo -e "\n\033[1;34m-------- DIFF -------\033[0m"
+  git diff --color=always "${rev}^" "${rev}"
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -e | --ext    ) EXT="$2"          ; shift 2 ;;
+    -u | --author ) AUTHOR="$2"       ; shift 2 ;;
+    -f | --file   ) FILE_PATTERN="$2" ; shift 2 ;;
+    -g | --grep   ) GREP_PATTERN="$2" ; shift 2 ;;
+    -h | --help   ) showHelp                    ;;
+    --            ) shift                       ;;
+    *             ) die "Unknown option: $1"    ;;
+  esac
+done
+
+[[ -z "${AUTHOR}" ]] && die "No author specified. Use --author or configure 'git config user.email'"
+
+declare -a logCmd
+logCmd=(git log --author="${AUTHOR}" --pretty=format:'--COMMIT-- %h' --name-only)
+
+declare -a matchesFiles=()
+if [[ -n "${FILE_PATTERN}" && -n "${GREP_PATTERN}" ]]; then
+  while IFS= read -r f; do matchesFiles+=("${f}"); done < <(
+    git grep -Il "${GREP_PATTERN}" | grep -i --color=never "${FILE_PATTERN}"
+  )
+elif [[ -n "${GREP_PATTERN}" ]]; then
+  mapfile -t matchesFiles < <(git grep -Il --color=never "${GREP_PATTERN}")
+elif [[ -n "${FILE_PATTERN}" ]]; then
+  mapfile -t matchesFiles < <(git ls-files | grep -i --color=never "${FILE_PATTERN}")
+fi
+
+if [[ -n "${EXT}" ]]; then
+  if [[ -n "${matchesFiles[*]:-}" ]]; then
+    mapfile -t matchesFiles < <(printf '%s\n' "${matchesFiles[@]}" | grep -Ei "\.${EXT}$")
+  else
+    mapfile -t matchesFiles < <(git ls-files "*.${EXT}")
+  fi
+fi
+
+[[ -n "${matchesFiles[*]:-}" ]] && logCmd+=(-- "${matchesFiles[@]}")
+
+declare gdetail="bash -c '
+  rev={1};
+  git show -s \"\${rev}\"
+  echo -e \"\n\033[1;34m--- CHANGED FILES ---\033[0m\"
+  stat=\$(git --no-pager diff --stat --relative \"\${rev}^\" \"\${rev}\")
+  echo \"\${stat}\" | head -n -1 | sed \"s/^/  • /g\"
+  echo -e \"\033[2m\$(echo \"\${stat}\" | tail -n1)\033[0m\"
+  echo -e \"\n\033[1;34m-------- DIFF -------\033[0m\"
+  git diff --color=always \"\${rev}^\" \"\${rev}\"
+' | less -R"
+
+"${logCmd[@]}" |
+awk '
+  function printBlock() {
+    if (lineCount > 0) {
+      printf "%s %s\n", commit, files[1]
+      for (i = 2; i <= lineCount; ++i) printf "%s\n", files[i]
+      printf "\0"
+    }
+  }
+  /^--COMMIT--/ {
+    if (commit != "") { printBlock() }
+    commit = $2
+    lineCount = 0
+    next
+  }
+  NF { files[++lineCount] = $0 }
+  END { printBlock() }
+' |
+fzf --read0 --ansi --multi --layout=reverse --gap \
+  --height=50% \
+  --pointer='▌' \
+  --with-nth=2.. --delimiter=' ' \
+  --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
+  --color='gutter:0,bg+:-1,fg:dim,fg+:regular,hl+:#a66584:regular:italic,hl:italic' \
+  --preview="git show -s {1} | bat --language=Git\ Commit --style=plain --paging=never --theme=Nord" \
+  --bind "ctrl-f:execute(${gdetail})" \
+  --bind 'ctrl-/:change-preview-window:up,60%|right,60%'
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
