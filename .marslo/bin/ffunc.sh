@@ -112,34 +112,39 @@ function cat() {                           # smart cat
   fi
 }
 
-# shellcheck disable=SC2089,SC2090
 function fdInRC() {                        # [f]in[d] [in] [rc] files
-  local rcPaths=("$HOME"/.marslo "$HOME"/.idlerc "$HOME"/.ssh "$HOME"/.jfrog "$HOME"/.pip "$HOME"/.config/nvim "$HOME"/.cht.sh)
-  local configPaths=(cheat github-copilot htop yamllint pip ncdu bat)
-  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
-  local extraIgnore=('*.pem' '*.p12' '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg' '*.zip' '*.tar' '*.gz' '*.bz2' '*.xz' '*.7z' '*.rar')
-  local useExtraIgnore=false
+  local homeIgnore='.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf'
+  local -a rcPaths=("$HOME"/.marslo "$HOME"/.idlerc "$HOME"/.ssh "$HOME"/.jfrog "$HOME"/.pip "$HOME"/.config/nvim "$HOME"/.cht.sh)
+  local -a rcIgnore=('ss/' 'log*/' '.completion/' 'bin/bash-completion/')
+  local -a configPaths=(cheat github-copilot htop yamllint pip ncdu bat)
+  local -a fdOpt=(--type f --hidden --follow --unrestricted --ignore-file "$HOME"/.fdignore)
+  local -a ignores=('*.pem' '*.p12' '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg' '*.zip' '*.tar' '*.gz' '*.bz2' '*.xz' '*.7z' '*.rar')
+  local doExtraIgnore=false
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -x|--extra-ignore ) useExtraIgnore=true ; shift ;;
+      -x|--extra-ignore ) doExtraIgnore=true ; shift ;;
       --                ) shift ; break ;;
       *                 ) break ;;
     esac
   done
 
-  if [[ "${useExtraIgnore}" ]]; then
-    while read -r pattern; do
-      fdOpt+=" --exclude '${pattern}'"
-    done <<< "$(printf '%s\n' "${extraIgnore[@]}")"
+  if [[ "${doExtraIgnore}" ]]; then
+    while IFS= read -r pattern; do
+      fdOpt+=('--exclude' "${pattern}")
+    done < <(printf '%s\n' "${ignores[@]}" | sort -u)
   fi
-  fdOpt+=' --exec stat --printf="%y | %n\n"'
+  fdOpt+=(--exec stat --printf="%y | %n\n")
 
   (
-    eval "fd --max-depth 1 --hidden --exclude '*archive*' '.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf' $HOME ${fdOpt}" ;
-    echo "${rcPaths[@]}"     | fmt -1 | xargs -P"$(nproc)" -r -I{} bash -c "[[ -d {} ]] && fd . {} --exclude 'ss/' --exclude 'log*/' --exclude '.completion/' --exclude 'bin/bash-completion/' ${fdOpt}" ;
-    echo "${configPaths[@]}" | fmt -1 | xargs -P"$(nproc)" -r -I{} bash -c "[[ -d $HOME/.config/{} ]] && fd . $HOME/.config/{} --max-depth 1 --exclude '*.bak' --exclude '*backup' ${fdOpt} " ;
-  ) | awk '!seen[$0]++' |  sort -ru
+    eval "fd --max-depth 1 --hidden --exclude '*archive*' '${homeIgnore}' $HOME ${fdOpt[*]@Q}" ;
+    echo "${rcPaths[@]}"     |
+         fmt -1 |
+         xargs -P"$(nproc)" -r -I{} bash -c "[[ -d {} ]] && fd . {} $(printf -- "--exclude %q " "${rcIgnore[@]}") ${fdOpt[*]@Q}" ;
+    echo "${configPaths[@]}" |
+         fmt -1 |
+         xargs -P"$(nproc)" -r -I{} bash -c "[[ -d $HOME/.config/{} ]] && fd . $HOME/.config/{} --max-depth 1 --exclude '*.bak' --exclude '*backup' ${fdOpt[*]@Q} " ;
+  ) | sort -ru | uniq
 }
 
 function fzfInPath() {                     # return file name via fzf in particular folder
