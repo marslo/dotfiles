@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-04-11 01:43:58
+#   LastChange : 2025-04-15 19:54:03
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -114,15 +114,32 @@ function cat() {                           # smart cat
 
 # shellcheck disable=SC2089,SC2090
 function fdInRC() {                        # [f]in[d] [in] [rc] files
-  local rcPaths="$HOME/.marslo $HOME/.idlerc $HOME/.ssh $HOME/.jfrog $HOME/.pip $HOME/.config/nvim $HOME/.cht.sh"
-  local configPaths="cheat github-copilot htop yamllint pip ncdu bat"
+  local rcPaths=("$HOME"/.marslo "$HOME"/.idlerc "$HOME"/.ssh "$HOME"/.jfrog "$HOME"/.pip "$HOME"/.config/nvim "$HOME"/.cht.sh)
+  local configPaths=(cheat github-copilot htop yamllint pip ncdu bat)
   local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
+  local extraIgnore=('*.pem' '*.p12' '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg' '*.zip' '*.tar' '*.gz' '*.bz2' '*.xz' '*.7z' '*.rar')
+  local useExtraIgnore=false
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -x|--extra-ignore ) useExtraIgnore=true ; shift ;;
+      --                ) shift ; break ;;
+      *                 ) break ;;
+    esac
+  done
+
+  if [[ "${useExtraIgnore}" ]]; then
+    while read -r pattern; do
+      fdOpt+=" --exclude '${pattern}'"
+    done <<< "$(printf '%s\n' "${extraIgnore[@]}")"
+  fi
   fdOpt+=' --exec stat --printf="%y | %n\n"'
+
   (
     eval "fd --max-depth 1 --hidden --exclude '*archive*' '.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf' $HOME ${fdOpt}" ;
-    echo "${rcPaths}"     | fmt -1 | xargs -P"$(nproc)" -r -I{} bash -c "[[ -d {} ]] && fd . {} --exclude 'ss/' --exclude 'log*/' --exclude '.completion/' --exclude 'bin/bash-completion/' ${fdOpt}" ;
-    echo "${configPaths}" | fmt -1 | xargs -P"$(nproc)" -r -I{} bash -c "[[ -d $HOME/.config/{} ]] && fd . $HOME/.config/{} --max-depth 1 --exclude '*.bak' --exclude '*backup' ${fdOpt} " ;
-  ) |  sort -ru
+    echo "${rcPaths[@]}"     | fmt -1 | xargs -P"$(nproc)" -r -I{} bash -c "[[ -d {} ]] && fd . {} --exclude 'ss/' --exclude 'log*/' --exclude '.completion/' --exclude 'bin/bash-completion/' ${fdOpt}" ;
+    echo "${configPaths[@]}" | fmt -1 | xargs -P"$(nproc)" -r -I{} bash -c "[[ -d $HOME/.config/{} ]] && fd . $HOME/.config/{} --max-depth 1 --exclude '*.bak' --exclude '*backup' ${fdOpt} " ;
+  ) | awk '!seen[$0]++' |  sort -ru
 }
 
 function fzfInPath() {                     # return file name via fzf in particular folder
@@ -479,8 +496,8 @@ function vimrc() {                         # vimrc - fzf list all rc files in da
   done
 
   [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="$(type -P nvim)"
-  fdInRC | sed -rn 's/^[^|]* \| (.+)$/\1/p' \
-         | fzf ${foption} --bind="enter:become(${VIM} {+})" \
+  fdInRC -x | sed -rn 's/^[^|]* \| (.+)$/\1/p' \
+            | fzf ${foption} --bind="enter:become(${VIM} {+})" \
                           --bind "ctrl-y:execute-silent(echo -n {+} | ${COPY})+abort" \
                           --header 'Press CTRL-Y to copy name into clipboard'
 }
@@ -512,7 +529,7 @@ function vimdiff() {                       # smart vimdiff
   if [[ 0 -eq $# ]]; then
     lFile=$(fzfInPath '.' "${option}")
     [[ -z "${lFile}" ]] && return 1
-    rFile=$(fdInRC | sed -rn 's/^[^|]* \| (.+)$/\1/p' | fzf --cycle --multi ${option} --header 'filter in rc paths:')
+    rFile=$(fdInRC -x | sed -rn 's/^[^|]* \| (.+)$/\1/p' | fzf --cycle --multi ${option} --header 'filter in rc paths:')
   elif [[ 1 -eq $# ]]; then
     lFile=$(fzfInPath '.' "${option}")
     [[ -z "${lFile}" ]] && return 1
