@@ -21,7 +21,7 @@ function die() {
   exit 2;
 }
 
-# generate the hex color code: $1 - R, $2 - G, $3 - B
+# rgb to hex color code: $1 - R, $2 - G, $3 - B
 function toHex() { printf "#%02X%02X%02X" "$1" "$2" "$3"; }
 
 function parseArguments() {
