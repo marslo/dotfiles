@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-04-15 19:54:03
+#   LastChange : 2025-04-16 00:03:34
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -63,19 +63,19 @@ _fzf_compgen_dir() {
 # shellcheck disable=SC2317
 function copy() {                          # smart copy
   [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)" && return;
-  local fdOpt='--type f --hidden --follow --exclude .git --exclude node_modules'
-  [[ "$(pwd)" = "$HOME" ]] && fdOpt+=' --max-depth 3'
-  if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
+  local -a fdOpt=(--type f --hidden --follow --exclude .git --exclude node_modules)
+  [[ "$(pwd)" = "$HOME" ]] && fdOpt+=(--max-depth 3)
+  if ! uname -r | grep -q "Microsoft"; then fdOpt+=(--exec-batch ls -t); fi
 
   if [[ 0 -eq $# ]]; then
-    file=$( fd . ${fdOpt} | fzf --cycle --exit-0 ) &&
-      "${COPY}" < "${file}" &&
-      echo -e "$(c Wd)>>$(c) $(c Gis)${file}$(c) $(c Wdi)has been copied ..$(c)"
-  elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
+    file=$( fd . "${fdOpt[@]}" | fzf --cycle --exit-0 ) &&
+         "${COPY}" < "${file}" &&
+         echo -e "$(c Wd)>>$(c) $(c Gis)${file}$(c) $(c Wdi)has been copied ..$(c)"
+  elif [[ 1 -eq $# ]] && [[ -d "$1" ]]; then
     local target=$1;
-    file=$( fd . "${target}" ${fdOpt} | fzf --cycle --exit-0 ) &&
-      "${COPY}" < "${file}" &&
-      echo -e "$(c Wd)>>$(c) $(c Gis)${file}$(c) $(c Wdi)has been copied ..$(c)"
+    file=$( fd . "${target}" "${fdOpt[@]}" | fzf --cycle --exit-0 ) &&
+         "${COPY}" < "${file}" &&
+         echo -e "$(c Wd)>>$(c) $(c Gis)${file}$(c) $(c Wdi)has been copied ..$(c)"
   else
     "${COPY}" < "$1" &&
       echo -e "$(c Wd)>>$(c) $(c Gis)$1$(c) $(c Wdi)has been copied ..$(c)"
@@ -93,19 +93,19 @@ function copy() {                          # smart copy
 #   - otherwise respect `bat` options, and shows via `bat`
 # shellcheck disable=SC2046,SC2155
 function cat() {                           # smart cat
-  local fdOpt='--type f --hidden --follow --exclude .git --exclude node_modules'
+  local -a fdOpt=(--type f --hidden --follow --exclude .git --exclude node_modules)
   local CAT="$(type -P cat)"
-  [[ "$(pwd)" = "$HOME" ]] && fdOpt+=' --max-depth 3'
-  if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
+  [[ "$(pwd)" = "$HOME" ]] && fdOpt+=(--max-depth 3)
+  if ! uname -r | grep -q "Microsoft"; then fdOpt+=(--exec-batch ls -t); fi
   command -v bat >/dev/null && CAT="$(type -P bat)"
 
   if [[ 0 -eq $# ]]; then
-    "${CAT}" --theme='gruvbox-dark' $(fd . ${fdOpt} | fzf --multi --cycle --exit-0)
+    "${CAT}" --theme='gruvbox-dark' $(fd . "${fdOpt[@]}" | fzf --multi --cycle --exit-0)
   elif [[ '-c' = "$1" ]]; then
     $(type -P cat) "${@:2}"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
     local target=$1;
-    fd . "${target}" ${fdOpt} |
+    fd . "${target}" "${fdOpt[@]}" |
       fzf --multi --cycle --bind="enter:become(${CAT} --theme='gruvbox-dark' {+})" ;
   else
     "${CAT}" --theme='gruvbox-dark' "${@:1:$#-1}" "${@: -1}"
@@ -113,45 +113,53 @@ function cat() {                           # smart cat
 }
 
 function fdInRC() {                        # [f]in[d] [in] [rc] files
-  local homeIgnore='.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf'
+  declare -A ignores=(
+    [base]='.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf'
+    [rc]='ss/ log*/ .completion/ bin/bash-completion/ *.png *.pem *.p12'
+    [config]='*.bak *backup'
+    [extra]='*.pem *.p12 *.png *.jpg *.jpeg *.gif *.svg *.zip *.tar *.gz *.bz2 *.xz *.7z *.rar'
+  )
+
   local -a rcPaths=("$HOME"/.marslo "$HOME"/.idlerc "$HOME"/.ssh "$HOME"/.jfrog "$HOME"/.pip "$HOME"/.config/nvim "$HOME"/.cht.sh)
-  local -a rcIgnore=('ss/' 'log*/' '.completion/' 'bin/bash-completion/')
   local -a configPaths=(cheat github-copilot htop yamllint pip ncdu bat)
   local -a fdOpt=(--type f --hidden --follow --unrestricted --ignore-file "$HOME"/.fdignore)
-  local -a ignores=('*.pem' '*.p12' '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg' '*.zip' '*.tar' '*.gz' '*.bz2' '*.xz' '*.7z' '*.rar')
   local doExtraIgnore=false
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -x|--extra-ignore ) doExtraIgnore=true ; shift ;;
-      --                ) shift ; break ;;
       *                 ) break ;;
     esac
   done
 
-  if [[ "${doExtraIgnore}" ]]; then
-    while IFS= read -r pattern; do
-      fdOpt+=('--exclude' "${pattern}")
-    done < <(printf '%s\n' "${ignores[@]}" | sort -u)
-  fi
+  # shellcheck disable=SC2086
+  function buildExcludes() {
+    local key="$1"
+    printf -- "--exclude %s " ${ignores[${key}]}
+  }
+
+  # shellcheck disable=SC2207
+  ${doExtraIgnore} && fdOpt+=( $(buildExcludes extra) )
   fdOpt+=(--exec stat --printf="%y | %n\n")
 
   (
-    eval "fd --max-depth 1 --hidden --exclude '*archive*' '${homeIgnore}' $HOME ${fdOpt[*]@Q}" ;
-    echo "${rcPaths[@]}"     |
+    eval "fd --max-depth 1 --hidden --exclude '*archive*' '${ignores[base]}' $HOME ${fdOpt[*]@Q}" ;
+    echo "${rcPaths[@]}" |
          fmt -1 |
-         xargs -P"$(nproc)" -r -I{} bash -c "[[ -d {} ]] && fd . {} $(printf -- "--exclude %q " "${rcIgnore[@]}") ${fdOpt[*]@Q}" ;
+         xargs -P"$(nproc)" -r -I{} bash -c "[[ -d {} ]] && fd . {} $(buildExcludes rc) ${fdOpt[*]@Q}" ;
     echo "${configPaths[@]}" |
          fmt -1 |
-         xargs -P"$(nproc)" -r -I{} bash -c "[[ -d $HOME/.config/{} ]] && fd . $HOME/.config/{} --max-depth 1 --exclude '*.bak' --exclude '*backup' ${fdOpt[*]@Q} " ;
-  ) | sort -ru | uniq
+         xargs -P"$(nproc)" -r -I{} bash -c "[[ -d $HOME/.config/{} ]] && fd . $HOME/.config/{} --max-depth 1 $(buildExcludes config) ${fdOpt[*]@Q}" ;
+  ) |
+    sort -ru |
+    uniq
 }
 
 function fzfInPath() {                     # return file name via fzf in particular folder
-  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
-  if ! uname -r | grep -q 'Microsoft'; then fdOpt+=' --exec-batch ls -t'; fi
+  local -a fdOpt=(--type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore")
+  if ! uname -r | grep -q 'Microsoft'; then fdOpt+=(--exec-batch ls -t); fi
   [[ '.' = "${1}" ]] && path="${1}" || path=". ${1}"
-  eval "fd ${path} ${fdOpt} | fzf --cycle --multi ${*:2} --header 'filter in ${1} :'"
+  fd "${path}" "${fdOpt[@]}" | fzf --cycle --multi "${*:2}" --header "filter in ${1} :"
 }
 
 # runrc        : filter rc files from "${rcPaths}" and source the selected item(s)
@@ -171,7 +179,7 @@ function runrc() {                         # runrc - source/[run] [rc] files
     esac
   done
 
-  files=$( fdInRC |
+  files=$( fdInRC -x |
            sed -rn 's/^[^|]* \| (.+)$/\1/p' |
            fzf ${option:-} --multi --cycle \
                --marker='✓' \
@@ -400,39 +408,49 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vim`
 # shellcheck disable=SC2155
 function vim() {                           # magic vim - fzf list in most recent modified order
-  local voption
+  local -a voption=()
   local target
   local orgv                               # force using vim instead of nvim
   local VIM="$(type -P vim)"
-  local foption='--multi --cycle '
-  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
-  fdOpt+=' --exclude Music --exclude .target_book --exclude _book --exclude OneDrive*'
-  [[ "$(pwd)" = "$HOME" ]] && fdOpt+=' --max-depth 3'
-  if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
+  local -a foption=(--multi --cycle )
+  local -a fdOpt=(--type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore")
+  local ignores=(
+    '*.pem' '*.p12'
+    '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg'
+    '*.zip' '*.tar' '*.gz' '*.bz2' '*.xz' '*.7z' '*.rar'
+    'Music' '.target_book' '_book' 'OneDrive*'
+  )
+  while read -r pattern; do
+    fdOpt+=(--exclude "${pattern}")
+  done <<< "$(printf '%s\n' "${ignores[@]}")"
+
+
+  [[ "$(pwd)" = "$HOME" ]] && fdOpt+=(--max-depth 3)
+  if ! uname -r | grep -q "Microsoft"; then fdArgs+=(--exec-batch ls -t); fi
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-                 -v ) orgv=1            ; shift   ;;
-        -h | --help ) voption+="$1 "    ; shift   ;;
-          --version ) voption+="$1 "    ; shift   ;;
-                 -c ) voption+="$1 $2"  ; shift   ;;
-      --startuptime ) voption+="$1 $2 " ; shift 2 ;;
-                -Nu ) voption+="$1 $2 " ; shift 2 ;;
-              --cmd ) voption+="$1 $2 " ; shift 2 ;;
-                 -* ) foption+="$1 $2 " ; shift 2 ;;
-                  * ) break                       ;;
+                 -v ) orgv=1               ; shift   ;;
+        -h | --help ) voption+=("$1")       ; shift   ;;
+          --version ) voption+=("$1")       ; shift   ;;
+                 -c ) voption+=("$1" "$2")     ; shift   ;;
+      --startuptime ) voption+=("$1" "$2")     ; shift 2 ;;
+                -Nu ) voption+=("$1" "$2")     ; shift 2 ;;
+              --cmd ) voption+=("$1" "$2")     ; shift 2 ;;
+                 -* ) foption+=("$1" "$2") ; shift 2 ;;
+                  * ) break                          ;;
     esac
   done
 
   [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="$(type -P nvim)"
 
-  if [[ 0 -eq $# ]] && [[ -z "${voption}" ]]; then
-    fd . ${fdOpt} | fzf ${foption} --bind="enter:become(${VIM} {+})"
-  elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
+  if [[ 0 -eq "$#" ]] && [[ 0 -eq "${#voption}" ]]; then
+    fd . "${fdOpt[@]}" | fzf "${foption[@]}" --bind="enter:become(${VIM} {+})"
+  elif [[ 1 -eq "$#" ]] && [[ -d "${1}" ]]; then
     [[ '.' = "${1}" ]] && target="${1}" || target=". \"${1}\""
-    eval "fd ${target} ${fdOpt}" | fzf ${foption} --bind="enter:become(${VIM} {+})"
+    fd "${target}" "${fdOpt[@]}" | fzf "${foption[@]}" --bind="enter:become(${VIM} {+})"
   else
-    "${VIM}" ${voption} "$@"
+    "${VIM}" "${voption[@]}" "$@"
   fi
 }
 
@@ -459,19 +477,37 @@ function v() {                             # v - open files in ~/.vim_mru_files
 #   - if pwd not inside the repo, then call `vim`
 function vimr() {                          # vimr - open file(s) via [vim] in whole [r]epository
   local repodir
+  # shellcheck disable=SC2155
+  local VIM="$(type -P vim)"
+  local -a fdOpt=(--type f --hidden --ignore-file "$HOME/.fdignore")
+  local ignores=(
+    '*.pem' '*.p12'
+    '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg'
+    '*.zip' '*.tar' '*.gz' '*.bz2' '*.xz' '*.7z' '*.rar'
+    'Music' '.target_book' '_book' 'OneDrive*'
+  )
+  while read -r pattern; do fdOpt+=(--exclude "${pattern}"); done <<< "$(printf '%s\n' "${ignores[@]}" | sort -u)"
+  fdOpt+=(--exec-batch ls -t)
+
+  command -v nvim >/dev/null && VIM="$(type -P nvim)"
+
   isrepo=$(git rev-parse --is-inside-work-tree >/dev/null 2>&1; echo $?)
   if [[ 0 = "${isrepo}" ]]; then
     repodir="$(git rev-parse --show-toplevel)"
     # shellcheck disable=SC2164
-    files=$( fd . "${repodir}" --type f --hidden --ignore-file ~/.fdignore --exec-batch ls -t |
-                  xargs -r -I{} bash -c "echo {} | sed \"s|${repodir}/||g\"" |
-                  fzf --multi -0 |
-                  xargs -r -I{} bash -c "echo ${repodir}/{}"
+    files=$( fd . "${repodir}" "${fdOpt[@]}" |
+                  sed "s|^${repodir}/||" |
+                  fzf --multi \
+                  --bind "ctrl-o:execute($EDITOR {})" \
+                  --bind "ctrl-r:reload(fd . ${repodir} ${fdOpt[*]@Q})" \
+                  --preview 'bat --color=always --line-range :500 {}' \
+                  --height 50% |
+                  awk -v prefix="${repodir}/" '{print prefix $0}'
            )
     # shellcheck disable=SC2046
-    [[ -z "${files}" ]] || vim $(xargs -r <<< "${files}")
+    [[ -z "${files}" ]] || ${VIM} $(xargs -r <<< "${files}")
   else
-    vim
+    ${VIM}
   fi
 }
 
@@ -486,23 +522,20 @@ function vimr() {                          # vimr - open file(s) via [vim] in wh
 # shellcheck disable=SC2155
 function vimrc() {                         # vimrc - fzf list all rc files in data modified order
   local orgv                               # force using vim instead of nvim
-  local rcPaths="$HOME/.config/nvim $HOME/.marslo"
   local VIM="$(type -P vim)"
-  local foption='--multi --cycle '
-  local fdOpt="--type f --hidden --follow --unrestricted --ignore-file $HOME/.fdignore"
-  if ! uname -r | grep -q "Microsoft"; then fdOpt+=' --exec-batch ls -t'; fi
+  local -a foption=(--multi --cycle)
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -v ) orgv=1                   ; shift   ;;
-      -q ) foption+=" --query $2" ; shift 2 ;;
-       * ) break                              ;;
+      -v ) orgv=1                  ; shift   ;;
+      -q ) foption+=(--query "$2") ; shift 2 ;;
+       * ) break                             ;;
     esac
   done
 
   [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="$(type -P nvim)"
   fdInRC -x | sed -rn 's/^[^|]* \| (.+)$/\1/p' \
-            | fzf ${foption} --bind="enter:become(${VIM} {+})" \
+            | fzf "${foption[@]}" --bind="enter:become(${VIM} {+})" \
                           --bind "ctrl-y:execute-silent(echo -n {+} | ${COPY})+abort" \
                           --header 'Press CTRL-Y to copy name into clipboard'
 }
