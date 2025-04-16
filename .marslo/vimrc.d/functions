@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2025-01-23 14:20:05
+"    LastChange : 2025-04-15 11:07:08
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -155,5 +155,17 @@ function! SetDiffModeOptions()
   endif
 endfunction
 " autocmd OptionSet diff call SetDiffModeOptions()
+
+" `,mm` to toggle mouse on/off
+nnoremap <leader>mm :call ToggleMouse()<CR>
+function! ToggleMouse()
+  if &mouse ==# 'a' || &mouse ==# 'nvi'
+    set mouse=
+    echohl Red | echon '🖱️ Mouse disabled' | echohl None
+  else
+    set mouse=nvi
+    echohl Green | echon '🖱️ Mouse enabled'  | echohl None
+  endif
+endfunction
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
