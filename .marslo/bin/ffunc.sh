@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-04-16 00:03:34
+#   LastChange : 2025-04-16 00:46:30
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -113,7 +113,7 @@ function cat() {                           # smart cat
 }
 
 function fdInRC() {                        # [f]in[d] [in] [rc] files
-  declare -A ignores=(
+  declare -A ignoreList=(
     [base]='.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf'
     [rc]='ss/ log*/ .completion/ bin/bash-completion/ *.png *.pem *.p12'
     [config]='*.bak *backup'
@@ -135,7 +135,7 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
   # shellcheck disable=SC2086
   function buildExcludes() {
     local key="$1"
-    printf -- "--exclude %s " ${ignores[${key}]}
+    printf -- "--exclude %s " ${ignoreList[${key}]}
   }
 
   # shellcheck disable=SC2207
@@ -143,7 +143,7 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
   fdOpt+=(--exec stat --printf="%y | %n\n")
 
   (
-    eval "fd --max-depth 1 --hidden --exclude '*archive*' '${ignores[base]}' $HOME ${fdOpt[*]@Q}" ;
+    eval "fd --max-depth 1 --hidden --exclude '*archive*' '${ignoreList[base]}' $HOME ${fdOpt[*]@Q}" ;
     echo "${rcPaths[@]}" |
          fmt -1 |
          xargs -P"$(nproc)" -r -I{} bash -c "[[ -d {} ]] && fd . {} $(buildExcludes rc) ${fdOpt[*]@Q}" ;
@@ -414,7 +414,7 @@ function vim() {                           # magic vim - fzf list in most recent
   local VIM="$(type -P vim)"
   local -a foption=(--multi --cycle )
   local -a fdOpt=(--type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore")
-  local ignores=(
+  local -a ignores=(
     '*.pem' '*.p12'
     '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg'
     '*.zip' '*.tar' '*.gz' '*.bz2' '*.xz' '*.7z' '*.rar'
@@ -424,9 +424,8 @@ function vim() {                           # magic vim - fzf list in most recent
     fdOpt+=(--exclude "${pattern}")
   done <<< "$(printf '%s\n' "${ignores[@]}")"
 
-
   [[ "$(pwd)" = "$HOME" ]] && fdOpt+=(--max-depth 3)
-  if ! uname -r | grep -q "Microsoft"; then fdArgs+=(--exec-batch ls -t); fi
+  if ! uname -r | grep -q "Microsoft"; then fdOpt+=(--exec-batch ls -t); fi
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -480,7 +479,7 @@ function vimr() {                          # vimr - open file(s) via [vim] in wh
   # shellcheck disable=SC2155
   local VIM="$(type -P vim)"
   local -a fdOpt=(--type f --hidden --ignore-file "$HOME/.fdignore")
-  local ignores=(
+  local -a ignores=(
     '*.pem' '*.p12'
     '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg'
     '*.zip' '*.tar' '*.gz' '*.bz2' '*.xz' '*.7z' '*.rar'
