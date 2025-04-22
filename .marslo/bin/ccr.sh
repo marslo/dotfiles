@@ -4,7 +4,7 @@
 #     FileName : ccr.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-25 08:29:23
-#   LastChange : 2025-04-21 23:48:36
+#   LastChange : 2025-04-22 00:13:02
 #=============================================================================
 
 set -euo pipefail
@@ -17,8 +17,6 @@ else
   c() { :; }
 fi
 
-# ccr - [C]hatGPT [C]ode [R]eview
-#
 # +----------------------+--------------------+---------------------+
 # | ENVIRONMENT VARIABLE | DEFAULT VALUE      | NOTE                |
 # +----------------------+--------------------+---------------------+
@@ -41,7 +39,7 @@ declare -a diffOpt=()
 # shellcheck disable=SC2155
 declare USAGE="""
 NAME
-  ${ME} - $(c Ys)c$(c)hatGPT $(c Ys)c$(c)ode $(c Ys)r$(c)eview - Review a Git diff using ChatGPT API
+  ${ME} - $(c Ys)c$(c)hatgpt $(c Ys)c$(c)ode $(c Ys)r$(c)eview - Review a Git diff using ChatGPT API
 
 USAGE
   $(c Ys)\$ ${ME}$(c) $(c Wdi)[$(c)$(c Gis)options$(c)$(c Wdi)]$(c) $(c Wdi)[$(c)$(c Bi)--$(c) $(c Mi)GIT DIFF ARGUMENTS$(c)$(c Wdi)]$(c)
