@@ -4,7 +4,7 @@
 #     FileName : ccm.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 03:34:24
-#   LastChange : 2025-04-11 01:44:57
+#   LastChange : 2025-04-21 23:49:31
 #  Description : ccm - [c]hatgpt [c]ommit [m]essage generator
 #                +----------------------+--------------------+------------+
 #                | ENVIRONMENT VARIABLE | DEFAULT VALUE      | NOTES      |
@@ -36,7 +36,14 @@
 # +----------------------------+------------------+
 
 set -euo pipefail
-source "${HOME}/.marslo/bin/bash-color.sh"
+
+# or copy & paste the `c()` function from https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+if [[ -f "${HOME}/.marslo/bin/bash-color.sh" ]]; then
+  # credit: https://github.com/ppo/bash-colors
+  source "${HOME}/.marslo/bin/bash-color.sh"
+else
+  c() { :; }
+fi
 
 # config
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
