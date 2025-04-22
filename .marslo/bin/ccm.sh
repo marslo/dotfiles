@@ -4,13 +4,13 @@
 #     FileName : ccm.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 03:34:24
-#   LastChange : 2025-04-21 23:49:31
+#   LastChange : 2025-04-22 00:29:48
 #  Description : ccm - [c]hatgpt [c]ommit [m]essage generator
 #                +----------------------+--------------------+------------+
 #                | ENVIRONMENT VARIABLE | DEFAULT VALUE      | NOTES      |
 #                +----------------------+--------------------+------------+
-#                | COMMITX_MODEL        | gpt-4-1106-preview | -          |
-#                | COMMITX_TEMPERATURE  | 0.3                | -          |
+#                | MCX_MODEL            | gpt-4-1106-preview | -          |
+#                | MCX_TEMPERATURE      | 0.3                | -          |
 #                | OPENAI_API_KEY       | env.OPENAI_API_KEY | mandatory* |
 #                +----------------------+--------------------+------------+
 #=============================================================================
@@ -47,8 +47,8 @@ fi
 
 # config
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
-declare -r model="${COMMITX_MODEL:-gpt-4-1106-preview}"
-declare -r temperature="${COMMITX_TEMPERATURE:-0.3}"
+declare -r model="${MCX_MODEL:-gpt-4-1106-preview}"
+declare -r temperature="${MCX_TEMPERATURE:-0.3}"
 declare -r OPENAI_API_KEY="${OPENAI_API_KEY:?OPENAI_API_KEY not set}"
 
 # flags
@@ -57,26 +57,30 @@ declare doFzf=false
 declare -a diffOpt=()
 declare USAGE="""
 NAME
-  ${ME} - Generate a Git commit message using OpenAI API
+  ${ME} - $(c Ys)c$(c)hatgpt $(c Ys)c$(c)hange $(c Ys)m$(c)essage - Review a Git diff using ChatGPT API
 
 USAGE
   $(c Ys)\$ ${ME}$(c) $(c Wdi)[$(c)$(c Gis)options$(c)$(c Wdi)]$(c) $(c Wdi)[$(c)$(c Bi)--$(c) $(c Mi)GIT DIFF ARGUMENTS$(c)$(c Wdi)]$(c)
 
 OPTIONS
   $(c Gis)--help$(c), $(c Gis)-h$(c)           Show this help message
+  $(c Gis)--untracked$(c)          Include untracked files in the diff
+  $(c Gis)--no-untracked$(c)       Exclude untracked files in the diff
+  $(c Gis)--fzf$(c)                Use fzf to select untracked files
+  $(c Gis)--no-fzf$(c)             Do not use fzf to select untracked files
 
 GIT DIFF ARGUMENTS
   Anything after $(c Bi)--$(c) is passed directly to $(c Bi)\`git diff\`$(c).
 
 EXAMPLES
-  $(c Ys)\$ ${ME}$(c)                       # use unstaged diff
-  $(c Ys)\$ ${ME}$(c) $(c Bi)--$(c) $(c Mi)--cached$(c)           # use staged diff
-  $(c Ys)\$ ${ME}$(c) $(c Bi)--$(c) $(c Mi)HEAD^..HEAD$(c)        # compare specific commits
-  $(c Ys)\$ ${ME}$(c) $(c Bi)--$(c) $(c Mi)--cached$(c) $(c Bi)--$(c) $(c Mi)src/$(c)   # diff staged files in src/
+  $(c Ys)\$ ${ME}$(c)                       $(c Wdi)# use unstaged diff$(c)
+  $(c Ys)\$ ${ME}$(c) $(c Bi)--$(c) $(c Mi)--cached$(c)           $(c Wdi)# use staged diff$(c)
+  $(c Ys)\$ ${ME}$(c) $(c Bi)--$(c) $(c Mi)HEAD^..HEAD$(c)        $(c Wdi)# compare specific commits$(c)
+  $(c Ys)\$ ${ME}$(c) $(c Bi)--$(c) $(c Mi)--cached$(c) $(c Bi)--$(c) $(c Mi)src/$(c)   $(c Wdi)# diff staged files in src/$(c)
 
 ENVIRONMENT VARIABLES
-  COMMITX_MODEL         model to use (default: $(c Ci)gpt-4-1106-preview$(c))
-  COMMITX_TEMPERATURE   temperature for model response (default: $(c Ci)0.3$(c))
+  MCX_MODEL             model to use (default: $(c Ci)gpt-4-1106-preview$(c))
+  MCX_TEMPERATURE       temperature for model response (default: $(c Ci)0.3$(c))
   OPENAI_API_KEY$(c R)*$(c)       your OpenAI API key ($(c Ri)required$(c), read from $(c i)environment variables$(c))
 """
 
@@ -89,6 +93,7 @@ while [[ $# -gt 0 ]]; do
     --untracked        ) doUntracked=true  ; shift     ;;
     --no-untracked     ) doUntracked=false ; shift     ;;
     --fzf              ) doFzf=true        ; shift     ;;
+    --no-fzf           ) doFzf=false       ; shift     ;;
     --                 ) shift; diffOpt+=("$@"); break ;;
     *                  ) die "unknown option: '$(c Mi)$1$(c)'. try $(c Gi)-h$(c)/$(c Gi)--help$(c). exit ..." ;;
   esac
@@ -213,12 +218,12 @@ function main() {
 
   <type>(<scope1,scope2,...>): short summary
 
-  - detail 1
-  - detail 2
+  - detail 1 ( lowercase first letter )
+  - detail 2 ( lowercase first letter )
   - ...
 
   Use multiple scopes if the diff includes changes in multiple areas.
-  Use markdown-style bullet points for details.
+  Use markdown-style bullet points for details and initials in lowercase.
   Ignore timestamp changes in script metadata.
   Do not include explanations or code.
   Base it on the following diff:
