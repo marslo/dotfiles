@@ -4,20 +4,21 @@
 #     FileName : git-mcx
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2025-04-11 01:56:58
+#   LastChange : 2025-04-23 01:16:20
 #        Usage : git-mcx [OPTION]             # call getCommitMessage to set commit message
 #                git-mcx [OPTION] [message]   # using `[message]` as commit message
 #=============================================================================
 
-# | ENVIRONMENT        | DESCRIPTION                  | DEFAULT  |
-# | -------------------| -----------------------------| ---------|
-# | MCX_ENABLE_SCOPE   | is enable commit scope       | true     |
-# | MCX_LINT_ENABLE    | is enable commit lint        | true     |
-# | MCX_ENABLE_BODY    | is enable commit body        | false    |
-# | MCX_ENABLE_FOOTER  | is enable commit footer      | false    |
-# | MCX_SHOW_PREVIEW   | is show commit preview       | false    |
-# | MCX_SHOW_DIFF      | is show diff after commit    | false    |
-# | MCX_GLOBAL_LINTRC  | force using global commitlint| false    |
+# |     ENVIRONMENT     |          DESCRIPTION         | DEFAULT  |
+# | --------------------| -----------------------------| ---------|
+# | MCX_ENABLE_SCOPE    | is enable commit scope       | true     |
+# | MCX_LINT_ENABLE     | is enable commit lint        | true     |
+# | MCX_ENABLE_BODY     | is enable commit body        | false    |
+# | MCX_ENABLE_FOOTER   | is enable commit footer      | false    |
+# | MCX_BREAKING_CHANGE | is enable breaking change    | false    |
+# | MCX_SHOW_PREVIEW    | is show commit preview       | false    |
+# | MCX_SHOW_DIFF       | is show diff after commit    | false    |
+# | MCX_GLOBAL_LINTRC   | force using global commitlint| false    |
 
 set -euo pipefail
 
@@ -44,6 +45,8 @@ declare MCX_ENABLE_FOOTER="${MCX_ENABLE_FOOTER:-false}"
 declare MCX_SHOW_PREVIEW="${MCX_SHOW_PREVIEW:-false}"
 declare MCX_SHOW_DIFF="${MCX_SHOW_DIFF:-false}"
 declare MCX_GLOBAL_LINTRC="${MCX_GLOBAL_LINTRC:-false}"
+declare MCX_ENABLE_JIRA="${MCX_ENABLE_JIRA:-false}"
+declare MCX_BREAKING_CHANGE="${MCX_BREAKING_CHANGE:-false}"
 declare LINTRC_FILE="${HOME}/.commitlintrc.js"
 # shellcheck source=/dev/null disable=SC2155
 declare -r USAGE="""
@@ -51,36 +54,38 @@ NAME
   $(c Ys)${ME}$(c) - $(c Ysi)m$(c)arslo $(c Ysi)c$(c)ommit pro ma$(c Ysi)x$(c) - Git commit message helper
 
 USAGE
-  $(c Ys)\$ ${ME} $(c 0Wdi)[$(c 0Gi)options$(c 0Wdi)]$(c)
+  $(c Ys)\$ ${ME} $(c 0Wdi)[$(c 0Gi)options$(c 0Wdi)] $(c 0Wdi)[$(c 0Mi)'message'$(c 0Wdi)]$(c)
 
 OPTIONS
-  $(c Gi)--body$(c)                   enable the commit message body section
-  $(c Gi)--no-body$(c 0Y)*$(c)               disable the body section
+  $(c Gi)--body$(c)                           enable the commit message body section
+  $(c Gi)--no-body$(c 0Y)*$(c)                       disable the body section
 
-  $(c Gi)--footer$(c)                 enable the footer section $(c i)(e.g.: $(c W)issue refs, $(c 0Wi)breaking changes$(c 0i))$(c)
-  $(c Gi)--no-footer$(c 0Y)*$(c)             disable the footer section
+  $(c Gi)--footer$(c)                         enable the footer section $(c i)(e.g.: $(c W)issue refs, $(c 0Wi)breaking changes$(c 0i))$(c)
+  $(c Gi)--no-footer$(c 0Y)*$(c)                     disable the footer section
 
-  $(c Gi)--diff$(c)                   show Git diff preview $(c i)(if applicable)$(c)
-  $(c Gi)--no-diff$(c 0Y)*$(c)               suppress Git diff preview
+  $(c Gi)--diff$(c)                           show Git diff preview $(c i)(if applicable)$(c)
+  $(c Gi)--no-diff$(c 0Y)*$(c)                       suppress Git diff preview
 
-  $(c Gi)--preview$(c)                enable full preview of the final commit message
-  $(c Gi)--no-preview$(c 0Y)*$(c)            disable commit preview output
+  $(c Gi)--preview$(c)                        enable full preview of the final commit message
+  $(c Gi)--no-preview$(c 0Y)*$(c)                    disable commit preview output
 
-  $(c Gi)--scope$(c 0Y)*$(c)                 prompt for Conventional Commit 'scope' input
-  $(c Gi)--no-scope$(c)               skip scope input
+  $(c Gi)--scope$(c 0Y)*$(c)                         prompt for Conventional Commit 'scope' input
+  $(c Gi)--no-scope$(c)                       skip scope input
 
-  $(c Gi)--lint$(c 0Y)*$(c)                  enable commit message linting $(c i)(via commitlint - if applicable)$(c)
-  $(c Gi)--no-lint$(c)                disable lint checks
+  $(c Gi)--lint$(c 0Y)*$(c)                          enable commit message linting $(c i)(via commitlint - if applicable)$(c)
+  $(c Gi)--no-lint$(c)                        disable lint checks
 
-  $(c Gi)--global-lintrc$(c)          force use global commitlint configuration ($(c i)default: $(c M)~/.commitlintrc$(c))
-  $(c Gi)--no-global-lintrc$(c 0Y)*$(c)      use local commitlint configuration by default
-  $(c Gi)--lintrc $(c 0Wi)<file>$(c)          specify a custom commitlint configuration file
-                           example: $(c Gi)--lintrc $(c 0Wi)\"\$HOME/path/to/.commitlintrc.json\"$(c)
+  $(c Gi)--global-lintrc$(c)                  force use global commitlint configuration ($(c i)default: $(c M)~/.commitlintrc$(c))
+  $(c Gi)--no-global-lintrc$(c 0Y)*$(c)              use local commitlint configuration by default
+  $(c Gi)--lintrc $(c 0Wi)<file>$(c)                  specify a custom commitlint configuration file
+                                   example: $(c Gi)--lintrc $(c 0Wi)\"\$HOME/path/to/.commitlintrc.json\"$(c)
 
-  $(c Gi)-c$(c), $(c Gi)--commit$(c) $(c Wi)<message>$(c)   use the specified message as commit message
-  $(c Gi)-h$(c), $(c Gi)--help$(c)               show this help message and exit
+  $(c Gi)--breaking$(c), $(c Gi)--breaking-change$(c)    enable breaking change section $(c i)(e.g.: $(c W)BREAKING CHANGE: $(c 0Wi)description$(c 0i))$(c)
+
+  $(c Gi)-h$(c), $(c Gi)--help$(c)                       show this help message and exit
 
 EXAMPLES
+  $(c Ys)\$ ${ME} $(c 0Mi)'message'$(c 0Gi)            $(c 0Wdi)# commit directly$(c)
   $(c Ys)\$ ${ME} $(c 0Bi)--$(c 0Gi) --help            $(c 0Wdi)# show help$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--body --footer --diff --lint$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--no-preview --no-scope --lintrc $(c 0Wi)./custom-lintrc.json$(c)
@@ -89,31 +94,31 @@ EXAMPLES
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --no-body          ) MCX_ENABLE_BODY=false   ; shift     ;;
-    --body             ) MCX_ENABLE_BODY=true    ; shift     ;;
-    --no-footer        ) MCX_ENABLE_FOOTER=false ; shift     ;;
-    --footer           ) MCX_ENABLE_FOOTER=true  ; shift     ;;
-    --diff             ) MCX_SHOW_DIFF=true      ; shift     ;;
-    --no-diff          ) MCX_SHOW_DIFF=false     ; shift     ;;
-    --preview          ) MCX_SHOW_PREVIEW=true   ; shift     ;;
-    --no-preview       ) MCX_SHOW_PREVIEW=false  ; shift     ;;
-    --scope            ) MCX_ENABLE_SCOPE=true   ; shift     ;;
-    --no-scope         ) MCX_ENABLE_SCOPE=false  ; shift     ;;
-    --lint             ) MCX_LINT_ENABLE=true    ; shift     ;;
-    --no-lint          ) MCX_LINT_ENABLE=false   ; shift     ;;
-    --lintrc           ) LINTRC_FILE="$2"        ; shift 2   ;;
-    --global-lintrc    ) MCX_GLOBAL_LINTRC=true  ; shift     ;;
-    --no-global-lintrc ) MCX_GLOBAL_LINTRC=false ; shift     ;;
-    --                 ) shift                               ;;
-    -h | --help        ) showHelp                ; exit 0    ;;
-    -*                 ) die "$(c i)Unknown option: $(c M)'$1'$(c 0i). try$(c) $(c Gi)\`\$ ${ME} -- --help\`$(c)" ;;
-    *                  ) break ;;
+    --no-body                      ) MCX_ENABLE_BODY=false   ; shift     ;;
+    --body                         ) MCX_ENABLE_BODY=true    ; shift     ;;
+    --no-footer                    ) MCX_ENABLE_FOOTER=false ; shift     ;;
+    --footer                       ) MCX_ENABLE_FOOTER=true  ; shift     ;;
+    --diff                         ) MCX_SHOW_DIFF=true      ; shift     ;;
+    --no-diff                      ) MCX_SHOW_DIFF=false     ; shift     ;;
+    --preview                      ) MCX_SHOW_PREVIEW=true   ; shift     ;;
+    --no-preview                   ) MCX_SHOW_PREVIEW=false  ; shift     ;;
+    --scope                        ) MCX_ENABLE_SCOPE=true   ; shift     ;;
+    --no-scope                     ) MCX_ENABLE_SCOPE=false  ; shift     ;;
+    --lint                         ) MCX_LINT_ENABLE=true    ; shift     ;;
+    --no-lint                      ) MCX_LINT_ENABLE=false   ; shift     ;;
+    --lintrc                       ) LINTRC_FILE="$2"        ; shift 2   ;;
+    --global-lintrc                ) MCX_GLOBAL_LINTRC=true  ; shift     ;;
+    --no-global-lintrc             ) MCX_GLOBAL_LINTRC=false ; shift     ;;
+    --breaking | --breaking-change ) MCX_BREAKING_CHANGE=true; shift     ;;
+    -j | --jira                    ) MCX_ENABLE_JIRA=true    ; shift     ;;
+    --                             ) shift                               ;;
+    -h | --help                    ) showHelp                ; exit 0    ;;
+    -*                             ) die "$(c i)Unknown option: $(c M)'$1'$(c 0i). try$(c) $(c Gi)\`\$ ${ME} -- --help\`$(c)" ;;
+    *                              ) break ;;
   esac
 done
 
 function main() {
-  git add --all "$(git rev-parse --show-toplevel)";
-
   if [[ $# -gt 0 ]]; then
     message="$1"
   else
@@ -122,9 +127,9 @@ function main() {
 
   # show preview
   if [[ 'true' = "${MCX_SHOW_PREVIEW:-false}" ]]; then
-    echo -e "-------------- $(c Mi)git message preview$(c) ----------------"
+    echo -e "-------------- $(c Wdi)git message preview$(c) ----------------"
     printf  "%s\n" "${message}" | command bat --plain --language=COMMIT_EDITMSG --style=plain
-    echo -e "------------------------------"
+    echo -e '---------------------------------------------------'
   fi
 
   if [[ 'true' = "${MCX_SHOW_DIFF:-false}" ]]; then
@@ -143,6 +148,7 @@ function main() {
     echo "${message}" | commitlint ${CONFIG_OPT} || { printf "%b\n" "$(c Ri)commitlint failed ... $(c)"; }
   fi
 
+  git add --all "$(git rev-parse --show-toplevel)";
   printf "%s\n" "${message}" | git commit -s -a -F -
 }
 

@@ -4,17 +4,20 @@
 #     FileName : getCommitMessage.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2025-04-08 23:58:09
+#   LastChange : 2025-04-23 01:12:36
+#   references : https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit?tab=t.0
 #=============================================================================
 
-# | ENVIRONMENT       | DESCRIPTION               | DEFAULT |
-# |-------------------|---------------------------|---------|
-# | MCX_ENABLE_SCOPE  | is enable commit scope    | true    |
-# | MCX_LINT_ENABLE   | is enable commit lint     | true    |
-# | MCX_ENABLE_BODY   | is enable commit body     | false   |
-# | MCX_ENABLE_FOOTER | is enable commit footer   | false   |
-# | MCX_SHOW_PREVIEW  | is show commit preview    | false   |
-# | MCX_SHOW_DIFF     | is show diff after commit | false   |
+# |     ENVIRONMENT     |        DESCRIPTION        | DEFAULT |
+# |---------------------|---------------------------|---------|
+# | MCX_ENABLE_SCOPE    | is enable commit scope    | true    |
+# | MCX_LINT_ENABLE     | is enable commit lint     | true    |
+# | MCX_ENABLE_BODY     | is enable commit body     | false   |
+# | MCX_SHOW_PREVIEW    | is show commit preview    | false   |
+# | MCX_SHOW_DIFF       | is show diff after commit | false   |
+# | MCX_ENABLE_JIRA     | is enable jira ticket     | false   |
+# | MCX_ENABLE_FOOTER   | is enable commit footer   | false   |
+# | MCX_BREAKING_CHANGE | is enable breaking change | false   |
 
 set -euo pipefail
 
@@ -63,6 +66,12 @@ function runInteractive() {
 # STX: `\002` - Start of Text
 # have `\001` and `\002` surrounding the colorized string to handle multiple lines input
 function getCommitMessage() {
+  declare jiraId=''
+  if [[ 'true' = "${MCX_ENABLE_JIRA:-false}" ]]; then
+    read -rep "$(printf "\001$(c Mi)\002%s\001$(c)\002" 'JIRA ID: ')" jiraId
+    [[ -n "${jiraId}" ]] && jiraId="${jiraId} - "
+  fi
+
   selected=$( printf "%b\n" "${types[@]}" |
               fzf --prompt="commit type: " --height=10 --border --ansi --color=fg+:#979736,hl+:#979736
             )
@@ -81,13 +90,27 @@ function getCommitMessage() {
     runInteractive body gum write --placeholder="commit body (optional)" || return 1
   fi
 
+  declare breaking=''
+  declare bfooter=''
+  if "${MCX_BREAKING_CHANGE:-false}"; then
+    if gum confirm "Is this a BREAKING CHANGE?"; then
+      runInteractive breaking gum write --placeholder="describe the BREAKING CHANGE" || return 1
+      bfooter="BREAKING CHANGE: ${breaking}"
+    fi
+  fi
+
+  declare footer=''
   if [[ 'true' = "${MCX_ENABLE_FOOTER:-false}" ]]; then
     runInteractive footer gum input --placeholder="footer (optional -- i.e.: Closes #123)" || return 1
   fi
 
-  message="${type}${scope}: ${subject}"
-  [[ -n "${body:-}"   ]] && message+=$'\n\n'"$body"
-  [[ -n "${footer:-}" ]] && message+=$'\n\n'"$footer"
+  message="${type}${scope}"
+  "${MCX_BREAKING_CHANGE:-false}" && message+='!'
+  message+=": ${jiraId}${subject}"
+  [[ -n "${body:-}"    ]] && message+=$'\n\n'"${body}"
+  [[ -n "${bfooter}" || "${footer:-}" ]] && message+=$'\n'
+  [[ -n "${bfooter:-}" ]] && message+=$'\n'"${bfooter}"
+  [[ -n "${footer:-}"  ]] && message+=$'\n'"${footer}"
 
   echo "${message}"
 }
