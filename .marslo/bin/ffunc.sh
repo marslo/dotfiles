@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-04-16 00:46:30
+#   LastChange : 2025-04-23 01:32:52
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -430,12 +430,12 @@ function vim() {                           # magic vim - fzf list in most recent
   while [[ $# -gt 0 ]]; do
     case "$1" in
                  -v ) orgv=1               ; shift   ;;
-        -h | --help ) voption+=("$1")       ; shift   ;;
-          --version ) voption+=("$1")       ; shift   ;;
-                 -c ) voption+=("$1" "$2")     ; shift   ;;
-      --startuptime ) voption+=("$1" "$2")     ; shift 2 ;;
-                -Nu ) voption+=("$1" "$2")     ; shift 2 ;;
-              --cmd ) voption+=("$1" "$2")     ; shift 2 ;;
+        -h | --help ) voption+=("$1")      ; shift   ;;
+          --version ) voption+=("$1")      ; shift   ;;
+                 -c ) voption+=("$1" "$2") ; shift   ;;
+      --startuptime ) voption+=("$1" "$2") ; shift 2 ;;
+                -Nu ) voption+=("$1" "$2") ; shift 2 ;;
+              --cmd ) voption+=("$1" "$2") ; shift 2 ;;
                  -* ) foption+=("$1" "$2") ; shift 2 ;;
                   * ) break                          ;;
     esac
@@ -446,8 +446,8 @@ function vim() {                           # magic vim - fzf list in most recent
   if [[ 0 -eq "$#" ]] && [[ 0 -eq "${#voption}" ]]; then
     fd . "${fdOpt[@]}" | fzf "${foption[@]}" --bind="enter:become(${VIM} {+})"
   elif [[ 1 -eq "$#" ]] && [[ -d "${1}" ]]; then
-    [[ '.' = "${1}" ]] && target="${1}" || target=". \"${1}\""
-    fd "${target}" "${fdOpt[@]}" | fzf "${foption[@]}" --bind="enter:become(${VIM} {+})"
+    [[ '.' = "${1}" ]] && finalTarget=("${1}") || finalTarget=('.' "${1}")
+    fd "${finalTarget[@]}" "${fdOpt[@]}" | fzf "${foption[@]}" --bind="enter:become(${VIM} {+})"
   else
     "${VIM}" "${voption[@]}" "$@"
   fi
