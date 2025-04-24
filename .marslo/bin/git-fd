@@ -4,34 +4,55 @@
 #     FileName : git-fd
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-10 19:59:15
-#   LastChange : 2025-04-11 01:54:46
+#   LastChange : 2025-04-23 18:34:01
 #=============================================================================
 
 set -euo pipefail
-source "${HOME}/.marslo/bin/bash-color.sh"
+
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+if [[ -f "${HOME}/.marslo/bin/bash-color.sh" ]]; then
+  source "${HOME}/.marslo/bin/bash-color.sh"
+else
+  c() { :; }
+fi
 
 declare EXT=''
 declare AUTHOR=''
 declare FILE_PATTERN=''
 declare GREP_PATTERN=''
-AUTHOR="$(git config user.email 2>/dev/null || echo "")"
+declare MESSAGE_PATTERN=''
+declare KEYWORD=''
+declare DIFF_FILTER_INCLUDE=''
+declare DIFF_FILTER_EXCLUDE=''
+declare VERBOSE=false
 # shellcheck disable=SC2155
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
 # shellcheck disable=SC2155
 declare -r USAGE="""
+NAME
+  $(c Ysi)${ME}$(c) - $(c Ysi)f$(c)in$(c Ysi)d$(c) files in git repository
+
 USAGE
   $(c Ys)\$ ${ME} $(c 0Wdi)[$(c 0Gi)OPTIONS$(c 0Wdi)]$(c)
 
 OPTIONS
-  $(c Gi)-u$(c), $(c Gi)--author $(c 0Wi)<email>$(c)    override author $(c Wi)(default: \`$(c 0Bi)git config user.email$(c 0Wi)\`)$(c)
-  $(c Gi)-e$(c), $(c Gi)--ext $(c 0Wi)<ext>$(c)         filter file extension $(c Wi)(e.g. sh, py)$(c).
+  $(c Gi)-u$(c), $(c Gi)--author $(c 0Wi)[<email>]$(c)  override author $(c Wi)(without value default is: \`$(c 0Bi)git config user.email$(c 0Wi)\`)$(c)
+  $(c Gi)-e$(c), $(c Gi)--ext $(c 0Wi)<ext>$(c)         filter file extension $(c Wi)(e.g.: sh, py)$(c).
   $(c Gi)-f$(c), $(c Gi)--file $(c 0Wi)<pattern>$(c)    fuzzy match filenames $(c Wi)(including path, case-insensitive)$(c)
   $(c Gi)-g$(c), $(c Gi)--grep $(c 0Wi)<pattern>$(c)    search file contents and return matching files
+  $(c Gi)-k$(c), $(c Gi)--keyword $(c 0Wi)<pattern>$(c) search commit diffs $(c Wi)(patch content)$(c) for matching pattern $(c Wi)(\`$(c 0Bi)-G$(c 0Wi)\`)$(c)
+  $(c Gi)-m$(c), $(c Gi)--message $(c 0Wi)<pattern>$(c) search commit messages $(c Wi)(case-insensitive)$(c)
+  $(c Gi)--delete$(c), $(c Gi)--no-delete$(c)   include/exclude deleted files
+  $(c Gi)--add$(c), $(c Gi)--no-add$(c)         include/exclude added files
+  $(c Gi)--modify$(c), $(c Gi)--no-modify$(c)   include/exclude modified files
+  $(c Gi)--rename$(c), $(c Gi)--no-rename$(c)   include/exclude renamed files
   $(c Gi)-h$(c), $(c Gi)--help$(c)              show this help message
 
 EXAMPLES
-  $(c Wdi)# find files with current user$(c)
-  $(c Ys)\$ ${ME}$(c)
+  $(c Wdi)# find files with current user, read from $(c 0Bi)\`git config user.email\`$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--author$(c)
 
   $(c Wdi)# filter files by the $(c 0Bi)'user' $(c 0Wdi)involving $(c 0Bi)*.sh$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)-u $(c 0Mi)user@example.com $(c 0Gi)--ext $(c 0Mi)sh$(c)
@@ -39,22 +60,22 @@ EXAMPLES
   $(c Wdi)# filter files by the $(c 0Bi)'user' $(c 0Wdi)involving files with $(c 0Bi)'config' $(c 0Wdi)in the path$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--author $(c 0Mi)user@example.com $(c 0Gi)--file $(c 0Mi)config$(c)
 
-  $(c Wdi)# filter files that added/removed $(c 0Bi)'TODO' $(c 0Wdi)anywhere in the code$(c)
-  $(c Ys)\$ ${ME} $(c 0Gi)-u $(c 0Mi)user@example.com $(c 0Gi)--grep $(c 0Mi)'TODO'$(c)
+  $(c Wdi)# filter files that added/removed $(c 0Bi)'TODO'$(c 0Wdi) anywhere in the code$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--grep $(c 0Mi)'TODO'$(c)
+
+  $(c Wdi)# find commits with $(c 0Bi)'refactor' $(c 0Wdi)in the message involving $(c 0Bi)*.py $(c 0Wdi)files$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--message $(c 0Mi)'refactor' $(c 0Gi)--ext $(c 0Mi)py$(c)
 
   $(c Wdi)# find files where file path/name contains $(c 0Bi)'log' $(c 0Wdi)and content contains $(c 0Bi)'init'$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)-f $(c 0Mi)log $(c 0Gi)-g $(c 0Mi)'init'$(c)
 
 NOTES
-  • $(c Bi)--file$(c) and $(c Bi)--grep$(c) can be combined to narrow results to files that match both path and content
-  • $(c Bi)--ext$(c) will further filter the result set based on file extension
   • The effective file list will be passed to $(c Ci)fzf$(c) for selection and preview
 """
 
 function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
 function showHelp() { echo -e "${USAGE}"; exit 0; }
-
-function preview_commit_detail() {
+function previewCommitDetail() {
   local rev="$1"
 
   git show -s "${rev}"
@@ -74,43 +95,112 @@ function preview_commit_detail() {
   git diff --color=always "${rev}^" "${rev}"
 }
 
+function checkArg() {
+  local flag="$1"
+  local name="$2"
+  local argCount="$3"
+  local value="$4"
+
+  if [[ "${argCount}" -gt 1 && "${value}" != -* ]]; then
+    printf -v "${name}" "%s" "${value}"
+    return 0
+  else
+    die "option ${flag} requires an argument."
+  fi
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -e | --ext    ) EXT="$2"          ; shift 2 ;;
-    -u | --author ) AUTHOR="$2"       ; shift 2 ;;
-    -f | --file   ) FILE_PATTERN="$2" ; shift 2 ;;
-    -g | --grep   ) GREP_PATTERN="$2" ; shift 2 ;;
-    -h | --help   ) showHelp                    ;;
-    --            ) shift                       ;;
-    *             ) die "Unknown option: $1"    ;;
+    -u | --author  ) if [[ $# -gt 1 && "$2" != -* ]]; then
+                       AUTHOR="$2"; shift 2
+                     else
+                       AUTHOR="$(git config user.email 2>/dev/null)"; shift 1
+                     fi
+                     ;;
+    -e | --ext     ) checkArg "$1" EXT "$#" "$2"             ; shift 2 ;;
+    -f | --file    ) checkArg "$1" FILE_PATTERN "$#" "$2"    ; shift 2 ;;
+    -g | --grep    ) checkArg "$1" GREP_PATTERN "$#" "$2"    ; shift 2 ;;
+    -k | --keyword ) checkArg "$1" KEYWORD "$#" "$2"         ; shift 2 ;;
+    -m | --message ) checkArg "$1" MESSAGE_PATTERN "$#" "$2" ; shift 2 ;;
+    --delete       ) DIFF_FILTER_INCLUDE+="D"                ; shift 1 ;;
+    --add          ) DIFF_FILTER_INCLUDE+="A"                ; shift 1 ;;
+    --modify       ) DIFF_FILTER_INCLUDE+="M"                ; shift 1 ;;
+    --rename       ) DIFF_FILTER_INCLUDE+="R"                ; shift 1 ;;
+    --no-delete    ) DIFF_FILTER_EXCLUDE+="d"                ; shift 1 ;;
+    --no-add       ) DIFF_FILTER_EXCLUDE+="a"                ; shift 1 ;;
+    --no-modify    ) DIFF_FILTER_EXCLUDE+="m"                ; shift 1 ;;
+    --no-rename    ) DIFF_FILTER_EXCLUDE+="r"                ; shift 1 ;;
+    -v | --verbose ) VERBOSE=true                            ; shift 1 ;;
+    -h | --help    ) showHelp                                          ;;
+    --             ) shift                                             ;;
+    *              ) die "unknown option: $1"                          ;;
   esac
 done
 
-[[ -z "${AUTHOR}" ]] && die "No author specified. Use --author or configure 'git config user.email'"
+[[ -z "${AUTHOR}" ]] && echo -e "$(c Yi)WARNING:$(c) no author specified."
 
 declare -a logCmd
-logCmd=(git log --author="${AUTHOR}" --pretty=format:'--COMMIT-- %h' --name-only)
+logCmd=(git log --pretty=format:'--COMMIT-- %h' --name-only)
+
+test -n "${AUTHOR}"          && logCmd+=(--author="${AUTHOR}")
+test -n "${KEYWORD}"         && logCmd+=(-G"${KEYWORD}")
+test -n "${MESSAGE_PATTERN}" && logCmd+=(--grep="${MESSAGE_PATTERN}" --regexp-ignore-case)
+
+declare DIFF_FILTER="${DIFF_FILTER_INCLUDE}${DIFF_FILTER_EXCLUDE}"
+test -n "${DIFF_FILTER}"     && logCmd+=(--diff-filter="${DIFF_FILTER}")
 
 declare -a matchesFiles=()
-if [[ -n "${FILE_PATTERN}" && -n "${GREP_PATTERN}" ]]; then
-  while IFS= read -r f; do matchesFiles+=("${f}"); done < <(
-    git grep -Il "${GREP_PATTERN}" | grep -i --color=never "${FILE_PATTERN}"
-  )
-elif [[ -n "${GREP_PATTERN}" ]]; then
-  mapfile -t matchesFiles < <(git grep -Il --color=never "${GREP_PATTERN}")
-elif [[ -n "${FILE_PATTERN}" ]]; then
-  mapfile -t matchesFiles < <(git ls-files | grep -i --color=never "${FILE_PATTERN}")
+declare -a initialFiles=()
+declare -a filteredFiles=()
+declare grepFiltered=false
+declare nameFiltered=false
+
+# -g, --grep
+if [[ -n "${GREP_PATTERN}" ]]; then
+  mapfile -t initialFiles < <(git grep -Il --color=never "${GREP_PATTERN}")
+  grepFiltered=true
+  if [[ ${#initialFiles[@]} -eq 0 ]]; then
+    echo "No files found matching content grep pattern: ${GREP_PATTERN}"
+    exit 0
+  fi
+  matchesFiles=("${initialFiles[@]}")
+else
+  mapfile -t initialFiles < <(git ls-files)
+  matchesFiles=("${initialFiles[@]}")
 fi
 
-if [[ -n "${EXT}" ]]; then
-  if [[ -n "${matchesFiles[*]:-}" ]]; then
-    mapfile -t matchesFiles < <(printf '%s\n' "${matchesFiles[@]}" | grep -Ei "\.${EXT}$")
-  else
-    mapfile -t matchesFiles < <(git ls-files "*.${EXT}")
+# -f, --file
+if [[ -n "${FILE_PATTERN}" ]]; then
+  mapfile -t filteredFiles < <(printf '%s\n' "${matchesFiles[@]}" | grep -i --color=never "${FILE_PATTERN}")
+  matchesFiles=("${filteredFiles[@]}")
+  nameFiltered=true
+  if "${VERBOSE}"; then
+    [[ ${#matchesFiles[@]} -eq 0 ]] &&
+    { echo "no files left after applying file name pattern: ${FILE_PATTERN}"; }
   fi
 fi
 
-[[ -n "${matchesFiles[*]:-}" ]] && logCmd+=(-- "${matchesFiles[@]}")
+# -e, --ext
+if [[ -n "${EXT}" ]]; then
+  EXT_NO_DOT="${EXT#.}"
+  mapfile -t filteredFiles < <(printf '%s\n' "${matchesFiles[@]}" | grep -Ei --color=never "\.${EXT_NO_DOT}$")
+  matchesFiles=("${filteredFiles[@]}")
+  if "${VERBOSE}"; then
+    [[ ${#matchesFiles[@]} -eq 0 ]] &&
+    { echo "no files left after applying extension filter: ${EXT}"; }
+  fi
+fi
+
+if [[ "${grepFiltered}" = true || "${nameFiltered}" = true || -n "${EXT}" ]]; then
+  if [[ ${#matchesFiles[@]} -gt 0 ]]; then
+    logCmd+=(-- "${matchesFiles[@]}")
+  else
+    "${VERBOSE}" &&
+    { echo "no files matched the combined file filters. no commits to show."; }
+  fi
+fi
+
+"${VERBOSE}" && echo -e "$(c Wdi)DEBUG: executing command:$(c):\n  $(c Gdi)${logCmd[*]}$(c)"
 
 declare gdetail="bash -c '
   rev={1};
@@ -123,32 +213,41 @@ declare gdetail="bash -c '
   git diff --color=always \"\${rev}^\" \"\${rev}\"
 ' | less -R"
 
-"${logCmd[@]}" |
-awk '
-  function printBlock() {
-    if (lineCount > 0) {
-      printf "%s %s\n", commit, files[1]
-      for (i = 2; i <= lineCount; ++i) printf "%s\n", files[i]
-      printf "\0"
+declare files=''
+files=$(
+  "${logCmd[@]}" |
+  awk '
+    function printBlock() {
+      if (lineCount > 0) {
+        printf "%s %s\n", commit, files[1]
+        for (i = 2; i <= lineCount; ++i) printf "%s\n", files[i]
+        printf "\0"
+      }
     }
-  }
-  /^--COMMIT--/ {
-    if (commit != "") { printBlock() }
-    commit = $2
-    lineCount = 0
-    next
-  }
-  NF { files[++lineCount] = $0 }
-  END { printBlock() }
-' |
-fzf --read0 --ansi --multi --layout=reverse --gap \
-  --height=50% \
-  --pointer='▌' \
-  --with-nth=2.. --delimiter=' ' \
-  --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
-  --color='gutter:0,bg+:-1,fg:dim,fg+:regular,hl+:#a66584:regular:italic,hl:italic' \
-  --preview="git show -s {1} | bat --language=Git\ Commit --style=plain --paging=never --theme=Nord" \
-  --bind "ctrl-f:execute(${gdetail})" \
-  --bind 'ctrl-/:change-preview-window:up,60%|right,60%'
+    /^--COMMIT--/ {
+      if (commit != "") { printBlock() }
+      commit = $2
+      lineCount = 0
+      next
+    }
+    NF { files[++lineCount] = $0 }
+    END { printBlock() }
+  ' |
+  fzf --read0 --ansi --multi --layout=reverse --gap \
+    --height=50% \
+    --pointer='▌' \
+    --with-nth=2.. --delimiter=' ' \
+    --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
+    --color='gutter:0,bg+:-1,fg:dim,fg+:regular,hl+:#a66584:regular:italic,hl:italic' \
+    --preview="git show -s {1} | bat --language=Git\ Commit --style=plain --paging=never --theme=Nord" \
+    --header 'CTRL-F to view diff; CTRL-/ to change the preview window' \
+    --bind "ctrl-f:execute(${gdetail})" \
+    --bind 'ctrl-/:change-preview-window:up,60%|right,60%'
+)
+
+if [[ -n "${files}" ]]; then
+  command -v nvim >/dev/null && VIM=("$(type -P nvim)") || VIM=("$(type -P vim)")
+  "${VIM[@]}" "$(awk '{print $NF}' <<< "${files}" | xargs)"
+fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

@@ -4,7 +4,7 @@
 #     FileName : ccm.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 03:34:24
-#   LastChange : 2025-04-22 00:29:48
+#   LastChange : 2025-04-23 02:23:35
 #  Description : ccm - [c]hatgpt [c]ommit [m]essage generator
 #                +----------------------+--------------------+------------+
 #                | ENVIRONMENT VARIABLE | DEFAULT VALUE      | NOTES      |
@@ -224,7 +224,7 @@ function main() {
 
   Use multiple scopes if the diff includes changes in multiple areas.
   Use markdown-style bullet points for details and initials in lowercase.
-  Ignore timestamp changes in script metadata.
+  Do not include timestamp changes in script/code metadata.
   Do not include explanations or code.
   Base it on the following diff:
 
