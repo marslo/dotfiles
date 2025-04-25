@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-03-18 20:11:16
+"    LastChange : 2025-04-01 20:20:06
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -111,18 +111,18 @@ if has( 'autocmd' )
   augroup Vimrc
     if index( ['vimrc.d'], split(expand('%:p:h'), '/')[-1] ) >= 0
       autocmd! BufWritePost ~/.marslo/vimrc.d/* silent! source $MYVIMRC
-            \| echohl WarningMsg
-            \| echom expand('%:p') . " changed! " . $MYVIMRC . " sourced!"
-            \| echohl None
-            \| execute 'silent redraw!'
+               \| echohl WarningMsg
+               \| echom expand('%:p') . " changed! " . $MYVIMRC . " sourced!"
+               \| echohl None
+               \| execute 'silent redraw!'
     endif
 
     if IsNvim() && '/'.join(split(expand('%:p'), '/')[0:3], '/') == stdpath('config')
       autocmd! BufWritePost ~/.config/nvim/*    silent! source $MYVIMRC
-            \| echohl WarningMsg
-            \| echom expand('%:p') . " changed! " . $MYVIMRC . " sourced!"
-            \| echohl None
-            \| execute 'silent redraw!'
+               \| echohl WarningMsg
+               \| echom expand('%:p') . " changed! " . $MYVIMRC . " sourced!"
+               \| echohl None
+               \| execute 'silent redraw!'
     endif
   augroup END
 
@@ -169,17 +169,17 @@ if has( 'autocmd' )
 
   augroup Defaults
 
-    " foldmethod to indent for all filetypes except help
+    " foldmethod to indent for all filetypes except help and vim-plug
     autocmd BufWinEnter *
-            \ if &filetype !=# 'help' && empty(&filetype) |
-            \   setlocal foldmethod=indent |
-            \ endif
+            \ if empty(&filetype) || (index(['help', 'vim-plug'], &filetype) == -1)
+            \|   setlocal foldmethod=indent
+            \| endif
 
     " for modeline
     autocmd BufReadPost *
-            \ if getline(1) =~# 'vim:.*ft=help' && &filetype !=# 'help' |
-            \   doautocmd FileType |
-            \ endif
+            \ if getline(1) =~# 'vim:.*ft=help' && &filetype !=# 'help'
+            \|   doautocmd FileType
+            \| endif
 
     autocmd BufRead,BufNewFile,BufWinEnter *                   if !did_filetype() && &ft ==# '' | setfiletype jenkinsfile | endif
     autocmd BufWinEnter        *                               silent! loadview                                     " autocmd BufWinLeave * silent! mkview
@@ -200,11 +200,35 @@ if has( 'autocmd' )
     " autocmd VimLeave         *                               silent :%bd                                          " :windo bd
   augroup END
 
-  augroup LAST_OVERRIDE                                                       " to disable foldmethod in help file
+  let s:ft_settings = {
+        \ 'help': {'foldenable': 0},
+        \ 'vim-plug': {'foldenable': 0, 'relativenumber': 0, 'number': v:false },
+        \ 'markdown': {'spell': 1},
+        \ }
+
+  function! s:ApplyFTSettings() abort
+    if has_key(s:ft_settings, &filetype)
+      for [opt, val] in items(s:ft_settings[&filetype])
+        let current_val = getbufvar('%', '&' . opt)
+        if type(val) == v:t_bool
+          " if `val = v:false`, the option will be `no{opt}`
+          execute 'setlocal' (val ? '' : 'no') . opt
+        else
+          if current_val != val | execute 'setlocal ' . opt . '=' . val | endif
+        endif
+      endfor
+    else
+      setlocal foldmethod=indent
+    endif
+  endfunction
+
+  augroup LAST_OVERRIDE
     autocmd!
-    autocmd BufWinEnter *
-        \ if &filetype ==# 'help' && &foldenable | setlocal nofoldenable | endif
+    autocmd FileType    *        ++nested call s:ApplyFTSettings()
+    autocmd BufWinEnter *        call s:ApplyFTSettings()
+    " autocmd BufWinEnter __Plug__ setlocal nofoldenable nonumber relativenumber=0
   augroup END
+
 endif
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
