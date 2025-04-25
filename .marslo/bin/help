@@ -3,13 +3,19 @@
 #     FileName : help
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-10-08 06:57:15
-#   LastChange : 2025-04-10 01:37:53
+#   LastChange : 2025-04-24 18:04:13
+#        Usage : 1. source <path/to/help>; or eval "$(cat <path/to/help>)"
+#                2. help <command> [<args>]
 #=============================================================================
 
-set -euo pipefail
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  set -euo pipefail
+fi
 
 # using `eval` to handle non-commands, i.e.: `git <alias> --help`
 function help() {
+  [[ "$#" -eq 0 ]] && return
+
   # count the first consecutive spaces
   function countFirstSpaces() { echo "$1" | awk '{ if (match($0, / {6,}/)) { print RLENGTH; exit; } }'; }
   # count the minimal consecutive spaces
@@ -64,7 +70,5 @@ function help() {
     echo "${output}" | sed -r "s/\x1B?\[(([0-9]+)(;[0-9]+)*)?[mGKHfJ]//g" | bat --plain --language=help
   fi
 }
-
-help "$@"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

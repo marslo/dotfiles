@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2025-04-23 02:24:21
+# LastChange : 2025-04-24 18:07:36
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -173,6 +173,10 @@ test -e /usr/share/terminfo/78/xterm-256color && export TERM='xterm-256color'
 #             __/ |
 #            |___/
 # --------------------------------------------------------------/
+# rewrite help and history
+[[ -f "${iRCHOME}/bin/help"    ]] && source "${iRCHOME}/bin/help"
+[[ -f "${iRCHOME}/bin/history" ]] && source "${iRCHOME}/bin/history"
+
 source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im,icolor}.sh )
 [[ '1' = "$(isOSX)"    ]] && source <( cat "${iRCHOME}"/bin/ii.sh )
 [[ '1' != "$(isLinux)" ]] && test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev

@@ -47,6 +47,7 @@ Pictures/
 .rbenv/shims/
 .sdkman
 .tox/
+.tt/
 node_modules/
 
 ##############################
@@ -95,6 +96,8 @@ Desktop.ini
 Thumbs.db
 ehthumbs.db
 history
+**/history
+!**/bin/history
 
 ##############################
 # development tools
