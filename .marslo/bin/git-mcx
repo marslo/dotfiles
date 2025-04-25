@@ -4,7 +4,7 @@
 #     FileName : git-mcx
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2025-04-23 18:04:38
+#   LastChange : 2025-04-25 01:03:48
 #        Usage : git-mcx [OPTION]             # call getCommitMessage to set commit message
 #                git-mcx [OPTION] [message]   # using `[message]` as commit message
 #=============================================================================
@@ -110,6 +110,73 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+function msgPreview() {
+  echo -e "\n--------------- $(c Wdi)git message preview$(c) ---------------"
+  printf  "%s\n" "${1}" | command bat --plain --language=COMMIT_EDITMSG --style=plain
+  echo -e '---------------------------------------------------'
+}
+
+function changeDiff() {
+  echo -e "\n---------------- $(c Wdi)git diff (staged)$(c) ----------------"
+  printf "\n%b\n" "$(c Bi)git diff :$(c)"
+  git diff --cached --color || printf "%b\n" "$(c Wdi)(no staged changes)$(c)"
+  echo -e '---------------------------------------------------'
+}
+
+function commitlintCheck() {
+  declare -a CONFIG_OPT=(--color)
+  [[ 'true' = "${MCX_GLOBAL_LINTRC:-false}" ]] && CONFIG_OPT+=(--config "${LINTRC_FILE}")
+
+  local message="$1"
+  local spinner="commitlint checking"
+  local timeout=5
+  local start_time elapsed status=0
+  # shellcheck disable=SC2155
+  local tempFile="$(mktemp)"
+  trap 'rm -f "'"${tempFile}"'"' RETURN
+
+  # running commitlint in background and save status and output to file
+  ( echo "${message}" | commitlint "${CONFIG_OPT[@]}" > "${tempFile}" 2>&1 ) &
+  local pid=$!
+
+  # spinner
+  local dots=''
+  start_time=$(date +%s)
+  while kill -0 "${pid}" 2>/dev/null; do
+    elapsed=$(( $(date +%s) - start_time ))
+    if (( elapsed >= timeout )); then
+      kill "${pid}" 2>/dev/null || true
+      status=124
+      break
+    fi
+    dots+='.'
+    printf "\r$(c Yi)%s%s$(c)" "${spinner}" "${dots}"
+    sleep 0.1
+  done
+
+  # wait commitlint execution and get exit status
+  wait "${pid}" 2>/dev/null || status=$?
+
+  # get commitlint output
+  if [[ "${status}" -ne 124 ]]; then
+    out="$(<"${tempFile}")"
+  else
+    out="commitlint timeout"
+  fi
+
+  # clear spinner line
+  printf "\r\033[2K"
+
+  # show commitlint result
+  if [[ "${status}" -eq 0 ]]; then
+    printf "%b\n%s\n" "$(c Gi)-- commitlint checked (succeed) --$(c)\n" "${out}"
+  elif [[ "${status}" -eq 124 ]]; then
+    printf "%b\n%s\n" "$(c Ri)-- commitlint timeout --$(c)\n" "${out}"
+  else
+    printf "%b\n%s\n" "$(c Ri)-- commitlint checked (failed) --$(c)\n" "${out}"
+  fi
+}
+
 function main() {
   if [[ $# -gt 0 ]]; then
     message="$1"
@@ -118,30 +185,18 @@ function main() {
   fi
 
   # show preview
-  if [[ 'true' = "${MCX_SHOW_PREVIEW:-false}" ]]; then
-    echo -e "-------------- $(c Wdi)git message preview$(c) ----------------"
-    printf  "%s\n" "${message}" | command bat --plain --language=COMMIT_EDITMSG --style=plain
-    echo -e '---------------------------------------------------'
-  fi
-
-  if [[ 'true' = "${MCX_SHOW_DIFF:-false}" ]]; then
-    echo -e "\nGit Diff (staged):"
-    printf "\n%b\n" "$(c Bi)git diff :$(c)"
-    git diff --cached --color || printf "%b\n" "$(c Wdi)(no staged changes)$(c)"
-  fi
-
+  [[ 'true' = "${MCX_SHOW_PREVIEW:-false}" ]] && msgPreview "${message}"
+  # show diff
+  [[ 'true' = "${MCX_SHOW_DIFF:-false}"    ]] && changeDiff
   # commitlint check
-  if command -v commitlint >/dev/null 2>&1 && [[ 'true' = "${MCX_LINT_ENABLE:-true}" ]]; then
-    [[ 'true' = "${MCX_GLOBAL_LINTRC:-false}" ]] \
-      && CONFIG_OPT="--config '${LINTRC_FILE}'" \
-      || CONFIG_OPT=''
-    printf "%b\n" "$(c Yi)commitlint checking ...$(c)"
-    # shellcheck disable=SC2086
-    echo "${message}" | commitlint ${CONFIG_OPT} || { printf "%b\n" "$(c Ri)commitlint failed ... $(c)"; }
-  fi
+  [[ 'true' = "${MCX_LINT_ENABLE:-true}"   ]] && {
+    command -v commitlint >/dev/null 2>&1 && commitlintCheck "${message}"
+  }
 
   git add --all "$(git rev-parse --show-toplevel)";
-  printf "%s\n" "${message}" | git commit -s -a -F -
+  if ! printf "%s\n" "${message}" | git commit -s -a -F -; then
+    msgPreview "${message}"
+  fi
 }
 
 main "$@"
