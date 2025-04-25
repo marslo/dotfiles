@@ -2,7 +2,7 @@
 #     FileName : .gitalias
 #       Author : marslo.jiao@gmail.com
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2025-04-11 02:03:55
+#   LastChange : 2025-04-24 16:26:02
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #-----------------------------------------------------------------------------#
 
@@ -196,9 +196,10 @@
                           git commit --amend --no-edit; \
                         fi; \
                         if [ 'meta/config' = \"${branch}\" ]; then \
-                          git push -u --force origin HEAD:refs/meta/config; \
-                          git fetch origin --force refs/meta/config:refs/remotes/origin/meta/config; \
-                          git reset --hard remotes/origin/${branch}; \
+                          if git push -u --force origin HEAD:refs/${branch}; then \
+                            git fetch origin --force refs/${branch}:refs/remotes/origin/${branch}; \
+                            git reset --hard remotes/origin/${branch}; \
+                          fi; \
                         else \
                           if [ \"-r\" = \"$1\" ] || [ \"--remote\" = \"$1\" ]; then \
                             rBranch=$(git ls-remote --heads origin ${branch} | wc -l); \

@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2015,SC2290,SC2139
+# shellcheck source=/dev/null disable=SC2015,SC2290,SC2139
 # =============================================================================
 #   FileName: utils
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
 # LastChange: 2025-02-14 01:40:51
 # =============================================================================
+
+# using source instead of alias in ~/.marslo/.marslorc
+# [[ -f "$HOME/.marslo/bin/help"    ]] && alias help='$HOME/.marslo/bin/help'
+# [[ -f "$HOME/.marslo/bin/history" ]] && eval "$(cat "$HOME/.marslo/bin/history")"
 
 if [[ 'Darwin' = $(uname --operating-system) ]]; then
   # requires gnu-which

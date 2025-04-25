@@ -4,7 +4,7 @@
 #     FileName : git-mcx
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2025-04-23 01:16:20
+#   LastChange : 2025-04-23 18:04:38
 #        Usage : git-mcx [OPTION]             # call getCommitMessage to set commit message
 #                git-mcx [OPTION] [message]   # using `[message]` as commit message
 #=============================================================================
@@ -22,18 +22,23 @@
 
 set -euo pipefail
 
-# or copy & paste the `c()` function from https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 if [[ -f "${HOME}/.marslo/bin/bash-color.sh" ]]; then
-  # credit: https://github.com/ppo/bash-colors
   source "${HOME}/.marslo/bin/bash-color.sh"
 else
   c() { :; }
 fi
 
-source "$(dirname "${BASH_SOURCE[0]:-$0}")"/getCommitMessage.sh
-
 function showHelp() { echo -e "${USAGE}"; }
 function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
+
+if [[ -f "$(dirname "${BASH_SOURCE[0]:-$0}")"/getCommitMessage.sh ]]; then
+  source "$(dirname "${BASH_SOURCE[0]:-$0}")"/getCommitMessage.sh
+else
+  die "$(c M)'getCommitMessage.sh'$(c 0i) not found. download from https://github.com/marslo/dotfiles/raw/main/.marslo/bin/getCommitMessage.sh first. $(c)"
+fi
 
 # shellcheck source=/dev/null disable=SC2155
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /g')"
@@ -57,32 +62,19 @@ USAGE
   $(c Ys)\$ ${ME} $(c 0Wdi)[$(c 0Gi)options$(c 0Wdi)] $(c 0Wdi)[$(c 0Mi)'message'$(c 0Wdi)]$(c)
 
 OPTIONS
-  $(c Gi)--body$(c)                           enable the commit message body section
-  $(c Gi)--no-body$(c 0Y)*$(c)                       disable the body section
+  $(c Gi)--body$(c), $(c Gi)--no-body$(c 0Y)*$(c)                   enable/disable the commit message body section
+  $(c Gi)--footer$(c), $(c Gi)--no-footer$(c 0Y)*$(c)               enable/disable the footer section $(c i)(e.g.: $(c W)issue refs, $(c 0Wi)breaking changes$(c 0i))$(c)
+  $(c Gi)--diff$(c), $(c Gi)--no-diff$(c 0Y)*$(c)                   show/suppress Git diff preview $(c i)(if applicable)$(c)
+  $(c Gi)--preview$(c), $(c Gi)--no-preview$(c 0Y)*$(c)             enable/disable full preview of the final commit message
+  $(c Gi)--scope$(c 0Y)*$(c), $(c Gi)--no-scope$(c)                 prompt/skip for Conventional Commit 'scope' input
+  $(c Gi)--lint$(c 0Y)*$(c), $(c Gi)--no-lint$(c)                   enable/disable commit message linting $(c i)(via commitlint - if applicable)$(c)
 
-  $(c Gi)--footer$(c)                         enable the footer section $(c i)(e.g.: $(c W)issue refs, $(c 0Wi)breaking changes$(c 0i))$(c)
-  $(c Gi)--no-footer$(c 0Y)*$(c)                     disable the footer section
+  $(c Gi)--global-lintrc$(c), $(c Gi)--no-global-lintrc$(c 0Y)*$(c) force use/disable global commitlint configuration ($(c i)default: $(c M)~/.commitlintrc$(c))
+  $(c Gi)--lintrc $(c 0Wi)<file>$(c)                      specify a custom commitlint configuration file
+                                       example: $(c Gi)--lintrc $(c 0Wi)\"\$HOME/path/to/.commitlintrc.json\"$(c)
 
-  $(c Gi)--diff$(c)                           show Git diff preview $(c i)(if applicable)$(c)
-  $(c Gi)--no-diff$(c 0Y)*$(c)                       suppress Git diff preview
-
-  $(c Gi)--preview$(c)                        enable full preview of the final commit message
-  $(c Gi)--no-preview$(c 0Y)*$(c)                    disable commit preview output
-
-  $(c Gi)--scope$(c 0Y)*$(c)                         prompt for Conventional Commit 'scope' input
-  $(c Gi)--no-scope$(c)                       skip scope input
-
-  $(c Gi)--lint$(c 0Y)*$(c)                          enable commit message linting $(c i)(via commitlint - if applicable)$(c)
-  $(c Gi)--no-lint$(c)                        disable lint checks
-
-  $(c Gi)--global-lintrc$(c)                  force use global commitlint configuration ($(c i)default: $(c M)~/.commitlintrc$(c))
-  $(c Gi)--no-global-lintrc$(c 0Y)*$(c)              use local commitlint configuration by default
-  $(c Gi)--lintrc $(c 0Wi)<file>$(c)                  specify a custom commitlint configuration file
-                                   example: $(c Gi)--lintrc $(c 0Wi)\"\$HOME/path/to/.commitlintrc.json\"$(c)
-
-  $(c Gi)--breaking$(c), $(c Gi)--breaking-change$(c)    enable breaking change section $(c i)(e.g.: $(c W)BREAKING CHANGE: $(c 0Wi)description$(c 0i))$(c)
-
-  $(c Gi)-h$(c), $(c Gi)--help$(c)                       show this help message and exit
+  $(c Gi)--breaking$(c), $(c Gi)--breaking-change$(c)        enable breaking change section $(c i)(e.g.: $(c W)BREAKING CHANGE: $(c 0Wi)description$(c 0i))$(c)
+  $(c Gi)-h$(c), $(c Gi)--help$(c)                           show this help message and exit
 
 EXAMPLES
   $(c Ys)\$ ${ME} $(c 0Mi)'message'$(c 0Gi)            $(c 0Wdi)# commit directly$(c)

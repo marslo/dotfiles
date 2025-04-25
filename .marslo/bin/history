@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+#=============================================================================
+#     FileName : history
+#       Author : marslo.jiao@gmail.com
+#      Created : 2025-04-24 16:49:25
+#   LastChange : 2025-04-24 18:20:51
+#        Usage : 1. source <path/to/history>; or eval "$(cat <path/to/history>)"
+#                2. history [<options>]
+#=============================================================================
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  set -euo pipefail
+fi
+
+function history() {
+  HISTTIMEFORMAT='%F %T ' builtin history "$@" |
+    awk -v timeColor="\033[3;38;5;244m" -v cmdColor="\033[38;5;110m" -v reset="\033[0m" '
+      BEGIN { is_continued = 0 }
+
+      # matches the first line with a timestamp: <ID> <timestamp> <command>
+      # i.e.:  1234 2023-10-01 12:34:56 <command>
+      /^[[:space:]]*[0-9]+[[:space:]]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}[[:space:]]+/ {
+        is_continued = 1
+        # feth the prefix timestamp and command body
+        match($0, /^[[:space:]]*[0-9]+[[:space:]]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}[[:space:]]+/)
+        prefix = substr($0, 1, RLENGTH)
+        cmd    = substr($0, RLENGTH + 1)
+        print timeColor prefix reset cmdColor cmd reset
+        next
+      }
+
+      is_continued { print cmdColor $0 reset; next }
+      { print $0 }
+    ';
+}
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
