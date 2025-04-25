@@ -4,7 +4,7 @@
 #     FileName : git-fd
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-10 19:59:15
-#   LastChange : 2025-04-23 18:34:01
+#   LastChange : 2025-04-25 02:10:09
 #=============================================================================
 
 set -euo pipefail
@@ -26,6 +26,7 @@ declare MESSAGE_PATTERN=''
 declare KEYWORD=''
 declare DIFF_FILTER_INCLUDE=''
 declare DIFF_FILTER_EXCLUDE=''
+declare USE_FZF=true
 declare VERBOSE=false
 # shellcheck disable=SC2155
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
@@ -38,16 +39,21 @@ USAGE
   $(c Ys)\$ ${ME} $(c 0Wdi)[$(c 0Gi)OPTIONS$(c 0Wdi)]$(c)
 
 OPTIONS
+  $(c Gi)--fzf$(c 0Yi)*$(c), $(c Gi)--no-fzf$(c)        disable fzf preview, default is $(c Wi)enabled$(c)
+
   $(c Gi)-u$(c), $(c Gi)--author $(c 0Wi)[<email>]$(c)  override author $(c Wi)(without value default is: \`$(c 0Bi)git config user.email$(c 0Wi)\`)$(c)
   $(c Gi)-e$(c), $(c Gi)--ext $(c 0Wi)<ext>$(c)         filter file extension $(c Wi)(e.g.: sh, py)$(c).
   $(c Gi)-f$(c), $(c Gi)--file $(c 0Wi)<pattern>$(c)    fuzzy match filenames $(c Wi)(including path, case-insensitive)$(c)
   $(c Gi)-g$(c), $(c Gi)--grep $(c 0Wi)<pattern>$(c)    search file contents and return matching files
   $(c Gi)-k$(c), $(c Gi)--keyword $(c 0Wi)<pattern>$(c) search commit diffs $(c Wi)(patch content)$(c) for matching pattern $(c Wi)(\`$(c 0Bi)-G$(c 0Wi)\`)$(c)
   $(c Gi)-m$(c), $(c Gi)--message $(c 0Wi)<pattern>$(c) search commit messages $(c Wi)(case-insensitive)$(c)
+
   $(c Gi)--delete$(c), $(c Gi)--no-delete$(c)   include/exclude deleted files
   $(c Gi)--add$(c), $(c Gi)--no-add$(c)         include/exclude added files
   $(c Gi)--modify$(c), $(c Gi)--no-modify$(c)   include/exclude modified files
   $(c Gi)--rename$(c), $(c Gi)--no-rename$(c)   include/exclude renamed files
+
+  $(c Gi)-v$(c), $(c Gi)--verbose$(c)           show verbose output
   $(c Gi)-h$(c), $(c Gi)--help$(c)              show this help message
 
 EXAMPLES
@@ -83,8 +89,7 @@ function previewCommitDetail() {
   git --no-pager diff --stat --relative "${rev}^" "${rev}" | awk '
     {
       lines[NR] = $0
-    }
-    END {
+    } END {
       for (i = 1; i < NR; ++i)
         printf("  • %s\n", lines[i])
       if (NR > 0)
@@ -93,6 +98,43 @@ function previewCommitDetail() {
   '
   echo -e "\n\033[1;34m-------- DIFF -------\033[0m"
   git diff --color=always "${rev}^" "${rev}"
+}
+
+function fileStatus() {
+  awk '
+    BEGIN {
+      COLOR_RESET = "\033[0m"
+      COLOR_ADD   = "\033[1;32m"
+      COLOR_MOD   = "\033[1;33m"
+      COLOR_DEL   = "\033[1;31m"
+      COLOR_REN   = "\033[1;35m"
+    }
+
+    function trimAnsi(str) {
+      gsub(/\033\[[0-9;]*m/, "", str)
+      return str
+    }
+    { plain = trimAnsi($0) }
+
+    plain ~ /^--COMMIT--/ { print $0; next; }
+    plain ~ /^[A-Z]/ {
+      split(plain, fields, /\t+/)
+      status = fields[1]
+      file = substr($0, index(plain, fields[2]))
+
+      if (status == "A") color = COLOR_ADD
+      else if (status == "M") color = COLOR_MOD
+      else if (status == "D") color = COLOR_DEL
+      else if (status ~ /^R/) color = COLOR_REN
+      else color = COLOR_RESET
+
+      printf "  %s%-4s%s %s\n", color, status, COLOR_RESET, file
+      next
+    }
+
+    # fallback
+    { print }
+  '
 }
 
 function checkArg() {
@@ -130,6 +172,7 @@ while [[ $# -gt 0 ]]; do
     --no-add       ) DIFF_FILTER_EXCLUDE+="a"                ; shift 1 ;;
     --no-modify    ) DIFF_FILTER_EXCLUDE+="m"                ; shift 1 ;;
     --no-rename    ) DIFF_FILTER_EXCLUDE+="r"                ; shift 1 ;;
+    --no-fzf       ) USE_FZF=false                           ; shift 1 ;;
     -v | --verbose ) VERBOSE=true                            ; shift 1 ;;
     -h | --help    ) showHelp                                          ;;
     --             ) shift                                             ;;
@@ -137,10 +180,17 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ -z "${AUTHOR}" ]] && echo -e "$(c Yi)WARNING:$(c) no author specified."
+"${VERBOSE}" && [[ -z "${AUTHOR}" ]] && echo -e "$(c Wdi)WARNING: no author specified ...$(c)"
 
 declare -a logCmd
-logCmd=(git log --pretty=format:'--COMMIT-- %h' --name-only)
+logCmd=(git log)
+if "${USE_FZF}"; then
+  logCmd+=(--name-only --pretty=format:'--COMMIT-- %h')
+else
+  logCmd+=(--name-status)
+  logCmd+=(--pretty=format:$'\033[3;38;5;241m--COMMIT--\033[0m \033[0;35m%h\033[0m • \033[0;36m%s\033[0m \033[3;34m<%aN>\033[0m \033[3;38;5;241m(%ad)\033[0m')
+  logCmd+=(--date=format:'%Y-%m-%d %H:%M')
+fi
 
 test -n "${AUTHOR}"          && logCmd+=(--author="${AUTHOR}")
 test -n "${KEYWORD}"         && logCmd+=(-G"${KEYWORD}")
@@ -201,20 +251,9 @@ if [[ "${grepFiltered}" = true || "${nameFiltered}" = true || -n "${EXT}" ]]; th
 fi
 
 "${VERBOSE}" && echo -e "$(c Wdi)DEBUG: executing command:$(c):\n  $(c Gdi)${logCmd[*]}$(c)"
+"${USE_FZF}" || { "${logCmd[@]}" | fileStatus; exit 0; }
 
-declare gdetail="bash -c '
-  rev={1};
-  git show -s \"\${rev}\"
-  echo -e \"\n\033[1;34m--- CHANGED FILES ---\033[0m\"
-  stat=\$(git --no-pager diff --stat --relative \"\${rev}^\" \"\${rev}\")
-  echo \"\${stat}\" | head -n -1 | sed \"s/^/  • /g\"
-  echo -e \"\033[2m\$(echo \"\${stat}\" | tail -n1)\033[0m\"
-  echo -e \"\n\033[1;34m-------- DIFF -------\033[0m\"
-  git diff --color=always \"\${rev}^\" \"\${rev}\"
-' | less -R"
-
-declare files=''
-files=$(
+function getOutput() {
   "${logCmd[@]}" |
   awk '
     function printBlock() {
@@ -232,8 +271,24 @@ files=$(
     }
     NF { files[++lineCount] = $0 }
     END { printBlock() }
-  ' |
-  fzf --read0 --ansi --multi --layout=reverse --gap \
+  '
+}
+
+declare gdetail="bash -c '
+  rev={1};
+  git show -s \"\${rev}\"
+  echo -e \"\n\033[1;34m--- CHANGED FILES ---\033[0m\"
+  stat=\$(git --no-pager diff --stat --relative \"\${rev}^\" \"\${rev}\")
+  echo \"\${stat}\" | head -n -1 | sed \"s/^/  • /g\"
+  echo -e \"\033[2m\$(echo \"\${stat}\" | tail -n1)\033[0m\"
+  echo -e \"\n\033[1;34m-------- DIFF -------\033[0m\"
+  git diff --color=always \"\${rev}^\" \"\${rev}\"
+' | less -R"
+
+declare files=''
+files=$(
+  fzf --read0 < <(getOutput) \
+    --ansi --multi --layout=reverse --gap \
     --height=50% \
     --pointer='▌' \
     --with-nth=2.. --delimiter=' ' \
