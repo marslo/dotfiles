@@ -52,14 +52,12 @@
   "python.analysis.useLibraryCodeForTypes": false,
   "python.analysis.typeCheckingMode": "off",
   "pyright.inlayHints.functionReturnTypes" : true,
-  "pyright.inlayHints.variableTypes": true,
-  "pyright.inlayHints.parameterTypes": true,
+  "pyright.inlayHints.variableTypes": false,
+  "pyright.inlayHints.parameterTypes": false,
   "coc.source.file.ignoreHidden": false,
   "coc.source.around.priority": 85,
   "coc.source.file.priority": 80,
   "coc.source.buffer.priority": 70,
   "coc.source.word.priority": 1,
-  "coc.source.dictionary.priority": 1,
-  "coc.source.word.maxItemCount": 5,
-  "coc.source.dictionary.maxItemCount": 5
+  "coc.source.dictionary.priority": 1
 }
