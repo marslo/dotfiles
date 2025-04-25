@@ -4,7 +4,7 @@
 #   FileName: .imac
 #     Author: marslo.jiao@gmail.com
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2025-04-15 10:28:53
+# LastChange: 2025-04-25 16:34:30
 #   Comments: using `brew --prefix` for $HOMEBEW_PREFIX set as `/opt/homebrew`
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
@@ -111,7 +111,8 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   SQLITE_HOME="${HOMEBREW_OPT}/sqlite"
   RUBY_HOME=$(brew --prefix ruby)
   RUBY_CONFIGURE_OPTS="--with-openssl-dir=${OPENSSL_HOME}"
-  RUBY_GEM_HOME="${HOMEBREW_PREFIX}"/lib/ruby/gems/3.4.0+0
+  _GEM_VERSION="$("${RUBY_HOME}"/bin/ruby -e 'puts "#{RUBY_VERSION}+#{RUBY_PATCHLEVEL < 0 ? 0 : RUBY_PATCHLEVEL}"')"
+  RUBY_GEM_HOME="${HOMEBREW_PREFIX}"/lib/ruby/gems/"${_GEM_VERSION}"
   ED_HOME="${HOMEBREW_OPT}/ed"
 
   PYTHON_VERSION='3.13'
