@@ -207,6 +207,7 @@ let g:indentLine_conceallevel         = 2
 let g:indentLine_char                 = '¦'
 let g:indentLine_bufTypeExclude       = ['help', 'terminal']
 let g:indentLine_bufNameExclude       = ['_.*', 'NERD_tree.*']
+let g:vim_json_conceal                = 0
 
 " LunarWatcher/auto-pairs
 let g:AutoPairsMapBS                        = 1
