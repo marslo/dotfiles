@@ -4,7 +4,7 @@
 #     FileName : rrun
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-09 16:43:02
-#   LastChange : 2025-04-11 01:41:42
+#   LastChange : 2025-04-30 23:34:09
 #=============================================================================
 
 set -euo pipefail
@@ -75,7 +75,7 @@ done
 [[ -n "${FILE}" ]] && [[ ! -f "${FILE}" ]] && die "$(c Mi)'--file'$(c) is not exist";
 [[ -n "${SSH_CONFIG}" ]] && [[ ! -f "${SSH_CONFIG}" ]] && die "the SSH config file: $(c Ci)'${SSH_CONFIG}'$(c) is not exist";
 
-IPS=$(awk '
+[[ -z "${IPS}" ]] && IPS=$(awk '
     BEGIN {
       colorStart = "\033[37;2;3m"
       colorEnd = "\033[0m"

@@ -4,7 +4,7 @@
 #   FileName: utils
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2025-02-14 01:40:51
+# LastChange: 2025-04-29 16:18:39
 # =============================================================================
 
 # using source instead of alias in ~/.marslo/.marslorc
@@ -34,6 +34,7 @@ test -x "$HOME/.npm/bin/tldr" && alias ntldr='$HOME/.npm/bin/tldr -t ocean'
 alias sudo='sudo '
 alias cp='cp -i'
 alias cpa='cp --parents'
+alias mv='mv -i'
 
 alias vv="$(type -P  vim) -Nu $HOME/.vimrc"
 alias vi="$(type -P nvim) -Nu $HOME/.config/nvim/init.lua"

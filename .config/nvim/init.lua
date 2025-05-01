@@ -10,7 +10,13 @@
 vim.cmd( 'set runtimepath^=~/.vim runtimepath+=~/.vim/after' )
 vim.cmd( 'let &packpath = &runtimepath' )
 vim.cmd( 'source ~/.vimrc' )
-vim.cmd( 'autocmd TextYankPost * silent! lua vim.highlight.on_yank {on_visual=false}' )
+-- vim.cmd( 'autocmd TextYankPost * silent! lua vim.highlight.on_yank {on_visual=true}' )
+vim.api.nvim_create_autocmd("TextYankPost", {
+  pattern = "*",
+  callback = function()
+    vim.highlight.on_yank({ higroup = "Search", on_visual = true })
+  end,
+})
 vim.opt.undodir = vim.fn.expand( '~/.vim/undo' )
 -- vim.opt.undodir = vim.fn.stdpath('config') .. '/undo'
 
@@ -21,6 +27,7 @@ require("CopilotChat").setup {
   allow_insecure = true, -- https://github.com/deathbeam/dotfiles/blob/master/nvim/.config/nvim/lua/config/copilot.lua
   show_folds = false
 }
+
 -- require("ibl").setup()
 -- require('config.snippets')
 -- require('config/lsp')

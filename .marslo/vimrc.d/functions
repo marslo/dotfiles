@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2025-04-15 11:07:08
+"    LastChange : 2025-04-30 23:31:28
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -33,9 +33,9 @@ command! GetPlug :call GetPlug()
 
 if isdirectory( expand(pluginHome . 'MarsloFunc') )
   command! GetVim :call marslofunc#GetVim()<CR>
-  xnoremap *      :<C-u>call marslofunc#VSetSearch()<CR>/<C-R>=@/<CR><CR>
-  xnoremap #      :<C-u>call marslofunc#VSetSearch()<CR>?<C-R>=@/<CR><CR>
-  nnoremap <F12>  :call marslofunc#UpdateTags()<CR>
+  xnoremap *         :<C-u>call marslofunc#VSetSearch()<CR>/<C-R>=@/<CR><CR>:normal! N<CR>
+  xnoremap #         :<C-u>call marslofunc#VSetSearch()<CR>?<C-R>=@/<CR><CR>:normal! n<CR>
+  nnoremap <F12>     :call marslofunc#UpdateTags()<CR>
 
   augroup resCur
     autocmd!
@@ -161,11 +161,73 @@ nnoremap <leader>mm :call ToggleMouse()<CR>
 function! ToggleMouse()
   if &mouse ==# 'a' || &mouse ==# 'nvi'
     set mouse=
-    echohl Red | echon '🖱️ Mouse disabled' | echohl None
+    echohl Red   | echon '🖱️ Mouse disabled' | echohl None
   else
     set mouse=nvi
     echohl Green | echon '🖱️ Mouse enabled'  | echohl None
   endif
 endfunction
+
+" highlight paste in both vim and neovim
+function! PasteHighlight() abort
+  let l:start = getpos("'[")
+  let l:end   = getpos("']")
+
+  if l:start[1] == 0 || l:end[1] == 0 | return | endif
+
+  let l:start_lnum = l:start[1]
+  let l:start_col  = l:start[2]
+  let l:end_lnum   = l:end[1]
+  let l:end_col    = l:end[2]
+
+  if l:start_lnum == l:end_lnum
+    let l:len = l:end_col - l:start_col + 1
+    let l:match_id = matchaddpos('IncSearch', [[l:start_lnum, l:start_col, l:len]])
+  else
+    let l:pattern = '\%'.l:start_lnum.'l\_.*\%'.l:end_lnum.'l'
+    let l:match_id = matchadd('IncSearch', l:pattern)
+  endif
+
+  call timer_start(150, {-> matchdelete(l:match_id)})
+  call setpos('.', l:start)
+endfunction
+nnoremap <silent> p p:call PasteHighlight()<CR>
+nnoremap <silent> P P:call PasteHighlight()<CR>
+
+" highlight yank in vim only
+if !has('nvim')
+  function! YankHighlight() abort
+    if v:event.operator !=# 'y' || v:event.regname !=# ''
+      return
+    endif
+
+    let l:lines = v:event.regcontents
+    let l:type  = v:event.regtype
+    let l:lnum  = line('.')
+    let l:col   = col('.')
+
+    if l:type ==# 'v'
+      " char mode（i.e.: yi(、yaw）
+      let l:text = join(l:lines, "\n")
+      let l:pattern = '\%' . l:lnum . 'l\%' . l:col . 'c' .
+            \ '\_.\{' . strlen(l:text) . '\}'
+    elseif l:type ==# 'V'
+      " line more ( i.e.: yy )
+      let l:pattern = '\%'.l:lnum.'l\_.*\%'.(l:lnum + len(l:lines) - 1).'l'
+    else
+      " default fallback: highlight only current line
+      let l:pattern = '\%' . l:lnum . 'l'
+    endif
+
+    " highlight and clear
+    let l:match_id = matchadd('IncSearch', l:pattern)
+    call timer_start(150, {-> matchdelete(l:match_id)})
+  endfunction
+
+  augroup YankHighlightGroup
+    autocmd!
+    autocmd TextYankPost * call YankHighlight()
+  augroup END
+endif
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

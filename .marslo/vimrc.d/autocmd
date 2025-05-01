@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-04-01 20:20:06
+"    LastChange : 2025-04-30 17:10:26
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -40,6 +40,7 @@ if has( 'autocmd' )
   augroup END
 
   augroup DevOps
+    autocmd!
     autocmd Filetype           Dockerfile          set filetype=dockerfile  syntax=dockerfile
     autocmd FileType           json,markdown,yaml  set tabstop=2 softtabstop=2 shiftwidth=2 | setlocal foldmethod=indent
     autocmd Syntax             yaml                normal zM
@@ -47,6 +48,8 @@ if has( 'autocmd' )
     autocmd BufRead,BufNewFile .*ignore            set filetype=ignore
     autocmd FileType           ignore,gitconfig    setlocal commentstring=#\ %s
     autocmd FileType           json                setlocal commentstring=//\ %s
+    " for json conccellevel issue
+    autocmd BufEnter           *.json              ++nested call timer_start(10, { -> execute('setlocal concealcursor=') })
     autocmd FileType           markdown,html
             \ let g:AutoPairsCompleteOnlyOnSpace = 0 |
             \ let b:AutoPairs = autopairs#AutoPairsDefine({
@@ -203,7 +206,7 @@ if has( 'autocmd' )
   let s:ft_settings = {
         \ 'help': {'foldenable': 0},
         \ 'vim-plug': {'foldenable': 0, 'relativenumber': 0, 'number': v:false },
-        \ 'markdown': {'spell': 1},
+        \ 'markdown': {'spell': 1}
         \ }
 
   function! s:ApplyFTSettings() abort
