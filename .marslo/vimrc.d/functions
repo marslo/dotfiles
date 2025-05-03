@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2025-04-30 23:31:28
+"    LastChange : 2025-05-02 22:57:45
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -183,13 +183,14 @@ function! PasteHighlight() abort
   if l:start_lnum == l:end_lnum
     let l:len = l:end_col - l:start_col + 1
     let l:match_id = matchaddpos('IncSearch', [[l:start_lnum, l:start_col, l:len]])
+    call setpos('.', l:end)
   else
     let l:pattern = '\%'.l:start_lnum.'l\_.*\%'.l:end_lnum.'l'
     let l:match_id = matchadd('IncSearch', l:pattern)
+    call setpos('.', l:start)
   endif
 
   call timer_start(150, {-> matchdelete(l:match_id)})
-  call setpos('.', l:start)
 endfunction
 nnoremap <silent> p p:call PasteHighlight()<CR>
 nnoremap <silent> P P:call PasteHighlight()<CR>
