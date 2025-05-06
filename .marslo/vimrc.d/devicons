@@ -7,7 +7,7 @@
 
 " ryanoasis/vim-devicons
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols                     = {}
-let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['log']              = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['log']              = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['json']             = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['md']               = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExtensionSymbols['perm']             = '󰌋'
