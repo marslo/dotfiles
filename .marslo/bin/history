@@ -3,7 +3,7 @@
 #     FileName : history
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-24 16:49:25
-#   LastChange : 2025-04-24 18:20:51
+#   LastChange : 2025-05-06 11:10:26
 #        Usage : 1. source <path/to/history>; or eval "$(cat <path/to/history>)"
 #                2. history [<options>]
 #=============================================================================
@@ -12,6 +12,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   set -euo pipefail
 fi
 
+# time color: #808080; command color: #87AFD7
 function history() {
   HISTTIMEFORMAT='%F %T ' builtin history "$@" |
     awk -v timeColor="\033[3;38;5;244m" -v cmdColor="\033[38;5;110m" -v reset="\033[0m" '

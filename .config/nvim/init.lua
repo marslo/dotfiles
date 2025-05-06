@@ -21,12 +21,31 @@ vim.opt.undodir = vim.fn.expand( '~/.vim/undo' )
 -- vim.opt.undodir = vim.fn.stdpath('config') .. '/undo'
 
 require('config/nvim-treesitter')
+
 -- CopilotC-Nvim/CopilotChat.nvim
 require("CopilotChat").setup {
   debug = true,
   allow_insecure = true, -- https://github.com/deathbeam/dotfiles/blob/master/nvim/.config/nvim/lua/config/copilot.lua
   show_folds = false
 }
+require('tiktoken_core')
+
+-- fzf-lua
+require'nvim-web-devicons'.setup {
+ color_icons = true;
+ default = true;
+ strict = true;
+ variant = "dark";
+ override_by_operating_system = {
+  ["apple"] = {
+    icon = "",
+    color = "#A2AAAD",
+    cterm_color = "248",
+    name = "Apple",
+  },
+ };
+}
+require('fzf-lua').register_ui_select()
 
 -- require("ibl").setup()
 -- require('config.snippets')
