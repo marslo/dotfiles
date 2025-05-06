@@ -59,5 +59,6 @@
   "coc.source.file.priority": 80,
   "coc.source.buffer.priority": 70,
   "coc.source.word.priority": 1,
-  "coc.source.dictionary.priority": 1
+  "coc.source.dictionary.priority": 1,
+  "coc.source.dictionary.filetypes": ["*"]
 }

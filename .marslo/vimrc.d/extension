@@ -96,6 +96,8 @@ if IsNvim()
   Plug 'CopilotC-Nvim/CopilotChat.nvim' , { 'branch': 'main' }      " ╮
   Plug 'zbirenbaum/copilot.lua'                                     " ├ copilot chat
   Plug 'nvim-lua/plenary.nvim'                                      " ╯
+  Plug 'ibhagwan/fzf-lua'
+  Plug 'nvim-tree/nvim-web-devicons'                                " fzf-lua required
 endif
 
 if IsVim()

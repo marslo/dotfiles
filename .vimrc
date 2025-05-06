@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-01-03 09:55:18
+"    LastChange : 2025-05-05 19:37:07
 " =============================================================================
 
 runtime macros/matchit.vim
@@ -12,7 +12,7 @@ let performance_mode = 1
 set nocompatible
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip
 
-source ~/.marslo/vimrc.d/os
+source $HOME/.marslo/vimrc.d/os
 
 if IsWindows() | source $HOME\.vim\autoload\plug.vim | endif
 set runtimepath+=~/.vim/plugged
@@ -34,15 +34,23 @@ elseif IsWindows()
 else
   let g:python3_host_prog        = expand(trim( system('command -v python3') ))
   let g:gitgutter_git_executable = expand(trim( system('command -v git') ))
-  set shell=/usr/bin/bash
+  set shell=/bin/bash
 endif
-if IsMac() | set shell=/usr/local/bin/bash    | endif               " let &shell = '/usr/local/bin/bash'
-if executable( 'bash' ) | set shellcmdflag=-c | endif               " let &shellcmdflag = '-c'
 
-if filereadable( '/usr/local/opt/fzf' )
-  set runtimepath+=/usr/local/opt/fzf
-elseif filereadable( '~/.marslo/bin/fzf' )
-  set runtimepath+=~/.marslo/bin/fzf
+" set shell=/opt/homebrew/bin/bash
+if IsMac() && executable('brew')
+  let s:brewBash = expand(trim( system('brew --prefix bash') )) . '/bin/bash'
+else
+  let s:brewBash = expand(trim( system('command -v bash') ))
+endif
+if filereadable( s:brewBash ) | let &shell = s:brewBash | endif
+if executable( 'bash' )       | set shellcmdflag=-c     | endif     " let &shellcmdflag = '-c'
+
+" set rtp+=/opt/homebrew/opt/fzf
+if filereadable( '$HOME/.marslo/bin/fzf' ) | set runtimepath+=$HOME/.marslo/bin/fzf | endif
+if IsMac() && executable('brew')
+  let s:fzfBash = expand(trim( system('brew --prefix fzf') ))
+  if isdirectory( s:fzfBash ) | let &runtimepath .= ',' . s:fzfBash | endif
 endif
 
 if has( 'nvim' )
@@ -91,4 +99,4 @@ if empty( glob('$HOME/.vim/autoload/plug.vim') ) || empty( glob($VIM . 'autoload
   execute 'silent exec "GetPlug"'
 endif
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:
