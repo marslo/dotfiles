@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2025-03-18 01:51:50
+#  LastChange : 2025-05-08 01:18:30
 #  Description : ifunctions
 # =============================================================================
 
@@ -463,67 +463,78 @@ function showTODO() {
 function fdclean() {
   local path="$PWD"
   local pattern='.DS_*'
-  local verbose='false'
-  local cmd
+  local verbose=false
+  local dryrun=false
+  local -a cleanCmd=( command fd
+                      --type f
+                      --hidden
+                      --follow
+                      --unrestricted
+                      --color=never
+                      --exclude .Trash
+                      --exclude "OneDrive*"
+                    )
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -p | --path    ) path="${2}"    ;  shift 2   ;;
-      -k | --pattern ) pattern="${2}" ;  shift 2   ;;
-      -d | --debug   ) verbose='true' ;  shift     ;;
-      -v | --verbose ) verbose='true' ;  shift     ;;
+      -p | --path    ) path="${2}"    ; shift 2   ;;
+      -k | --pattern ) pattern="${2}" ; shift 2   ;;
+      -d | --debug   ) verbose=true   ; shift     ;;
+      -v | --verbose ) verbose=true   ; shift     ;;
+      --dryrun       ) dryrun=true    ; shift ;;
       *              ) echo "invalid option $1" >&2 ; return 1 ;;
     esac
   done
 
   [[ '' = "${path}" ]] && echo -e "$(c R)Error:$(c) path is empty." && return 1
   path=$(realpath "${path}")
+  cleanCmd+=(--glob "*${pattern}" "${path}")
+  "${dryrun}"  && cleanCmd+=(-x echo rm) || cleanCmd+=(-x rm)
+  "${verbose}" && cleanCmd+=(-vf)        || cleanCmd+=(-f)         # remove -r for file only
 
   echo -e "$(c Wid)>> cleaning \`${pattern}\` in $(c)$(c Mis)${path}$(c)$(c Wd) ..$(c)"
-  [[ 'true' = "${verbose}" ]] && rmOpt='-rvf' || rmOpt='-rf'
-  cmd="command fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --exclude 'OneDrive*' --glob '*\\${pattern}' \"${path}\" -x rm ${rmOpt}"
-  [[ 'true' = "${verbose}" ]] && echo -e "$(c Wid)>> [DEBUG]:$(c)\n\t$(c Yi)${cmd}$(c)"
-  eval "${cmd}"
+  "${verbose}" && echo -e "$(c Wid)>> [DEBUG]:$(c)\n\t$(c Yi)${cleanCmd[*]}$(c)\n"
+  "${cleanCmd[@]}"
 }
 
 function clean() {
   local path="$PWD"
   local action=''
   local verbose='false'
-  local opt=''
+  local -a opt=()
   # shellcheck disable=SC2155
   local usage="""$(c Cs)clean$(c) - clean dump files in path
   \nSYNOPSIS:
   \n\t$(c Gs)\$ clean [ -h | --help ]
-  \t\t[ -v | --verbose ]
+  \t\t[ -v | --verbose ] [ --dryrun ]
   \t\t[ -p <path> | --path <path> | -a | --all ]
   \t\t[ --dot | --ds | --lg ]$(c)
   """
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -p | --path    ) path="${2}"     ;  shift 2  ;;
-      -a | --all     ) path="$HOME"    ;  shift    ;;
-      -v | --verbose ) verbose='true'  ;  shift    ;;
-      --dot          ) action='dot'    ;  shift    ;;
-      --ds           ) action='ds'     ;  shift    ;;
-      --lg           ) action='lg'     ;  shift    ;;
+      -p | --path    ) path="${2}"       ; shift 2  ;;
+      -a | --all     ) path="$HOME"      ; shift    ;;
+      -v | --verbose ) verbose='true'    ; shift    ;;
+      --dryrun       ) opt+=('--dryrun') ; shift    ;;
+      --dot          ) action='dot'      ; shift    ;;
+      --ds           ) action='ds'       ; shift    ;;
+      --lg           ) action='lg'       ; shift    ;;
       -h | --help    ) echo -e "${usage}"           ;  return 0 ;;
       *              ) echo "invalid option $1. try \`-h\`" >&2 ;  return 1 ;;
     esac
   done
 
-  [[ 'true' = "${verbose}" ]] && opt='--verbose'
+  [[ 'true' = "${verbose}" ]] && opt+=('--verbose')
   case "${action}" in
-    'dot' ) eval "fdclean --path '${path}' --pattern '._*' ${opt}"         ;;
-    'ds'  ) eval "fdclean --path '${path}' --pattern '.DS_*' ${opt}"       ;;
-    'lg'  ) eval "fdclean --path '${path}' --pattern 'logback.log' ${opt}" ;;
-    ''    ) echo -e "$(c R)Error:$(c) action is empty."                    ;;
+    'dot' ) eval "fdclean --path '${path}' --pattern '._*' ${opt[*]}"         ;;
+    'ds'  ) eval "fdclean --path '${path}' --pattern '.DS_*' ${opt[*]}"       ;;
+    'lg'  ) eval "fdclean --path '${path}' --pattern 'logback.log' ${opt[*]}" ;;
+    ''    ) echo -e "$(c Ri)Error:$(c) action is empty."                       ;;
   esac
 }
 
 function md2html() {
-
   local title=''
   local mdfile=''
   local output=''
@@ -572,6 +583,7 @@ function md2html() {
   fi
 
   if [[ -n "${title}" ]]; then
+    # shellcheck disable=SC1001
     echo """
       sed -i "s/\(--title: \"\)[^\"]*/\1${title}/" ${pHome}/header.html
       title: ${title}
