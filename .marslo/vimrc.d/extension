@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-03-18 20:02:13
+"    LastChange : 2025-05-07 23:35:01
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -97,6 +97,7 @@ if IsNvim()
   Plug 'zbirenbaum/copilot.lua'                                     " ├ copilot chat
   Plug 'nvim-lua/plenary.nvim'                                      " ╯
   Plug 'ibhagwan/fzf-lua'
+  " brew install --HEAD viu; brew install chafa
   Plug 'nvim-tree/nvim-web-devicons'                                " fzf-lua required
 endif
 
@@ -424,6 +425,8 @@ set updatetime=300
 set signcolumn=yes
 let g:coc_disable_startup_warning = 1
 let g:coc_default_semantic_highlight_groups = 1
+let g:coc_snippet_next = '<c-j>'
+let g:coc_snippet_prev = '<c-k>'
 let g:coc_global_extensions = [
   \   'coc-sh',
   \   'coc-groovy', 'coc-java',
@@ -436,15 +439,10 @@ let g:coc_global_extensions = [
   \   'coc-emoji', 'coc-highlight', 'coc-word', 'coc-dictionary', 'coc-tag',
   \   'coc-diagnostic', 'coc-vimlsp'
   \ ]
-let g:coc_filetype_map = {
-  \   'yaml.ansible': 'ansible',
-  \ }
+let g:coc_filetype_map = { 'yaml.ansible': 'ansible' }
 " coc-vimlsp
-let g:markdown_fenced_languages = [
-  \ 'vim',
-  \ 'help'
-  \]
-function! CheckBackspace() abort
+let g:markdown_fenced_languages = [ 'vim', 'help' ]
+function! CheckBackSpace() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
@@ -459,24 +457,18 @@ autocmd FileType json syntax match Comment +\/\/.\+$+
 autocmd FileType html let b:coc_root_patterns = ['.git', '.env', 'tailwind.config.js', 'tailwind.config.cjs']
 autocmd CursorHold * silent call CocActionAsync('highlight')
 inoremap <silent><expr> <DOWN>
-      \ coc#pum#visible() ? coc#pum#next(1) : CheckBackspace()
-      \                   ? "\<DOWN>" : coc#refresh()
-inoremap <expr><UP> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
+      \ coc#pum#visible() ?  coc#pum#next(1) : CheckBackSpace()
+      \                   ?  "\<DOWN>" : coc#refresh()
+inoremap <silent><expr> <UP> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
 inoremap <silent><expr> <C-M>
      \ coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 command! -nargs=0 OR  :call CocActionAsync('runCommand', 'editor.action.organizeImport')
-let g:coc_snippet_next = '<c-j>'
-let g:coc_snippet_prev = '<c-k>'
 imap <C-j> <Plug>(coc-snippets-expand-jump)
 inoremap <silent><expr> <C-j>
       \ pumvisible() ? coc#_select_confirm() :
       \ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
       \ CheckBackSpace() ? "\<TAB>" :
       \ coc#refresh()
-function! CheckBackSpace() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
 
 " Konfekt/FastFold
 nnoremap zuz <Plug>(FastFoldUpdate)

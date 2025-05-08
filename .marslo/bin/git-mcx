@@ -4,7 +4,7 @@
 #     FileName : git-mcx
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2025-04-25 01:03:48
+#   LastChange : 2025-05-07 16:34:06
 #        Usage : git-mcx [OPTION]             # call getCommitMessage to set commit message
 #                git-mcx [OPTION] [message]   # using `[message]` as commit message
 #=============================================================================
@@ -125,10 +125,13 @@ function changeDiff() {
 
 function commitlintCheck() {
   declare -a CONFIG_OPT=(--color)
+
+  [[ 'true' = "${MCX_ENABLE_JIRA:-false}"   ]] && [[ -f "${HOME}/.jira.commitlintrc.js" ]] && \
+    CONFIG_OPT+=(--config "${HOME}/.jira.commitlintrc.js")
   [[ 'true' = "${MCX_GLOBAL_LINTRC:-false}" ]] && CONFIG_OPT+=(--config "${LINTRC_FILE}")
 
   local message="$1"
-  local spinner="commitlint checking"
+  local spinner="commitlint checking .."
   local timeout=5
   local start_time elapsed status=0
   # shellcheck disable=SC2155
@@ -169,11 +172,11 @@ function commitlintCheck() {
 
   # show commitlint result
   if [[ "${status}" -eq 0 ]]; then
-    printf "%b\n%s\n" "$(c Gi)-- commitlint checked (succeed) --$(c)\n" "${out}"
+    printf "%b\n%s\n" "$(c Gi)-- commitlint checked (succeed) --$(c)" "${out}"
   elif [[ "${status}" -eq 124 ]]; then
-    printf "%b\n%s\n" "$(c Ri)-- commitlint timeout --$(c)\n" "${out}"
+    printf "%b\n%s\n" "$(c Ri)-- commitlint timeout --$(c)" "${out}"
   else
-    printf "%b\n%s\n" "$(c Ri)-- commitlint checked (failed) --$(c)\n" "${out}"
+    printf "%b\n%s\n" "$(c Ri)-- commitlint checked (failed) --$(c)" "${out}"
   fi
 }
 
