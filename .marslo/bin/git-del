@@ -4,75 +4,108 @@
 #     FileName : git-del
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-14 17:55:55
-#   LastChange : 2025-04-06 09:48:59
+#   LastChange : 2025-05-13 20:19:33
 #  Description : delete branch or tag from remote and local
 #                -  - E0A0/E725
 #=============================================================================
 
 source "$HOME"/.marslo/bin/bash-color.sh
 
-declare branches
-declare tags
-declare remoteOnly='false'
-declare findBr=0
-declare findTag=0
-declare remoteRef=''
+declare BRANCHES
+declare TAGS
+declare REMOTE_ONLY='false'
+declare BRANCH_FOUND=0
+declare TAG_FOUND=0
+declare REMOTE_REF=''
+# shellcheck disable=SC2155
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
+# shellcheck disable=SC2155
+declare USAGE="""
+NAME
+  $(c Ysi)${ME}$(c) - $(c Ysi)del$(c)ete a Git branch or tags locally or remotely
+
+USAGE
+  $(c Ys)\$ ${ME} $(c 0Wdi)[$(c 0Gi)OPTIONS$(c 0Wdi)]$(c) $(c 0Wdi)[$(c 0Bi)branch|tag$(c 0Wdi)]$(c)
+
+OPTIONS
+  $(c Gi)-r$(c), $(c Gi)--remote$(c)        delete only the remote branch
+  $(c Gi)-h$(c), $(c Gi)--help$(c)          show this help message
+
+EXAMPLES
+  $(c Ys)\$ ${ME} $(c 0Mi)feature/foo$(c)        $(c Wdi)# delete both local and remote branch 'feature/foo'$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)-r $(c 0Mi)feature/foo$(c)     $(c Wdi)# delete remote branch 'feature/foo'$(c)
+"""
+
+function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
+function showHelp() { echo -e "${USAGE}"; exit 0; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -r | --remote ) remoteOnly='true'; shift ;;
-                * ) break                    ;;
+    -r | --remote ) REMOTE_ONLY='true'; shift ;;
+    -h | --help   ) showHelp                 ;;
+    --            ) shift                    ;;
+    -*            ) die "unknown option: $1" ;;
+    *             ) if [[ -n "${refname}" ]]; then
+                      die "unexpected extra argument: $(c Mi)${1}$(c)" >&2
+                    fi
+                    refname="$1"      ; shift ;;
   esac
 done
 
-git fetch --tags --prune --prune-tags --quiet
+if git remote | grep -q .; then
+  git fetch --tags --prune --prune-tags --quiet
+fi
 
-branches=$(git for-each-ref refs/remotes refs/heads --sort=-committerdate --format='%(refname:short)')
-tags=$(git for-each-ref refs/tags --sort=-committerdate --format='%(refname:lstrip=1)')
+BRANCHES=$(git for-each-ref refs/remotes refs/heads --sort=-committerdate --format='%(refname:short)')
+TAGS=$(git for-each-ref refs/tags --sort=-committerdate --format='%(refname:lstrip=1)')
 
 plogs="git --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative"
 gpreview="git show --color=always {-1}"
-refname=$( ( echo "${branches}"; echo "${tags}" ) |
-             fmt -1 |
-             grep --color=never -v 'origin$' |
-             fzf -0 +m --prompt=' ' \
-                 --preview "${plogs}" \
-                 --height 50% --min-height 10+ \
-                 --style full --no-input-border \
-                 --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
-                 --bind "ctrl-o:execute(${gpreview})+change-preview(${gpreview} -s)+change-prompt( )" \
-                 --bind 'ctrl-/:change-preview-window:up,60%|hidden|right,65%' |
-             sed -rn "s:\s*(origin/)?(.*)$:\2:p"
-        );
+if [[ -n "${refname}" ]]; then
+  refname=$( ( echo "${BRANCHES}"; echo "${TAGS}" ) | fmt -1 | grep --color=never -v 'origin$'  | grep --color=never "${refname}" )
+else
+  refname=$( ( echo "${BRANCHES}"; echo "${TAGS}" ) |
+               fmt -1 |
+               grep --color=never -v 'origin$' |
+               fzf -0 +m --prompt=' ' \
+                   --preview "${plogs}" \
+                   --height 50% --min-height 10+ \
+                   --style full --no-input-border \
+                   --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
+                   --bind "ctrl-o:execute(${gpreview})+change-preview(${gpreview} -s)+change-prompt( )" \
+                   --bind 'ctrl-/:change-preview-window:up,60%|hidden|right,65%' |
+               sed -rn "s:\s*(origin/)?(.*)$:\2:p"
+          );
+fi
 [[ -z "${refname}" ]] && exit;
 
 name=$(sed -re 's:^(refs/)?(heads/)?(tags/)?(remotes/)?(origin/)?(.*)$:\6:' <<< "${refname}");
 
-for refsR in ${branches} ${tags}; do
-  [[ "origin/${name}" = "${refsR}" ]] && remoteRef='branch' && break
-  [[ "tags/${name}"   = "${refsR}" ]] && remoteRef='tag'    && break
+for refsR in ${BRANCHES} ${TAGS}; do
+  [[ "origin/${name}" = "${refsR}" ]] && REMOTE_REF='branch' && break
+  [[ "tags/${name}"   = "${refsR}" ]] && REMOTE_REF='tag'    && break
 done
-for branch in ${branches}; do
-  [[ "${name}" = "${branch}" ]] && findBr=1  && break
+for branch in ${BRANCHES}; do
+  [[ "${name}" = "${branch}" ]] && BRANCH_FOUND=1  && break
 done
 for tag in $(git --no-pager tag -l); do
-  [[ "${name}" = "${tag}"    ]] && findTag=1 && break
+  [[ "${name}" = "${tag}"    ]] && TAG_FOUND=1 && break
 done;
 
 # delete remote
-if [[ -n "${remoteRef}" ]]; then
+if [[ -n "${REMOTE_REF}" ]]; then
   git push origin --delete "${name}";
-  echo -e "$(c Wd)>>$(c) $(c Wdi)${remoteRef}$(c) $(c Mis)origin/${name}$(c) $(c Wdi)removed from remote ..$(c)"
+  echo -e "$(c Wd)>>$(c) $(c Wdi)${REMOTE_REF}$(c) $(c Mis)origin/${name}$(c) $(c Wdi)removed from remote ..$(c)"
 else
   echo -e "$(c Wd)>>$(c) $(c Mis)origin/${name}$(c) $(c Wdi)cannot be found in remote ..$(c)"
 fi;
 
 # delete local
-if [[ 'false' = "${remoteOnly}" ]]; then
-  if [[ 1 = "${findBr}" ]]; then
+if [[ 'false' = "${REMOTE_ONLY}" ]]; then
+  if [[ 1 = "${BRANCH_FOUND}" ]]; then
     git branch -D "${name}";
     echo -e "$(c Wd)>>$(c) $(c Wdi)branch :$(c) $(c Mis)${name}$(c) $(c Wdi)removed from local ..$(c)"
-  elif [ 1 = "${findTag}" ]; then
+  elif [ 1 = "${TAG_FOUND}" ]; then
     git tag -d "${name}";
     echo -e "$(c Wd)>>$(c) $(c Wdi)tag :$(c) $(c Mis)${name}$(c) $(c Wdi)removed from local ..$(c)"
   else
