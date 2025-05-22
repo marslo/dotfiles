@@ -4,7 +4,7 @@
 #     FileName : git-del
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-14 17:55:55
-#   LastChange : 2025-05-13 20:19:33
+#   LastChange : 2025-05-22 16:21:49
 #  Description : delete branch or tag from remote and local
 #                -  - E0A0/E725
 #=============================================================================
@@ -59,13 +59,17 @@ fi
 BRANCHES=$(git for-each-ref refs/remotes refs/heads --sort=-committerdate --format='%(refname:short)')
 TAGS=$(git for-each-ref refs/tags --sort=-committerdate --format='%(refname:lstrip=1)')
 
-plogs="git --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative"
-gpreview="git show --color=always {-1}"
 if [[ -n "${refname}" ]]; then
-  refname=$( ( echo "${BRANCHES}"; echo "${TAGS}" ) | fmt -1 | grep --color=never -v 'origin$'  | grep --color=never "${refname}" )
+  refname=$( ( echo "${BRANCHES}"; echo "${TAGS}" ) | fmt -1 |
+             grep --color=never -v 'origin$' |
+             grep --color=never -E "${refname}$" |
+             sed -rn "s:\s*(origin/)?(.*)$:\2:p" |
+             uniq
+           )
 else
-  refname=$( ( echo "${BRANCHES}"; echo "${TAGS}" ) |
-               fmt -1 |
+  plogs="git --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative"
+  gpreview="git show --color=always {-1}"
+  refname=$( ( echo "${BRANCHES}"; echo "${TAGS}" ) | fmt -1 |
                grep --color=never -v 'origin$' |
                fzf -0 +m --prompt=' ' \
                    --preview "${plogs}" \
