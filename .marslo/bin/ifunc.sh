@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2025-05-08 01:18:30
+#  LastChange : 2025-05-28 00:28:01
 #  Description : ifunctions
 # =============================================================================
 
@@ -584,16 +584,8 @@ function md2html() {
 
   if [[ -n "${title}" ]]; then
     # shellcheck disable=SC1001
-    echo """
-      sed -i "s/\(--title: \"\)[^\"]*/\1${title}/" ${pHome}/header.html
-      title: ${title}
-    """
-    /bin/cat ${pHome}/header.html
-    /bin/cat ${pHome}/header.html | sed "s/\(--title: \\"\)[^\\"]*/\1${title}/"
-    sedCmd="/bin/cat ${pHome}/header.html"
-    sedCmd+=" | sed \"s/\(--title: \\"\)[^\\"]*/\1${title}/\""
-    eval "${sedCmd}"
-    # sed -i "s/\(--title: \\"\)[^\\"]*/\1${title}/" ${pHome}/header.html
+    sedArgs=( -i "s/\(--title: \"\)[^\"]*/\1${title}/" )
+    sed "${sedArgs[@]}" "${pHome}/header.html"
     pHeader="--include-in-header ${pHome}/header.html"
     pTitle="--metadata title=\"${title}\""
   else
@@ -614,7 +606,9 @@ function md2html() {
   eval "${cmd}"
 
   # revert header.html
-  sed -i "s/\(--title: \"\)[^\"]*/\1Title Here/" ${pHome}/header.html
+  # sed -i "s/\(--title: \"\)[^\"]*/\1Title Here/" ${pHome}/header.html
+  sedArgs=( -i "s/\(--title: \"\)[^\"]*/\1TItle Here/" )
+  sed "${sedArgs[@]}" "${pHome}/header.html"
 }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************:
