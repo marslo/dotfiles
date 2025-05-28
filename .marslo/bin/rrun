@@ -4,7 +4,7 @@
 #     FileName : rrun
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-09 16:43:02
-#   LastChange : 2025-04-30 23:34:09
+#   LastChange : 2025-04-11 01:41:42
 #=============================================================================
 
 set -euo pipefail
@@ -68,13 +68,14 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ -z "${USER}" ]] && die "SSH username ( $(c Mi)'--user'$(c) ) is mandatory"
+[[ -z "${USER}" && -z "${SSH_CONFIG}" ]] && die "SSH username ( $(c Mi)'--user'$(c) ) is mandatory"
 [[ -z "${IPS}"  && -z "${SSH_CONFIG}" ]] && die "provide a list of IPs ( $(c Mi)\`--ip\`$(c) ) or SSH config file ( $(c Mi)\`--config\`$(c) )";
 [[ -z "${FILE}" && -z "${CMD}" ]] && die "provide a shell script file ( $(c Mi)\`--file\`$(c) ) or command ( $(c Mi)\`--cmd\`$(c) )to run";
 
 [[ -n "${FILE}" ]] && [[ ! -f "${FILE}" ]] && die "$(c Mi)'--file'$(c) is not exist";
 [[ -n "${SSH_CONFIG}" ]] && [[ ! -f "${SSH_CONFIG}" ]] && die "the SSH config file: $(c Ci)'${SSH_CONFIG}'$(c) is not exist";
 
+# user@ip.address
 [[ -z "${IPS}" ]] && IPS=$(awk '
     BEGIN {
       colorStart = "\033[37;2;3m"
@@ -82,10 +83,15 @@ done
     }
     /^[[:space:]]*#/ { next }                   # skip comments
     NF == 0          { next }                   # skip empty lines
+
     $1 == "Host"     { host=$2; next }          # take only the first alias
-    $1 == "Hostname" && host != "" {
-      printf "%s : %s%s%s\n", $2, colorStart, host, colorEnd
-      host = ""                                 # reset for next block
+    $1 == "Hostname" { ip=$2; next }
+    $1 == "User"     {
+      if (host != "" && ip != "") {
+        user = $2
+        printf "%s@%s : %s%s%s\n", user, ip, colorStart, host, colorEnd
+        host = ip = user = ""
+      }
     }
   ' "${SSH_CONFIG}" |
   column -t |
@@ -100,11 +106,19 @@ done
   '
 )
 
-trap exit SIGINT SIGTERM; while read -r IP; do
+trap exit SIGINT SIGTERM; while read -r line; do
   declare sshCmd=''
-  ! "${quiet}" && printf "\n$(c Wd)>>$(c) $(c Ys)%s$(c) - $(c Ys)%s$(c) $(c Wd)<<$(c)\n" "${IP}" "$(ssh -n "${USER}@${IP}" 'echo $(hostname)')"
-  [[ -n "${FILE}" ]] && sshCmd+="ssh -q ${USER}@${IP} 'bash -s' < '${FILE}';"
-  [[ -n "${CMD}"  ]] && sshCmd+="ssh -n ${USER}@${IP} \"${CMD}\";"
+  declare name=''
+  if [[ "${line}" == *@* ]]; then
+    IFS='@' read -r name IP <<< "${line}"
+  else
+    name=''; IP="${line}"
+  fi
+  ACCOUNT="${USER:-${name}}"
+
+  ! "${quiet}" && printf "\n$(c Wd)>>$(c) $(c Ys)%s$(c) - $(c Ys)%s$(c) $(c Wd)<<$(c)\n" "${ACCOUNT}@${IP}" "$(ssh -n "${ACCOUNT}@${IP}" 'echo $(hostname)')"
+  [[ -n "${FILE}" ]] && sshCmd+="ssh -q ${ACCOUNT}@${IP} 'bash -s' < '${FILE}';"
+  [[ -n "${CMD}"  ]] && sshCmd+="ssh -n ${ACCOUNT}@${IP} \"${CMD}\";"
   "${verbose}" && printf "$(c Wdi)>> [DEBUG]:$(c) $(c Wi)%s$(c)\n" "${sshCmd}"
 
   eval "${sshCmd}"
