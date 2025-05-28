@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null
+#=============================================================================
+#     FileName : ssh
+#       Author : marslo.jiao@gmail.com
+#      Created : 2025-05-27 20:12:14
+#   LastChange : 2025-05-28 01:05:42
+#        Usage : /path/to/ssh -- --help
+#=============================================================================
+
+set -euo pipefail
+
+if [[ -f "${HOME}/.marslo/bin/bash-color.sh" ]]; then
+  source "${HOME}/.marslo/bin/bash-color.sh"
+else
+  c() { :; }
+fi
+
+function showHelp() { echo -e "${USAGE}"; }
+function die() { echo -e "$(c Ri)ERROR$(c) $(c Wdi): $*. exit ...$(c)" >&2; exit 1; }
+
+# shellcheck disable=SC2155
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /g')"
+# shellcheck disable=SC2155
+declare -r USAGE="""
+SSH Wrapper with fzf Support
+
+USAGE
+  $(c Ys)\$ ${ME}                  $(c 0Mi)Launch fzf to select from SSH config (username@host)$(c)
+  $(c Ys)\$ ${ME} $(c 0Wdi)[$(c 0Gi)ssh args...$(c 0Wdi)]    $(c 0Mi)Forward arguments to the native SSH command$(c)
+  $(c Ys)\$ ${ME} -- $(c 0Wdi)[$(c 0Gi)wrapper options...$(c 0Wdi)]$(c)
+
+WRAPPER OPTIONS $(c Wdi)(used only after --)$(c)
+  $(c Gi)--help$(c), $(c Gi)-h$(c)           Show this help message
+  $(c Gi)--alias$(c)              Show only Host aliases (without resolving Hostname)
+  $(c Gi)--fzf$(c)                Force interactive host selection via fzf
+
+DESCRIPTION
+  This wrapper enhances ssh usability by integrating with fzf.
+  • If no arguments are given, it launches fzf to pick a target from $(c Mi)~/.ssh/config$(c) or $(c Mi)~/.ssh/config.d/*$(c)
+  • If arguments are present, they are passed to the original /usr/bin/ssh
+  • Use $(c Gi)'--'$(c) to separate wrapper options from ssh options
+
+EXAMPLES:
+  $(c Ys)\$ ${ME}$(c)
+    $(c Wdi)↪ Shows interactive fzf selector using Host/User from SSH config$(c)
+
+  $(c Ys)\$ ${ME} $(c 0Mi)user@example.com$(c)
+    $(c Wdi)↪ Works exactly like regular SSH$(c)
+
+  $(c Ys)\$ ${ME} $(c 0Gi)-- --help$(c)
+    $(c Wdi)↪ Shows this help message$(c)
+
+  $(c Ys)\$ ${ME} $(c 0Gi)-- --alias$(c)
+    $(c Wdi)↪ Shows alias list (without resolving Hostname)$(c)
+"""
+
+declare USE_FZF=false
+declare ONLY_ALIAS=false
+declare -a SSH_CONFIG_FILES=()
+[[ -f "$HOME/.ssh/config"   ]] && SSH_CONFIG_FILES+=("$HOME"/.ssh/config)
+[[ -d "$HOME/.ssh/config.d" ]] && SSH_CONFIG_FILES+=("$HOME"/.ssh/config.d/*)
+
+[[ "${#SSH_CONFIG_FILES[@]}" -eq 0 ]] && die "no ssh config files found ..."
+
+declare -a wArgs=()         # wrapper args
+declare -a args=()         # ssh args
+
+for arg in "$@"; do
+  case "${arg}" in
+    --          ) shift; wArgs=("$@" ) ; break ;;  # everything after -- is wrapper args
+    --fzf       ) USE_FZF=true       ;;
+    --alias     ) ONLY_ALIAS=true    ;;
+    -h | --help ) if [[ "$#" -eq 1 || "$1" == "$arg" ]]; then
+                    exec /usr/bin/ssh --help
+                  fi
+                  args+=("$arg") ;;
+    *           ) args+=("$arg") ;;
+  esac
+done
+
+# handle wrapper-only commands like ssh -- --help
+for warg in "${wArgs[@]}"; do
+  case "${warg}" in
+    -h | --help ) showHelp; exit 0 ;;
+    --fzf       ) USE_FZF=true       ;;
+    --alias     ) ONLY_ALIAS=true    ;;
+  esac
+done
+
+if [[ "${USE_FZF}" != 'true' ]] && [[ "${#args[@]}" -gt 0 ]]; then
+  exec /usr/bin/ssh "${args[@]}"
+fi
+
+hosts_list=$(
+  awk '
+    /^[[:space:]]*#/ || NF == 0 { next }
+    $1 == "Host"     { host=$2; next }
+    $1 == "Hostname" { ip=$2; next }
+    $1 == "User"     {
+      if (host && ip) {
+        printf "%s@%s : %s\n", $2, ip, host
+        host=ip=""
+      }
+    }
+  ' "${SSH_CONFIG_FILES[@]}"
+)
+
+# shellcheck disable=SC2016
+target=$(
+  echo "${hosts_list}" |
+  awk -F':' '
+    $2 !~ /sfw.*jenkins/ && $1 !~ /sms.*jenkins/ {
+      printf "%s:%s\n", $2, $1
+    }
+  ' |
+  sort |
+  column -t -s ':' -o ': ' |
+  fzf \
+  --ansi \
+  --no-multi \
+  --prompt='󱚥 ' \
+  --color=fg+:#979736,hl+:#979736 \
+  --preview-window=right:60% \
+  --delimiter='[[:space:]]+:[[:space:]]+' \
+  --with-nth="$([[ "${ONLY_ALIAS}" == true ]] && echo 2 || echo 1,2)" \
+  --preview '
+    bash -c "
+      raw=\$1
+      user_ip=\$(cut -d \":\" -f2 <<< \"\$raw\" | xargs)
+      ip=\${user_ip#*@}
+      user=\${user_ip%@*}
+      echo -e \"\033[36m[Host]\033[0m \033[35;3m\$user@\$ip\033[0m\n\"
+      ping -c1 -t1 -W0 \"\$ip\" 2>&1 | grep -E \"bytes|icmp|ttl|rtt|round-trip\" ||
+        echo -e \"\033[31mUnreachable or DNS error\033[0m\"
+    " _ {}
+  '
+)
+
+[[ -z "${target}" ]] && die 'no target selected ...'
+
+IFS=':' read -ra parts <<< "${target}"
+ssh_target="${parts[0]//[[:space:]]/}"
+exec /usr/bin/ssh "${ssh_target}"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
