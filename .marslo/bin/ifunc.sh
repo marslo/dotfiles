@@ -607,7 +607,7 @@ function md2html() {
 
   # revert header.html
   # sed -i "s/\(--title: \"\)[^\"]*/\1Title Here/" ${pHome}/header.html
-  sedArgs=( -i "s/\(--title: \"\)[^\"]*/\1TItle Here/" )
+  sedArgs=( -i "s/\(--title: \"\)[^\"]*/\1Title Here/" )
   sed "${sedArgs[@]}" "${pHome}/header.html"
 }
 

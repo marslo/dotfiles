@@ -74,15 +74,19 @@ snippet /*ngl "insert groovylint-disable"
 /* groovylint-disable ${1} */
 endsnippet
 
-snippet //gld "insert groovylint-disable"
-// groovylint-disable ${1}
+snippet //gld "insert groovylint-disable-line"
+// groovylint-disable-line ${1}
 endsnippet
 
-snippet //ngl "insert groovylint-disable"
-// groovylint-disable ${1}
+snippet //ngl "insert groovylint-disable-line"
+// groovylint-disable-line ${1}
 endsnippet
 
-snippet /** "block comments" b
+snippet //ngln "insert groovylint-disable-next-line"
+// groovylint-disable-next-line ${1}
+endsnippet
+
+snippet '^/\*\*' "block comments" rbA
 /**
  * ${1}
 **/
