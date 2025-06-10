@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-04-30 17:10:26
+"    LastChange : 2025-06-04 16:20:27
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -19,7 +19,7 @@
 if has( 'autocmd' )
 
   " assumes set ignorecase smartcase
-  augroup dynamic_smartcase
+  augroup DynamicSmartcase
       autocmd!
       autocmd CmdLineEnter : set nosmartcase
       autocmd CmdLineLeave : set smartcase
@@ -212,7 +212,8 @@ if has( 'autocmd' )
   function! s:ApplyFTSettings() abort
     if has_key(s:ft_settings, &filetype)
       for [opt, val] in items(s:ft_settings[&filetype])
-        let current_val = getbufvar('%', '&' . opt)
+        let current_val = eval('&l:' . opt)
+        " let current_val = getbufvar('%', '&' . opt)
         if type(val) == v:t_bool
           " if `val = v:false`, the option will be `no{opt}`
           execute 'setlocal' (val ? '' : 'no') . opt
@@ -230,6 +231,10 @@ if has( 'autocmd' )
     autocmd FileType    *        ++nested call s:ApplyFTSettings()
     autocmd BufWinEnter *        call s:ApplyFTSettings()
     " autocmd BufWinEnter __Plug__ setlocal nofoldenable nonumber relativenumber=0
+    " disable for copilot-chat
+    autocmd BufEnter    * if &filetype ==# 'copilot-chat'
+            \| setlocal nonumber norelativenumber modifiable nospell
+            \| endif
   augroup END
 
 endif
