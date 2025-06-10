@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null
+#=============================================================================
+#     FileName : git-mw
+#       Author : marslo.jiao@gmail.com
+#      Created : 2020-07-23 20:43:10
+#   LastChange : 2025-06-10 09:38:37
+#    Reference : https://gerrit-review.googlesource.com/Documentation/user-upload.html
+#=============================================================================
+
+set -euo pipefail
+
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+if [[ -f "${HOME}/.marslo/bin/bash-color.sh" ]]; then
+  source "${HOME}/.marslo/bin/bash-color.sh"
+else
+  c() { :; }
+fi
+
+function showHelp() { echo -e "${USAGE}"; }
+function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
+
+declare -A data=()
+# shellcheck disable=SC2155
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /g')"
+declare WIP=false
+declare READY=false
+declare TOPIC=''
+declare PRIVATE=false
+declare REMOVE_PRIVATE=false
+# shellcheck disable=SC2155
+declare USAGE="""
+NAME
+  $(c Ys)${ME}$(c) - $(c Ysi)m$(c 0i)rslo revie$(c 0Ysi)w$(c) - Push changes to Gerrit with specific reviewers and flags
+
+USAGE
+  $(c Ys)\$ ${ME}$(c) $(c 0Wdi)[$(c 0Gi)OPTIONS$(c 0Wdi)]$(c)
+
+OPTIONS
+  $(c Gi)--ccs$(c)             Add CCS reviewers
+  $(c Gi)--sms$(c)             Add SMS reviewers
+  $(c Gi)--wip$(c)             Mark the change as WIP ( Work In Progress )
+  $(c Gi)--ready$(c)           Mark the change as ready for review
+  $(c Gi)--private$(c)         Mark the change as private
+  $(c Gi)--remove-private$(c)  Remove the private flag from the change
+  $(c Gi)--topic$(c) $(c Mi)<topic>$(c)   Specify a topic for the change
+  $(c Gi)--help$(c), $(c Gi)-h$(c)        Show this help message and exit
+
+EXAMPLES
+  $(c Ys)\$ ${ME} $(c 0Gi)--ccs --wip$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--sms --ready --topic$(c) $(c 0Mi)\"my-topic\"$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--private$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--remove-private$(c)
+"""
+
+# shellcheck disable=SC2054
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --help | -h      ) showHelp; exit 0 ;;
+    --ccs            ) data=( [to]='account,account' [cc]='account' ) ; shift ;;
+    --sms            ) data=( [to]='account' [cc]='account'         ) ; shift ;;
+    --wip            ) WIP=true            ; shift   ;;
+    --ready          ) READY=true          ; shift   ;;
+    --topic          ) TOPIC="$2"          ; shift 2 ;;
+    --private        ) PRIVATE=true        ; shift   ;;
+    --remove-private ) REMOVE_PRIVATE=true ; shift   ;;
+    --               ) shift                         ;;
+    *                ) die "unknown option: $1"      ;;
+  esac
+done
+
+declare reviewers=()
+for key in "${!data[@]}"; do
+  IFS=',' read -ra names <<< "${data[${key}]}"
+  for name in "${names[@]}"; do
+    trimmed=$(echo "${name}" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')
+    reviewers+=("${key}=${trimmed}@domain.com")
+  done
+done
+flag=$(IFS=','; echo "${reviewers[*]}")
+
+[[ ${#reviewers[@]} -gt 0 ]] && flag="%${flag}"
+[[ -n "${TOPIC}" ]]          && flag+="%topic=${TOPIC}"
+"${WIP}"                     && flag+="%wip"
+"${READY}"                   && flag+="%ready"
+"${PRIVATE}"                 && flag+="%private"
+"${REMOVE_PRIVATE}"          && flag+="%remove-private"
+
+# shellcheck disable=SC2155
+declare branch="$(git rev-parse --abbrev-ref HEAD)"
+printf "$(c Yi)~~> %s$(c)\n" "${branch}"
+
+if [ 'meta/config' = "${branch}" ]; then
+  git push origin HEAD:refs/for/refs/meta/config
+else
+  git push origin HEAD:"refs/for/${branch}${flag}";
+fi
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
