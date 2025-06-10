@@ -56,7 +56,7 @@ declare LINTRC_FILE="${HOME}/.commitlintrc.js"
 # shellcheck source=/dev/null disable=SC2155
 declare -r USAGE="""
 NAME
-  $(c Ys)${ME}$(c) - $(c Ysi)m$(c)arslo $(c Ysi)c$(c)ommit pro ma$(c Ysi)x$(c) - Git commit message helper
+  $(c Ys)${ME}$(c) - $(c Ysi)m$(c 0i)arslo $(c Ysi)c$(c 0i)ommit pro ma$(c 0Ysi)x$(c) - Git commit message helper
 
 USAGE
   $(c Ys)\$ ${ME} $(c 0Wdi)[$(c 0Gi)options$(c 0Wdi)] $(c 0Wdi)[$(c 0Mi)'message'$(c 0Wdi)]$(c)
