@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null disable=SC2155
+#=============================================================================
+#     FileName : semantic-release
+#       Author : marslo.jiao@gmail.com
+#      Created : 2025-06-17 23:02:43
+#   LastChange : 2025-06-17 23:56:19
+#=============================================================================
+
+set -euo pipefail
+
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+if [[ -f "${HOME}/.marslo/bin/bash-color.sh" ]]; then
+  source "${HOME}/.marslo/bin/bash-color.sh"
+else
+  c() { :; }
+fi
+
+function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
+function showUsage() { echo -e "${usage}" >&2; exit 0; }
+
+declare -r GIT_USER="$(git config --get user.name)"
+declare -r USER="${GITHUB_USER:-${GIT_USER:-marslo}}"
+[[ -z "${USER}"  ]] && die "$(c 0Ci)\$GITHUB_USER$(c) is not set and $(c 0Ci)git user.name$(c) is not configured"
+declare -r TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-${SEMANTIC_RELEASE_TOKEN:-}}}"
+[[ -z "${TOKEN}" ]] && die "$(c 0Ci)\$GITHUB_TOKEN$(c) or $(c 0Ci)\$GH_TOKEN$(c) cannot be found in environment variables, set it before running this script"
+
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
+declare debug=true
+declare dryrun=false
+declare branch="$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --abbrev-ref HEAD)"
+declare usage="""
+DESCRIPTION
+  This script runs semantic-release for the current branch or a specified branch
+
+USAGE
+  $(c Ys)\$ ${ME} $(c 0Wdi)[ $(c 0Gi)OPTIONS $(c 0Wdi)]$(c)
+
+OPTIONS
+  $(c G)-b$(c), $(c G)--branch $(c 0Mi)<branch>$(c)  The branch to release from $(c 0Wdi)( default: $(c 0Mi)current branch$(c) $(c 0Wdi))$(c)
+  $(c G)--debug$(c)                Enable debug mode $(c 0Wdi)( default: $(c 0Mi)enabled$(c) $(c 0Wdi))$(c)
+  $(c G)--dryrun$(c)               Perform a dry run without making any changes $(c 0Wdi)( default: $(c 0Mi)disabled$(c) $(c 0Wdi))$(c)
+  $(c G)-h$(c), $(c G)--help$(c)             Show this help message and exit.
+
+REQUIREMENTS
+  • the $(c 0Ci)GITHUB_TOKEN$(c) or $(c 0Ci)GH_TOKEN$(c) or $(c 0Ci)SEMANTIC_RELEASE_TOKEN$(c) environment variable must be set with a valid GitHub token; and
+    the $(c 0Ci)GITHUB_USER$(c) environment variable must be set with a valid GitHub username, or the $(c 0Ci)git user.name$(c) must be configured
+  • the $(c Biu).releaserc.json$(c) file must be present in the current directory
+  • $(c Wsu)semantic-release$(c) must be installed globally or available in the PATH via:
+    $(c Wi)\`\`\`
+    \$ npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github$(c)
+    $(c 0Wdi)# optional
+    $(c 0Wi)\$ npm install -g conventional-changelog-cli conventional-changelog-angular
+    \`\`\`$(c)
+
+NOTE
+  • check more usage via $(c 0Yi)\`\$ npx semantic-release $(c 0Gi)--help\`$(c)
+"""
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -b | --branch ) branch="$2" ; shift 2    ;;
+    --debug       ) debug=true  ; shift      ;;
+    --dryrun      ) dryrun=true ; shift      ;;
+    -h | --help   ) showUsage                ;;
+    *             ) die "unknown option: $1" ;;
+  esac
+done
+
+declare -a cmd=( env )
+cmd+=( CI=true )
+cmd+=( GIT_BRANCH="${branch}" )
+cmd+=( npx semantic-release --branch "${branch}" )
+
+"${debug}"  && cmd+=( --debug )
+"${dryrun}" && cmd+=( --dry-run )
+
+"${debug}" && echo -e "$(c 0Gi)Running: $(c 0Wdi)$(c 0Mi)${cmd[*]}$(c)" >&2
+
+export GITHUB_TOKEN="${TOKEN}"
+export GITHUB_USER="${USER}"
+"${cmd[@]}" || die "semantic-release failed"
+unset GITHUB_TOKEN GITHUB_USER
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
