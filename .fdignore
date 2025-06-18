@@ -9,7 +9,7 @@
 .eclipse/org.eclipse.oomph.*/
 .git/
 .gitbook/
-.github/
+# .github/
 .localized
 .lsp/
 .snipaste/
