@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-04-23 01:32:52
+#   LastChange : 2025-06-18 01:43:41
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -115,13 +115,13 @@ function cat() {                           # smart cat
 function fdInRC() {                        # [f]in[d] [in] [rc] files
   declare -A ignoreList=(
     [base]='.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf'
-    [rc]='ss/ log*/ .completion/ bin/bash-completion/ *.png *.pem *.p12'
+    [rc]='ss/ log*/ .completion/ bin/bash-completion/ *.png *.pem *.p12 *.pub *.lst'
     [config]='*.bak *backup'
     [extra]='*.pem *.p12 *.png *.jpg *.jpeg *.gif *.svg *.zip *.tar *.gz *.bz2 *.xz *.7z *.rar'
   )
 
   local -a rcPaths=("$HOME"/.marslo "$HOME"/.idlerc "$HOME"/.ssh "$HOME"/.jfrog "$HOME"/.pip "$HOME"/.config/nvim "$HOME"/.cht.sh)
-  local -a configPaths=(cheat github-copilot htop yamllint pip ncdu bat)
+  local -a configPaths=(cheat github-copilot htop yamllint pip ncdu bat gh)
   local -a fdOpt=(--type f --hidden --follow --unrestricted --ignore-file "$HOME"/.fdignore)
   local doExtraIgnore=false
 

@@ -48,4 +48,4 @@ function bello() { source ~/.bash_profile; }
 # generated for tt
 [[ -f "$HOME/.tt/.ttenv" ]] && source "$HOME/.tt/.ttenv"
 
-# vim: tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim: tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

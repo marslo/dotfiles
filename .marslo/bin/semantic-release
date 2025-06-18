@@ -4,7 +4,7 @@
 #     FileName : semantic-release
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-06-17 23:02:43
-#   LastChange : 2025-06-17 23:56:19
+#   LastChange : 2025-06-18 01:35:16
 #=============================================================================
 
 set -euo pipefail
@@ -63,6 +63,7 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     -b | --branch ) branch="$2" ; shift 2    ;;
     --debug       ) debug=true  ; shift      ;;
+    --no-debug    ) debug=false ; shift      ;;
     --dryrun      ) dryrun=true ; shift      ;;
     -h | --help   ) showUsage                ;;
     *             ) die "unknown option: $1" ;;
@@ -77,7 +78,7 @@ cmd+=( npx semantic-release --branch "${branch}" )
 "${debug}"  && cmd+=( --debug )
 "${dryrun}" && cmd+=( --dry-run )
 
-"${debug}" && echo -e "$(c 0Gi)Running: $(c 0Wdi)$(c 0Mi)${cmd[*]}$(c)" >&2
+"${debug}" && echo -e "$(c 0Wdi)>> running:\n\t$(c 0Mdi)${cmd[*]} $(c 0Wdi)..$(c)\n" >&2
 
 export GITHUB_TOKEN="${TOKEN}"
 export GITHUB_USER="${USER}"
