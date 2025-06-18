@@ -5,7 +5,7 @@ extends: default
 rules:
   indentation:
     spaces: consistent
-    indent-sequences: false
+    indent-sequences: consistent
 
   line-length: disable
 
