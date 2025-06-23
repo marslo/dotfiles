@@ -47,7 +47,8 @@ fi
 
 # config
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
-declare -r model="${MCX_MODEL:-gpt-4-1106-preview}"
+# check Token Limit via https://platform.openai.com/settings/organization/limits
+declare -r model="${MCX_MODEL:-gpt-4.1-nano}"
 declare -r temperature="${MCX_TEMPERATURE:-0.3}"
 declare -r OPENAI_API_KEY="${OPENAI_API_KEY:?OPENAI_API_KEY not set}"
 
