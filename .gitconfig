@@ -9,6 +9,8 @@
   followTags        = true
 [log]
   follow            = true
+  # default is `default`, which is `EEE MMM dd HH:mm:ss yyyy Z`
+  date              = format:%Y-%m-%d %H:%M:%S %z %A
 # [remote "origin"]
 #   fetch           = +refs/heads/*:refs/remotes/origin/*
 [diff]
@@ -66,6 +68,7 @@
 [http]
   sslVerify         = false
   postBuffer        = 1048576000
+  cookiefile        = ~/.marslo/.gitcookies
   # sslBackend      = openssl
 [advice]
   detachedHead      = false
@@ -129,8 +132,14 @@
   path              = ~/.marslo/.gitalias
   path              = ~/.marslo/.gitcolors
 [includeIf "gitdir:~/iMarslo/tools/git/"]
-  path = ~/.ssh/marslo/.gitconfig
+  path              = ~/.ssh/marslo/.gitconfig
 [includeIf "gitdir:~/iMarslo/job/code/github"]
-  path = ~/.ssh/marslo@domain/.gitconfig
+  path              = ~/.ssh/marslo@domain/.gitconfig
+
+[filter "lfs"]
+  required          = true
+  clean             = git-lfs clean -- %f
+  smudge            = git-lfs smudge -- %f
+  process           = git-lfs filter-process
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker

@@ -80,7 +80,7 @@ alias egp='command egrep -v "(#|^$)"'
 alias h='history | grep -i --color=always'
 alias his='history'
 alias diff='diff --color=auto'
-alias fdiff="diff --old-group-format=$'\\e[0;31m%<\\e[0m' --new-group-format=$'\\e[0;31m%>\\e[0m' --unchanged-group-format=$'\\e[0;32m%=\\e[0m'"
+alias difft='difft --override="*.csv:LaTeX"'
 
 if [[ '1' = $(isOSX) ]]; then alias more='more -r'                ; fi
 if [[ '1' = $(isOSX) ]]; then alias man='man 2>/dev/null'         ; fi

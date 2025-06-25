@@ -215,14 +215,14 @@ let g:vim_json_conceal                = 0
 " LunarWatcher/auto-pairs
 let g:AutoPairsMapBS                        = 1
 let g:AutoPairsFlyMode                      = 0
-let g:AutoPairsCompleteOnlyOnSpace          = 1
 let g:AutoPairsNoJump                       = 0
-let g:AutoPairsSpaceCompletionRegex         = '\w'
+let g:AutoPairsCompleteOnlyOnSpace          = 1                     " ╮ only auto-pair if the next character is NOT a '\w'
+let g:AutoPairsSpaceCompletionRegex         = '\w'                  " ╯
 " let g:AutoPairsJumpBlacklist              = [ '<', '>' ]
 " to avoid impact with ctrl-p ( :Files )
 let g:AutoPairsShortcutToggleMultilineClose = 0
 let g:AutoPairsShortcutBackInsert           = '<M-b>'
-let g:AutoPairsPrefix                       = '<M-j>'
+let g:AutoPairsPrefix                       = '<M-p>'
 let g:AutoPairsShortcutJump                 = '<M-n>'
 let g:AutoPairsShortcutToggle               = '<M-j>'
 let g:AutoPairs                             = autopairs#AutoPairsDefine({ '<': '>' })
