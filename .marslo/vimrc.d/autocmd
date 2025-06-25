@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-06-04 16:20:27
+"    LastChange : 2025-06-23 17:42:02
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -51,7 +51,7 @@ if has( 'autocmd' )
     " for json conccellevel issue
     autocmd BufEnter           *.json              ++nested call timer_start(10, { -> execute('setlocal concealcursor=') })
     autocmd FileType           markdown,html
-            \ let g:AutoPairsCompleteOnlyOnSpace = 0 |
+            \ let g:AutoPairsCompleteOnlyOnSpace = 1 |
             \ let b:AutoPairs = autopairs#AutoPairsDefine({
             \   '<div>':'</div>', '<font>':'</font>', '<a>':'</a>', '<p>':'</p>',
             \   '<table>':'</table>', '<tbody>':'</tbody>',
@@ -204,8 +204,8 @@ if has( 'autocmd' )
   augroup END
 
   let s:ft_settings = {
-        \ 'help': {'foldenable': 0},
-        \ 'vim-plug': {'foldenable': 0, 'relativenumber': 0, 'number': v:false },
+        \ 'help': {'foldenable': v:false},
+        \ 'vim-plug': {'foldenable': v:false, 'relativenumber': v:false, 'number': v:false },
         \ 'markdown': {'spell': 1}
         \ }
 
