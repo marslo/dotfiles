@@ -186,6 +186,8 @@ test -f "${iRCHOME}"/bin/now       && bash   "${iRCHOME}"/bin/now
 [[ '1' = "$(isOSX)"    ]] && echo ''
 test -f "${iRCHOME}"/.tmux-session && source "${iRCHOME}"/.tmux-session
 
+# type -P starship >/dev/null 2>&1 && eval "$(starship init bash)"
+
 # /--------------------------------------------------------------
 #   __      __         _             _
 #  / _|    / _|       | |           (_)

@@ -4,7 +4,7 @@
 #     FileName : git-st
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-02-01 03:39:19
-#   LastChange : 2025-04-06 09:47:35
+#   LastChange : 2025-06-24 16:12:47
 #   references : https://stackoverflow.com/q/77919418/2940319
 #=============================================================================
 
@@ -30,7 +30,8 @@ if [[ 'true' = "${emptyRepo}" ]]; then
   git status -sb
   exit 0
 else
-  gdiff=$(git --no-pager diff --stat --relative | head -n-1)
+  # COLUMNS='128'
+  gdiff=$(COLUMNS="$(tput cols)" git --no-pager diff --stat --relative | head -n-1)
   awk 'FNR==NR { k=$1; $1=""; map[k]=$0; next } { print $0 map[$2] }' \
       <(echo -e "${gdiff}") <(git status -sb) | column -t -s '|' -o '|' | sed -e '1 s/|$//'
 fi
