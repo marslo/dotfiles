@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-05-07 23:35:01
+"    LastChange : 2025-06-26 00:22:03
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -83,7 +83,7 @@ Plug 'marslo/Jenkinsfile-vim-syntax'                                " Jenkinsfil
 Plug 'ekalinin/Dockerfile.vim'                                      " dockerfile
 " Plug 'yaegassy/coc-ansible', {'do': 'yarn install --frozen-lockfile'}
 Plug 'rizzatti/dash.vim'
-Plug 'vim-syntastic/syntastic'
+" Plug 'vim-syntastic/syntastic'
 Plug 'github/copilot.vim'                                           " github copilot
 Plug 'parkr/vim-jekyll'                                             " github page
 Plug 'dstein64/vim-startuptime'
@@ -499,14 +499,20 @@ let g:baan_fold                       = 1
 set foldlevelstart=20
 
 " dense-analysis/ale
-" error: ✘ 👾 💣  🙅 🤦; warning: ⚠ ⸮ ⸘ ☹ info: ⸚ ϔ 𐘿 𐰦 ; style_error: ᑹ ; style_warning: ᓏ
+"   error: ❗‼ 💢 ✘ 👾 💣 🙅 🤦 🔥   ;
+"   warning:    ⚠ ⸮ ⸘ ☹ ᑹ 󱗗;
+"   info: ⸚ ϔ 𐘿 𐰦 󰛨 ➤;
+"   style_error: ᑹ 󰷞 󰉲 󰈸;
+"   style_warning: ᓏ ᓍ ఠ ൠ  󱋿;
+let g:ale_open_list                       = 1                       " ╮ whether if open
+let g:ale_list_window_size                = 2                       " ╯ diagnostics windows
 let g:ale_echo_msg_format                 = '[%linter%] %code%: %s [%severity%] '
 let g:ale_virtualtext_prefix              = '%comment% %type% [%code%]: '
-let g:ale_sign_error                      = '💢'
-let g:ale_sign_warning                    = 'ᑹᑹ'
+let g:ale_sign_error                      = '✗'
+let g:ale_sign_warning                    = 'ఠ'
 let g:ale_sign_info                       = 'ᓆ'
 let g:ale_sign_style_error                = '⍥'
-let g:ale_sign_style_warning              = 'ᓍ'
+let g:ale_sign_style_warning              = '⍨'
 let g:ale_lint_on_text_changed            = 'never'
 let g:ale_fix_on_save                     = 0
 let g:ale_lint_on_save                    = 1
@@ -522,6 +528,8 @@ let g:ale_use_neovim_diagnostics_api      = 0
 let g:ale_ansible_ansible_lint_executable = 'ansible-lint'
 let g:ale_ansible_language_server_config = {}
 let g:ale_ansible_language_server_executable = 'ansible-language-server'
+" autocmd FileType python  let g:ale_virtualtext_prefix = '🐍 '
+" autocmd FileType sh      let g:ale_virtualtext_prefix = '💡 '
 
 " junegunn/fzf.vim
 nnoremap <silent> <leader>ff :Files<CR>
@@ -576,8 +584,8 @@ let g:fzf_colors                  = {
 " set statusline+=%#warningmsg#
 " if has('unix') | set statusline+=\ %{SyntasticStatuslineFlag()} | endif
 " set statusline+=\ %* |
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list            = 1
+let g:syntastic_always_populate_loc_list = 0                        " ╮ open diagnostics
+let g:syntastic_auto_loc_list            = 0                        " ╯ windows
 let g:syntastic_check_on_open            = 1
 let g:syntastic_check_on_wq              = 0
 let g:syntastic_loc_list_height          = 2
