@@ -530,6 +530,10 @@ let g:ale_ansible_language_server_config = {}
 let g:ale_ansible_language_server_executable = 'ansible-language-server'
 " autocmd FileType python  let g:ale_virtualtext_prefix = '🐍 '
 " autocmd FileType sh      let g:ale_virtualtext_prefix = '💡 '
+let g:ale_linters = {
+      \ 'c':   ['clang', 'cppcheck'],
+      \ 'cpp': ['clang++', 'cppcheck']
+      \}
 
 " junegunn/fzf.vim
 nnoremap <silent> <leader>ff :Files<CR>

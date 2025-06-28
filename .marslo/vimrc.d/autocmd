@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-06-23 17:42:02
+"    LastChange : 2025-06-27 21:44:02
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -75,9 +75,9 @@ if has( 'autocmd' )
     autocmd!
     autocmd Syntax       bash           set filetype=sh
     autocmd FileType     sh,bash,shell
-            \ silent :retab! |
-            \ set tabstop=2 softtabstop=2 shiftwidth=2
-    autocmd BufWritePre  *.sh                                                 " automatic retab
+            \ set tabstop=2 softtabstop=2 shiftwidth=2 expandtab |
+            \ silent! keepjumps retab!                                        " automatic retab when open it
+    autocmd BufWritePre  *.sh                                                 " automatic retab when save
             \ if &modifiable && !&readonly | silent! keepjumps retab! | endif
 
     autocmd BufWritePost *.sh                                                 " automatic redraw for shellcheck
@@ -100,9 +100,11 @@ if has( 'autocmd' )
 
   augroup Python
     autocmd BufNewFile,BufRead python
-            \ setlocal tabstop=2 softtabstop=2 shiftwidth=2 |
-            \ setlocal shiftwidth=2 tabstop=2 softtabstop=2 autoindent |
-            \ setlocal fileformat=unix
+            \ setlocal noexpandtab |
+            \ silent retab! |
+            \ setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4 autoindent |
+            \ setlocal fileformat=unix |
+            \ silent retab!
     autocmd FileType python syntax keyword pythonDecorator print self
     autocmd FileType python set isk-=.
     autocmd Syntax   python setlocal foldmethod=indent
@@ -174,13 +176,13 @@ if has( 'autocmd' )
 
     " foldmethod to indent for all filetypes except help and vim-plug
     autocmd BufWinEnter *
-            \ if empty(&filetype) || (index(['help', 'vim-plug'], &filetype) == -1)
-            \|   setlocal foldmethod=indent
+            \  if empty(&filetype) || (index(['help', 'vim-plug'], &filetype) == -1)
+            \|   if &l:foldmethod ==# 'manual' | setlocal foldmethod=indent | endif
             \| endif
 
     " for modeline
     autocmd BufReadPost *
-            \ if getline(1) =~# 'vim:.*ft=help' && &filetype !=# 'help'
+            \  if getline(1) =~# 'vim:.*ft=help' && &filetype !=# 'help'
             \|   doautocmd FileType
             \| endif
 
@@ -191,8 +193,8 @@ if has( 'autocmd' )
     " autocmd BufEnter         *                               if ! empty(&key) | let g:blamer_enabled=0 | endif    " ╯ and encrypt mode
     autocmd BufWritePre        *                               %s/\s\+$//e | %s/\r$//e   " automatic remove trailing space
     autocmd BufWritePre        *\(.ltsv\|.config\|.diffs\)\@<! silent! retab!            " automatic retab: https://vim.fandom.com/wiki/Remove_unwanted_spaces
-    autocmd BufRead,BufNewFile *.t                             set filetype=perl
     autocmd BufRead,BufNewFile *.ltsv                          set filetype=ltsv syntax=groovy noexpandtab
+    autocmd BufRead,BufNewFile *.t                             set filetype=perl
     autocmd QuickFixCmdPost    *grep*                          cwindow
     autocmd FileType           make,snippet,robot              setlocal tabstop=4 softtabstop=4 shiftwidth=4
     autocmd FileType           snippets
@@ -222,7 +224,8 @@ if has( 'autocmd' )
         endif
       endfor
     else
-      setlocal foldmethod=indent
+      " if no foldmethod is set, use indent as default
+      if &l:foldmethod ==# 'manual' | setlocal foldmethod=indent | endif
     endif
   endfunction
 
@@ -232,7 +235,7 @@ if has( 'autocmd' )
     autocmd BufWinEnter *        call s:ApplyFTSettings()
     " autocmd BufWinEnter __Plug__ setlocal nofoldenable nonumber relativenumber=0
     " disable for copilot-chat
-    autocmd BufEnter    * if &filetype ==# 'copilot-chat'
+    autocmd BufEnter    *        if &filetype ==# 'copilot-chat'
             \| setlocal nonumber norelativenumber modifiable nospell
             \| endif
   augroup END
