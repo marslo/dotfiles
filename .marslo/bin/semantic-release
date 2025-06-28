@@ -4,7 +4,7 @@
 #     FileName : semantic-release
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-06-17 23:02:43
-#   LastChange : 2025-06-18 01:35:16
+#   LastChange : 2025-06-17 23:56:19
 #=============================================================================
 
 set -euo pipefail
@@ -28,7 +28,7 @@ declare -r TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-${SEMANTIC_RELEASE_TOKEN:-}}}"
 [[ -z "${TOKEN}" ]] && die "$(c 0Ci)\$GITHUB_TOKEN$(c) or $(c 0Ci)\$GH_TOKEN$(c) cannot be found in environment variables, set it before running this script"
 
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
-declare debug=true
+declare debug=false
 declare dryrun=false
 declare branch="$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --abbrev-ref HEAD)"
 declare usage="""
@@ -82,7 +82,7 @@ cmd+=( npx semantic-release --branch "${branch}" )
 
 export GITHUB_TOKEN="${TOKEN}"
 export GITHUB_USER="${USER}"
-"${cmd[@]}" || die "semantic-release failed"
+"${cmd[@]}" || { echo -e '\n'; die "semantic-release failed"; }
 unset GITHUB_TOKEN GITHUB_USER
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
