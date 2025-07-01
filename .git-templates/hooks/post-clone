@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# shellcheck disable=SC2155
+declare -r REPO_ROOT=$(pwd)
+(
+  cd "${REPO_ROOT}" || exit 1
+  ~/.git-templates/set-git-user.sh
+)
+exit 0
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
