@@ -7,10 +7,10 @@ repos:
       - id: trailing-whitespace
         name: Trim Trailing Whitespace
         args: [--markdown-linebreak-ext=md]
-        exclude: ^.*/merge\.sh$
+        exclude: ^(.*/merge\.sh|\.marslo/\.gitconfig)$
       - id: end-of-file-fixer
         name: End Of File Fixer
-        exclude: ^.*/merge\.sh$
+        exclude: ^(.*/merge\.sh|\.marslo/\.gitconfig)$
       - id: check-yaml
         name: Check YAML
         args: ["--unsafe"]
@@ -21,11 +21,11 @@ repos:
         name: Check Merge Conflict
       - id: check-case-conflict
         name: Check Case Conflict
-        exclude: ^.*/merge\.sh$
+        exclude: ^(.*/merge\.sh|\.marslo/\.gitconfig)$
       - id: mixed-line-ending
         name: Mixed Line Ending
         args: ["--fix=lf"]
-        exclude: ^.*/merge\.sh$
+        exclude: ^(.*/merge\.sh|\.marslo/\.gitconfig)$
 
   - repo: https://github.com/psf/black
     rev: 25.1.0
