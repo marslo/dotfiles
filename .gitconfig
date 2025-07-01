@@ -91,50 +91,11 @@
 [merge]
   renamelimit       = 10000
 
-############################################################
-# for environment failed in $ ssh -vT git@github.com -p 22 #
-############################################################
-[url "ssh://marslo@vgitcentral.domain.com:29418/"]
-  insteadOf         = ssh://srv-ssd-fw-devops@vgitcentral.domain.com:29418/
-# [url "git@ssh.github.com"]
-#   insteadOf       = git@github.com
-# [url "git@ssh.github.com:"]
-#   insteadOf       = https://github.com/
-# ------ set if ssh is unstable ------
-# [url "https://github.com/"]
-#   insteadOf         = git@ssh.github.com:
-# [url "https://github.com/"]
-#   insteadOf         = git@github.com:
-# ------ set if ssh is unstable ------
-
-[git-extras]
-  # iMarslo
-  github-personal-access-token = ghp_***********************************x
-
-# GIT_USERNAME/GIT_ASKPASS for token: https://git-scm.com/docs/gitcredentials
-[credential]
-  helper            = store --file ~/.marslo/.git-credentials
-  # helper          = cache --timeout 30000
-  # helper          = wincred
-[credential "https://github.com/marslo"]
-  username          = marslo
-[credential "https://github.com/marsloijao-mvl"]
-  username          = marslojiao-mvl
-  helper            = "!f() { test \"$1\" = get && echo \"password=gh************************************vr\"; }; f"
-
 [trailer "sign"]
   key               = Signed-off-by
   ifmissing         = add
   ifexists          = doNothing
   command           = echo \"$(git config user.name) <$(git config user.email)>\"
-
-[include]
-  path              = ~/.marslo/.gitalias
-  path              = ~/.marslo/.gitcolors
-[includeIf "gitdir:~/iMarslo/tools/git/"]
-  path              = ~/.ssh/marslo/.gitconfig
-[includeIf "gitdir:~/iMarslo/job/code/github"]
-  path              = ~/.ssh/marslo@domain/.gitconfig
 
 [filter "lfs"]
   required          = true
@@ -142,4 +103,15 @@
   smudge            = git-lfs smudge -- %f
   process           = git-lfs filter-process
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker
+[include]
+  path              = ~/.marslo/.gitconfig
+  path              = ~/.marslo/.gitalias
+  path              = ~/.marslo/.gitcolors
+
+# export GITHUB_FORCE_HTTPS=1 or GITHUB_FORCE_HTTPS=true to force using HTTPS instead of ssh
+[includeIf "environment:GITHUB_FORCE_HTTPS:true"]
+   path = ~/.marslo/.gitconfig.https
+[includeIf "environment:GITHUB_FORCE_HTTPS:1"]
+   path = ~/.marslo/.gitconfig.https
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker:

@@ -1,0 +1,7 @@
+
+[url "git@ssh.github.com"]
+  insteadOf       = git@github.com
+[url "git@ssh.github.com:"]
+  insteadOf       = https://github.com/
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker:

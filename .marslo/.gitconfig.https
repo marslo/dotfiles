@@ -1,0 +1,14 @@
+# this file is used to configure git to use https instead of ssh for github
+# using export GITHUB_FORCE_HTTPS=1 will force git to use https instead of ssh
+
+############################################################
+# for environment failed in $ ssh -vT git@github.com -p 22 #
+############################################################
+## ------ set if ssh is unstable ------ ##
+[url "https://github.com/"]
+  insteadOf         = git@ssh.github.com:
+[url "https://github.com/"]
+  insteadOf         = git@github.com:
+## ------ set if ssh is unstable ------ ##
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker:
