@@ -7,8 +7,11 @@
 ## ------ set if ssh is unstable ------ ##
 [url "https://github.com/"]
   insteadOf         = git@ssh.github.com:
-[url "https://github.com/"]
   insteadOf         = git@github.com:
+  insteadOf         = git@github-marslo.com:
+  insteadOf         = git@github-re.com:
+  insteadOf         = git@github-mrvl.com:
+  insteadOf         = git@github-mvl.com:
 ## ------ set if ssh is unstable ------ ##
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker:
