@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-06-27 21:44:02
+"    LastChange : 2025-06-30 20:58:15
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -240,6 +240,10 @@ if has( 'autocmd' )
             \| endif
   augroup END
 
+  " to fix the <SNR>13_StarSetf issue -- no-augroup
+  autocmd! BufReadPost */.gitconfig.d/*
+  autocmd! BufNewFile  */.gitconfig.d/*
+  autocmd BufReadPost,BufNewFile */.gitconfig.d/* setfiletype gitconfig
 endif
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:
