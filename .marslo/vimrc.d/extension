@@ -22,6 +22,9 @@ let mapleader      = ','
 let g:mapleader    = ','
 let maplocalleader = '\\'
 let g:plug_shallow = 0
+" sheerun/vim-polyglot - set beofe loading plugin
+" let g:polyglot_disabled = ['groovy.plugin']
+let g:polyglot_disabled = ['git']
 
 filetype off
 call plug#begin( '~/.vim/plugged' )
@@ -625,8 +628,5 @@ autocmd BufReadPre *
 " invpaste <-> paste in insert/normal/visual mode ( toggle paste mode )
 nnoremap <leader>pp :set invpaste paste?<CR>
 map <silent> <F2>  :Copilot disable<CR>
-
-" sheerun/vim-polyglot
-" let g:polyglot_disabled = ['groovy.plugin']
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

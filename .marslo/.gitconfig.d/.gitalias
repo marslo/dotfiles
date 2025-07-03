@@ -2,7 +2,7 @@
 #     FileName : .gitalias
 #       Author : marslo.jiao@gmail.com
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2025-06-10 11:24:47
+#   LastChange : 2025-07-02 22:54:18
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -29,6 +29,16 @@
   slap        = blame -s -w -C -M
   stt         = status -sb
   graph       = log --graph --oneline --decorate=short --branches='*'
+  me          = "!f() { printf \"\\033[0;3;35m$(git config user.name)\\033[0m <\\033[0;3;36m$(git config user.email)\\033[0m>\"; }; f"
+  https-set   = !git config --global --add url.https://github.com/.insteadOf git@github.com: && git config --global --add url.https://github.com/.insteadOf git@ssh.github.com:
+  https-unset = !git config --global --unset-all url.https://github.com/.insteadOf
+  https-status= "!if [[ -n $(git config --global --get-regexp '^url\\.https://github\\.com/\\.insteadOf') ]]; then \
+                   printf \"\\033[0;2;3;37mHTTPS rewrite: \\033[0;3;36menabled\\033[0;2;3;37m:\\033[0m\n\"; \
+                   printf \"\\033[0;2;3;37m↪︎ %s %s\\033[0m\n\" $(git config --get-regexp '^url\\.https://github\\.com/\\.insteadOf'); \
+                 else \
+                   printf \"\\033[0;2;3;37mHTTPS rewrite: \\033[0;3;35mdisabled\\033[0m\"; \
+                 fi"
+  https-st    = !git https-status
   # st        = "!bash -c 'while read branch; do \n\
   #                          git status -sb | head -1 \n\
   #                          git --no-pager diff --stat | head -n-1 \n\
@@ -580,6 +590,9 @@
   diffname    = git diff --name-only
   diffbranch  = log --left-right --graph --cherry-pick --oneline
   sortdiff    = !sh -c 'git diff "$@" | grep "^[+-]" | sort --key=1.2 | uniq -u -s1'
+  # difftastic
+  dft         = -c diff.external=difft diff
+  ds          = -c diff.external=difft show --ext-diff
   # }}}
 
   #-----------------------#
@@ -597,6 +610,7 @@
   make-patch  = "!bash -c \"git format-patch HEAD~1; git reset HEAD~1\""
   pdraft      = "!git push origin HEAD:refs/drafts/$1"
   ghook       = "!bash -c 'scp -p -O -P 29418 vgitcentral.sample.com:hooks/commit-msg $(git rev-parse --git-dir)/hooks/'"
+  setuser     = "!~/.git-templates/set-git-user.sh --verbose"
   ghprofile   = "!bash -c 'git config user.email \"marslo.jiao@gmail.com\"; git config user.name \"marslo\"'"
   # https://stackoverflow.com/a/39616600/2940319
   # convert anything into sh+ : `\"` -> `\\\"`
@@ -676,4 +690,4 @@
                     "
   # }}}
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker:
