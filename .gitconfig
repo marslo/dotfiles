@@ -64,11 +64,11 @@
 [rerere]
   enabled           = true
 [commit]
-  template          = ~/.marslo/.gitcommit-template
+  template          = ~/.marslo/.gitconfig.d/.gitcommit-template
 [http]
   sslVerify         = false
   postBuffer        = 1048576000
-  cookiefile        = ~/.marslo/.gitcookies
+  cookiefile        = ~/.marslo/.gitconfig.d/.gitcookies
   # sslBackend      = openssl
 [advice]
   detachedHead      = false
@@ -104,14 +104,18 @@
   process           = git-lfs filter-process
 
 [include]
-  path              = ~/.marslo/.gitconfig
-  path              = ~/.marslo/.gitalias
-  path              = ~/.marslo/.gitcolors
+  path              = ~/.marslo/.gitconfig.d/.gitconfig
+  path              = ~/.marslo/.gitconfig.d/.gitalias
+  path              = ~/.marslo/.gitconfig.d/.gitcolors
+  ## ------ set if ssh is unstable ------ ##
+  # path            = ~/.marslo/.gitconfig.d/.gitconfig.https
+  ## ------ set if ssh is unstable ------ ##
 
 # export GITHUB_FORCE_HTTPS=1 or GITHUB_FORCE_HTTPS=true to force using HTTPS instead of ssh
-[includeIf "environment:GITHUB_FORCE_HTTPS:true"]
-   path = ~/.marslo/.gitconfig.https
-[includeIf "environment:GITHUB_FORCE_HTTPS:1"]
-   path = ~/.marslo/.gitconfig.https
+# -- includeIf "environment:xx" ] not working in git 2.50.0 --
+# [includeIf "environment:GITHUB_FORCE_HTTPS:true"]
+#    path = ~/.marslo/.gitconfig.https
+# [includeIf "environment:GITHUB_FORCE_HTTPS:1"]
+#    path = ~/.marslo/.gitconfig.https
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker:

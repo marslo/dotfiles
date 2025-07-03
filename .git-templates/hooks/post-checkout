@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 
 # only run on the first checkout after cloning
-# if [[ "$1" = "0000000000000000000000000000000000000000" || "$3" = '1' ]]; then
-if [[ "$3" = '1' ]]; then
-  if ! git config --get --local user.email >/dev/null; then
-    ~/.git-templates/set-git-user.sh
-  fi
+# if [[ "$3" = '1' ]]; then
+if [[ "$1" = "0000000000000000000000000000000000000000" || "$3" = '1' ]]; then
+  ~/.git-templates/set-git-user.sh
 fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

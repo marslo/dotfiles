@@ -4,7 +4,7 @@
 #   FileName: kubernetes
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2025-03-17 10:49:09
+# LastChange: 2025-07-02 22:11:35
 # =============================================================================
 
 function kubecolor() {
@@ -20,6 +20,8 @@ alias k='kubecolor'
 alias ka='kubeadm --namespace=kube-system'
 alias kl='kubelet --namespace=kube-system'
 alias kc='kubecolor --namespace=kube-system'
+alias kprod='kubectl config use-context kubernetes-prod'
+alias kdev='kubectl config use-context kubernetes-dev'
 
 alias kcswatch='watch -n 1 kubectl --namespace=swcoe-system -o wide get all'
 alias kubeproxy="kubectl proxy --address=\"0.0.0.0\" -p 8001 --accept-hosts='^*$' --accept-paths='^.*' --disable-filter=true"
