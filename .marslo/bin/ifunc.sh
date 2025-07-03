@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2025-05-28 00:28:01
+#  LastChange : 2025-07-02 22:12:14
 #  Description : ifunctions
 # =============================================================================
 
@@ -28,11 +28,9 @@ function forget()  { history -d $(( $(history | tail -n 1 | ${GREP} -oP '^ \d+')
 # https://unix.stackexchange.com/a/269085/29178
 function color()   { for c; do printf '\e[48;5;%dm %03d ' "$c" "$c"; done; printf '\e[0m \n'; }
 function trim()    { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
-function kdev()    { kubectl config use-context kubernetes-dev;  }
-function kprod()   { kubectl config use-context kubernetes-prod; }
 # shellcheck disable=SC2015
-function kx()      { [ "$1" ] && kubectl config use-context "$1" || kubectl config current-context ; }
-function pipurl()  { pip list --format=freeze | cut -d= -f1 | xargs pip show | awk '/^Name/{printf $2} /^Home-page/{print ": "$2}' | column -t; }
+function kx()      { [ "$1" ] && kubectl config use-context "$1" || kubectl config current-context; }
+function pipurl()  { pip list --format=freeze | cut -d= -f1 | xargs -n1 pip show | awk '/^Name/{printf $2} /^Home-page/{print ": "$2}' | column -t; }
 function getsum    { awk '{ sum += $1 } END { print sum }' "$1"; }
 ## how many days since now https://tecadmin.net/calculate-difference-between-two-dates-in-bash/
 function hmdays()  { usage="SYNOPSIS:\t\$ hmdays YYYY-MM-DD"; [[ 1 -ne $# ]] && echo -e "${usage}" || echo $(( ( $(date -d "$1" +%s) - $(date +%s))/(3600*24))) days; }
@@ -498,7 +496,7 @@ function fdclean() {
 }
 
 function clean() {
-  local path="$PWD"
+  local path="${PWD}"
   local action=''
   local verbose='false'
   local -a opt=()
@@ -611,4 +609,135 @@ function md2html() {
   sed "${sedArgs[@]}" "${pHome}/header.html"
 }
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************:
+# [new] [p]ass[w]or[d]
+function newpwd() {
+  local level=1
+  local char=32
+  local pattern=''
+  local clipboard=false
+  local verbose=false
+  local show=true
+  # shellcheck disable=SC2155
+  local usage='USAGE'
+  usage+="\n  $(c Ys)\$ newpwd$(c) $(c 0Wdi)[ $(c 0Gi)options $(c 0Wdi)]$(c)"
+  usage+='\n\nOPTIONS'
+  usage+="\n  $(c G)-c$(c), $(c G)--char$(c)  $(c Mi)<number>$(c)  number of characters in the password $(c 0Wdi)( default: $(c 0Mi)${char}$(c 0Wdi) )$(c)"
+  usage+="\n  $(c G)-l$(c), $(c G)--level$(c) $(c Mi)<number>$(c)  password complexity level $(c 0Wdi)( $(c 0Mi)1$(c 0Wdi)-$(c 0Mi)3$(c 0Wdi), default: $(c 0Mi)${level}$(c 0Wdi) )$(c)"
+  usage+="\n  $(c G)--copy$(c)                copy the generated password to clipboard $(c 0Wdi)( default: $(c 0Mi)true$(c 0Wdi) in macOS, $(c 0Mi)false $(c 0Wdi)in Linux )$(c)"
+  usage+="\n  $(c G)--no-copy$(c)             do not copy the generated password to clipboard"
+  usage+="\n  $(c G)--show$(c)                show the generated password in the terminal $(c 0Wdi)( default: $(c 0Mi)true$(c 0Wdi) )$(c)"
+  usage+="\n  $(c G)--no-show$(c)             do not show the generated password in the terminal"
+  usage+="\n  $(c G)-v$(c), $(c G)--verbose$(c)         show verbose output $(c 0Wdi)( default: $(c 0Mi)false$(c 0Wdi) )$(c)"
+  usage+="\n  $(c G)-h$(c), $(c G)--help$(c)            show this help message"
+  [[ "$(uname)" == "Darwin" ]] && clipboard=true
+
+  function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; }
+
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -c | --char    ) char="$2"          ; shift 2  ;;
+      -l | --level   ) level="$2"         ; shift 2  ;;
+      --copy         ) clipboard=true     ; shift    ;;
+      --no-copy      ) clipboard=false    ; shift    ;;
+      --show         ) show=true          ; shift    ;;
+      --no-show      ) show=false         ; shift    ;;
+      -v | --verbose ) verbose=true       ; shift    ;;
+      -h | --help    ) echo -e "${usage}" ; return   ;;
+      -*             ) die "$(c i)unknown option: $(c 0M)'$1'$(c 0i). try$(c) $(c 0Gi)\`\$ ${ME} -- --help\`$(c)"; return 1 ;;
+      *              ) break                         ;;
+    esac
+  done
+
+  case ${level} in
+    1) pattern='A-Za-z0-9!@#$%^&*()'                          ;;
+    2) pattern='A-Za-z0-9!@#$%^&*()?:_-~+<=>'                 ;;
+    3) pattern='A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~' ;;
+  esac
+
+  cmd="head /dev/urandom | tr -dc '${pattern}' | head -c '${char}' && echo"
+  password=$(eval "${cmd}")
+
+  echo -e "$(c Wdi)>> $(c 0Ys)${char} $(c 0Wdi)length password is generating $(c 0Wdi)with pattern $(c 0Msi)'${pattern}' $(c 0Wdi)..$(c)"
+  "${verbose}" && echo -e "$(c Wdi)>> command: $(c 0Yi)\`${cmd}\` $(c 0Wdi)..$(c)"
+
+  "${clipboard}" && {
+    if command -v xclip &> /dev/null; then
+      echo "${password}" | xclip -selection clipboard
+      echo -e "$(c Wdi).. password copied to clipboard!$(c)"
+    elif command -v pbcopy &> /dev/null; then
+      echo -n "${password}" | pbcopy
+      echo -e "$(c Wdi).. password copied to clipboard!$(c)"
+    else
+      echo -e "$(c Ri)no clipboard utility found. password not copied.$(c)"
+      show=true
+    fi
+  }
+
+  "${show}" && {
+    echo -e "$(c Wdi).. $(c 0Gi)generated password: $(c 0M)${password}$(c)"
+  }
+}
+
+# fdiff - diff two files with diff-so-fancy
+# Usage  : fdiff <file1> <file2>
+# others : git diff --no-index <file1> <file2>
+#          alias fdiff="diff --old-group-format=$'\\e[0;31m%<\\e[0m' --new-group-format=$'\\e[0;31m%>\\e[0m' --unchanged-group-format=$'\\e[0;32m%=\\e[0m'"
+function fdiff() {
+  [[ $# -ne 2 ]] && {
+    echo -e "$(c Ri)ERROR$(c): $(c i)fdiff requires exactly two file paths.$(c)"
+    return 1
+  }
+  diff -u "${1}" "${2}" | diff-so-fancy
+}
+
+# setme - set or remove user as/from admin
+# usage : setme [-a | -s | --set | --add]
+#               [-r | --remote]
+#               [-c | --check]
+#               [-u | --user <username>]
+function setme() {
+  [[ 'Darwin' = $(uname -s) ]] || {
+    echo -e "$(c Ri)ERROR$(c): $(c 0i)setme is only available on macOS.$(c)"
+    return 1
+  }
+
+  local USER=''
+  local SETUP=false
+  local REMOTE=false
+  local CHECK=true
+  function isAdmin() { dscl . -read /Groups/admin GroupMembership | grep -qw "${1:-$(whoami)}"; }
+
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -a | -s | --set | --add ) SETUP=true  ;  shift  ;;
+      -r | --remote           ) REMOTE=true ;  shift  ;;
+      -c | --check            ) CHECK=true  ;  shift  ;;
+      -u | --user             ) USER="$2"   ; shift 2 ;;
+      *                       ) echo "Unknown option: '$1'" >&2; exit 1 ;;
+    esac
+  done
+
+  USER="${USER:-$(whoami)}"
+
+  if [[ true = "${SETUP}" ]]; then
+    isAdmin "${USER}" || {
+      echo -e "$(c Wdi)>> setting up standard user: $(c 0Mi)${USER} $(c 0Wdi)...$(c)"
+      sudo dscl . -merge /Groups/admin GroupMembership "${USER}"
+    }
+  fi
+
+  if [[ true = "${REMOTE}" ]]; then
+    isAdmin "${USER}" && {
+      echo -e "$(c Wdi)>> removing admin user: $(c 0Mi)${USER}$(c 0Wdi) ...$(c)"
+      sudo dscl . -delete /Groups/admin GroupMembership "${USER}"
+    }
+  fi
+
+  if [[ true = "${CHECK}" ]]; then
+    isAdmin "${USER}" \
+      && echo -e "$(c Wdi)>> $(c 0Mi)${USER}$(c 0Wdi) is an $(c 0Ci)admin $(c 0Wdi)user$(c)" \
+      || echo -e "$(c Wdi)>> $(c 0Mi)${USER}$(c 0Wdi) is a $(c 0Bi)standard $(c 0Wdi)user$(c)"
+  fi
+}
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
