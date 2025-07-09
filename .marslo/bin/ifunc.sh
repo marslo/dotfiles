@@ -709,11 +709,11 @@ function setme() {
 
   while [[ $# -gt 0 ]]; do
     case $1 in
-      -a | -s | --set | --add ) SETUP=true  ;  shift  ;;
-      -r | --remote           ) REMOTE=true ;  shift  ;;
-      -c | --check            ) CHECK=true  ;  shift  ;;
+      -a | -s | --set | --add ) SETUP=true  ; shift   ;;
+      -r | --remote           ) REMOTE=true ; shift   ;;
+      -c | --check            ) CHECK=true  ; shift   ;;
       -u | --user             ) USER="$2"   ; shift 2 ;;
-      *                       ) echo "Unknown option: '$1'" >&2; exit 1 ;;
+      *                       ) echo "Unknown option: '$1'" >&2; return 1 ;;
     esac
   done
 

@@ -56,8 +56,8 @@ $ bash install.sh
 
 ### fonts
 
-> TIPS:
-> - [installation guild for nerd fonts patched by v3.2.1.1](https://github.com/marslo/fonts)
+> [!TIP]
+> - [installation guild for nerd fonts patched by v3.4.0.2](https://github.com/marslo/fonts/releases/tag/v3.4.0.2)
 
 - [nice fonts](https://marslo.github.io/ibook/tools/fonts.html)
 - [nerd-fonts](https://www.nerdfonts.com/) | [ryanoasis/nerd-fonts](https://github.com/ryanoasis/nerd-fonts)
@@ -145,7 +145,7 @@ dotfils                    # -> $HOME
 
 ### nvim
 
-> [!TIP|label:key shortcuts]
+> [!TIP]
 > - <kbd>Tab</kbd>: for copilot auto-completion
 > - <kbd>Ctrl</kbd>+<kbd>j</kbd>: for coc-snippets
 > - <kbd>Ctrl</kbd>+<kbd>m</kbd>: for lsp auto-completion
@@ -192,4 +192,3 @@ $ sudo make prefix=/usr/local/tig install
 ![idle solarized dark](https://github.com/marslo/dotfiles/raw/assets/screenshots/idle-solarized-dark.png)
 
 ![idle gruvbox](https://github.com/marslo/dotfiles/raw/assets/screenshots/idle-gruvbox.png)
-
