@@ -59,8 +59,8 @@ EXAMPLES
 while [[ $# -gt 0 ]]; do
   case $1 in
     --help | -h      ) showHelp; exit 0 ;;
-    --ccs            ) data=( [to]='account,account' [cc]='account' ) ; shift ;;
-    --sms            ) data=( [to]='account' [cc]='account'         ) ; shift ;;
+    --ccs            ) data=( [r]='account,account' [cc]='account' ) ; shift ;;
+    --sms            ) data=( [r]='account' [cc]='account'         ) ; shift ;;
     --wip            ) WIP=true            ; shift   ;;
     --ready          ) READY=true          ; shift   ;;
     --topic          ) TOPIC="$2"          ; shift 2 ;;

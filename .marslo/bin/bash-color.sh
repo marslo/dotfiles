@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-# credit: [ppo/bash-colors v3.0](https://github.com/ppo/bash-colors/blob/master/bash-colors.sh)
-# author: @ppo
-
+# references:
+# - credit [ppo/bash-colors v3.0](https://github.com/ppo/bash-colors/blob/master/bash-colors.sh)
 #  ┌───────┬────────────────┬─────────────────┐   ┌───────┬─────────────────┬───────┐
 #  │ FG/BG │ COLOR          │ OCTAL           │   │ CODE  │ STYLE           │ OCTAL │
 #  ├───────┼────────────────┼─────────────────┤   ├───────┼─────────────────┼───────┤
@@ -20,8 +19,8 @@
 #                                                  Uppercase = Reset a style: \e[2*m
 
 # shellcheck disable=SC2015,SC2059
-c() { [ $# == 0 ] && printf "\e[0m" || printf "$1" | sed 's/\(.\)/\1;/g;s/\([SDIUFNHT]\)/2\1/g;s/\([KRGYBMCW]\)/3\1/g;s/\([krgybmcw]\)/4\1/g;y/SDIUFNHTsdiufnhtKRGYBMCWkrgybmcw/12345789123457890123456701234567/;s/^\(.*\);$/\\e[\1m/g'; }
+c() { [ $# == 0 ] && printf "\033[0m" || printf "$1" | sed 's/\(.\)/\1;/g;s/\([SDIUFNHT]\)/2\1/g;s/\([KRGYBMCW]\)/3\1/g;s/\([krgybmcw]\)/4\1/g;y/SDIUFNHTsdiufnhtKRGYBMCWkrgybmcw/12345789123457890123456701234567/;s/^\(.*\);$/\\033[\1m/g'; }
 # shellcheck disable=SC2086
-cecho() { echo -e "$(c $1)${2}\e[0m"; }
+cecho() { echo -e "$(c $1)${2}\033[0m"; }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
