@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-04-03 03:19:32
+"    LastChange : 2025-09-02 17:12:21
 " =============================================================================
 
 " /**************************************************************
@@ -15,12 +15,18 @@
 "                           |___/
 "
 " **************************************************************/
-set mouse=nvi                                                       " n: normal, v: visual, i: insert
+if exists('$SSH_CONNECTION') || exists('$SSH_TTY') || exists('$SSH_CLIENT')
+  set mouse=                                                          " disable mouse in ssh
+else
+  set mouse=nvi                                                       " n: normal, v: visual, i: insert
+endif
+
 if has('gui_running') || exists('g:loaded_nerdtree')
   set mousemodel=popup_setpos
 else
   set mousemodel=extend
 endif
+
 set lazyredraw
 set fileformat=unix
 set fileformats=unix

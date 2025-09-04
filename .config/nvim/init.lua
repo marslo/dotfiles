@@ -23,6 +23,7 @@ vim.opt.undodir = vim.fn.expand( '~/.vim/undo' )
 require('config/nvim-treesitter')
 
 -- CopilotC-Nvim/CopilotChat.nvim
+require("copilot").setup {}
 require("CopilotChat").setup {
   debug = true,
   allow_insecure = true, -- https://github.com/deathbeam/dotfiles/blob/master/nvim/.config/nvim/lua/config/copilot.lua

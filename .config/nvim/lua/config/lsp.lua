@@ -17,7 +17,7 @@ require'lspconfig'.bashls.setup{}
 require'lspconfig'.cmake.setup{}
 require'lspconfig'.dockerls.setup{}
 require'lspconfig'.gradle_ls.setup{
-  filetypes = { 'groovy', 'Jenkinsfile' }
+  filetypes = { 'groovy', 'Jenkinsfile', 'jenkinsfile' }
 }
 -- require'lspconfig'.groovyls.setup{
 --   filetypes = { 'groovy', 'Jenkinsfile' },
