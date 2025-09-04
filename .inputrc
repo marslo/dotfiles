@@ -63,7 +63,9 @@ set skip-completed-text            on
 # set completion-query-items       100
 
 set keymap emacs
+"\C-xe": alias_expand_line
 "\ee": vi-editing-mode
+"\C-r": reverse-search-history
 
 # https://www.usenix.org.uk/content/bash.html#input
 set keymap vi-command
@@ -141,6 +143,7 @@ set keymap vi-command
 "\C-w": unix-word-rubout
 "\C-q": quoted-insert
 "\C-x\C-r": re-read-init-file
+"\C-r": reverse-search-history
 "\e#": insert-comment
 "\e.": insert-last-argument
 "\e.": yank-last-arg
@@ -165,6 +168,7 @@ set keymap vi-insert
 "\C-q": quoted-insert
 "\C-_": undo
 "\C-x\C-r": re-read-init-file
+"\C-r": reverse-search-history
 "\e#": insert-comment
 "\e.": insert-last-argument
 "\e_": yank-last-arg

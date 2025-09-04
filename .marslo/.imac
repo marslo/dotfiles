@@ -58,7 +58,8 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   TRASH_HOME="$(brew --prefix trash)"
 
   TOOLS_PATH="${TOOLS_PATH:-}"
-  test -d '/usr/local/vim'     && TOOLS_PATH+=':/usr/local/vim/bin'
+  # self-compiled vim, using `/opt/homebrew/bin/vim` ( brew install --cask macvim-app ) instead of
+  # test -d '/usr/local/vim'   && TOOLS_PATH+=':/usr/local/vim/bin'
   test -d "$HOME/.docker"      && TOOLS_PATH+=":$HOME/.docker/bin"
   # test -d "${NVIM_HOME}"     && TOOLS_PATH+=":${NVIM_HOME}/bin"
   test -d "${MACVIM_HOME}"     && TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"

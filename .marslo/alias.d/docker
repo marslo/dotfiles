@@ -4,7 +4,7 @@
 #   FileName: docker
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2025-02-12 16:44:53
+# LastChange: 2025-08-06 15:03:01
 # =============================================================================
 
 alias d='docker'
@@ -33,7 +33,7 @@ alias droot='dockcer run --privileged -i -t -u 0'
 alias drps='dockcer run --privileged -v /var/run/docker.sock:/var/run/docker.sock -i -t'
 alias dip="docker inspect --format '{{ .NetworkSettings.IPAddress }}'"
 
-alias dv='docker volume'
+# alias dv='docker volume'
 alias dvi='docker volume inspect'
 
 
