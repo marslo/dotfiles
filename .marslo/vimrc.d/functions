@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2025-05-02 22:57:45
+"    LastChange : 2025-09-02 17:12:14
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -159,12 +159,16 @@ endfunction
 " `,mm` to toggle mouse on/off
 nnoremap <leader>mm :call ToggleMouse()<CR>
 function! ToggleMouse()
+  " check whether if running in ssh
+  let l:is_ssh = exists('$SSH_CONNECTION') || exists('$SSH_TTY') || exists('$SSH_CLIENT')
+  let l:env = l:is_ssh ? '[SSH]' : '[LOCAL]'
+
   if &mouse ==# 'a' || &mouse ==# 'nvi'
     set mouse=
-    echohl Red   | echon '🖱️ Mouse disabled' | echohl None
+    echohl Red   | echon '🖱️ Mouse disabled ' . l:env | echohl None
   else
     set mouse=nvi
-    echohl Green | echon '🖱️ Mouse enabled'  | echohl None
+    echohl Green | echon '🖱️ Mouse enabled ' . l:env | echohl None
   endif
 endfunction
 

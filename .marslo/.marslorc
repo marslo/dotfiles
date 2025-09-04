@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2025-04-30 15:23:11
+# LastChange : 2025-08-27 10:15:44
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -77,6 +77,7 @@ elif [[ '1' = "$(isLinux)" ]]; then                                            #
   # distrab=$(awk -F= '$1=="ID" {print $2;}' /etc/os-release)
   # [[ 'ubuntu' == "${distrab}" ]] || [[ 'centos' == "${distrab}" ]] || [[ 'rhel' == "${distrab}" ]] && file="$HOME/.bashrc"
   [[ '1' == "$(isDebian)" ]]  && GIT_COMPLETION_DIR='/opt/git/contrib/completion'
+  [[ '1' == "$(isDebian)" ]]  && export DEBIAN_FRONTEND=noninteractive
   [[ '1' == "$(isFedora)" ]]  && GIT_COMPLETION_DIR='/usr/share/doc/git/contrib/completion'
   if ls "${GIT_COMPLETION_DIR}"/*git* >/dev/null 2>&1; then source "${GIT_COMPLETION_DIR}"/*git*.[bs]*h; fi
   test -f "${iRCHOME}"/.irhel && source <( cat "${iRCHOME}"/.irhel )
@@ -181,10 +182,9 @@ test -e /usr/share/terminfo/78/xterm-256color && export TERM='xterm-256color'
 source <( cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im,icolor}.sh )
 [[ '1' = "$(isOSX)"    ]] && source <( cat "${iRCHOME}"/bin/ii.sh )
 [[ '1' != "$(isLinux)" ]] && test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
-[[ '1' = "$(isLinux)"  ]] && echo ''
 test -f "${iRCHOME}"/bin/now       && bash   "${iRCHOME}"/bin/now
-[[ '1' = "$(isOSX)"    ]] && echo ''
 test -f "${iRCHOME}"/.tmux-session && source "${iRCHOME}"/.tmux-session
+[[ '1' = "$(isOSX)"    ]] && echo ''
 
 # type -P starship >/dev/null 2>&1 && eval "$(starship init bash)"
 

@@ -25,16 +25,16 @@ case "$1" in
   --on        )
     sed -i -E '/^[[:space:]]*path[[:space:]]*=.*\.ssh[[:space:]]*$/ s|(.*)(path[[:space:]]*=.*\.ssh[[:space:]]*)|\1# \2|' "${CONFIG}"
     sed -i -E '/^[[:space:]]*# [[:space:]]*path[[:space:]]*=.*\.https[[:space:]]*$/ s|([[:space:]]*)# ([[:space:]]*path[[:space:]]*=.*\.https[[:space:]]*)|\1\2|' "${CONFIG}"
-    printf "\033[0;3;36mHTTPS enabled\033[0m ( \033[0;3;35mSSH disabled\033[0m )";
+    printf "\033[0;3;36mHTTPS enabled\033[0m ( \033[0;3;35mSSH disabled\033[0m )\n";
     ;;
   --off       )
     sed -i -E '/^[[:space:]]*path[[:space:]]*=.*\.https[[:space:]]*$/ s|(.*)(path[[:space:]]*=.*\.https[[:space:]]*)|\1# \2|' "${CONFIG}"
     sed -i -E '/^[[:space:]]*# [[:space:]]*path[[:space:]]*=.*\.ssh[[:space:]]*$/ s|([[:space:]]*)# ([[:space:]]*path[[:space:]]*=.*\.ssh[[:space:]]*)|\1\2|' "${CONFIG}"
-    printf "\033[0;3;36mSSH enabled\033[0m ( \033[0;3;35mHTTPS disabled\033[0m )";
+    printf "\033[0;3;36mSSH enabled\033[0m ( \033[0;3;35mHTTPS disabled\033[0m )\n";
     ;;
   --check     )
     if grep -Eq '^[[:space:]]*path[[:space:]]*=.*\.ssh[[:space:]]*$' "${CONFIG}"; then
-      printf "\033[0;3;36mSSH enabled\033[0m\n"; exit 0;
+      printf "\033[0;3;36mSSH enabled\033[0m\n"; exit 2;
     fi
     if grep -Eq '^[[:space:]]*path[[:space:]]*=.*\.https[[:space:]]*$' "${CONFIG}"; then
       printf "\033[0;3;36mHTTPS enabled\033[0m\n"; exit 0;

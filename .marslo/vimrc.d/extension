@@ -17,11 +17,12 @@
 "
 "
 " **************************************************************/
-let pluginHome     = expand( '~/.vim/plugged' ) . '/'
-let mapleader      = ','
-let g:mapleader    = ','
-let maplocalleader = '\\'
-let g:plug_shallow = 0
+let pluginHome          = expand( '~/.vim/plugged' ) . '/'
+let mapleader           = ','
+let g:mapleader         = ','
+let maplocalleader      = '\\'
+let g:plug_shallow      = 0
+" let g:plug_url_format = 'https://git::@github.com/%s.git'
 " sheerun/vim-polyglot - set beofe loading plugin
 " let g:polyglot_disabled = ['groovy.plugin']
 let g:polyglot_disabled = ['git']
@@ -153,7 +154,7 @@ vmap <C-/>     :TCommentBlock<CR>
 " dantezhu/authorinfo
 noremap <leader>aid :AuthorInfoDetect<CR>
 let g:vimrc_author = 'marslo'
-let g:vimrc_email  = 'marslo.jiao@gmail.com'
+let g:vimrc_email  = 'marslo'
 
 " most recently used(mru)
 noremap <leader>re :MRU<CR>

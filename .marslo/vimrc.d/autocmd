@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-06-30 20:58:15
+"    LastChange : 2025-07-09 16:49:01
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -35,7 +35,7 @@ if has( 'autocmd' )
             \   checktime |                                                   " force reload file to prevent async modification conflict"
             \ endif
     " if index( ['README', 'SUMMARY'], expand('%:r') ) == -1
-    "   autocmd BufWritePost     *\(.md\)            silent :DocTocUpdate     " automatic build doctoc when save it
+    "   autocmd BufWritePost  *\(.md\)  silent :DocTocUpdate                  " automatic build doctoc when save it
     " endif
   augroup END
 
@@ -73,13 +73,12 @@ if has( 'autocmd' )
 
   augroup ShellScript
     autocmd!
-    autocmd Syntax       bash           set filetype=sh
+    autocmd Syntax       bash                set filetype=sh
     autocmd FileType     sh,bash,shell
             \ set tabstop=2 softtabstop=2 shiftwidth=2 expandtab |
             \ silent! keepjumps retab!                                        " automatic retab when open it
     autocmd BufWritePre  *.sh                                                 " automatic retab when save
             \ if &modifiable && !&readonly | silent! keepjumps retab! | endif
-
     autocmd BufWritePost *.sh                                                 " automatic redraw for shellcheck
             \ if has('syntax') && exists('g:loaded_shellcheck') | silent! redraw! | endif
     " autocmd BufWritePost *.sh  silent !chmod +x %
@@ -100,11 +99,11 @@ if has( 'autocmd' )
 
   augroup Python
     autocmd BufNewFile,BufRead python
-            \ setlocal noexpandtab |
-            \ silent retab! |
-            \ setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4 autoindent |
-            \ setlocal fileformat=unix |
-            \ silent retab!
+            \| setlocal noexpandtab
+            \| silent retab!
+            \| setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4 autoindent
+            \| setlocal fileformat=unix
+            \| silent retab!
     autocmd FileType python syntax keyword pythonDecorator print self
     autocmd FileType python set isk-=.
     autocmd Syntax   python setlocal foldmethod=indent
@@ -173,20 +172,18 @@ if has( 'autocmd' )
   augroup END
 
   augroup Defaults
-
     " foldmethod to indent for all filetypes except help and vim-plug
     autocmd BufWinEnter *
             \  if empty(&filetype) || (index(['help', 'vim-plug'], &filetype) == -1)
             \|   if &l:foldmethod ==# 'manual' | setlocal foldmethod=indent | endif
             \| endif
-
     " for modeline
     autocmd BufReadPost *
             \  if getline(1) =~# 'vim:.*ft=help' && &filetype !=# 'help'
             \|   doautocmd FileType
             \| endif
-
-    autocmd BufRead,BufNewFile,BufWinEnter *                   if !did_filetype() && &ft ==# '' | setfiletype jenkinsfile | endif
+    " autocmd BufRead,BufNewFile,BufWinEnter *                 if !did_filetype() && &ft ==# '' | setfiletype Jenkinsfile | endif
+    autocmd BufRead,BufNewFile,BufWinEnter *                   if !did_filetype() && &ft ==# '' | set syntax=Jenkinsfile | endif
     autocmd BufWinEnter        *                               silent! loadview                                     " autocmd BufWinLeave * silent! mkview
     autocmd Syntax             *                               syn match ExtraWhitespace /\s\+$\| \+\ze\t/
     autocmd BufEnter           *                               if &diff | let g:blamer_enabled=0 | endif            " ╮ disable git blame in diff mode
@@ -238,12 +235,22 @@ if has( 'autocmd' )
     autocmd BufEnter    *        if &filetype ==# 'copilot-chat'
             \| setlocal nonumber norelativenumber modifiable nospell
             \| endif
+
+    " resize the copilot log window
+    autocmd! BufWinEnter copilot:///log call timer_start(50, {-> execute('resize -5')})
+    autocmd   BufEnter    *        if bufname('%') ==# 'copilot:///log'
+             \| setlocal nonumber norelativenumber modifiable nospell wrap
+             \| endif
+    " disable for copilot panel
+    autocmd  BufEnter    *        if bufname('%') ==# 'copilot:///panel'
+             \| setlocal nonumber norelativenumber modifiable nospell
+             \| endif
   augroup END
 
   " to fix the <SNR>13_StarSetf issue -- no-augroup
   autocmd! BufReadPost */.gitconfig.d/*
   autocmd! BufNewFile  */.gitconfig.d/*
-  autocmd BufReadPost,BufNewFile */.gitconfig.d/* setfiletype gitconfig
+  autocmd! BufReadPost,BufNewFile */.gitconfig.d/* setfiletype gitconfig
 endif
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:

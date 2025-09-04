@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# shellcheck disable=SC2125
+declare USAGE="""
+Usage: git_changed [OPTIONS] [--] [PATHSPEC...]
+
+Show changed files grouped by sections.
+
+SECTIONS (CAN SPECIFY MULTIPLE):
+  --staged       Show staged changes (A/C/M/R)
+  --unstaged     Show unstaged changes (A/C/M/R)
+  --untracked    Show untracked files (excluding ignored)
+  --ignored      Show ignored files (from .gitignore / global ignore)
+  --all          Show all sections (default if none specified)
+
+TITLE DISPLAY:
+  --all-titles   Print section titles even if empty
+  --no-title     Do not print section titles (just the file names)
+
+OTHER:
+  -h, --help     Show this help
+
+NOTES:
+  - You may pass multiple PATHSPECs; use \`--\` to stop option parsing.
+  - Deleted files are not shown by default. To include deletions, change the diff-filter from ACMR to ACMRD in the function if desired.
+
+EXAMPLES:
+  \$ git changed
+  \$ git changed --staged --untracked
+  \$ git changed --ignored -- src/ "*.log"
+  \$ git changed --no-title -- -- '*.c' '!:test/*'
+"""
+
+function usage() { echo -e "${USAGE}"; return 0; }
+function main() {
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "fatal: not a git repository (or any of the parent directories): .git" >&2
+    return 128
+  fi
+
+  # section toggles (default all if none specified)
+  local showStaged=0 showUnstaged=0 showUntracked=0 showIgnored=0 anySection=0
+  # title mode: 0=auto (only when has output), 1=all (force), 2=none (suppress)
+  local showTitle=0
+  local -a pathspec=()
+  local stopOpts=0
+
+  while [[ "$#" -gt 0 ]]; do
+    [[ "${stopOpts}" -eq 1 ]] && { pathspec+=("$1"); shift; continue; }
+
+    case "$1" in
+      -a | --all   ) showStaged=1    ; showUnstaged=1; showUntracked=1; showIgnored=1; anySection=1 ;;
+      --staged     ) showStaged=1    ; anySection=1                 ;;
+      --unstaged   ) showUnstaged=1  ; anySection=1                 ;;
+      --untracked  ) showUntracked=1 ; anySection=1                 ;;
+      --ignored    ) showIgnored=1   ; anySection=1                 ;;
+      --all-titles ) showTitle=1                                    ;;
+      --no-title   ) showTitle=2                                    ;;
+      --           ) stopOpts=1                                     ;;
+      -h | --help  ) usage                                          ;;
+      -*           ) echo "error: unknown option: $1" >&2; return 2 ;;
+      *            ) pathspec+=("$1")                               ;;
+    esac
+    shift
+  done
+
+  # default to all sections if none explicitly chosen
+  if [[ "${anySection}" -eq 0 ]]; then
+    showStaged=1; showUnstaged=1; showUntracked=1; showIgnored=1
+  fi
+
+  local -a ps=()
+  [[ "${#pathspec[@]}" -gt 0 ]] && ps=(-- "${pathspec[@]}")
+
+  _title() { printf '\033[1m[%s]\033[0m\n' "${1}"; }
+
+  # Print a section. showTitle:
+  # 0: print title only if there is output
+  # 1: always print title (even if empty)
+  # 2: never print title
+  _section() {
+    local title="${1}"; shift
+    local printed=0
+    [[ "${showTitle}" -eq 1 ]] && { _title "${title}"; printed=1; }
+
+    while IFS= read -r line; do
+      if [[ "${showTitle}" -eq 0 && "${printed}" -eq 0 ]]; then
+        _title "${title}"
+        printed=1
+      fi
+      printf '%s\n' "${line}"
+    done < <("$@")
+  }
+
+  [[ "${showStaged}"    -eq 1 ]] && _section "STAGED"    git diff --cached --name-only --diff-filter=ACMR "${ps[@]}"
+  [[ "${showUnstaged}"  -eq 1 ]] && _section "UNSTAGED"  git diff --name-only --diff-filter=ACMR "${ps[@]}"
+  [[ "${showUntracked}" -eq 1 ]] && _section "UNTRACKED" git ls-files --others --exclude-standard "${ps[@]}"
+  # --ignored must be used with -o or -c; here the untracked perspective is used
+  [[ "${showIgnored}"   -eq 1 ]] && _section "IGNORED"   git ls-files --others --ignored --exclude-standard "${ps[@]}"
+
+}
+
+main "$@"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
