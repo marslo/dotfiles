@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 #=============================================================================
-#     FileName : github.sh
+#     FileName : ghperm.sh
 #       Author : marslo
 #      Created : 2025-09-03 19:00:40
-#   LastChange : 2025-09-03 20:27:02
+#   LastChange : 2025-09-03 21:00:08
+#  Description : check repo permissions for github
 #=============================================================================
 
 set -euo pipefail
@@ -58,7 +59,25 @@ done
                     || url="${GITHUB_API_URL}/user/repos?per_page=100&type=all"
 
 while [[ -n "${url}" ]]; do
-  resp=$(curl -s -i -H "Authorization: Bearer ${GITHUB_TOKEN}" "${url}")
+
+  if ! resp="$(curl -sS -i -H "Authorization: Bearer ${GITHUB_TOKEN}" "${url}")"; then
+    rc=$?
+    echo "ERROR: curl failed (rc=${rc}) url=${url}" >&2
+    exit "${rc}"
+  fi
+
+  exitcode="$(printf '%s' "${resp}" | head -n1 | tr -d '\r' | awk '{print $2}')"
+
+  msg=''
+  if [[ -z "${exitcode:-}" || "${exitcode}" -lt 200 || "${exitcode}" -ge 300 ]]; then
+    headers="$( printf '%s' "${resp}" | sed -n '1,/^\r$/p' )"
+    body="$( printf '%s' "${resp}" | sed '1,/^\r$/d' )"
+
+    command -v jq >/dev/null 2>&1 && msg+="$(printf '%s' "${body}" | jq -r '.message? // empty')"
+
+    echo -e "ERROR:\n\tHTTP: ${exitcode:-ERR}\n\turl: ${url}${msg:+\n\tmessage: ${msg}}" >&2
+    exit 1
+  fi
 
   headers=$(printf '%s' "${resp}" | sed -n '1,/^\r$/p')
   body=$(printf '%s' "${resp}"   | sed '1,/^\r$/d')
