@@ -3,7 +3,7 @@
 #     FileName : github.sh
 #       Author : marslo
 #      Created : 2025-09-03 19:00:40
-#   LastChange : 2025-09-03 20:00:58
+#   LastChange : 2025-09-03 20:27:02
 #=============================================================================
 
 set -euo pipefail
@@ -24,8 +24,9 @@ function usage() {
   echo -e 'OPTIONS:'
   echo -e '\t--org <organization>     List repositories for the specified organization'
   echo -e '\t--mrvl                   Use personal PAT'
-  echo -e '\t--srv <srv-account>      Use <srv-account> PAT. Currently, the only acceptable value is "srv-release1"'
-  echo -e '\t--url                    Show repository URL instead of full name'
+  echo -e '\t--srv <srv-account>      Use <srv-account> PAT. Currently, the only acceptable value is:'
+  echo -e '\t                           - srv-release1'
+  echo -e '\t-u, --url                Show repository URL instead of full name'
   echo -e '\t-p, --permission <perm>  Filter by permission. Acceptable value are:'
   echo -e '\t                           - admin, maintain, write, triage, read'
   echo -e '\t-h, --help               Show this help message and exit'
@@ -35,20 +36,19 @@ function usage() {
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --mrvl            ) GITHUB_TOKEN="$(passToken 'marvell/marslo/github/marslo_mrvl')"; shift ;;
-    --url             ) SHOW_URL=true; shift ;;
+    -u | --url        ) SHOW_URL=true; shift ;;
     --org             ) ORG="${2}"; shift 2;;
-    --srv             ) shift;
-                        case "${1:-}" in
+    --srv             ) case "${2:-}" in
                           'srv-release1' ) GITHUB_TOKEN="$(passToken 'marvell/re/ghe/srv-release1')" ;;
-                           *             ) echo "ERROR: '${1:-<empty>}' is not acceptable for option \`--srv\`" >&2; exit 1        ;;
+                           *             ) echo "ERROR: '${2:-<empty>}' is not acceptable for option \`--srv\`" >&2; exit 1 ;;
                         esac
-                        shift ;;
-    -p | --permission ) case "$2" in
-                          admin|maintain|write|triage|read ) PERM="$2" ;;
-                          * ) echo "Error: invalid permission '$2'. Must be one of: admin, maintain, push, triage, pull" >&2; exit 1 ;;
+                        shift 2 ;;
+    -p | --permission ) arg=$(printf '%s' "${2:-}" | tr '[:upper:]' '[:lower:]');
+                        case "${arg}" in
+                          admin|maintain|write|triage|read ) PERM="${arg^^}" ;;
+                          *                                ) echo "Error: invalid permission '${2:-<empty>} in option \`-p, --permission\`. Must be one of: admin, maintain, write, triage, read" >&2; exit 1 ;;
                         esac
-                        shift 2
-                        ;;
+                        shift 2 ;;
     -h | --help       ) usage ;;
     *                 ) echo "ERROR: Unknown option '$1'" >&2; exit 1 ;;
   esac
@@ -75,12 +75,21 @@ while [[ -n "${url}" ]]; do
            elif p.pull      then "READ"
            else "NONE" end;
 
-         .[]
-         | select( .permissions != null )
-         | select( $perm=="" or permission(.permissions)==($perm|ascii_upcase) )
-         | permission( .permissions )
-           + "\t"
-           + ( if $show=="true" then .html_url else .full_name end )
+         def permRank(s):
+           if   s=="ADMIN"    then 5
+           elif s=="MAINTAIN" then 4
+           elif s=="WRITE"    then 3
+           elif s=="TRIAGE"   then 2
+           elif s=="READ"     then 1
+           else 0 end;
+
+         .[] | select( .permissions != null )
+             | . as $r
+             | ( permission($r.permissions) ) as $mine
+             | select( ($perm|length)==0 or permRank($mine) >= permRank(($perm|ascii_upcase)) )
+             | ( permRank($mine) | tostring )
+               + "\t" + $mine
+               + "\t" + ( if $show=="true" then $r.html_url else $r.full_name end )
          '
   )
   LINES+=("${chunk[@]}")
@@ -88,6 +97,10 @@ while [[ -n "${url}" ]]; do
   url=$(printf '%s\n' "${headers}" | awk -F'[<>]' '/rel="next"/{print $2}' || true)
 done
 
-printf '%s\n' "${LINES[@]}" | LC_ALL=C sort -t $'\t' -k1,1 -k2,2 | column -t
+# -- output --
+printf '%s\n' "${LINES[@]}" \
+  | LC_ALL=C sort -t $'\t' -k1,1nr -k3,3 \
+  | cut -f2- \
+  | column -t
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
