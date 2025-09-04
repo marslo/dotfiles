@@ -3,7 +3,7 @@
 #     FileName : ghperm.sh
 #       Author : marslo
 #      Created : 2025-09-03 19:00:40
-#   LastChange : 2025-09-03 21:00:08
+#   LastChange : 2025-09-03 22:06:35
 #  Description : check repo permissions for github
 #=============================================================================
 
@@ -23,8 +23,8 @@ function usage() {
   echo -e 'USAGE:'
   echo -e "\t${ME} [OPTIONS]\n"
   echo -e 'OPTIONS:'
-  echo -e '\t--org <organization>     List repositories for the specified organization'
-  echo -e '\t--mrvl                   Use personal PAT'
+  echo -e '\t-o, --org <organization> List repositories for the specified organization'
+  echo -e '\t-m, --mrvl               Use personal PAT'
   echo -e '\t--srv <srv-account>      Use <srv-account> PAT. Currently, the only acceptable value is:'
   echo -e '\t                           - srv-release1'
   echo -e '\t-u, --url                Show repository URL instead of full name'
@@ -36,9 +36,9 @@ function usage() {
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --mrvl            ) GITHUB_TOKEN="$(passToken 'marvell/marslo/github/marslo_mrvl')"; shift ;;
+    -m | --mrvl       ) GITHUB_TOKEN="$(passToken 'marvell/marslo/github/marslo_mrvl')"; shift ;;
     -u | --url        ) SHOW_URL=true; shift ;;
-    --org             ) ORG="${2}"; shift 2;;
+    -o | --org        ) ORG="${2}"; shift 2;;
     --srv             ) case "${2:-}" in
                           'srv-release1' ) GITHUB_TOKEN="$(passToken 'marvell/re/ghe/srv-release1')" ;;
                            *             ) echo "ERROR: '${2:-<empty>}' is not acceptable for option \`--srv\`" >&2; exit 1 ;;
@@ -60,22 +60,22 @@ done
 
 while [[ -n "${url}" ]]; do
 
-  if ! resp="$(curl -sS -i -H "Authorization: Bearer ${GITHUB_TOKEN}" "${url}")"; then
-    rc=$?
-    echo "ERROR: curl failed (rc=${rc}) url=${url}" >&2
-    exit "${rc}"
-  fi
+  resp="$(curl -sS -i -H "Authorization: Bearer ${GITHUB_TOKEN}" "${url}")"
+  rc=$?
+  [[ "${rc}" -ne 0 ]] && { echo "ERROR: curl failed (rc=${rc}) url=${url}" >&2; exit "${rc}"; }
 
-  exitcode="$(printf '%s' "${resp}" | head -n1 | tr -d '\r' | awk '{print $2}')"
-
+  statusLine="${resp%%$'\r'*}"
+  httpCode="${statusLine#* }"
+  httpCode="${httpCode%% *}"
   msg=''
-  if [[ -z "${exitcode:-}" || "${exitcode}" -lt 200 || "${exitcode}" -ge 300 ]]; then
+
+  if [[ -z "${httpCode:-}" || "${httpCode}" -lt 200 || "${httpCode}" -ge 300 ]]; then
     headers="$( printf '%s' "${resp}" | sed -n '1,/^\r$/p' )"
     body="$( printf '%s' "${resp}" | sed '1,/^\r$/d' )"
 
     command -v jq >/dev/null 2>&1 && msg+="$(printf '%s' "${body}" | jq -r '.message? // empty')"
 
-    echo -e "ERROR:\n\tHTTP: ${exitcode:-ERR}\n\turl: ${url}${msg:+\n\tmessage: ${msg}}" >&2
+    echo -e "ERROR:\n\tHTTP: ${httpCode:-ERR}\n\turl: ${url}${msg:+\n\tmessage: ${msg}}" >&2
     exit 1
   fi
 
