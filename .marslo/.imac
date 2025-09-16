@@ -4,7 +4,7 @@
 #   FileName: .imac
 #     Author: marslo.jiao@gmail.com
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2025-09-16 00:32:59
+# LastChange: 2025-09-16 03:07:32
 #   Comments: using `brew --prefix` for $HOMEBEW_PREFIX set as `/opt/homebrew`
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
@@ -79,6 +79,9 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   test -d "${BINUTILS}"   && GNU_PATH+=":${BINUTILS}/bin"
   test -d "${GNULIBTOOL}" && GNU_PATH+=":${GNULIBTOOL}"
 
+  # register openjdk
+  #   sudo ln -sfn "$(brew --prefix openjdk@21)/libexec/openjdk.jdk" /Library/Java/JavaVirtualMachines/openjdk-21.jdk
+  #   sudo ln -sfn "$(brew --prefix openjdk)/libexec/openjdk.jdk" /Library/Java/JavaVirtualMachines/openjdk-24.jdk
   # java 8
   #   JAVA_HOME='/Library/Java/JavaVirtualMachines/jdk1.8.0_271.jdk/Contents/Home'
   # java 11                                                       # https://docs.oracle.com/en/java/javase/11/install/installation-jdk-macos.html
@@ -87,14 +90,14 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   #   JAVA_HOME=$(brew --prefix openjdk@17)                       # -> "${HOMEBREW_OPT}/openjdk@17"
   # java 21
   # JAVA_HOME="$(brew --prefix openjdk@21)"
-  # java 23
+  # java 24
   JAVA_HOME=$(/usr/libexec/java_home)                             # $ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
-  GROOVY_HOME="$(brew --prefix groovy)/libexec"                 # -> "${HOMEBREW_OPT}/groovy/libexec"
-  # GROOVY_HOME="/opt/groovy/current"                               # -> for groovydoc issue
+  GROOVY_HOME="$(brew --prefix groovy)/libexec"                   # -> "${HOMEBREW_OPT}/groovy/libexec"
+  # GROOVY_HOME="/opt/groovy/current"                             # -> for groovydoc issue
   GROOVY_CLASSPATH="${GROOVY_CLASSPATH:+$GROOVY_CLASSPATH:}"
   [[ -d "${GROOVY_HOME}/lib"              ]] && GROOVY_CLASSPATH+=".:$(echo "${GROOVY_HOME}"/lib/*.jar | tr ' ' ':'):"
   [[ -d '/opt/jenkins/latest/WEB-INF/lib' ]] && GROOVY_CLASSPATH+="$(echo /opt/jenkins/latest/WEB-INF/lib/*.jar | tr ' ' ':'):"
-  [[ -d '/opt/jenkins/plugins'            ]] && GROOVY_CLASSPATH+="$(echo /opt/jenkins/plugins/*/WEB-INF/lib/*.jar | tr ' ' ':')"
+  [[ -d '/opt/jenkins/plugins'            ]] && GROOVY_CLASSPATH+="$(echo /opt/jenkins/plugins/*/latest/WEB-INF/lib/*.jar | tr ' ' ':')"
   test -f "$(brew --prefix coreutils)/libexec/gnubin/paste" &&
        GROOVY_CLASSPATH=$( echo "${GROOVY_CLASSPATH}" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | "$(brew --prefix coreutils)/libexec/gnubin/paste" -s -d: )
   CLASSPATH=".:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar"
