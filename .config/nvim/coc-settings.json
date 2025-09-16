@@ -8,7 +8,8 @@
   "groovy.project.referencedLibraries": [
     "/opt/homebrew/opt/groovy/libexec/lib/*",
     "/opt/jenkins/latest/WEB-INF/lib/*",
-    "/opt/jenkins/plugins/*/WEB-INF/lib/*"
+    "/opt/jenkins/plugins/*/latest/WEB-INF/lib/*",
+    "/opt/jenkins/plugins/credentials/latest/WEB-INF/lib/credentials.jar"
   ],
   "groovy.trace.server": "verbose",
   "java.referencesCodeLens.enabled": true,
@@ -17,8 +18,8 @@
   "diagnostic.displayByAle": false,
   "diagnostic.errorSign": "✘",
   "diagnostic.infoSign": "ϊ",
-  "diagnostic.warningSign": "⸮",
-  "diagnostic.hintSign": "⸚",
+  "diagnostic.warningSign": "",
+  "diagnostic.hintSign": "󰷞",
   "diagnostic.virtualText": true,
   "diagnostic.virtualTextCurrentLineOnly": false,
   "diagnostic.checkCurrentLine": false,

@@ -41,7 +41,7 @@ DESCRIPTION
   • If arguments are present, they are passed to the original /usr/bin/ssh
   • Use $(c Gi)'--'$(c) to separate wrapper options from ssh options
 
-EXAMPLES:
+EXAMPLES
   $(c Ys)\$ ${ME}$(c)
     $(c Wdi)↪ Shows interactive fzf selector using Host/User from SSH config$(c)
 
