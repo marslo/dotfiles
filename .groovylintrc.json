@@ -1,5 +1,11 @@
 {
   "extends": "all",
+  "filesClasspath": [
+    "/opt/homebrew/opt/groovy/libexec/lib/*",
+    "/opt/jenkins/latest/WEB-INF/lib/*",
+    "/opt/jenkins/plugins/*/latest/WEB-INF/lib/*",
+    "/opt/jenkins/plugins/credentials/latest/WEB-INF/lib/credentials.jar"
+  ],
   "rules": {
     "basic.DeadCode": "error",
     "basic.IfStatementBraces": "info",
