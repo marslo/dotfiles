@@ -1,7 +1,7 @@
 # ===========================================================================
 #     FileName: .tigrc
 #       Author: marslo.jiao@gmail.com
-#   LastChange: 2023-11-11 18:56:52
+#   LastChange: 2025-09-17 22:12:04
 # ===========================================================================
 
 # Shortcut
@@ -129,6 +129,7 @@ color "index "          208       default
 color "Author "         61        default
 color default           243       default     normal
 color cursor            172       234         bold
+color cursor-blur       214       234         bold
 color status            120       default
 color delimiter         213       default
 color date              125       default
