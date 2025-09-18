@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2025-07-02 22:12:14
+#  LastChange : 2025-09-18 02:40:06
 #  Description : ifunctions
 # =============================================================================
 
@@ -37,6 +37,15 @@ function hmdays()  { usage="SYNOPSIS:\t\$ hmdays YYYY-MM-DD"; [[ 1 -ne $# ]] && 
 # https://serverfault.com/a/906310/129815
 function ssl_expiry () { echo | openssl s_client -connect "${1}":443 2> /dev/null | openssl x509 -noout -enddate; }
 function convert2av()  { ffmpeg -i "$1" -i "$2" -c copy -map 0:0 -map 1:0 -shortest -strict -2 "$3"; }
+function ipshow() {
+  ip -c addr show 2>/dev/null |
+  awk '
+        /^[0-9]+: / { iface=$2; sub(/:$/, "", iface) }
+        /^[[:space:]]+inet[[:space:]]/ && $2 !~ /^127\./ {
+          print iface, $2
+        }
+      ' | column -t -s' ' -o' => '
+}
 
 # /**************************************************************
 #        _   _ _ _ _

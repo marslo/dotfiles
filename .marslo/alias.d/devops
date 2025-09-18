@@ -4,7 +4,7 @@
 #   FileName: devops
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2025-06-28 02:16:15
+# LastChange: 2025-09-18 02:41:44
 # =============================================================================
 
 RTDOMAIN='artifactory.sample.com'
@@ -16,7 +16,7 @@ alias pshell='source "$(poetry env info --path)/bin/activate"'
 # using git config --global pager.log 'diff-highlight | less -FRXK' instead of
 # alias git='git --no-pager'
 
-alias ipshow="ip addr show | sed -nE \"s/inet\s(.*)\/[0-9]+.*\s(\w+)/\2 \1/p\" | column -to ' => '"
+alias ip='ip -c'
 alias en7dump='tcpdump -nni en7 -p'
 alias startjack='jackd -d coreaudio &'
 # alias mocp="mocp -v 50"
