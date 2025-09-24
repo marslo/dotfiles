@@ -2,7 +2,7 @@
 #     FileName : gitalias
 #       Author : marslo.jiao@gmail.com
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2025-07-09 15:47:18
+#   LastChange : 2025-09-23 17:56:59
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -34,12 +34,12 @@
   set-user    = "!~/.marslo/gitconfig.d/bin/set-git-user.sh --verbose"
   https-set   = "!~/.marslo/gitconfig.d/bin/https-settings.sh --on"
   https-unset = "!~/.marslo/gitconfig.d/bin/https-settings.sh --off"
-  https-status= "!~/.marslo/gitconfig.d/bin/https-settings.sh --check"
+  https-status= "!~/.marslo/gitconfig.d/bin/https-settings.sh --check https"
   https-st    = !git https-status
   ssh-set     = !git https-unset
   ssh-unset   = !git https-set
-  ssh-status  = !git https-status
-  ssh-st      = !git https-status
+  ssh-status  = "!~/.marslo/gitconfig.d/bin/https-settings.sh --check ssh"
+  ssh-st      = !git ssh-st
   https-local = "!~/.marslo/gitconfig.d/bin/https-local.sh"
   https-lunset= "!git config --local --unset-all url.\"https://github.com/\".insteadOf"
 
