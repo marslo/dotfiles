@@ -4,7 +4,7 @@
 #   FileName: utils
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2025-04-29 16:18:39
+# LastChange: 2025-10-01 18:38:08
 # =============================================================================
 
 # using source instead of alias in ~/.marslo/.marslorc
@@ -111,7 +111,8 @@ alias nd='npm run deploy'
 # alias rg='rg --hidden --follow --smart-case --vimgrep --ignore-file=$HOME/.rgignore --color=always'
 alias rg='rg --hidden --follow --smart-case --ignore-file=$HOME/.rgignore --color=always'
 alias as-tree='tree --fromfile'
-alias tree='tree -hF --du'
+# tree -F -> to show the `/` for directory
+alias tree='tree -h --du'
 
 alias ud='du -h --max-depth=1 --exclude="\./\.*"'
 alias ud.='du -h --max-depth=1'

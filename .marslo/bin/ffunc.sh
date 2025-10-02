@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-06-18 01:43:41
+#   LastChange : 2025-09-19 00:35:00
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -460,7 +460,7 @@ function vim() {                           # magic vim - fzf list in most recent
 function v() {                             # v - open files in ~/.vim_mru_files
   local files
   files=$( grep --color=none -v '^#' ~/.vim_mru_files |
-           while read -r line; do [ -f "${line/\~/$HOME}" ] && echo "$line"; done |
+           while read -r line; do [ -f "${line/\~/$HOME}" ] && echo "${line}"; done |
            fzf-tmux -d -m -q "$*" -1
          ) &&
   vim ${files//\~/$HOME}
@@ -741,14 +741,16 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   declare -a selector
   local nodes=''
   local cmd=''
-  local verbose='false'
-  local dind='false'
-  local armcc='false'
-  local kconfig="${HOME}/.kube/config"
-  local reproject='false'
-  local hhost='false'
-  local online='true'
-  local quiet='false'
+  local path=''
+  local verbose=false
+  local dind=false
+  local armcc=false
+  local kconfig="${HOME}/iMarslo/job/devops/env/linux/dc5-ssdfw8/.kube/config"
+  local reproject=false
+  local hhost=true
+  local rhost=false
+  local online=true
+  local quiet=false
 
   # shellcheck disable=SC2155
   local usage="""
@@ -761,7 +763,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   \t\t[ -o | --offline ]
   \t\t[ -v | --verbose ]
   \t\t[ -q | --quiet ]
-  \t\t[ --re ] [ --hhost ]
+  \t\t[ --re ] [ --no-hhost ]
   \t\t[ -h | --help ]$(c)
   \nEXAMPLE:
   \n\tshow help
@@ -779,14 +781,15 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   while test -n "$1"; do
     case "$1" in
       -c | --cmd     ) cmd="${2}"                           ; shift 2  ;;
-      -v | --verbose ) verbose='true'                       ; shift    ;;
-      -d | --dind    ) dind='true'                          ; shift    ;;
-      -l | --armcc   ) armcc='true'                         ; shift    ;;
+      -v | --verbose ) verbose=true                         ; shift    ;;
+      -d | --dind    ) dind=true                            ; shift    ;;
+      -l | --armcc   ) armcc=true                           ; shift    ;;
       -f | --file    ) path="${2}"                          ; shift 2  ;;
-      -o | --offline ) online='false'                       ; shift    ;;
-      --re           ) reproject='true'                     ; shift    ;;
-      --hhost        ) hhost='true'                         ; shift    ;;
-      -q | --quiet   ) quiet='true'                         ; shift    ;;
+      -o | --offline ) online=false                         ; shift    ;;
+      --re           ) reproject=true                       ; shift    ;;
+      --no-hhost     ) hhost=false                          ; shift    ;;
+      --real-host    ) rhost=true                           ; shift    ;;
+      -q | --quiet   ) quiet=true                           ; shift    ;;
       -h | --help    ) echo -e "${usage}"                   ; return   ;;
       *              ) echo "Invalid option $1. try -h" >&2 ; return 1 ;;
     esac
@@ -795,10 +798,10 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   [[ -z "${cmd}" && -z "${path}" ]] && echo -e "$(c Rs)ERROR$(c): $(c G)\`-c/--cmd\`$(c) or $(c G)\`-f/--file\`$(c) is mandatory. check more options via $(c Yi)\`-h\`$(c) or $(c Yi)\`--help\`$(c). EXIT ..." && return 2;
 
   # shellcheck disable=SC2086
-  if [[ 'true' = "${hhost}" ]] && [[ 'true' = "${reproject}" ]]; then
-    nodes=$( echo re{01..19} | fmt -1 | fzf --prompt "hostname >" )
+  if "${hhost}" && "${reproject}"; then
+    nodes=$( echo re-{01..26} | fmt -1 | fzf --prompt "hostname >" )
   else
-    if [[ 'true' = "${reproject}" ]]; then
+    if "${reproject}"; then
       kconfig="${HOME}/.kube.re/config"
       selector+=('node-role.kubernetes.io/worker=worker')
     else
@@ -808,7 +811,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
     [[ 0 -ne ${#selector[@]} ]] && k8sOpt="--selector $(joinBy ',' "${selector[@]}")" || k8sOpt=''
 
     local jqOpt=''
-    [[ 'true' = "${online}" ]] &&
+    "${online}" &&
       jqOpt='.items[] | select(.spec.taints|not) | select(.status.conditions[].reason=="KubeletReady" and .status.conditions[].status=="True") | .metadata.name' ||
       jqOpt='.items[] | select(.status.conditions[].reason=="KubeletReady") | .metadata.name'
 
@@ -820,15 +823,17 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   fi
 
   [[ 'true' = "${reproject}" ]] && username='jenkins' || username='devops'
+  local sshCmd=''
   if [[ -n ${nodes} ]]; then
     trap exit SIGINT SIGTERM; while read -r _node; do
-      [[ 'false' = "${quiet}" ]] && printf "\n$(c Wd)>>$(c) $(c Ys)%s$(c) $(c Wd)<<$(c)\n" "${_node}"
+      "${rhost}"   && _node="$(ssh -n ${username}@${_node} \"hostname\")"
+      ! "${quiet}" && printf "\n$(c Wd)>>$(c) $(c Ys)%s$(c) $(c Wd)<<$(c)\n" "${_node}"
       if [[ -n "${path}" ]]; then
         sshCmd="ssh -q ${username}@${_node} 'bash -s' < \"${path}\""
       else
         sshCmd="ssh -n ${username}@${_node} \"${cmd}\""
       fi
-      if [[ 'true' = "${verbose}"  ]]; then
+      if "${verbose}" ; then
         printf "$(c Wdi)>> [DEBUG]:$(c) $(c Wi)%s$(c)\n" "${sshCmd}"
       fi
       eval "${sshCmd}"
