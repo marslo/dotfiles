@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-09-19 00:35:00
+#   LastChange : 2025-10-01 22:42:05
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1288,7 +1288,8 @@ function kns() {                           # [k]ubectl [n]ame[s]pace
                     --prompt "${namespace}@${context} > " \
                     --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)' \
                     --preview-window up,60%,follow,rounded \
-                    --preview "kubecolor --force-colors --namespace {+} get ${resources:-pods,sts}" \
+                    --preview "kubecolor --force-colors --namespace {+} get ${resources:-pods,sts} 2>&1 \
+                              | grep -vE 'metrics\\.k8s\\.io/v1beta1.*unable to handle the request'" \
                     --header 'Press CTRL-Y to copy namespace name into clipboard'
          )
 
