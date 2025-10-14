@@ -4,7 +4,7 @@
 #     FileName : getCommitMessage.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2025-04-23 01:12:36
+#   LastChange : 2025-10-10 18:37:50
 #   references : https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit?tab=t.0
 #=============================================================================
 
@@ -69,7 +69,6 @@ function getCommitMessage() {
   declare jiraId=''
   if [[ 'true' = "${MCX_ENABLE_JIRA:-false}" ]]; then
     read -rep "$(printf "\001$(c Mi)\002%s\001$(c)\002" 'JIRA ID: ')" jiraId
-    [[ -n "${jiraId}" ]] && jiraId="${jiraId} - "
   fi
 
   selected=$( printf "%b\n" "${types[@]}" |
@@ -80,7 +79,10 @@ function getCommitMessage() {
 
   if [[ 'true' = "${MCX_ENABLE_SCOPE:-true}" ]]; then
     read -rep "$(printf "\001$(c Mi)\002%s\001$(c)\002" 'scope (optional): ')" scope
-    [[ -n "${scope}" ]] && scope="(${scope})"
+    local -a parts=()
+    [[ -n "${jiraId}"     ]] && parts+=("${jiraId}")
+    [[ -n "${scope}"      ]] && parts+=("${scope}")
+    [[ ${#parts[@]} -gt 0 ]] && scope="($(IFS=,; echo "${parts[*]}"))"
   fi
 
   read -rep "$(printf "\001$(c Mi)\002%s\001$(c)\002" 'commit message subject: ')" subject
@@ -106,7 +108,7 @@ function getCommitMessage() {
 
   message="${type}${scope}"
   "${MCX_BREAKING_CHANGE:-false}" && message+='!'
-  message+=": ${jiraId}${subject}"
+  message+=": ${subject}"
   [[ -n "${body:-}"    ]] && message+=$'\n\n'"${body}"
   [[ -n "${bfooter}" || "${footer:-}" ]] && message+=$'\n'
   [[ -n "${bfooter:-}" ]] && message+=$'\n'"${bfooter}"

@@ -4,7 +4,7 @@
 #   FileName: devops
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2025-09-18 02:41:44
+# LastChange: 2025-10-14 16:40:31
 # =============================================================================
 
 RTDOMAIN='artifactory.sample.com'
@@ -28,6 +28,9 @@ alias gcl="gradle --full-stacktrace clean"
 
 # groovy
 alias groovydock="groovydoc -classpath /opt/groovy/lib"
+
+# jfrog cli
+alias jf='CI=true jf'
 
 # ldapsearch
 # alias ldapsearch="ldapsearch -LLL -x -o ldif-wrap=no -H ldaps://msi-sldap.example.com:636 -b 'dc=example,dc=com' -D user -w password"
