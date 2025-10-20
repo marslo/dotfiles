@@ -37,4 +37,9 @@ fi
 
 test -d "$HOME"/perl5 && eval "$(perl -I"$HOME"/perl5/lib/perl5 -Mlocal::lib="$HOME"/perl5)"
 
+# eval "$(/bin/cat "$HOME/_extract_func_completion")"
+
+# see ~/.marslo/.marslorc
+# complete -C /opt/homebrew/bin/vault vault
+
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

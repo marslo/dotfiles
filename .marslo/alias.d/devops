@@ -29,9 +29,6 @@ alias gcl="gradle --full-stacktrace clean"
 # groovy
 alias groovydock="groovydoc -classpath /opt/groovy/lib"
 
-# jfrog cli
-alias jf='CI=true jf'
-
 # ldapsearch
 # alias ldapsearch="ldapsearch -LLL -x -o ldif-wrap=no -H ldaps://msi-sldap.example.com:636 -b 'dc=example,dc=com' -D user -w password"
 
