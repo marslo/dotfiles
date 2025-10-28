@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2155,SC2034,SC1090
+# shellcheck source=/dev/null disable=SC2155,SC2034,SC1090
 
 # Enable the subsequent settings only in interactive sessions
 case $- in
@@ -153,5 +153,5 @@ iRCHOME="$HOME/.marslo"
 PATH="$(cygpath.exe -u 'c:\iMarslo\myprograms\Vim\vim91'):${iRCHOME}/bin:$PATH"
 export PATH=$( echo "$PATH" | tr ':' '\n' | awk '!x[$0]++' | sed '/^$/d' | paste -s -d: )
 
-function isWSL() { if uname -r | command grep --color=never -q -i 'microsoft'; then echo 1; fi; }
+function isWSL() { uname -r | command grep --color=never -q -i 'microsoft'; }
 while read -r _i; do source "${iRCHOME}/.alias/$_i"; done < <( ls -1 "${iRCHOME}/.alias" )

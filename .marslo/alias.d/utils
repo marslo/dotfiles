@@ -4,7 +4,7 @@
 #   FileName: utils
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2025-10-01 18:38:08
+# LastChange: 2025-10-27 19:06:04
 # =============================================================================
 
 # using source instead of alias in ~/.marslo/.marslorc
@@ -82,9 +82,9 @@ alias his='history'
 alias diff='diff --color=auto'
 alias difft='difft --override="*.csv:LaTeX"'
 
-if [[ '1' = $(isOSX) ]]; then alias more='more -r'                ; fi
-if [[ '1' = $(isOSX) ]]; then alias man='man 2>/dev/null'         ; fi
-if [[ '1' = $(isOSX) ]]; then alias apropos='apropos 2>/dev/null' ; fi
+if isOSX; then alias more='more -r'                ; fi
+if isOSX; then alias man='man 2>/dev/null'         ; fi
+if isOSX; then alias apropos='apropos 2>/dev/null' ; fi
 alias makewhatis='/usr/libexec/makewhatis'
 
 alias ld='\ls -alvd --color=always */'

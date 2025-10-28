@@ -4,7 +4,7 @@
 #     FileName : install.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2021-08-11 22:13:38
-#   LastChange : 2024-02-21 19:11:41
+#   LastChange : 2025-10-27 19:47:19
 #=============================================================================
 
 # shellcheck disable=SC1091
@@ -15,9 +15,9 @@ dotfolder='.'
 CP="$(type -P cp)"
 timestampe="$(date +%y%m%d%H%M%S)"
 
-function isWSL()   { if ! uname -r | grep -q "Microsoft"; then echo true; fi; }
-function isMac()   { [[ 'Darwin' = $(uname) ]] && echo true; }
-function isLinux() { [[ '1' != "$(isWSL)" ]] && [[ 'Linux' = $(uname) ]] && echo true; }
+function isWSL()     { uname -r | command grep --color=never -q -i 'microsoft'; }
+function isOSX()     { test 'Darwin' = "$(uname -s)"; }
+function isLinux()   { ! isWSL && test 'Linux' = "$(uname -s)"; }
 
 function message() {
   [[ 2 != "$#" ]] && echo -e "$(c Rs)ERROR: must provide two parameters to message function$(s). Exit .." && exit 1
@@ -103,13 +103,13 @@ function completion() {
 }
 
 function special() {
-  if [[ true = $(isMac) ]]; then
+  if isOSX; then
     doCopy "${irc}"        "${dotfolder}"/.marslo/.imac
     doCopy "${irc}/.alias" "${dotfolder}"/.marslo/.alias/mac
     doCopy "${irc}/bin"    "${dotfolder}"/.marslo/bin/{appify,ii.sh}
-  elif [[ true = $(isWSL) ]]; then
+  elif isWSL; then
     doCopy "${irc}"        "${dotfolder}"/.marslo/.iwsl
-  elif [[ true = $(isLinux) ]]; then
+  elif isLinux; then
     doCopy "${irc}"        "${dotfolder}"/.marslo/.irhel
   fi
 }

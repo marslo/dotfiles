@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-10-01 22:42:05
+#   LastChange : 2025-10-27 19:16:23
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -120,9 +120,9 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
     [extra]='*.pem *.p12 *.png *.jpg *.jpeg *.gif *.svg *.zip *.tar *.gz *.bz2 *.xz *.7z *.rar'
   )
 
-  local -a rcPaths=("$HOME"/.marslo "$HOME"/.idlerc "$HOME"/.ssh "$HOME"/.jfrog "$HOME"/.pip "$HOME"/.config/nvim "$HOME"/.cht.sh)
-  local -a configPaths=(cheat github-copilot htop yamllint pip ncdu bat gh)
-  local -a fdOpt=(--type f --hidden --follow --unrestricted --ignore-file "$HOME"/.fdignore)
+  local -a rcPaths=( "$HOME"/.marslo "$HOME"/.idlerc "$HOME"/.ssh "$HOME"/.jfrog "$HOME"/.pip "$HOME"/.config/nvim "$HOME"/.cht.sh "$HOME"/.git-templates )
+  local -a configPaths=( cheat github-copilot htop yamllint pip ncdu bat gh )
+  local -a fdOpt=( --type f --hidden --follow --unrestricted --ignore-file "$HOME"/.fdignore )
   local doExtraIgnore=false
 
   while [[ $# -gt 0 ]]; do
@@ -805,8 +805,8 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
       kconfig="${HOME}/.kube.re/config"
       selector+=('node-role.kubernetes.io/worker=worker')
     else
-      [[ 'true' = "${dind}"  ]] && selector+=('devops.domain/docker.builder=true')
-      [[ 'true' = "${armcc}" ]] && selector+=('devops.domain/armcc=available')
+      "${dind}"  && selector+=('devops.domain/docker.builder=true')
+      "${armcc}" && selector+=('devops.domain/armcc=available')
     fi
     [[ 0 -ne ${#selector[@]} ]] && k8sOpt="--selector $(joinBy ',' "${selector[@]}")" || k8sOpt=''
 
@@ -871,8 +871,8 @@ function processMount() {
     [[ ! 'false' != "${verbose}" ]] || echo -e "$(c Wdi)~~>$(c) $(c Mi)${host}${path}$(c) $(c Wdi)has been mounted to$(c) $(c Mi)${_target}$(c) $(c Wdi)already ...$(c)"; return
   fi
 
-  [[ '1' = "$(isWSL)" || '1' = "$(isLinux)" ]] && mpoint="//${host}${path}"
-  [[ '1' = "$(isOSX)" ]] && mpoint="//marslo@${host}:${path}"
+  isWSL || isLinux && mpoint="//${host}${path}"
+  isOSX && mpoint="//marslo@${host}:${path}"
   if [[ 'false' != "${verbose}" ]]; then
     if [[ -z "${mpoint}" ]]; then
       echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint:-mount point}$(c) $(c Wdi)cannot be empty. exit ...$(c)" && return
@@ -882,9 +882,9 @@ function processMount() {
   fi
 
   [[ -d "${target}" ]] || mkdir -p "${target}"
-  if [[ '1' = "$(isOSX)" ]]; then
+  if isOSX; then
     mount -t smbfs -o -d=755,-f=755 "${mpoint}" "${target}"
-  elif [[ '1' = "$(isWSL)" || '1' = "$(isLinux)" ]]; then
+  elif isWSL || isLinux; then
     [[ ! -f '/usr/sbin/mount.cifs' ]] && echo -e "$(c Bi)>> install cifs-utils first :$(c) $(c Gi)sudo apt install cifs-utils$(c) $(c Bi)...$(c)" && return
     [[ ! -f "$HOME/.cifs"          ]] && echo -e "$(c Bi)>> setup \`~/.cifs\` first ...$(c)" && return
     local _output=$( sudo mount -t cifs "${mpoint}" "${target}" -o credentials=$HOME/.cifs -vvv 2>&1 )
@@ -1486,7 +1486,7 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
   cmd="docker images ${name} --format \\\"${extraFormat}{{.Tag}}\\t{{.ID}}\\\" ${extraCmd}"
   [[ 'true' = "${delete}" ]] && cmd+=" | awk '{print \\\$NF}' | uniq | xargs -r docker rmi -f"
 
-  [[ 'true' = "${dind}" ]] && k8sOpt='-l devops.domain/docker.builder=true' || k8sOpt=''
+  "${dind}" && k8sOpt='-l devops.domain/docker.builder=true' || k8sOpt=''
   hostnames=$( kubecolor --kubeconfig ~/.kube/config get nodes ${k8sOpt} -o json |
               jq -r '.items[] | select(.spec.taints|not) | select(.status.conditions[].reason=="KubeletReady" and .status.conditions[].status=="True") | .metadata.name' |
               fzf --cycle --exit-0 --prompt "hostname > "
@@ -1509,7 +1509,7 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
 #   - join array by delimiter: https://stackoverflow.com/a/17841619/2940319
 # [d]elete [d]ocker [i]mages
 function ddi() {                          # [d]elete [d]ocker [i]mages
-  function joinBy { local d=${1-} f=${2-}; if shift 2; then printf %s "$f" "${@/#/$d}"; fi; }
+  function joinBy { local d=${1:-} f=${2:-}; if shift 2; then printf %s "$f" "${@/#/$d}"; fi; }
   declare -a tags
   local nodes=''
   local cmd=''
