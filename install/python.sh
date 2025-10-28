@@ -14,12 +14,12 @@ declare PYTHON_DIR='/opt/python'
 declare PYTHON_VERSION='3.12.1'
 
 function preInstall() {
-  if [[ 1 = "$(isCentOS)" ]] || [[ 1 = "$(isRHEL)" ]]; then
+  if isCentOS || isRHEL; then
     sudo dnf groupinstall 'development tools'
     sudo dnf install bzip2-devel expat-devel gdbm-devel \
              ncurses-devel openssl-devel readline-devel wget \
              sqlite-devel tk-devel xz-devel zlib-devel libffi-devel
-  elif [[ 1 = "$(isUbuntu)" ]] ; then
+  elif isUbuntu; then
     sudo apt update -y
     sudo apt install -y build-essential checkinstall gdb lcov \
                         libbz2-dev libc6-dev libexpat1-dev libffi-dev \
@@ -27,7 +27,7 @@ function preInstall() {
                         libncursesw5-dev libnss3-dev libreadline-dev \
                         libreadline8 libsqlite3-dev libssl-dev \
                         lzma lzma-dev pkg-config tk-dev uuid-dev zlib1g-dev
-  elif [[ 1 = "$(isOSX)" ]]; then
+  elif isOSX; then
     xcode-select --install
     GDBM_CFLAGS="-I$(brew --prefix gdbm)/include" \
     GDBM_LIBS="-L$(brew --prefix gdbm)/lib -lgdbm" \

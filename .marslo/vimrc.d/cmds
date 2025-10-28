@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2025-02-17 23:47:27
+"    LastChange : 2025-10-20 19:09:49
 " =============================================================================
 
 " /**************************************************************
@@ -31,10 +31,12 @@ xnoremap <Leader>r :Reverse <bar> nohlsearch<CR>
 command! -nargs=1       Silent | execute ':silent !'.<q-args> | execute ':redraw!'
 
 " ln -sfn $(npm config get prefix)/bin/doctoc /usr/local/bin/doctoc
-command! -nargs=? DocTocUpdate execute 'silent !/usr/local/bin/doctoc --notitle --update-only --github --maxlevel ' . (empty(<q-args>) ? '3' : <q-args>) . ' %' | execute 'redraw!'
-command! -nargs=? DocTocCreate execute 'silent !/usr/local/bin/doctoc --notitle --github --maxlevel ' . (empty(<q-args>) ? '3' : <q-args>) . ' %' | execute 'redraw!'
-command! -nargs=1        First execute                           'Tabularize /^[^' . escape(<q-args>, '\^$.[?*~') . ']*\zs' . escape(<q-args>, '\^$.[?*~')
-command! -nargs=1 -range First execute <line1> . ',' . <line2> . 'Tabularize /^[^' . escape(<q-args>, '\^$.[?*~') . ']*\zs' . escape(<q-args>, '\^$.[?*~')
-command! -nargs=0        Iname execute 'echo expand("%:p")'
+" command! -nargs=0 DocTocUpdate execute 'silent !/usr/local/bin/doctoc --notitle --update-only --github --maxlevel 3 %' | execute 'redraw!'
+command! -nargs=? DocTocUpdate      execute 'silent !/usr/local/bin/doctoc --notitle --update-only --github --maxlevel ' . (empty(<q-args>) ? '3' : <q-args>) . ' %' | execute 'redraw!'
+command! -nargs=? DocTocCreate      execute 'silent !/usr/local/bin/doctoc --notitle --github --maxlevel ' . (empty(<q-args>) ? '3' : <q-args>) . ' %' | execute 'redraw!'
+command! -nargs=1        First      execute                           'Tabularize /^[^' . escape(<q-args>, '\^$.[?*~') . ']*\zs' . escape(<q-args>, '\^$.[?*~')
+command! -nargs=1 -range First      execute <line1> . ',' . <line2> . 'Tabularize /^[^' . escape(<q-args>, '\^$.[?*~') . ']*\zs' . escape(<q-args>, '\^$.[?*~')
+command! -nargs=0        Iname      execute 'echo expand("%:p")'
+command! -nargs=0 -range FormatJSON execute <line1> . ',' . <line2> . '!jq ' . (<q-args> ==# '' ? '' : <q-args> . ' ') . '.'
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

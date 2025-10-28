@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2025-03-18 19:07:16
+"    LastChange : 2025-10-28 09:01:53
 " =============================================================================
 
 " /**************************************************************
@@ -126,17 +126,16 @@ inoremap <leader>fe  <C-R>=expand("%:t")<CR>
 inoremap <leader>w   <C-O>:w<CR>
 
 nnoremap <leader>zil :g/^/ s//\=line('.').' '/<CR>                  " [i]nsert [l]ine number
-nnoremap <leader>zcm :%s/<C-v><CR>/\r/g<CR>                         " [c] onvert [m] <
-> to new line
-nnoremap <leader>zdm :%s/<C-v><CR>//ge<CR>                          " [d]elete [m] <
->
+nnoremap <leader>zcm :%s/<C-v><CR>/\r/g<CR>                         " [c]onvert [m] <> to new line
+nnoremap <leader>zdm :%s/<C-v><CR>//ge<CR>                          " [d]elete [m] <>
 nnoremap <leader>zdb :%s/\s\+$//<CR>                                " [d]elete [b]lank <trailing> space
 nnoremap <leader>zd2 :%s/​//g<CR>                              " [d]elete <200b>
 nnoremap <leader>zdd :%s/ / /g<CR>                                  " [d]elete [d]ot -   0xAO
 nnoremap <leader>zds :%s/^<span.*span>//g<CR>                       " [d]elete [s]pan tag
 nnoremap <leader>zdi :%s/^\s\+//<CR>                                " [d]elete [i]ndent spaces
-nnoremap <leader>zid i•<ESC>                                        " [i]nsert [d]ot [•] - 0x2022
+nnoremap <leader>zid i•<ESC>                                        " [i]nsert [d]ot <•> - 0x2022
 nnoremap <leader>fhl :%s/></>\r</g<CR>                              " [f]ormat [h]tm[l]
+nnoremap <leader>zhl :%s/></>\r</g<CR>                              " [f]ormat [h]tm[l]
 nnoremap <leader>zbl :g/^\s*$/d<CR>                                 " [d]elete [b]lank [l]ine
 " count expr
 nnoremap <leader>cr  0yt=A<C-r>=<C-r>"<CR><Esc>
