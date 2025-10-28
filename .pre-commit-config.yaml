@@ -25,7 +25,7 @@ repos:
       - id: mixed-line-ending
         name: Mixed Line Ending
         args: ["--fix=lf"]
-        exclude: ^(.*/merge\.sh|\.marslo/gitconfig.*)$
+        exclude: ^(.*/merge\.sh|\.marslo/gitconfig.*|.*/vimrc.d/shortcuts)$
 
   - repo: https://github.com/psf/black
     rev: 25.1.0

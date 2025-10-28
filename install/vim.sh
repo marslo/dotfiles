@@ -37,6 +37,6 @@ function doInOSX() {
 vimdir='/opt/vim'
 git clone https://github.com/vim/vim.git "${vimdir}" && builtin cd -- "${vimdir}"
 make clean && make distclean
-[[ '1' = "$(isOSX)" ]] && doInOSX
+isOSX && doInOSX
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=indent

@@ -4,27 +4,26 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2025-10-20 10:01:48
+# LastChange : 2025-10-27 19:45:18
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
 # credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
 source "${iRCHOME}/bin/bash-color.sh"
 
-function isWSL()     { if uname -r | command grep --color=never -q -i 'microsoft'; then echo 1; fi; }
-function isCygwin()  { [[ $(uname -s) =~ 'CYGWIN_NT'  ]] && echo 1; }
-function isGitBash() { [[ $(uname -s) =~ 'MINGW64_NT' ]] && echo 1; }
-function isOSX()     { [[ 'Darwin' = $(uname -s)      ]] && echo 1; }
-function isLinux()   { [[ '1' != "$(isWSL)"  ]] && [[ 'Linux'  = $(uname -s) ]] && echo 1; }
-function isDebian()  { [[ -f /etc/os-release ]] && [[ 'debian' = $(awk -F '='    '/^ID_LIKE/ { print $2 }' /etc/os-release) ]] && echo 1; }
-function isFedora()  { [[ -f /etc/os-release ]] && [[ 'fedora' = $(awk -F '='    '/^ID=/ { print $2 }' /etc/os-release)     ]] && echo 1; }
-function isUbuntu()  { [[ -f /etc/os-release ]] && [[ 'ubuntu' = $(awk -F '='    '/^ID=/ { print $2 }' /etc/os-release)     ]] && echo 1; }
-function isRHEL()    { [[ -f /etc/os-release ]] && [[ 'rhel'   = $(awk -F '[="]' '/^ID=/ { print $3 }' /etc/os-release)     ]] && echo 1; }
-function isCentOS()  { [[ -f /etc/os-release ]] && [[ 'centos' = $(awk -F '[="]' '/^ID=/ { print $3 }' /etc/os-release)     ]] && echo 1; }
+function isWSL()     { uname -r | command grep --color=never -q -i 'microsoft'; }
+function isCygwin()  { test "$(uname -s)" =~ 'CYGWIN_NT'; }
+function isGitBash() { test "$(uname -s)" =~ 'MINGW64_NT'; }
+function isOSX()     { test 'Darwin' = "$(uname -s)"; }
+function isLinux()   { ! isWSL && test 'Linux' = "$(uname -s)"; }
+function isDebian()  { test -f /etc/os-release && grep -iqE 'ID_LIKE="?debian' /etc/os-release; }
+function isFedora()  { test -f /etc/os-release && test 'fedora' = "$(awk -F '='    '/^ID=/ { print $2 }' /etc/os-release)"; }
+function isUbuntu()  { test -f /etc/os-release && test 'ubuntu' = "$(awk -F '='    '/^ID=/ { print $2 }' /etc/os-release)"; }
+function isRHEL()    { test -f /etc/os-release && test 'rhel'   = "$(awk -F '[="]' '/^ID=/ { print $3 }' /etc/os-release)"; }
+function isCentOS()  { test -f /etc/os-release && test 'centos' = "$(awk -F '[="]' '/^ID=/ { print $3 }' /etc/os-release)"; }
 # for public server (use common account)
 function bello()     { source ~/.marslo/.marslorc; set -o vi;  }
 function bye()       { source "${iRCHOME}"/.bye; set -o emacs; }
-
 
 # /--------------------------------------------------------------
 #      _       __            _ _     _              _
@@ -39,7 +38,7 @@ LS="$(type -P ls)"
 GREP="$(type -P grep)"
 COLUMN="$(type -P column)"
 
-if [[ '1' = "$(isOSX)" ]] && [[ 0 = $(type -P brew >/dev/null; echo $?) ]]; then
+if isOSX && [[ 0 = $(type -P brew >/dev/null; echo $?) ]]; then
   test -x "$(brew --prefix)/bin/gls"               && LS="$(brew --prefix)/bin/gls"
   test -x "$(brew --prefix)/bin/ggrep"             && GREP="$(brew --prefix)/bin/ggrep"
   test -x "$(brew --prefix util-linux)/bin/column" && COLUMN="$(brew --prefix util-linux)/bin/column"
@@ -49,8 +48,8 @@ else
 fi
 
 COPY=''
-[[ '1' = "$(isWSL)" ]]    && COPY='/mnt/c/Windows/System32/clip.exe'
-[[ '1' = "$(isOSX)" ]]    && COPY="$(type -P pbcopy)"
+isWSL && COPY='/mnt/c/Windows/System32/clip.exe'
+isOSX && COPY="$(type -P pbcopy)"
 
 # /--------------------------------------------------------------
 #                            _      _   _
@@ -69,16 +68,16 @@ ANSIBLE_COMPLETION_PATH="${iRCHOME}/.completion/ansible-completion"            #
 RT_COMPLETION="$HOME/.jfrog/jfrog_bash_completion"
 NPM_COMPLETION="$HOME/.npm/lib/node_modules/npm-completion"                    # for npm-completion https://github.com/Jephuff/npm-bash-completion
 
-if [[ '1' = "$(isOSX)" ]]; then
+if isOSX; then
   GROOVY_HOME="$(brew --prefix groovy)"
   FZF_HOME="$(brew --prefix fzf)"
   test -f "${iRCHOME}"/.imac && source "${iRCHOME}"/.imac
-elif [[ '1' = "$(isLinux)" ]]; then                                            ## for Ubuntu/RHEL/CentOS
+elif isLinux; then                                            ## for Ubuntu/RHEL/CentOS
   # distrab=$(awk -F= '$1=="ID" {print $2;}' /etc/os-release)
   # [[ 'ubuntu' == "${distrab}" ]] || [[ 'centos' == "${distrab}" ]] || [[ 'rhel' == "${distrab}" ]] && file="$HOME/.bashrc"
-  [[ '1' == "$(isDebian)" ]]  && GIT_COMPLETION_DIR='/opt/git/contrib/completion'
-  [[ '1' == "$(isDebian)" ]]  && export DEBIAN_FRONTEND=noninteractive
-  [[ '1' == "$(isFedora)" ]]  && GIT_COMPLETION_DIR='/usr/share/doc/git/contrib/completion'
+  isDebian && GIT_COMPLETION_DIR='/opt/git/contrib/completion'
+  isDebian && export DEBIAN_FRONTEND=noninteractive
+  isFedora && GIT_COMPLETION_DIR='/usr/share/doc/git/contrib/completion'
   if ls "${GIT_COMPLETION_DIR}"/*git* >/dev/null 2>&1; then source "${GIT_COMPLETION_DIR}"/*git*.[bs]*h; fi
   test -f "${iRCHOME}"/.irhel && source <( /bin/cat "${iRCHOME}"/.irhel )
 fi
@@ -180,11 +179,11 @@ test -e /usr/share/terminfo/78/xterm-256color && export TERM='xterm-256color'
 [[ -f "${iRCHOME}/bin/history" ]] && source "${iRCHOME}/bin/history"
 
 source <( /bin/cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im,icolor}.sh )
-[[ '1' = "$(isOSX)"    ]] && source <( /bin/cat "${iRCHOME}"/bin/ii.sh )
-[[ '1' != "$(isLinux)" ]] && test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
+isOSX     && source <( /bin/cat "${iRCHOME}"/bin/ii.sh )
+! isLinux && test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
 test -f "${iRCHOME}"/bin/now       && bash   "${iRCHOME}"/bin/now
 test -f "${iRCHOME}"/.tmux-session && source "${iRCHOME}"/.tmux-session
-[[ '1' = "$(isOSX)"    ]] && echo ''
+isOSX     && echo ''
 
 # type -P starship >/dev/null 2>&1 && eval "$(starship init bash)"
 

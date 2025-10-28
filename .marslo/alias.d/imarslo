@@ -4,7 +4,7 @@
 #   FileName : imarslo
 #     Author : marslo.jiao@gmail.com
 #    Created : 2017-10-30 19:07:45
-# LastChange : 2025-04-08 23:59:13
+# LastChange : 2025-10-27 19:15:12
 # =============================================================================
 
 MYWORKSPACE="$HOME/iMarslo"
@@ -51,7 +51,7 @@ alias mt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"
 alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs >/dev/null"
 alias oct="cd \"${HOME}/Library/CloudStorage/OneDrive-SharedLibraries-OneDriveCloudTemp\""
 
-if [[ '1' = "$(isWSL)" ]]; then
+if isWSL; then
   alias dsk="cd $HOME/userprofile/Desktop"
   alias up="cd $HOME/userprofile"
   alias proj="cd ${MYWORKSPACE}/myprogramfiles"

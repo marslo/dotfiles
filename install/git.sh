@@ -8,7 +8,7 @@
 source ./utils.sh
 
 function preInstall() {
-  if [[ 1 = "$(isCentOS)" ]] || [[ 1 = "$(isRHEL)" ]]; then
+  if isCentOS || isRHEL; then
     # git-core
     sudo dnf config-manager --set-enabled powertools
     sudo dnf install epel-release epel-next-release
@@ -19,7 +19,7 @@ function preInstall() {
     sudo ln -s /usr/bin/db2x_docbook2texi /usr/bin/docbook2x-texi
     # git-info
     sudo dnf install -y util-linux libao libao-devel
-  elif [[ 1 = "$(isUbuntu)" ]] ; then
+  elif isUbuntu; then
     # git-core
     sudo apt install -y dh-autoreconf libexpat1-dev gettext libz-dev libssl-dev
     sudo apt install -y libcurl4-openssl-dev
@@ -28,7 +28,7 @@ function preInstall() {
     sudo apt install -y asciidoc xmlto docbook2x hunspell libhunspell-dev
     # git-info
     sudo apt install -y install-info libao-dev
-  elif [[ 1 = "$(isOSX)" ]]; then
+  elif isOSX; then
     brew install gcc autoconf automake openssl@3 expat gettext zlib libtool libiconv ncurses
     brew install asciidoc xmlto docbook2x docbook-xsl hunspell
     brew install gnu-getopt libao
