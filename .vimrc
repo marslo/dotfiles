@@ -3,13 +3,13 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-05-05 19:37:07
+"    LastChange : 2025-11-04 02:01:53
 " =============================================================================
 
 runtime macros/matchit.vim
 runtime defaults.vim
 let performance_mode = 1
-set nocompatible
+" set nocompatible
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip
 
 source $HOME/.marslo/vimrc.d/os
@@ -53,6 +53,7 @@ if IsMac() && executable('brew')
   if isdirectory( s:fzfBash ) | let &runtimepath .= ',' . s:fzfBash | endif
 endif
 
+if has( 'nvim' ) | let g:loaded_perl_provider = 0 | endif
 if has( 'nvim' )
   set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.nviminfo
 else
