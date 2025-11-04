@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-11-04 01:59:12
+"    LastChange : 2025-11-04 02:18:07
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -17,6 +17,7 @@
 "
 "
 " **************************************************************/
+" check via `:PlugStatus` or `:lua print(vim.inspect(vim.api.nvim_list_runtime_paths()))`
 let pluginHome          = expand( '~/.vim/plugged' ) . '/'
 let mapleader           = ','
 let g:mapleader         = ','
@@ -88,20 +89,21 @@ endif
 
 if IsNvim()
   Plug 'zbirenbaum/copilot-cmp'
-  Plug 'zbirenbaum/copilot.lua'                                     " ╮
-  Plug 'CopilotC-Nvim/CopilotChat.nvim' , { 'branch': 'main' }      " ├ copilot chat
-  Plug 'nvim-lua/plenary.nvim'                                      " ╯
+  Plug 'zbirenbaum/copilot.lua'                                     " check via `:verbose command Copilot`
+  Plug 'CopilotC-Nvim/CopilotChat.nvim' , { 'branch': 'main' }      " check via `:verbose command CopilotChat`
+  Plug 'nvim-lua/plenary.nvim'
   Plug 'ibhagwan/fzf-lua'
   " brew install --HEAD viu; brew install chafa
   Plug 'nvim-tree/nvim-web-devicons'                                " fzf-lua required
 
   " nvim-cmp
-  Plug 'hrsh7th/nvim-cmp'
+  Plug 'hrsh7th/nvim-cmp'                                           " check via `:verbose command CmpStatus`
   Plug 'hrsh7th/cmp-nvim-lsp'
   Plug 'hrsh7th/cmp-buffer'
   Plug 'hrsh7th/cmp-path'
   Plug 'hrsh7th/cmp-cmdline'
   Plug 'saadparwaiz1/cmp_luasnip'
+  Plug 'L3MON4D3/LuaSnip'
   Plug 'rafamadriz/friendly-snippets'
 
   " treesitter & lint
