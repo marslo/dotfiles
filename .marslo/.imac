@@ -120,7 +120,7 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   RUBY_GEM_HOME="${HOMEBREW_PREFIX}"/lib/ruby/gems/"${_GEM_VERSION}"
   ED_HOME="${HOMEBREW_OPT}/ed"
 
-  PYTHON_VERSION='3.13'
+  PYTHON_VERSION="$(/usr/bin/sed -rn 's/^([^[0-9]+)([0-9]+\.[0-9]+).*$/\2/p' < <("${HOMEBREW_PREFIX}"/bin/python3 --version))"
   PYTHON_HOME=$(brew --prefix python@${PYTHON_VERSION})
   PYTHONPATH="${HOMEBREW_PREFIX}/lib/python${PYTHON_VERSION}/site-packages"
   PYTHONUSERBASE="$(${PYTHON_HOME}/libexec/bin/python -c 'import site; print(site.USER_BASE)')"   # PYTHONUSERBASE=$PYTHONPATH

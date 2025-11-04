@@ -38,6 +38,8 @@ cnoremap <C-k>        <C-\>e(strpart(getcmdline(), 0, getcmdpos() - 1))<CR>
 cnoremap sudow!!      w !sudo tee > /dev/null %
 cnoremap sw!!         execute 'silent! write !sudo tee % >/dev/null' <bar> edit!
 nnoremap Y            y$
+" invpaste <-> paste in insert/normal/visual mode ( toggle paste mode )
+nnoremap <leader>pp  :set invpaste paste?<CR>
 " switch mouse model
 nnoremap <M-m> :execute 'set mousemodel=' . (&mousemodel ==# 'extend' ? 'popup_setpos' : 'extend')<CR>
 " silent delete in virtual mode
@@ -67,9 +69,6 @@ noremap  <silent>[d   :ALEDetail<CR>
 " airblade/vim-gitgutter
 noremap  ]h           :GitGutterNextHunk<CR>
 noremap  [h           :GitGutterPrevHunk<CR>
-" github/copilot.vim - default M+⇢
-imap <C-L>             <Plug>(copilot-accept-word)
-imap <C-M-L>           <Plug>(copilot-accept-line)
 
 " neoclide/coc.nvim
 " GoTo code navigation

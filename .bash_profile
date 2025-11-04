@@ -6,7 +6,8 @@ export BASH_SILENCE_DEPRECATION_WARNING=1
 if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   test -f /opt/homebrew/bin/brew && eval "$(/opt/homebrew/bin/brew shellenv)"
   test -f /usr/local/bin/brew    && eval "$(/usr/local/bin/brew shellenv)"
-  [[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]] && source "$(brew --prefix)/etc/profile.d/bash_completion.sh"
+  [[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh"      ]] && source "$(brew --prefix)/etc/profile.d/bash_completion.sh"
+  [[ -r "$(brew --prefix)/share/bash-completion/bash_completion" ]] && source "$(brew --prefix)/share/bash-completion/bash_completion"
 fi
 
 # set -a; source "/Users/marslo/.marslo/.marslorc"; set +a;         # `-a`: mark variables which are modified or created for export

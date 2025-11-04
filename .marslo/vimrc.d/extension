@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-06-26 00:22:03
+"    LastChange : 2025-11-04 01:59:12
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -22,21 +22,15 @@ let mapleader           = ','
 let g:mapleader         = ','
 let maplocalleader      = '\\'
 let g:plug_shallow      = 0
-" let g:plug_url_format = 'https://git::@github.com/%s.git'
-" sheerun/vim-polyglot - set beofe loading plugin
-" let g:polyglot_disabled = ['groovy.plugin']
 let g:polyglot_disabled = ['git']
 
 filetype off
 call plug#begin( '~/.vim/plugged' )
 
-Plug 'junegunn/vim-plug'
-Plug 'tpope/vim-pathogen'
 Plug 'tpope/vim-surround'
 Plug 'godlygeek/tabular', { 'commit': '84057252a01e96909cd1a9f0b1395f5d9f61be1e' }
 Plug 'tpope/vim-repeat'
 Plug 'Yggdroot/indentLine'                                          " Plug 'lukas-reineke/indent-blankline.nvim'
-Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'dbeniamine/cheat.sh-vim'
@@ -58,7 +52,6 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'neoclide/coc.nvim', { 'branch': 'release' }
 Plug 'honza/vim-snippets'                                           " coc-snippets
-Plug 'mfussenegger/nvim-lint'
 Plug 'tomtom/tcomment_vim'
 Plug 'preservim/vim-markdown'                                       " markdown
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npx --yes yarn install' }
@@ -85,10 +78,7 @@ Plug 'dense-analysis/ale'
 Plug 'sheerun/vim-polyglot'                                         " ╯ yaml.ansible
 Plug 'marslo/Jenkinsfile-vim-syntax'                                " Jenkinsfile
 Plug 'ekalinin/Dockerfile.vim'                                      " dockerfile
-" Plug 'yaegassy/coc-ansible', {'do': 'yarn install --frozen-lockfile'}
 Plug 'rizzatti/dash.vim'
-" Plug 'vim-syntastic/syntastic'
-Plug 'github/copilot.vim'                                           " github copilot
 Plug 'parkr/vim-jekyll'                                             " github page
 Plug 'dstein64/vim-startuptime'
 
@@ -97,23 +87,36 @@ if has('macunix')
 endif
 
 if IsNvim()
-  Plug 'CopilotC-Nvim/CopilotChat.nvim' , { 'branch': 'main' }      " ╮
-  Plug 'zbirenbaum/copilot.lua'                                     " ├ copilot chat
+  Plug 'zbirenbaum/copilot-cmp'
+  Plug 'zbirenbaum/copilot.lua'                                     " ╮
+  Plug 'CopilotC-Nvim/CopilotChat.nvim' , { 'branch': 'main' }      " ├ copilot chat
   Plug 'nvim-lua/plenary.nvim'                                      " ╯
   Plug 'ibhagwan/fzf-lua'
   " brew install --HEAD viu; brew install chafa
   Plug 'nvim-tree/nvim-web-devicons'                                " fzf-lua required
+
+  " nvim-cmp
+  Plug 'hrsh7th/nvim-cmp'
+  Plug 'hrsh7th/cmp-nvim-lsp'
+  Plug 'hrsh7th/cmp-buffer'
+  Plug 'hrsh7th/cmp-path'
+  Plug 'hrsh7th/cmp-cmdline'
+  Plug 'saadparwaiz1/cmp_luasnip'
+  Plug 'rafamadriz/friendly-snippets'
+
+  " treesitter & lint
+  Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
+  Plug 'mfussenegger/nvim-lint'
 endif
 
 if IsVim()
   Plug 'machakann/vim-highlightedyank'
+  Plug 'github/copilot.vim'                                         " github copilot
 endif
 
 call plug#end()
-call pathogen#infect( '~/.vim/plugged/{}' )
-call pathogen#helptags()
 filetype plugin indent on
-syntax enable on
+syntax enable
 
 " /**************************************************************
 "
@@ -308,7 +311,7 @@ let NERDTreeHighlightCursorline   = 0
 let g:NERDTreeShowLineNumbers     = 0
 let g:NERDTreeQuitOnOpen          = 1
 let g:NERDTreeWinPos              = 'left'
-let g:NERDTreeWinSize             = 25
+let g:NERDTreeWinSize             = 22
 " cause devicon color issue
 " let g:NERDTreeFileLines         = 1
 let g:NERDTreeDirArrowExpandable  = '+'
@@ -608,26 +611,29 @@ let g:syntastic_style_warning_symbol     = 'ఠ'
 let g:syntastic_dockerfile_checkers      = [ 'hadolint' ]
 
 " github/copilot.vim
-" let g:copilot_proxy          = 'http://proxy.sample.com:8080'
-let g:copilot_proxy_strict_ssl = v:false
-let g:copilot_filetypes        = {
-    \ '*': v:true,
-    \ 'gitcommit': v:true,
-    \ 'markdown': v:true,
-    \ 'yaml': v:true,
-    \ 'groovy': v:true,
-    \ 'python': v:true,
-    \ 'Jenkinsfile': v:true,
-    \ 'sh': v:true
-    \ }
-" disable for extra large file
-autocmd BufReadPre *
-    \ let f=getfsize(expand("<afile>"))
-    \ | if f > 100000 || f == -2
-    \ |   let b:copilot_enabled = v:false
-    \ | endif
-" invpaste <-> paste in insert/normal/visual mode ( toggle paste mode )
-nnoremap <leader>pp :set invpaste paste?<CR>
-map <silent> <F2>  :Copilot disable<CR>
+if IsVim()
+  " let g:copilot_proxy          = 'http://ipamunix.marvell.com:8080'
+  let g:copilot_proxy_strict_ssl = v:false
+  let g:copilot_filetypes        = {
+      \ '*': v:true,
+      \ 'gitcommit': v:true,
+      \ 'markdown': v:true,
+      \ 'yaml': v:true,
+      \ 'groovy': v:true,
+      \ 'python': v:true,
+      \ 'Jenkinsfile': v:true,
+      \ 'sh': v:true
+      \ }
+  " disable for extra large file
+  autocmd BufReadPre *
+      \ let f=getfsize(expand("<afile>"))
+      \ | if f > 100000 || f == -2
+      \ |   let b:copilot_enabled = v:false
+      \ | endif
+  map <silent> <F2>    :Copilot disable<CR>
+  " github/copilot.vim - default M+⇢
+  imap         <C-L>   <Plug>(copilot-accept-word)
+  imap         <C-M-L> <Plug>(copilot-accept-line)
+endif
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

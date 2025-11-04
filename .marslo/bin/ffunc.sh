@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-10-27 19:16:23
+#   LastChange : 2025-10-30 22:48:14
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -776,6 +776,8 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   \t\t$(c G)\$ knrun --armcc --file \"/path/to/script.sh\" [ --verbose ]$(c)
   \n\tto clean up all dangling images in selected nodes ( filter via dind tags )
   \t\t$(c G)\$ knrun --dind -c \"docker images -f dangling=true -q | uniq | xargs -r docker rmi -f\" -v$(c)
+  \n\tto clean up all docker images which tag contains '4.1.1' ( filter via dind tags )
+  \t\t$(c G)\$ knrun --dind -c \"docker images --format '{{.Repository}}:{{.Tag}}\\\t{{.ID}}' | command grep '4\.1\.1' | awk '{print \\\\\\\\\\\$NF}'\" -v$(c)
   """
 
   while test -n "$1"; do
