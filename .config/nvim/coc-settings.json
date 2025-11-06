@@ -7,9 +7,11 @@
   "groovy.java.home": "/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home",
   "groovy.project.referencedLibraries": [
     "/opt/homebrew/opt/groovy/libexec/lib/*",
+    "/Users/marslo/.groovy/lib/*",
     "/opt/jenkins/latest/WEB-INF/lib/*",
     "/opt/jenkins/plugins/*/latest/WEB-INF/lib/*",
-    "/opt/jenkins/plugins/credentials/latest/WEB-INF/lib/credentials.jar"
+    "/opt/jenkins/plugins/credentials/latest/WEB-INF/lib/*",
+    "/opt/jenkins/plugins/badge/latest/WEB-INF/lib/*"
   ],
   "groovy.trace.server": "verbose",
   "java.referencesCodeLens.enabled": true,
@@ -28,6 +30,9 @@
     "vim": "vint",
     "sh": "shellcheck",
     "groovy": "npm-groovy-lint"
+  },
+  "yaml.schemas": {
+    "file:///Users/marslo/.marslo/schemas/pre-commit-config.json": ".pre-commit-config.yaml"
   },
   "suggest.maxCompleteItemCount": 16,
   "suggest.enablePreselect": true,

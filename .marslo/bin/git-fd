@@ -4,7 +4,7 @@
 #     FileName : git-fd
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-10 19:59:15
-#   LastChange : 2025-04-25 02:10:09
+#   LastChange : 2025-11-06 10:52:15
 #=============================================================================
 
 set -euo pipefail
@@ -26,7 +26,7 @@ declare MESSAGE_PATTERN=''
 declare KEYWORD=''
 declare DIFF_FILTER_INCLUDE=''
 declare DIFF_FILTER_EXCLUDE=''
-declare USE_FZF=true
+declare USE_FZF=false
 declare VERBOSE=false
 # shellcheck disable=SC2155
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
@@ -164,16 +164,17 @@ while [[ $# -gt 0 ]]; do
     -g | --grep    ) checkArg "$1" GREP_PATTERN "$#" "$2"    ; shift 2 ;;
     -k | --keyword ) checkArg "$1" KEYWORD "$#" "$2"         ; shift 2 ;;
     -m | --message ) checkArg "$1" MESSAGE_PATTERN "$#" "$2" ; shift 2 ;;
-    --delete       ) DIFF_FILTER_INCLUDE+="D"                ; shift 1 ;;
-    --add          ) DIFF_FILTER_INCLUDE+="A"                ; shift 1 ;;
-    --modify       ) DIFF_FILTER_INCLUDE+="M"                ; shift 1 ;;
-    --rename       ) DIFF_FILTER_INCLUDE+="R"                ; shift 1 ;;
-    --no-delete    ) DIFF_FILTER_EXCLUDE+="d"                ; shift 1 ;;
-    --no-add       ) DIFF_FILTER_EXCLUDE+="a"                ; shift 1 ;;
-    --no-modify    ) DIFF_FILTER_EXCLUDE+="m"                ; shift 1 ;;
-    --no-rename    ) DIFF_FILTER_EXCLUDE+="r"                ; shift 1 ;;
-    --no-fzf       ) USE_FZF=false                           ; shift 1 ;;
-    -v | --verbose ) VERBOSE=true                            ; shift 1 ;;
+    --delete       ) DIFF_FILTER_INCLUDE+="D"                ; shift   ;;
+    --add          ) DIFF_FILTER_INCLUDE+="A"                ; shift   ;;
+    --modify       ) DIFF_FILTER_INCLUDE+="M"                ; shift   ;;
+    --rename       ) DIFF_FILTER_INCLUDE+="R"                ; shift   ;;
+    --no-delete    ) DIFF_FILTER_EXCLUDE+="d"                ; shift   ;;
+    --no-add       ) DIFF_FILTER_EXCLUDE+="a"                ; shift   ;;
+    --no-modify    ) DIFF_FILTER_EXCLUDE+="m"                ; shift   ;;
+    --no-rename    ) DIFF_FILTER_EXCLUDE+="r"                ; shift   ;;
+    --fzf          ) USE_FZF=true                            ; shift   ;;
+    --no-fzf       ) USE_FZF=false                           ; shift   ;;
+    -v | --verbose ) VERBOSE=true                            ; shift   ;;
     -h | --help    ) showHelp                                          ;;
     --             ) shift                                             ;;
     *              ) die "unknown option: $1"                          ;;
@@ -250,7 +251,7 @@ if [[ "${grepFiltered}" = true || "${nameFiltered}" = true || -n "${EXT}" ]]; th
   fi
 fi
 
-"${VERBOSE}" && echo -e "$(c Wdi)DEBUG: executing command:$(c):\n  $(c Gdi)${logCmd[*]}$(c)"
+"${VERBOSE}" && echo -e "$(c Wdi)DEBUG: executing command:$(c)\n  $(c Gdi)${logCmd[*]}$(c)\n"
 "${USE_FZF}" || { "${logCmd[@]}" | fileStatus; exit 0; }
 
 function getOutput() {

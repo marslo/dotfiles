@@ -136,8 +136,8 @@ if ok_copilot then
 pcall( function()
   require('CopilotChat').setup({
     debug = true,
-    allow_insecure = true,
-    show_folds = false,
+    allow_insecure = true,    -- https://github.com/deathbeam/dotfiles/blob/master/nvim/.config/nvim/lua/config/copilot.lua
+    show_folds = false
   })
 end )
 
