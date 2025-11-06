@@ -30,7 +30,7 @@
   editor            = nvim
   pager             = diff-highlight | less $LESS -F -x1,5 -X
   whitespace        = fix,-indent-with-non-tab,trailing-space,cr-at-eol,tab-in-indent
-  autocrlf          = false
+  autocrlf          = input
   precomposeUnicode = true
   ignorecase        = false
   excludesfile      = ~/.gitignore_global

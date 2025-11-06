@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-10-30 22:48:14
+#   LastChange : 2025-11-06 10:51:21
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -749,6 +749,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   local reproject=false
   local hhost=true
   local rhost=false
+  local phost=false
   local online=true
   local quiet=false
 
@@ -763,6 +764,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   \t\t[ -o | --offline ]
   \t\t[ -v | --verbose ]
   \t\t[ -q | --quiet ]
+  \t\t[ -p | --personal ]
   \t\t[ --re ] [ --no-hhost ]
   \t\t[ -h | --help ]$(c)
   \nEXAMPLE:
@@ -782,18 +784,19 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
 
   while test -n "$1"; do
     case "$1" in
-      -c | --cmd     ) cmd="${2}"                           ; shift 2  ;;
-      -v | --verbose ) verbose=true                         ; shift    ;;
-      -d | --dind    ) dind=true                            ; shift    ;;
-      -l | --armcc   ) armcc=true                           ; shift    ;;
-      -f | --file    ) path="${2}"                          ; shift 2  ;;
-      -o | --offline ) online=false                         ; shift    ;;
-      --re           ) reproject=true                       ; shift    ;;
-      --no-hhost     ) hhost=false                          ; shift    ;;
-      --real-host    ) rhost=true                           ; shift    ;;
-      -q | --quiet   ) quiet=true                           ; shift    ;;
-      -h | --help    ) echo -e "${usage}"                   ; return   ;;
-      *              ) echo "Invalid option $1. try -h" >&2 ; return 1 ;;
+      -c | --cmd      ) cmd="${2}"                           ; shift 2  ;;
+      -v | --verbose  ) verbose=true                         ; shift    ;;
+      -d | --dind     ) dind=true                            ; shift    ;;
+      -l | --armcc    ) armcc=true                           ; shift    ;;
+      -f | --file     ) path="${2}"                          ; shift 2  ;;
+      -o | --offline  ) online=false                         ; shift    ;;
+      --re            ) reproject=true                       ; shift    ;;
+      -p | --personal ) phost=true                           ; shift    ;;
+      --no-hhost      ) hhost=false                          ; shift    ;;
+      --real-host     ) rhost=true                           ; shift    ;;
+      -q | --quiet    ) quiet=true                           ; shift    ;;
+      -h | --help     ) echo -e "${usage}"                   ; return   ;;
+      *               ) echo "Invalid option $1. try -h" >&2 ; return 1 ;;
     esac
   done
 
@@ -802,6 +805,8 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   # shellcheck disable=SC2086
   if "${hhost}" && "${reproject}"; then
     nodes=$( echo re-{01..26} | fmt -1 | fzf --prompt "hostname >" )
+  elif "${phost}"; then
+    nodes=$( echo sj4dl360n4u20 | fmt -1 | fzf --prompt "hostname >" )
   else
     if "${reproject}"; then
       kconfig="${HOME}/.kube.re/config"
@@ -824,7 +829,12 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
            )
   fi
 
-  [[ 'true' = "${reproject}" ]] && username='jenkins' || username='devops'
+  if "${phost}"; then
+     username='marslo'
+  else
+    "${reproject}" && username='jenkins' || username='devops'
+  fi
+
   local sshCmd=''
   if [[ -n ${nodes} ]]; then
     trap exit SIGINT SIGTERM; while read -r _node; do
@@ -833,7 +843,8 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
       if [[ -n "${path}" ]]; then
         sshCmd="ssh -q ${username}@${_node} 'bash -s' < \"${path}\""
       else
-        sshCmd="ssh -n ${username}@${_node} \"${cmd}\""
+        # sshCmd="ssh -n ${username}@${_node} \"${cmd}\""
+        sshCmd="ssh -T ${username}@${_node} bash -s -- <<< \"${cmd}\""
       fi
       if "${verbose}" ; then
         printf "$(c Wdi)>> [DEBUG]:$(c) $(c Wi)%s$(c)\n" "${sshCmd}"
