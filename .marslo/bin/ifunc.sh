@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2025-11-07 02:21:10
+#  LastChange : 2025-11-07 02:58:39
 #  Description : ifunctions
 # =============================================================================
 
@@ -444,11 +444,11 @@ function showTODO() {
     \nSYNOPSIS
       $(c Cs)\$ showTODO $(c 0Gi)[ OPTIONS ]$(c)
     \nOPTIONS
-      • $(c G)-nl$(c) | $(c G)--no-ln$(c)                 : do not show line numbers
-      • $(c G)-p$(c) | $(c G)--plain$(c)                  : plain output without any decorations
-      • $(c G)-s$(c) | $(c G)--style $(c 0Mi)<STYLE_OPTIONS>$(c)  : specify style options for bat $(c Wi)(default: $(c 0Mi)'grid,changes,header'$(c 0Wi))$(c)
+      • $(c G)-nl$(c), $(c G)--no-ln$(c)                 : do not show line numbers
+      • $(c G)-p$(c), $(c G)--plain$(c)                  : plain output without any decorations
+      • $(c G)-s$(c), $(c G)--style $(c 0Mi)<STYLE_OPTIONS>$(c)  : specify style options for bat $(c Wi)(default: $(c 0Mi)'grid,changes,header'$(c 0Wi))$(c)
       • $(c G)-*$(c)                            : other options passed to bat command)
-      • $(c G)-h$(c) | $(c G)--help$(c)                   : show this help message
+      • $(c G)-h$(c), $(c G)--help$(c)                   : show this help message
     \nEXAMPLES
       $(c Cs)\$ showTODO $(c 0Gi)-nl --style $(c 0Mi)'plain'$(c)
       $(c Cs)\$ showTODO $(c 0Gi)-p$(c)
@@ -527,14 +527,14 @@ function clean() {
   \nSYNOPSIS
     $(c Cs)\$ clean $(c 0Gi)[OPTIONS]$(c)
   \nOPTIONS
-    • $(c G)-p <path>$(c) | $(c G)--path <path>$(c) : specify path to clean $(c Wi)(default: current path)$(c)
-    • $(c G)-a$(c) | $(c G)--all$(c)                : clean from home directory
+    • $(c G)-p <path>$(c), $(c G)--path <path>$(c) : specify path to clean $(c Wi)(default: current path)$(c)
+    • $(c G)-a$(c), $(c G)--all$(c)                : clean from home directory
     • $(c G)--dot$(c)                     : clean '._*' files
     • $(c G)--ds$(c)                      : clean '.DS_*' files
     • $(c G)--lg$(c)                      : clean 'logback.log' files
     • $(c G)--dryrun$(c)                  : show files to be deleted without deleting them
-    • $(c G)-v$(c) | $(c G)--verbose$(c)            : enable verbose output
-    • $(c G)-h$(c) | $(c G)--help$(c)               : show this help message
+    • $(c G)-v$(c), $(c G)--verbose$(c)            : enable verbose output
+    • $(c G)-h$(c), $(c G)--help$(c)               : show this help message
   """
 
   while [[ $# -gt 0 ]]; do
@@ -578,17 +578,17 @@ function md2html() {
   \t    [ -v | --debug | --verbose ]
   \t    [ -h | --help ]$(c)
   \nOPTIONS
-    • $(c G)-i $(c 0Mi)<path/to/markdown/file>$(c) | $(c G)--input $(c 0Mi)<path/to/markdown/file>$(c)
+    • $(c G)-i $(c 0Mi)<path/to/markdown/file>$(c), $(c G)--input $(c 0Mi)<path/to/markdown/file>$(c)
         specify the markdown file to be converted
-    • $(c G)-o $(c 0Mi)<output file>$(c) | $(c G)--output $(c 0Mi)<output file>$(c)
+    • $(c G)-o $(c 0Mi)<output file>$(c), $(c G)--output $(c 0Mi)<output file>$(c)
         specify the output html file. $(c Wi)default: same name as markdown file with .html extension$(c)
-    • $(c G)-t $(c 0Mi)<title>$(c) | $(c G)--title $(c 0Mi)<title>$(c)
+    • $(c G)-t $(c 0Mi)<title>$(c), $(c G)--title $(c 0Mi)<title>$(c)
         specify the title of the html document. $(c Wi)default: same as output file name or markdown file name$(c)
     • $(c G)--toc-depth $(c 0Mi)<n>$(c)
         specify the depth of table of contents. $(c Wi)default: $(c 0Yis)4$(c)
-    • $(c G)-v$(c) | $(c G)--verbose$(c) | $(c G)--debug$(c)
+    • $(c G)-v$(c), $(c G)--verbose$(c), $(c G)--debug$(c)
         enable verbose output
-    • $(c G)-h$(c) | $(c G)--help$(c)
+    • $(c G)-h$(c), $(c G)--help$(c)
         show this help message
   """
 
@@ -732,10 +732,10 @@ function fdiff() {
 }
 
 # setme - set or remove user as/from admin
-# usage : setme [-a | -s | --set | --add]
-#               [-r | --remote]
-#               [-c | --check]
-#               [-u | --user <username>]
+# usage : setme [-a, -s, --set, --add]
+#               [-r, --remote]
+#               [-c, --check]
+#               [-u, --user <username>]
 function setme() {
   [[ 'Darwin' = $(uname -s) ]] || {
     echo -e "$(c Ri)ERROR$(c): $(c 0i)setme is only available on macOS.$(c)"
@@ -750,11 +750,11 @@ function setme() {
   local USAGE="USAGE
     $(c Cs)\$ setme $(c 0Gi)[ OPTIONS ]$(c)
   \nOPTIONS
-    $(c G)-a$(c) | $(c G)-s$(c) | $(c G)--set$(c) | $(c G)--add$(c)   : set the current user (or specified user) as admin
-    $(c G)-r$(c) | $(c G)--remote$(c)             : remove the current user (or specified user) from admin
-    $(c G)-c$(c) | $(c G)--check$(c)              : check if the current user (or specified user) is admin (default)
-    $(c G)-u$(c) | $(c G)--user $(c 0Mi)<username>$(c)    : specify the username (default: current user)
-    $(c G)-h$(c) | $(c G)--help$(c)               : show this help message
+    $(c G)-a$(c), $(c G)-s$(c), $(c G)--set$(c), $(c G)--add$(c)     : set the current user (or specified user) as admin
+    $(c G)-r$(c), $(c G)--remote$(c)             : remove the current user (or specified user) from admin
+    $(c G)-c$(c), $(c G)--check$(c)              : check if the current user (or specified user) is admin (default)
+    $(c G)-u$(c), $(c G)--user $(c 0Mi)<username>$(c)    : specify the username (default: current user)
+    $(c G)-h$(c), $(c G)--help$(c)               : show this help message
   \nEXAMPLE
     $(c Wdi)# set the current user as admin$(c)
     $(c Yi)\$ setme --set$(c)
