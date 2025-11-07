@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-11-07 02:58:32
+#   LastChange : 2025-11-07 03:04:30
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -757,12 +757,11 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   # shellcheck disable=SC2155
   local usage="$(c Cs)knrun$(c) - $(c Csi)k$(c)ubernets $(c Csi)n$(c)odes $(c Csi)run$(c): to run commands in k8s nodes
   \nSYNOPSIS
-    $(c Cs)\$ knrun $(c 0Gi)[ OPTIONS ] $(c 0Wi)[$(c) $(c 0Bi)--$(c) $(c 0Ci)--script-args $(c 0Wi)]$(c)
+    $(c Cs)\$ knrun $(c 0Gi)[ OPTIONS ] $(c 0Wi)[$(c) $(c 0Ys)--$(c) $(c 0Ci)--script-args $(c 0Wi)]$(c)
   \nOPTIONS
     $(c G)-c$(c), $(c G)--cmd $(c 0Mi)'<CMD>'$(c)      : specify the command to run in selected nodes.
     $(c G)-f$(c), $(c G)--file $(c 0Mi)'<SCRIPT>'$(c)  : specify the local bash script file path to run in selected nodes.
-    $(c Ys)--$(c 0Ci) --args$(c)              : the $(c 0Mi)<SCRIPT>$(c) arguments.
-                             all arguments after $(c Ys)--$(c) will be passed to the $(c 0Mi)<SCRIPT>$(c).
+    $(c Ys)--$(c 0Ci) --args$(c)              : the $(c 0Mi)<SCRIPT>$(c) arguments. all arguments after $(c Ys)--$(c) will be passed to the $(c 0Mi)<SCRIPT>$(c).
 
     $(c G)-l$(c), $(c G)--armcc$(c)            : filter nodes with armcc tags.
     $(c G)-d$(c), $(c G)--dind$(c)             : filter nodes with dind tags.
@@ -776,7 +775,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
     $(c G)-h$(c), $(c G)--help$(c)             : show this help message and exit.
     $(c G)-e$(c), $(c G)--examples$(c)         : show usage examples and exit.
   \nEXAMPLES
-    $(c Yi)Run \`\$ knrun --examples\` to see usage examples.$(c)
+    $(c Yi)run \`$(c 0Cs)\$ knrun $(c 0Gi)--examples$(c 0Yi)\` to see usage examples$(c)
   "
 
   # shellcheck disable=SC2155
@@ -857,7 +856,8 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   function runRemote() {
     local rType="$1"; shift
     local rTarget="$1"; shift
-    local -a sshBase=(ssh -q "${username}@${_node}")
+    local -a sshBase=()
+    test "${rType}" == '<' && sshBase=(ssh -q "${username}@${_node}") || sshBase=(ssh -T "${username}@${_node}")
 
     # remoteStr = bash -s [-- args ...]
     local remoteStr='bash -s'
