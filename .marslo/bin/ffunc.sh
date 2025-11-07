@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-11-06 10:51:21
+#   LastChange : 2025-11-07 02:25:15
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -24,14 +24,13 @@ source "${HOME}"/.marslo/bin/bash-color.sh
 # - https://pragmaticpineapple.com/four-useful-fzf-tricks-for-your-terminal/
 # - https://github.com/junegunn/fzf?tab=readme-ov-file#fuzzy-completion-for-bash-and-zsh
 _fzf_comprun() {
-  local command=$1
-  shift
+  local command=$1; shift
 
   case "$command" in
-            tree ) fd . --type d --hidden --follow | fzf --height 60% --preview 'tree -C {}' "$@" ;;
-              cd ) fzf --height 60% --preview 'tree -C {} | head -200' "$@" ;;
-    export|unset ) fzf --height 60% --preview "eval 'echo \$'{}"       "$@" ;;
-               * ) fzf                                                 "$@" ;;
+              tree ) fd . --type d --hidden --follow | fzf --height 60% --preview 'tree -C {}' "$@" ;;
+                cd ) fzf --height 60% --preview 'tree -C {} | head -200' "$@" ;;
+    export | unset ) fzf --height 60% --preview "eval 'echo \$'{}"       "$@" ;;
+                 * ) fzf                                                 "$@" ;;
   esac
 }
 
@@ -738,7 +737,9 @@ function killps() {                        # [kill] [p]roces[s]
 # [k]ubernets [n]odes [run] - run commands in k8s nodes
 function knrun() {                        # [k]ubernetes [n]odes [run]
   function joinBy { local d=${-} f=${2-}; if shift 2; then printf %s "$f" "${@/#/$d}"; fi; }
-  declare -a selector
+  function sq()   { local s=$1; printf "'%s'" "${s//\'/\'\"\'\"\'}"; }
+  local -a selector=()
+  local -a scriptArgs=()
   local nodes=''
   local cmd=''
   local path=''
@@ -755,34 +756,53 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
 
   # shellcheck disable=SC2155
   local usage="""
-  \t $(c M)knrun$(c) - $(c iM)k$(c)ubernets $(c iM)n$(c)odes $(c iM)run$(c): to run commands in k8s nodes
-  \nSYNOPSIS:
-  \n\t$(c sY)\$ knrun [ -c | --cmd <CMD> ]
-  \t\t[ -f | --file <FILEPATH> ]
-  \t\t[ -l | --armcc ]
-  \t\t[ -d | --dind ]
-  \t\t[ -o | --offline ]
-  \t\t[ -v | --verbose ]
-  \t\t[ -q | --quiet ]
-  \t\t[ -p | --personal ]
-  \t\t[ --re ] [ --no-hhost ]
-  \t\t[ -h | --help ]$(c)
-  \nEXAMPLE:
-  \n\tshow help
-  \t\t$(c G)\$ knrun -h$(c) | $(c G)\$ knrun --help$(c)
-  \n\tto run commands \`uname -a\` in selected nodes
-  \t\t$(c G)\$ knrun --cmd \"uname -a\" [ --verbose ]$(c)
-  \n\tto list docker tags and id in selected nodes ( filter via dind tags )
-  \t\t$(c G)\$ knrun --dind -c \"docker images --format '{{.Tag}}\\\t{{.ID}}'\" -v$(c)
-  \n\tto run local bash script in selected nodes ( filter via armcc tags )
-  \t\t$(c G)\$ knrun --armcc --file \"/path/to/script.sh\" [ --verbose ]$(c)
-  \n\tto clean up all dangling images in selected nodes ( filter via dind tags )
-  \t\t$(c G)\$ knrun --dind -c \"docker images -f dangling=true -q | uniq | xargs -r docker rmi -f\" -v$(c)
-  \n\tto clean up all docker images which tag contains '4.1.1' ( filter via dind tags )
-  \t\t$(c G)\$ knrun --dind -c \"docker images --format '{{.Repository}}:{{.Tag}}\\\t{{.ID}}' | command grep '4\.1\.1' | awk '{print \\\\\\\\\\\$NF}'\" -v$(c)
+  $(c Cs)knrun$(c) - $(c Csi)k$(c)ubernets $(c Csi)n$(c)odes $(c Csi)run$(c): to run commands in k8s nodes
+
+  SYNOPSIS
+    $(c Ys)\$ knrun $(c 0Gi)[ OPTIONS ] $(c 0Wi)[$(c) $(c 0Bi)--$(c) $(c 0Ci)--script-args $(c 0Wi)]$(c)
+
+  OPTIONS
+    $(c G)-c | --cmd $(c 0Mi)'<CMD>'$(c)      : specify the command to run in selected nodes.
+    $(c G)-f | --file $(c 0Mi)'<SCRIPT>'$(c)  : specify the local bash script file path to run in selected nodes.
+    $(c M)--$(c 0Ci) --args$(c)               : the $(c 0Mi)<SCRIPT>$(c) arguments.
+                              all arguments after $(c B)--$(c) will be passed to the $(c 0Mi)<SCRIPT>$(c).
+
+    $(c G)-l | --armcc$(c)            : filter nodes with armcc tags.
+    $(c G)-d | --dind$(c)             : filter nodes with dind tags.
+    $(c G)-o | --offline$(c)          : include nodes with NotReady status.
+    $(c G)-p | --personal$(c)         : select personal host(s).
+    $(c G)--no-hhost$(c)              : exclude hhost(s) from selection.
+    $(c G)--re$(c)                    : use re project kubeconfig and selector.
+
+    $(c G)-v | --verbose$(c)          : enable verbose output.
+    $(c G)-q | --quiet$(c)            : suppress output except errors.
+    $(c G)-h | --help$(c)             : show this help message and exit.
+    $(c G)-e | --examples$(c)         : show usage examples and exit.
+
+  EXAMPLES
+    $(c Yi)Run \`\$ knrun --examples\` to see usage examples.$(c)
   """
 
-  while test -n "$1"; do
+  # shellcheck disable=SC2155
+  local examples="""
+  $(c Wdi)# to run commands \`uname -a\` in selected nodes$(c)
+  $(c G)\$ knrun --cmd \"uname -a\" [ --verbose ]$(c)
+
+  $(c Wdi)# to run local bash script in selected nodes ( filter via armcc tags )$(c)
+  $(c G)\$ knrun --armcc --file \"/path/to/script.sh\" [ --verbose ]$(c)
+
+  $(c Wdi)# to run local bash script in selected nodes ( filter via armcc tags ) with script arguments$(c)
+  $(c G)\$ knrun --armcc --file \"/path/to/script.sh\" [ --verbose ] $(c 0M)--$(c 0Ci) --args ...$(c)
+
+  $(c Wdi)# to clean up all dangling images in selected nodes ( filter via dind tags )$(c)
+  $(c G)\$ knrun --dind -c \"docker images -f dangling=true -q | uniq | xargs -r docker rmi -f\" -v$(c)
+
+  $(c Wdi)# to clean up all docker images which tag contains '4.1.1' ( filter via dind tags )$(c)
+  $(c G)\$ knrun --dind -c \"docker images --format '{{.Repository}}:{{.Tag}}\\\t{{.ID}}' | command grep '4\.1\.1' | awk '{print \\\\\\\\\\\$NF}'\" -v$(c)
+  """
+
+  # while test -n "$1"; do
+  while [[ $# -gt 0 ]]; do
     case "$1" in
       -c | --cmd      ) cmd="${2}"                           ; shift 2  ;;
       -v | --verbose  ) verbose=true                         ; shift    ;;
@@ -796,11 +816,14 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
       --real-host     ) rhost=true                           ; shift    ;;
       -q | --quiet    ) quiet=true                           ; shift    ;;
       -h | --help     ) echo -e "${usage}"                   ; return   ;;
+      -e | --examples ) echo -e "${examples}"                ; return   ;;
+      --              ) shift ; scriptArgs=( "$@" )          ; break    ;;
       *               ) echo "Invalid option $1. try -h" >&2 ; return 1 ;;
     esac
   done
 
-  [[ -z "${cmd}" && -z "${path}" ]] && echo -e "$(c Rs)ERROR$(c): $(c G)\`-c/--cmd\`$(c) or $(c G)\`-f/--file\`$(c) is mandatory. check more options via $(c Yi)\`-h\`$(c) or $(c Yi)\`--help\`$(c). EXIT ..." && return 2;
+  [[ -z "${cmd}" && -z "${path}"    ]] && echo -e "$(c Rs)ERROR$(c): $(c G)\`-c/--cmd\`$(c) or $(c G)\`-f/--file\`$(c) is mandatory. check more options via $(c Yi)\`-h\`$(c) or $(c Yi)\`--help\`$(c). EXIT ..." >&2 && return 2;
+  [[ -n "${path}" && ! -f "${path}" ]] && echo -e "$(c Rs)ERROR$(c): script file $(c G)${path}$(c) not found. EXIT ..." >&2 && return 2;
 
   # shellcheck disable=SC2086
   if "${hhost}" && "${reproject}"; then
@@ -830,26 +853,53 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   fi
 
   if "${phost}"; then
-     username='marslo'
+    username='marslo'
   else
     "${reproject}" && username='jenkins' || username='devops'
   fi
 
-  local sshCmd=''
+  function runRemote() {
+    local rType="$1"; shift
+    local rTarget="$1"; shift
+    local -a sshBase=(ssh -q "${username}@${_node}")
+
+    # remoteStr = bash -s [-- args ...]
+    local remoteStr='bash -s'
+    if ((${#scriptArgs[@]})); then
+      remoteStr+=' --'
+      local a
+      for a in "${scriptArgs[@]}"; do
+        printf -v remoteStr '%s %q' "$remoteStr" "$a"
+      done
+    fi
+
+    # verbose
+    if "${verbose}"; then
+      printf "$(c Wdi)>> %s:$(c) $(c Wi)" '[DEBUG]'
+      printf '%q ' "${sshBase[@]}"
+      printf '%s ' "$(sq "${remoteStr}")"
+      printf '%s ' "${rType}"
+      printf "%s$(c)\n" "$(sq "${rTarget}")"
+    fi
+
+    # execute
+    # shellcheck disable=SC2015
+    if test "${rType}" == '<'; then
+      "${sshBase[@]}" "${remoteStr}" < "${rTarget}"
+    else
+      "${sshBase[@]}" "${remoteStr}" <<< "${rTarget}"
+    fi
+  }
+
   if [[ -n ${nodes} ]]; then
     trap exit SIGINT SIGTERM; while read -r _node; do
-      "${rhost}"   && _node="$(ssh -n ${username}@${_node} \"hostname\")"
+      "${rhost}"   && _node="$(ssh -n "${username}"@"${_node}" \"hostname\")"
       ! "${quiet}" && printf "\n$(c Wd)>>$(c) $(c Ys)%s$(c) $(c Wd)<<$(c)\n" "${_node}"
       if [[ -n "${path}" ]]; then
-        sshCmd="ssh -q ${username}@${_node} 'bash -s' < \"${path}\""
+        runRemote '<'   "${path}"
       else
-        # sshCmd="ssh -n ${username}@${_node} \"${cmd}\""
-        sshCmd="ssh -T ${username}@${_node} bash -s -- <<< \"${cmd}\""
+        runRemote '<<<' "${cmd}"
       fi
-      if "${verbose}" ; then
-        printf "$(c Wdi)>> [DEBUG]:$(c) $(c Wi)%s$(c)\n" "${sshCmd}"
-      fi
-      eval "${sshCmd}"
     done <<< "${nodes}"
   fi
 }
@@ -1151,9 +1201,8 @@ function mkclr() {                         # [m]a[k]e environment variable [c][l
 #   - if paramter is [ -f | --full ], then load full tool paths
 # shellcheck disable=SC1090,SC2155
 function mkexp() {                         # [m]a[k]e environment variable [e][x][p]ort
-  local usage="$(c Cs)mkexp$(c) - $(c Cs)m$(c)a$(c Cs)k$(c)e environment $(c Cs)exp$(c)ort\n\nSYNOPSIS:
-  \n\t$(c Gs)\$ mkexp [ -h | --help ]
-                [ -f | --full ]"
+  local usage="$(c Cs)mkexp$(c) - $(c Csi)m$(c)a$(c Csi)k$(c)e environment $(c Csi)exp$(c)ort"
+  usage+="\nSYNOPSIS\n  $(c Cs)\$ mkexp $(c 0Gi)[ -h | --help ] [ -f | --full ]$(c)"
   if [[ 1 -eq $# ]]; then
     if [[ '-h' = "$1" ]] || [[ '--help' = "$1" ]]; then
       echo -e "${usage}"
@@ -1454,21 +1503,29 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
   local name=''
   local tag=''
   local cmd=''
-  local usage
-  usage="$(c Cs)drclr$(c) - $(c Cis)d$(c)ocker $(c Cis)r$(c)emote $(c Cis)c$(c)$(c Cis)l$(c)ea$(c Cs)r$(c)
-  \nSYNOPSIS:
-  \n\t$(c Gs)\$ drclr [ -h  | --help     ]
-                [ -c  | --show     ]
-                [ -d  | --delete   ]
-                [ -dl | --dangling ]
-                [ -t  | --tag      ]
-                [ -n  | --name     ]
-                [ -r  | --registry ]$(c)
-  \nEXAMPLE:
-  \n\tshow docker images with pattern of \`HOSTNAME/docker-local/marslo/*\` with tag of \`v1.0.0\`:
-  \t\t$(c Ys)$ drclr -t 'v1.0.0' -r 'docker-local' -n 'marslo/*'$(c)
-  \n\tdelete docker images with pattern of \`HOSTNAME/docker-local/marslo/*\` with tag of \`v1.0.0\`:
-  \t\t$(c Ys)$ drclr -t 'v1.0.0' -r 'docker-local' -n 'marslo/*' -d$(c)
+  # shellcheck disable=SC2155
+  local usage="
+  $(c Cs)drclr$(c) - $(c Cis)d$(c)ocker $(c Cis)r$(c)emote $(c Cis)c$(c)$(c Cis)l$(c)ea$(c Cs)r$(c)
+
+  SYNOPSIS
+    $(c Ys)\$ drclr $(c 0Gi)[ OPTIONS ]$(c)
+
+  OPTIONS
+    $(c G)-c | --show$(c)                : show matched docker images; default action
+    $(c G)-d | --delete$(c)              : delete matched docker images
+    $(c G)-dl | --dangling$(c)           : delete dangling docker images
+    $(c G)-t | --tag $(c 0Mi)<TAG>$(c)           : specify docker image tag to be matched
+    $(c G)-n | --name $(c 0Mi)<NAME_PATTERN>$(c) : specify docker image name pattern to be matched; support wildcard $(c Gi)\`*\`$(c)
+    $(c G)-r | --registry $(c 0Mi)<REGISTRY>$(c) : specify docker registry; $(c Wi)default is \`storage-ff-devops-docker\`$(c)
+    $(c G)--dind$(c)                     : indicate the remote server is docker-in-docker builder node
+    $(c G)-h | --help$(c)                : show this help message
+
+  EXAMPLES
+    $(c Wdi)# show docker images with pattern of \`HOSTNAME/docker-local/marslo/*\` with tag of \`v1.0.0\`$(c)
+    $(c Yi)\$ drclr -t 'v1.0.0' -r 'docker-local' -n 'marslo/*'$(c)
+
+    $(c Wdi)# delete docker images with pattern of \`HOSTNAME/docker-local/marslo/*\` with tag of \`v1.0.0\`$(c)
+    $(c Yi)\$ drclr -t 'v1.0.0' -r 'docker-local' -n 'marslo/*' -d$(c)
   "
 
   while [[ $# -gt 0 ]]; do
@@ -1485,19 +1542,19 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
     esac
   done
 
-  if [[ 'true' = "${dangling}" ]]; then
+  if "${dangling}"; then
     name='--filter dangling=true'
     extraFormat='{{.Repository}}\\t'
     extraCmd=''
   else
-    [[ -z "${tag}"  ]] && echo -e "$(c Rs)ERROR$(c): \`tag\` cannot be empty. check more options via \`-h\` or \`--help\`. EXIT ..." && return;
-    [[ -n "${name}" ]] && name="${hostname}/${registry}/${name}"
-    [[ 'true' = "${show}" ]] && extraCmd=" | column -t | grep --fixed-string -e ${tag}" || extraCmd=''
+    test -z "${tag}"  && echo -e "$(c Rs)ERROR$(c): \`tag\` cannot be empty. check more options via \`-h\` or \`--help\`. EXIT ..." && return;
+    test -n "${name}" && name="${hostname}/${registry}/${name}"
+    "${show}" && extraCmd=" | column -t | grep --fixed-string -e ${tag}" || extraCmd=''
     extraFormat=''
   fi
 
   cmd="docker images ${name} --format \\\"${extraFormat}{{.Tag}}\\t{{.ID}}\\\" ${extraCmd}"
-  [[ 'true' = "${delete}" ]] && cmd+=" | awk '{print \\\$NF}' | uniq | xargs -r docker rmi -f"
+  "${delete}" && cmd+=" | awk '{print \\\$NF}' | uniq | xargs -r docker rmi -f"
 
   "${dind}" && k8sOpt='-l devops.domain/docker.builder=true' || k8sOpt=''
   hostnames=$( kubecolor --kubeconfig ~/.kube/config get nodes ${k8sOpt} -o json |
@@ -1523,7 +1580,7 @@ function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
 # [d]elete [d]ocker [i]mages
 function ddi() {                          # [d]elete [d]ocker [i]mages
   function joinBy { local d=${1:-} f=${2:-}; if shift 2; then printf %s "$f" "${@/#/$d}"; fi; }
-  declare -a tags
+  declare -a tags=()
   local nodes=''
   local cmd=''
   local removal='false'
@@ -1534,24 +1591,31 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
 
   # shellcheck disable=SC2155
   local usage="""
-  \t $(c M)ddi$(c) - $(c iM)d$(c)elete $(c iM)d$(c)ocker $(c iM)i$(c)mage: remove docker images
-  \nSYNOPSIS:
-  \n\t$(c sY)\$ ddi [ -t | --tags <tag> ]
-  \t      [ -v | --verbose ]
-  \t      [ -r | --removal ]
-  \t      [ -d | --dind ]
-  \t      [ --dangling | --no-dangling ]
-  \t      [ -h | --help ]
-  \t      [ --dryrun ]$(c)
-  \nEXAMPLE:
-  \n\tshow help
-  \t\t$(c G)\$ ddi -h$(c) | $(c G)\$ ddi --help$(c)
-  \n\tremove docker images with multiple tags as well as dangling images
-  \t\t$(c G)\$ ddi -t '4.1.0' -t '3.1.0' -r --verbose$(c)
-  \n\tremove docker images with multiple tags with dryrun mode
-  \t\t$(c G)\$ ddi -t '4.1.0' -t '22.04' --dryrun$(c)
-  \n\tcheck or remove by docker tags in docker.builer servers only
-  \t\t$(c G)\$ ddi -t '4.1.0' -t '22.04' --dind [ -r | --removal ] [ -v | --verbose ]$(c)
+  $(c Cs)ddi$(c) - $(c Csi)d$(c)elete $(c Csi)d$(c)ocker $(c Csi)i$(c)mage: remove docker images in remote server
+
+  SYNOPSIS
+    $(c sY)\$ ddi $(c 0Gi)[ OPTIONS ]$(c)
+
+  OPTIONS
+    $(c G)-t | --tags $(c 0Mi)<tag>$(c)   : specify docker image tags to be removed or checked; support multiple tags
+    $(c G)-r | --removal$(c)      : enable removal mode; if not provided, only show matched images
+    $(c G)-v | --verbose$(c)      : enable verbose mode for debug
+    $(c G)-d | --dind$(c)         : target docker.builder nodes only in k8s cluster
+    $(c G)--dangling$(c)          : remove dangling images as well (default)
+    $(c G)--no-dangling$(c)       : do not remove dangling images
+
+    $(c G)--dryrun$(c)            : show the images that would be removed without actual deletion
+    $(c G)-h | --help$(c)         : show this help message
+
+  EXAMPLES
+    $(c Wdi)# remove docker images with multiple tags as well as dangling images$(c)
+    $(c Y)\$ ddi -t '4.1.0' -t '3.1.0' -r --verbose$(c)
+
+    $(c Wdi)# remove docker images with multiple tags with dryrun mode$(c)
+    $(c Y)\$ ddi -t '4.1.0' -t '22.04' --dryrun$(c)
+
+    $(c Wdi)# check or remove by docker tags in docker.builer servers only$(c)
+    $(c Y)\$ ddi -t '4.1.0' -t '22.04' --dind [ -r | --removal ] [ -v | --verbose ]$(c)
   """
 
   while test -n "$1"; do
@@ -1567,7 +1631,8 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
       *              ) echo "Invalid option $1. try -h" >&2 ;  return 1 ;;
     esac
   done
-  [[ ${#tags[@]} -eq 0 ]] && echo -e "$(c Rs)ERROR$(c): \`-t | --tags\` cannot be empty. check more options via \`-h\` or \`--help\`. EXIT ..." && return 2;
+
+  test ${#tags[@]} -eq 0 && echo -e "$(c Ris)ERROR$(c)$(c Wi): \`-t / --tags\` cannot be empty. check more options via \`-h\` or \`--help\`. EXIT ...$(c)" && return 2;
 
   for val in "${tags[@]}"; do grepOpt+="-e '${val//./\\.}' "; done
   format="\\\"{{.Tag}}\\\\t{{.ID}}\\\""
@@ -1624,24 +1689,32 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
 # shellcheck disable=SC2155
 function avenv() {                         # [a]ctivate [venv] - activate/create/delete python venv
   local _venv=''
-  local _del='false'
-  local _auto='false'
+  local _del=false
+  local _auto=false
   local usage="""
-  \t $(c M)avenv$(c) - $(c iM)a$(c)ctivate $(c iM)venv$(c): to create/active/deactivate python virtual environment
-  \nSYNOPSIS:
-  \n\t$(c sY)\$ avenv [ -d | --delete ]
-  \t\t[ -c | --create <NAME> ]
-  \t\t[ -c --auto | --create --auto ]
-  \t\t[ -h | --help ]$(c)
-  \nEXAMPLE:
-  \n\tactivate existing venv
-  \t\t$(c G)\$ avenv$(c)
-  \n\tcreate new venv with name \`marslo\` and activate it
-  \t\t$(c G)\$ avenv -c marslo$(c) | $(c G)\$ avenv --create marslo$(c)
-  \n\tcreate new venv with name of current folder name and activate it automatically
-  \t\t$(c G)\$ avenv -c --auto$(c) | $(c G)\$ avenv --create --auto$(c)
-  \n\tdelete existing venv
-  \t\t$(c G)\$ avenv -d$(c) | $(c G)\$ avenv --delete$(c)
+  $(c Cs)avenv$(c) - $(c Csi)a$(c)ctivate $(c Csi)venv$(c): to create/active/delete python virtual environment
+
+  SYNOPSIS
+    $(c sY)\$ avenv $(c 0Gi)[ OPTIONS ]$(c)
+
+  OPTIONS
+    $(c G)-d | --delete$(c)        : delete existing venv
+    $(c G)-c | --create $(c 0Mi)<NAME>$(c) : create new venv with given name. if name is not provided, use current folder name automatically
+    $(c G)--auto$(c)               : create new venv with name of current folder name automatically
+    $(c G)-h | --help$(c)          : show this help message
+
+  EXAMPLES
+    $(c Wdi)# activate existing venv$(c)
+    $(c G)\$ avenv$(c)
+
+    $(c Wdi)# create new venv with name \`marslo\` and activate it$(c)
+    $(c G)\$ avenv -c marslo$(c) | $(c G)\$ avenv --create marslo$(c)
+
+    $(c Wdi)# create new venv with name of current folder name and activate it automatically$(c)
+    $(c G)\$ avenv -c --auto$(c) | $(c G)\$ avenv --create$(c)
+
+    $(c Wdi)# delete existing venv$(c)
+    $(c G)\$ avenv -d$(c) | $(c G)\$ avenv --delete$(c)
   """
 
   function activeVenv() {
@@ -1664,7 +1737,7 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
   }
 
   function createVenv() {
-    if [[ $# -eq 2 ]] && [[ 'true' = "$2" ]]; then
+    if [[ $# -eq 2 ]] && "$2"; then
       _newvenv=${1:-"${PWD##*/}"}
     else
       _newvenv="$1"
@@ -1680,26 +1753,24 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-             --auto ) _auto='true'       ; shift  ;;
-      -c | --create ) _venv="$2"         ; shift  ;;
-      -d | --delete ) _del='true'        ; shift  ;;
-        -h | --help ) echo -e "${usage}" ; return ;;
-                  * ) break                       ;;
+      --auto        ) _auto=true; _venv="${PWD##*/}"; shift   ;;
+      -d | --delete ) _del=true; shift                        ;;
+      -c | --create ) if [[ -n "${2:-}" && "${2}" != -* ]]; then
+                        _venv="$2"; shift 2;
+                      else
+                        _venv="${PWD##*/}"; _auto=true; shift ;
+                      fi                                      ;;
+      -h | --help   ) echo -e "${usage}" ; return             ;;
+      *             ) echo "Invalid option $1" >&2 ; return 1 ;;
     esac
-    if [[ '--auto' = "${_venv}" ]] || [[ -z "${_venv}" ]]; then
-      _venv="${PWD##*/}"
-      _auto='true'
-    elif [[ -e "${_venv}" ]]; then
-      shift
-    fi
   done
 
-  if [[ "${_del}" = 'true' ]]; then
+  if "${_del}"; then
     _venv=$(command ls --color=never "$HOME/.venv" | fzf)
     if [[ -n "${_venv}" ]]; then
       for _var in ${_venv}; do deleteVenv "${_var}"; done
     fi
-  elif [[ -n "${_venv}" ]]; then
+  elif [[ -n "${_venv:-}" ]]; then
     createVenv "${_venv}" "${_auto}"
     activeVenv "${_venv}"
     echo -e "$(c Wd)>>$(c) $(c Wid)install pip package$(c) $(c Cis)pynvim$(c) $(c Wdi)for nvim ..$(c)"
