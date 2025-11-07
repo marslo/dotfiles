@@ -108,8 +108,8 @@
   path              = ~/.marslo/gitconfig.d/credential
   path              = ~/.marslo/gitconfig.d/gitalias
   path              = ~/.marslo/gitconfig.d/gitcolors
-  # path              = ~/.marslo/gitconfig.d/credential.ssh
+  path              = ~/.marslo/gitconfig.d/credential.ssh
   ## ------ set if ssh is unstable ------ ##
-  path              = ~/.marslo/gitconfig.d/credential.https
+  # path              = ~/.marslo/gitconfig.d/credential.https
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker:
