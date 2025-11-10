@@ -9,3 +9,5 @@ require 'colorizer'.setup {
   user_default_options = { RRGGBBAA = true, css_fn = true, css = true, tailwind = true },
   buftypes = { "*", "!prompt", "!popup", }
 }
+
+-- vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=lua:
