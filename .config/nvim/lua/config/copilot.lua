@@ -128,4 +128,4 @@ vim.keymap.set('i', '<S-Tab>', function()
   return t('<S-Tab>')
 end, { expr = true, silent = true, desc = 'S-Tab: LuaSnip back > S-Tab' })
 
--- vim:tabstop=4:softtabstop=4:shiftwidth=4:expandtab:filetype=lua:
+-- vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=lua:
