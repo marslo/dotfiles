@@ -30,3 +30,5 @@ require('nvim-treesitter.configs').setup {
   }
 }
 require("nvim-treesitter.install").prefer_git = true
+
+-- vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=lua:
