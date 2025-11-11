@@ -108,7 +108,7 @@ $ fc-query -f '%{family}\n' /path/to/font.ttf
 
 ## folder structure
 ```bash
-dotfils                    # -> $HOME
+dotfiles                   # -> $HOME
 ├── .config
 │   ├── nvim               # nvim/init.lua
 │   └── ...
@@ -132,13 +132,15 @@ dotfils                    # -> $HOME
   [ -f "~/.marslo/.marslorc" ] && source "~/.marslo/.marslorc"
 
   # wsl
-  [ -f "~/.marslo/.marslorc.wsl" ] && source "~/.marslo/.marslorc.wsl"
+  if uname -r | command grep --color=never -q -i 'microsoft';  then
+    [ -f "~/.marslo/.marslorc.wsl" ] && source "~/.marslo/.marslorc.wsl"
+  fi
   ```
 
 ### inputrc:
-- Copy the `.inputrc` to `$HOME`
+- copy the `.inputrc` to `$HOME`
   ```bash
-  $ cp ./dotfils/.inputrc ~/.inputrc
+  $ cp .inputrc ~/.inputrc
   ```
 
 ![hybird mode for inputrc](https://marslo.github.io/ibook/screenshot/shell/bash-bind-mode-string-cursor-shape.gif)
@@ -156,19 +158,19 @@ dotfils                    # -> $HOME
 
 ### gitalias
 ```bash
-$ cp ./dotfils/.marslo/.gitalias ~/.marslo
+$ cp .marslo/.gitalias ~/.marslo
 
 # included in .gitconfig
-$ echo "[include]"                    >> ~/.gitconfig
-$ echo "  path = ~/.marslo/.gitalias" >> ~/.gitconfig
+$ echo "[include]"                               >> ~/.gitconfig
+$ echo "  path = ~/.marslo/gitconfig.d/gitalias" >> ~/.gitconfig
 # or
 $ cat >> ~/.gitconfig << EOF
 [include]
-  path = ~/.marslo/.gitalias
+  path = ~/.marslo/gitconfig.d/gitalias
 EOF
 ```
 
-![gitalias](https://github.com/marslo/dotfiles/raw/assets/screenshots/gitalias.gif)
+![gitalias](https://github.com/marslo/dotfiles/raw/assets/screenshots/gitalias.v2.gif)
 
 ### tig
 #### installation
@@ -184,11 +186,19 @@ $ sudo make prefix=/usr/local/tig install
 
 - config: copy `.tigrc` to `$HOME` folder
   ```bash
-  $ cp ./dotfils/.tigrc ~
+  $ cp .tigrc ~
   ```
 
 ### python IDLE
 
-![idle solarized dark](https://github.com/marslo/dotfiles/raw/assets/screenshots/idle-solarized-dark.png)
+- solarized dark
 
-![idle gruvbox](https://github.com/marslo/dotfiles/raw/assets/screenshots/idle-gruvbox.png)
+  ![idle solarized dark](https://github.com/marslo/dotfiles/raw/assets/screenshots/idle-solarized-dark.png)
+
+- gruvbox
+
+  ![idle gruvbox](https://github.com/marslo/dotfiles/raw/assets/screenshots/idle-gruvbox.png)
+
+- tango
+
+  ![idle gruvbox](https://github.com/marslo/dotfiles/raw/assets/screenshots/idle-tango.png)

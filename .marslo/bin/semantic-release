@@ -4,7 +4,7 @@
 #     FileName : semantic-release
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-06-17 23:02:43
-#   LastChange : 2025-06-17 23:56:19
+#   LastChange : 2025-11-10 19:36:35
 #=============================================================================
 
 set -euo pipefail
@@ -23,11 +23,10 @@ function showUsage() { echo -e "${usage}" >&2; exit 0; }
 
 declare -r GIT_USER="$(git config --get user.name)"
 declare -r USER="${GITHUB_USER:-${GIT_USER:-marslo}}"
-[[ -z "${USER}"  ]] && die "$(c 0Ci)\$GITHUB_USER$(c) is not set and $(c 0Ci)git user.name$(c) is not configured"
 declare -r TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-${SEMANTIC_RELEASE_TOKEN:-}}}"
-[[ -z "${TOKEN}" ]] && die "$(c 0Ci)\$GITHUB_TOKEN$(c) or $(c 0Ci)\$GH_TOKEN$(c) cannot be found in environment variables, set it before running this script"
 
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
+declare init=false
 declare debug=false
 declare dryrun=false
 declare branch="$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --abbrev-ref HEAD)"
@@ -39,21 +38,18 @@ USAGE
   $(c Ys)\$ ${ME} $(c 0Wdi)[ $(c 0Gi)OPTIONS $(c 0Wdi)]$(c)
 
 OPTIONS
-  $(c G)-b$(c), $(c G)--branch $(c 0Mi)<branch>$(c)  The branch to release from $(c 0Wdi)( default: $(c 0Mi)current branch$(c) $(c 0Wdi))$(c)
-  $(c G)--debug$(c)                Enable debug mode $(c 0Wdi)( default: $(c 0Mi)enabled$(c) $(c 0Wdi))$(c)
-  $(c G)--dryrun$(c)               Perform a dry run without making any changes $(c 0Wdi)( default: $(c 0Mi)disabled$(c) $(c 0Wdi))$(c)
-  $(c G)-h$(c), $(c G)--help$(c)             Show this help message and exit.
+  $(c G)-b$(c), $(c G)--branch $(c 0Mi)<branch>$(c)  the branch to release from $(c 0Wdi)( default: $(c 0Mi)current branch$(c) $(c 0Wdi))$(c)
+  $(c G)-v$(c), $(c G)--verbose$(c), $(c G)--debug$(c) enable debug mode $(c 0Wdi)( default: $(c 0Mi)enabled$(c) $(c 0Wdi))$(c)
+  $(c G)--no-debug$(c)             disable debug mode $(c 0Wdi)( default: $(c 0Mi)disabled$(c) $(c 0Wdi))$(c)
+  $(c G)--dryrun$(c)               perform a dry run without making any changes $(c 0Wdi)( default: $(c 0Mi)disabled$(c) $(c 0Wdi))$(c)
+  $(c G)-i$(c), $(c G)--init$(c)             initialize semantic-release environment $(c 0Wdi)( \$ npm i -g ... )$(c)
+  $(c G)-h$(c), $(c G)--help$(c)             show this help message and exit.
 
 REQUIREMENTS
   • the $(c 0Ci)GITHUB_TOKEN$(c) or $(c 0Ci)GH_TOKEN$(c) or $(c 0Ci)SEMANTIC_RELEASE_TOKEN$(c) environment variable must be set with a valid GitHub token; and
     the $(c 0Ci)GITHUB_USER$(c) environment variable must be set with a valid GitHub username, or the $(c 0Ci)git user.name$(c) must be configured
   • the $(c Biu).releaserc.json$(c) file must be present in the current directory
-  • $(c Wsu)semantic-release$(c) must be installed globally or available in the PATH via:
-    $(c Wi)\`\`\`
-    \$ npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github$(c)
-    $(c 0Wdi)# optional
-    $(c 0Wi)\$ npm install -g conventional-changelog-cli conventional-changelog-angular
-    \`\`\`$(c)
+  • $(c Wsu)semantic-release$(c) must be installed globally or available in the PATH. install via $(c 0Mi)\`\$ ${ME} --init\`$(c)
 
 NOTE
   • check more usage via $(c 0Yi)\`\$ npx semantic-release $(c 0Gi)--help\`$(c)
@@ -61,14 +57,38 @@ NOTE
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    -b | --branch ) branch="$2" ; shift 2    ;;
-    --debug       ) debug=true  ; shift      ;;
-    --no-debug    ) debug=false ; shift      ;;
-    --dryrun      ) dryrun=true ; shift      ;;
-    -h | --help   ) showUsage                ;;
-    *             ) die "unknown option: $1" ;;
+    -b | --branch            ) branch="$2" ; shift 2    ;;
+    -v | --verbose | --debug ) debug=true  ; shift      ;;
+    --no-debug               ) debug=false ; shift      ;;
+    --dryrun                 ) dryrun=true ; shift      ;;
+    -i | --init              ) init=true   ; shift      ;;
+    -h | --help              ) showUsage                ;;
+    *                        ) die "unknown option: $1" ;;
   esac
 done
+
+# mandatory: $ npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github$(c)
+# optional:  $ npm install -g conventional-changelog-cli conventional-changelog-angular
+declare -a npmcmd=(npm install -g)
+if "${init}"; then
+  echo -e "$(c 0Ci)>> installing semantic-release and plugins globally ...$(c)" >&2
+  npmcmd+=( semantic-release )
+  npmcmd+=( @semantic-release/commit-analyzer )
+  npmcmd+=( @semantic-release/release-notes-generator )
+  npmcmd+=( @semantic-release/changelog )
+  npmcmd+=( @semantic-release/exec )
+  npmcmd+=( @semantic-release/git )
+  npmcmd+=( @semantic-release/github )
+  "${debug}" && npmcmd+=( --verbose )
+  "${npmcmd[@]}" || {
+    echo -e '\n'
+    die "failed to install semantic-release and plugins globally"
+  }
+  exit 0
+fi
+
+[[ -z "${USER}"  ]] && die "$(c 0Ci)\$GITHUB_USER$(c) is not set and $(c 0Ci)git user.name$(c) is not configured"
+[[ -z "${TOKEN}" ]] && die "$(c 0Ci)\$GITHUB_TOKEN$(c) or $(c 0Ci)\$GH_TOKEN$(c) cannot be found in environment variables, set it before running this script"
 
 declare -a cmd=( env )
 cmd+=( CI=true )
@@ -78,7 +98,7 @@ cmd+=( npx semantic-release --branch "${branch}" )
 "${debug}"  && cmd+=( --debug )
 "${dryrun}" && cmd+=( --dry-run )
 
-"${debug}" && echo -e "$(c 0Wdi)>> running:\n\t$(c 0Mdi)${cmd[*]} $(c 0Wdi)..$(c)\n" >&2
+"${debug}"  && echo -e "$(c 0Wdi)>> running:\n\t$(c 0Mdi)${cmd[*]} $(c 0Wdi)..$(c)\n" >&2
 
 export GITHUB_TOKEN="${TOKEN}"
 export GITHUB_USER="${USER}"
