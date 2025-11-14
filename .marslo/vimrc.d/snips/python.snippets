@@ -51,4 +51,14 @@ snippet //vim "vim modeline" b
 # vim:tabstop=4:softtabstop=4:shiftwidth=4:expandtab:filetype=python:
 endsnippet
 
+snippet "#pl( (\S+))?" "pylint disable={}" r
+# pylint: disable=${1:`!p
+snip.rv = match.group(2) if match.group(1) is not None else ""`}
+endsnippet
+
+snippet "#pln( (\S+))?" "pylint disable={}" r
+# pylint: disable-next=${1:`!p
+snip.rv = match.group(2) if match.group(1) is not None else ""`}
+endsnippet
+
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=snippet:
