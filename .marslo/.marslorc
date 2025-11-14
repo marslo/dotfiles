@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2025-10-27 19:45:18
+# LastChange : 2025-11-13 22:14:08
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -97,6 +97,7 @@ test -f "${iRCHOME}/.completion/cht.sh/cht.sh"      && eval "$(/bin/cat "${iRCHO
 test -f "${iRCHOME}/.completion/complete_alias"     && eval "$(/bin/cat "${iRCHOME}/.completion/complete_alias")"
 test -f "${iRCHOME}/.completion/npm-groovy-lint.sh" && eval "$(/bin/cat "${iRCHOME}/.completion/npm-groovy-lint.sh")"
 type -P commitlint >/dev/null 2>&1                  && eval "$(/bin/cat "${iRCHOME}/.completion/commitlint.sh")"
+type -P pre-commit >/dev/null 2>&1                  && eval "$(/bin/cat "${iRCHOME}/.completion/pre-commit.sh")"
 type -P kubectl    >/dev/null                       && eval "$(command kubectl completion bash)"
 type -P npm        >/dev/null                       && eval "$(npm completion)"                  # ~/.npm/lib/node_modules/npm-completion/npm-completion.sh
 type -P gh         >/dev/null                       && eval "$(gh copilot alias -- bash)"
@@ -106,6 +107,7 @@ type -P bat        >/dev/null                       && eval "$(bat --completion 
 type -P vault      >/dev/null                       && complete -C "$(type -P valut)" vault
 type -P pipx       >/dev/null                       && eval "$(register-python-argcomplete pipx)"
 type -P pip        >/dev/null                       && eval "$(pip completion --bash)"
+type -P pyenv      >/dev/null                       && eval "$(pyenv init -)"
 type -t _fd        >/dev/null 2>&1                  && complete -F _fd -o nosort -o bashdefault -o default ff ffs
 type -t _comp_cmd_chromium_browser >/dev/null 2>&1  && complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome
 complete -o default -o bashdefault chrome

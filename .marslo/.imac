@@ -4,7 +4,7 @@
 #   FileName: .imac
 #     Author: marslo.jiao@gmail.com
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2025-10-27 19:06:11
+# LastChange: 2025-11-13 22:15:31
 #   Comments: using `brew --prefix` for $HOMEBEW_PREFIX set as `/opt/homebrew`
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
@@ -170,7 +170,10 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
 
   # eval "$(/usr/libexec/path_helper)"
   export JAVA_HOME GROOVY_HOME PATH
-  export GUILE_TLS_CERTIFICATE_DIRECTORY PYTHONPATH PYTHONUSERBASE CLASSPATH RUBY_CONFIGURE_OPTS
+  export GUILE_TLS_CERTIFICATE_DIRECTORY CLASSPATH RUBY_CONFIGURE_OPTS
+  # disable for venv
+  # export PYTHONPATH PYTHONUSERBASE
+
   # export JAVA_OPTS
 
   # more options:
