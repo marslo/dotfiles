@@ -10,9 +10,9 @@ else
 fi
 
 # for :terminal in nvim, avoid scp issue from non-mac system
-if [[ 'Darwin' = $(uname) ]]; then
-  test -f /opt/homebrew/bin/brew && eval "$(/opt/homebrew/bin/brew shellenv)"
-  test -f /usr/local/bin/brew    && eval "$(/usr/local/bin/brew shellenv)"
+if test 'Darwin' = "$(/usr/bin/uname)"; then
+  test -f /opt/homebrew/bin/brew && eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null)"
+  test -f /usr/local/bin/brew    && eval "$(/usr/local/bin/brew shellenv 2>/dev/null)"
   command -v brew >/dev/null && source "$(brew --prefix git)"/etc/bash_completion.d/git-*.sh \
                              || source "$(brew --prefix git)"/etc/bash_completion.d/git-prompt.sh
 else
@@ -43,9 +43,12 @@ function bello() { source ~/.bash_profile; }
 
 # https://brettterpstra.com/2014/07/12/making-cd-in-bash-a-little-better/
 # export FIGNORE="Application Scripts:Applications (Parallels):ScrivWatcher:ScriptingAdditions"
-# [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+# test -f ~/.fzf.bash && source ~/.fzf.bash
+
+# generated for envman. do not edit.
+# test -s "$HOME/.config/envman/load.sh" && source "$HOME/.config/envman/load.sh"
 
 # generated for tt
-[[ -f "$HOME/.tt/.ttenv" ]] && source "$HOME/.tt/.ttenv"
+test -f "$HOME/.tt/.ttenv" && source "$HOME/.tt/.ttenv"
 
 # vim: tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

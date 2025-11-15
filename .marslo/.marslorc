@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2025-11-13 22:14:08
+# LastChange : 2025-11-14 16:15:57
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -39,6 +39,8 @@ GREP="$(type -P grep)"
 COLUMN="$(type -P column)"
 
 if isOSX && [[ 0 = $(type -P brew >/dev/null; echo $?) ]]; then
+  # rebuild brew cache
+  test -d "$(brew --cache)"                        || brew upgrade >/dev/null 2>&1
   test -x "$(brew --prefix)/bin/gls"               && LS="$(brew --prefix)/bin/gls"
   test -x "$(brew --prefix)/bin/ggrep"             && GREP="$(brew --prefix)/bin/ggrep"
   test -x "$(brew --prefix util-linux)/bin/column" && COLUMN="$(brew --prefix util-linux)/bin/column"
