@@ -283,11 +283,12 @@ function main() {
   - detail 2 ( lowercase first letter )
   - ...
 
+  Do NOT prefix bullet points with a single-letter label or initial.
+  Do NOT include lastchange timestamps changes in script/code metadata.
+  Do not include timestamp changes in script/code metadata.
   Use multiple scopes if the diff includes changes in multiple areas.
   Use markdown-style bullet points for details and initials in lowercase.
   Each bullet should start directly with a lowercase verb phrase (e.g., update docs, fix bug ...).
-  Do NOT prefix bullet points with a single-letter label or initial.
-  Do not include timestamp changes in script/code metadata.
   Do not include explanations or code.
   Base it on the following diff:
 
@@ -312,7 +313,7 @@ function main() {
   printf '%s\n' "${payload}" > "${plfile}"
   local payloadBytes=$(wc -c < "${plfile}")
   "${VERBOSE}" && printf "$(c Wdi) payload dumped to \`$(c 0Mi)%s$(c 0Wdi)\` (size: $(c 0Mi)%d$(c 0Wdi) bytes, $(c 0Mi)~%d$(c 0Wdi) KiB)$(c)\n" "${plfile}" "${payloadBytes}" "$(( payloadBytes / 1024 ))" >&2
-  "${VERBOSE}" && printf "%b-------------------------------------%b\n" "$(c Wdi)" "$(c)"
+  "${VERBOSE}" && printf "%b-------------------------------------%b\n\n" "$(c Wdi)" "$(c)"
 
   declare response=''
   local curlExit=128

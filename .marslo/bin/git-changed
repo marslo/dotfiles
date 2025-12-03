@@ -1,67 +1,84 @@
 #!/usr/bin/env bash
+# shellcheck source=/dev/null
+#=============================================================================
+#     FileName : git-changed
+#       Author : marslo
+#      Created : 2025-08-22 15:24:56
+#   LastChange : 2025-12-03 02:44:07
+#=============================================================================
 
 set -euo pipefail
 
+# credit: https://github.com/ppo/bash-colors
+if test -f "${HOME}/.marslo/bin/bash-color.sh"; then
+  source "${HOME}/.marslo/bin/bash-color.sh"
+else
+  # or copy & paste the `c()` function from https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+  c() { :; }
+fi
+
+
+# section toggles (default all if none specified)
+declare showStaged=0 showUnstaged=0 showUntracked=0 showIgnored=0 anySection=0
+# title mode: 0=auto (only when has output), 1=all (force), 2=none (suppress)
+declare showTitle=0
+declare -a pathspec=()
+
 # shellcheck disable=SC2125
 declare USAGE="""
-Usage: git_changed [OPTIONS] [--] [PATHSPEC...]
-
 Show changed files grouped by sections.
 
-SECTIONS (CAN SPECIFY MULTIPLE):
-  --staged       Show staged changes (A/C/M/R)
-  --unstaged     Show unstaged changes (A/C/M/R)
-  --untracked    Show untracked files (excluding ignored)
-  --ignored      Show ignored files (from .gitignore / global ignore)
-  --all          Show all sections (default if none specified)
+USAGE:
+  \$ git changed [OPTIONS] [--] [PATHSPEC...]
 
-TITLE DISPLAY:
-  --all-titles   Print section titles even if empty
-  --no-title     Do not print section titles (just the file names)
+SECTIONS (CAN SPECIFY MULTIPLE)
+  -s,  --staged       show staged changes ( A/C/M/R )
+  -us, --unstaged     show unstaged changes ( A/C/M/R )
+  -ut, --untracked    show untracked files ( excluding ignored )
+  -i,  --ignored      show ignored files ( from .gitignore / global ignore )
+  -a,  --all          show all sections ( default if none specified )
 
-OTHER:
-  -h, --help     Show this help
+TITLE DISPLAY
+  --all-titles   print section titles even if empty ( default: only if has output )
+  --no-title     do not print section titles ( just the file names )
 
-NOTES:
-  - You may pass multiple PATHSPECs; use \`--\` to stop option parsing.
-  - Deleted files are not shown by default. To include deletions, change the diff-filter from ACMR to ACMRD in the function if desired.
+OTHER
+  -h, --help     show this help
 
-EXAMPLES:
+NOTES
+  • You may pass multiple PATHSPECs; use \`--\` to stop option parsing
+  • Deleted files are not shown by default. To include deletions, change the diff-filter from ACMR to ACMRD in the function if desired
+
+EXAMPLES
   \$ git changed
   \$ git changed --staged --untracked
   \$ git changed --ignored -- src/ "*.log"
-  \$ git changed --no-title -- -- '*.c' '!:test/*'
+  \$ git changed --no-title -- '*.c' '!:test/*'
 """
 
-function usage() { echo -e "${USAGE}"; return 0; }
-function main() {
+function usage() { echo -e "${USAGE}"; exit 0; }
+function die()   { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c 0Wdi)exit ...$(c)" >&2; }
+function main()  {
   if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo "fatal: not a git repository (or any of the parent directories): .git" >&2
+    die "fatal: not a git repository (or any of the parent directories): .git"
     return 128
   fi
 
-  # section toggles (default all if none specified)
-  local showStaged=0 showUnstaged=0 showUntracked=0 showIgnored=0 anySection=0
-  # title mode: 0=auto (only when has output), 1=all (force), 2=none (suppress)
-  local showTitle=0
-  local -a pathspec=()
-  local stopOpts=0
-
   while [[ "$#" -gt 0 ]]; do
-    [[ "${stopOpts}" -eq 1 ]] && { pathspec+=("$1"); shift; continue; }
-
     case "$1" in
-      -a | --all   ) showStaged=1    ; showUnstaged=1; showUntracked=1; showIgnored=1; anySection=1 ;;
-      --staged     ) showStaged=1    ; anySection=1                 ;;
-      --unstaged   ) showUnstaged=1  ; anySection=1                 ;;
-      --untracked  ) showUntracked=1 ; anySection=1                 ;;
-      --ignored    ) showIgnored=1   ; anySection=1                 ;;
-      --all-titles ) showTitle=1                                    ;;
-      --no-title   ) showTitle=2                                    ;;
-      --           ) stopOpts=1                                     ;;
-      -h | --help  ) usage                                          ;;
-      -*           ) echo "error: unknown option: $1" >&2; return 2 ;;
-      *            ) pathspec+=("$1")                               ;;
+      -a  | --all       ) showStaged=1    ; showUnstaged=1; showUntracked=1; showIgnored=1; anySection=1 ;;
+      -s  | --staged    ) showStaged=1    ; anySection=1                 ;;
+      -us | --unstaged  ) showUnstaged=1  ; anySection=1                 ;;
+      -ut | --untracked ) showUntracked=1 ; anySection=1                 ;;
+      -i  | --ignored   ) showIgnored=1   ; anySection=1                 ;;
+      --all-titles      ) showTitle=1                                    ;;
+      --no-title        ) showTitle=2                                    ;;
+      --                ) case "${2:-}" in
+                            -h | --help ) usage                          ;;
+                            *           ) shift; pathspec+=("$@"); set --; break ;;
+                          esac                                           ;;
+      -*                ) die "error: unknown option: $1"; return 2      ;;
+      *                 ) pathspec+=("$1")                               ;;
     esac
     shift
   done
@@ -74,12 +91,12 @@ function main() {
   local -a ps=()
   [[ "${#pathspec[@]}" -gt 0 ]] && ps=(-- "${pathspec[@]}")
 
-  _title() { printf '\033[1m[%s]\033[0m\n' "${1}"; }
+  _title() { printf "%b[%s]%b\n" "$(c 0M)" "${1}" "$(c)"; }
 
   # Print a section. showTitle:
   # 0: print title only if there is output
-  # 1: always print title (even if empty)
-  # 2: never print title
+  # 1: always print title ( even if empty )
+  # 2: never print title ( suppressed )
   _section() {
     local title="${1}"; shift
     local printed=0
@@ -90,7 +107,7 @@ function main() {
         _title "${title}"
         printed=1
       fi
-      printf '%s\n' "${line}"
+      printf "$(c i)%s$(c)\n" "${line}"
     done < <("$@")
   }
 
