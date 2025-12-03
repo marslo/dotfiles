@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2025-11-07 02:58:39
+#  LastChange : 2025-11-15 00:04:43
 #  Description : ifunctions
 # =============================================================================
 
@@ -80,7 +80,7 @@ function mdiff() {
   diff -y --suppress-common-lines "$1" "$2"
 }
 
-ibtoc() {
+function ibtoc() {
   path=${*:-}
   if [ 0 -eq $# ]; then
     # shellcheck disable=SC2124

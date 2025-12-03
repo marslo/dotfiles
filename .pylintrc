@@ -7,6 +7,7 @@
 
 # https://pylint.readthedocs.io/en/latest/user_guide/messages/messages_overview.html
 [MESSAGES CONTROL]
-# enable=
 # W031 - bad-indentation
-disable=W0311
+# C0301 - line-too-long
+# C0321 - multiple-statements
+disable=W0311,C0301,C0321

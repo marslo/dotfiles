@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2025-09-02 17:12:14
+"    LastChange : 2025-11-25 19:37:00
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -91,6 +91,7 @@ function! GroovyKeywords()
   " syntax cluster groovyJDKMethods add=newJDKMethods
   syntax keyword groovyJDKMethods collectEntries collectMany eachWithIndex
   syntax keyword groovyKeywords it Object Closure stage withEnv
+  syntax keyword groovyStandardKeywords writeCSV
   syntax keyword groovyType Map List
   syntax region  groovyDocComment start="/\*\*"  end="\*\*/" end="\ \*/" keepend contains=groovyCommentTitle,@groovyHtml,groovyDocTags,groovyTodo,@Spell
 endfunction

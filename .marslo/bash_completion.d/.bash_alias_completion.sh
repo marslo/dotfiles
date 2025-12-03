@@ -526,4 +526,3 @@ _complete_alias() {
 #complete -F _complete_alias myalias1
 #complete -F _complete_alias myalias2
 #complete -F _complete_alias myalias3
-
