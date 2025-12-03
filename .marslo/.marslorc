@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2025-11-14 20:58:42
+# LastChange : 2025-12-03 01:07:12
 # =============================================================================
 
 export iRCHOME="$HOME/.marslo"
@@ -92,10 +92,14 @@ type -P pyenv      >/dev/null              && eval "$(pyenv init -)"
 #                        |___/
 #
 # --------------------------------------------------------------/
+# check via `$ shopt -p`
 shopt -s cdspell
+shopt -s dirspell
 shopt -s cmdhist
 shopt -s histappend
-# shopt -s extdebug
+shopt -s globstar
+shopt -s autocd
+# shopt -s extdebug -- fcf
 
 ### disable ctrl+s lock putty : # stty -echo; stty stop undef; stty start undef
 # - [reference](https://stackoverflow.com/a/25391867/2940319)
