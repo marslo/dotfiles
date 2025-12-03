@@ -4,7 +4,7 @@
 #     FileName : ccm.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 03:34:24
-#   LastChange : 2025-12-02 23:43:59
+#   LastChange : 2025-12-02 23:57:02
 #  Description : ccm - [c]hatgpt [c]ommit [m]essage generator
 #                +----------------------+--------------------+------------+
 #                | ENVIRONMENT VARIABLE | DEFAULT VALUE      | NOTES      |
@@ -120,15 +120,8 @@ fi
 
 function cleanfile() { local file="${1:-}"; test -f "${file}" && rm -f -- "${file}"; }
 function createDiff() {
-  local modified
-  modified=$(git --no-pager diff --color=never "${diffOpt[@]}" -- . \
-    ':(glob,exclude)**/.ssh/**' \
-    ':(glob,exclude)**/*.key' \
-    ':(glob,exclude)**/*.pem' \
-    ':(glob,exclude)**/id_ed25519*' \
-    ':(glob,exclude)**/.netrc' \
-    ':(glob,exclude)**/credential.*'
-  )
+  local -a excludes=( '**/.ssh/**' '**/*.key' '**/*.pem' '**/id_ed25519*' '**/.netrc' '**/credential.*' )
+  local modified=$(git --no-pager diff --color=never "${diffOpt[@]}" -- . "${excludes[@]/#/:(glob,exclude)}")
 
   # return "${modified}" if no untracked files are found
   [[ "${DO_UNTRACKED}" == false ]] && { echo "${modified}"; return; }
@@ -137,14 +130,7 @@ function createDiff() {
   local -a selectedFiles=()
   local -a allFiles=()
 
-  mapfile -t allFiles < <(git ls-files --others --exclude-standard -- . \
-    ':(glob,exclude)**/.ssh/**' \
-    ':(glob,exclude)**/*.key' \
-    ':(glob,exclude)**/*.pem' \
-    ':(glob,exclude)**/id_ed25519*' \
-    ':(glob,exclude)**/.netrc' \
-    ':(glob,exclude)**/credential.*'
-  )
+  mapfile -t allFiles < <(git ls-files --others --exclude-standard -- . "${excludes[@]/#/:(glob,exclude)}")
   if [[ "${#allFiles[@]}" -gt 0 ]]; then
     if [[ "$DO_FZF" == true ]]; then
       mapfile -t selectedFiles < <( printf "%s\n" "${allFiles[@]}" | fzf --multi --prompt="untracked files> " )
