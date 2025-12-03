@@ -104,6 +104,9 @@
   smudge            = git-lfs smudge -- %f
   process           = git-lfs filter-process
 
+[safe]
+  directory         = /opt/FontPatcher
+
 [include]
   path              = ~/.marslo/gitconfig.d/credential
   path              = ~/.marslo/gitconfig.d/gitalias

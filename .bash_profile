@@ -6,6 +6,8 @@ export BASH_SILENCE_DEPRECATION_WARNING=1
 if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   test -f /opt/homebrew/bin/brew && eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null)"
   test -f /usr/local/bin/brew    && eval "$(/usr/local/bin/brew shellenv 2>/dev/null)"
+  # rebuild brew cache
+  test -d "$(brew --cache)"      || brew upgrade >/dev/null 2>&1
   test -r "$(brew --prefix)/etc/profile.d/bash_completion.sh"      && source "$(brew --prefix)/etc/profile.d/bash_completion.sh"
   test -r "$(brew --prefix)/share/bash-completion/bash_completion" && source "$(brew --prefix)/share/bash-completion/bash_completion"
 fi

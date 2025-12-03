@@ -2,7 +2,7 @@
 #     FileName : gitalias
 #       Author : marslo.jiao@gmail.com
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2025-09-23 17:56:59
+#   LastChange : 2025-12-02 15:37:15
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -64,7 +64,7 @@
   fl          = log -p --graph --color --graph
   who-renamed = "!bash -c \"git log -M --summary | grep -E '^\\s*rename.*{.*=>.*}'\""
   dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format='%C(6)%h%Creset %C(yellow)(%ad)%Creset %s %C(blue)<%an>%Creset'
-  revlog      = log --max-count=3 --color --graph --notes=linrev --pretty=tformat:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %C(blue)<%an>%Creset %N' --abbrev-commit --date=relative
+  revlog      = log --max-count=3 --color --graph --notes=linrev --pretty=tformat:'%C(bold red)%h%C(reset) -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %C(blue)<%an>%Creset %N' --abbrev-commit --date=relative
   ### Showing all branches and their relationshps
   tree        = log --color --graph --pretty=oneline --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --decorate --abbrev-commit --all
   clog        = log --color --graph --all --decorate --simplify-by-decoration --oneline
@@ -90,8 +90,8 @@
                            '"
   # https://stackoverflow.com/a/53535353/2940319
   ### [p]retty [b]ranch
-  pb          = "!git for-each-ref refs/heads refs/remotes --sort=-committerdate --format='%(color:red)%(objectname:short)%(color:reset) - %(color:bold yellow)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(color:reset) - %(align:left,24)%(color:cyan)<%(authorname)>%(color:reset)%(end) %(color:bold red)%(if)%(HEAD)%(then)* %(else)  %(end)%(color:reset)%(refname:short)' --color --count=10"
-  pbs         = "!git for-each-ref refs/heads refs/remotes --sort=-committerdate --format='%(color:red)%(objectname:short)%(color:reset) - %(color:bold yellow)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(color:reset) - %(align:left,24)%(color:cyan)<%(authorname)>%(color:reset)%(end) %(color:bold red)%(if)%(HEAD)%(then)* %(else)  %(end)%(color:reset)%(refname:short)' --color"
+  pb          = "!git for-each-ref refs/heads refs/remotes --sort=-committerdate --format='%(color:italic 203)%(objectname:short)%(color:reset) - %(color:221)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(color:reset) - %(align:left,26)%(color:cyan)<%(authorname)>%(color:reset)%(end) %(color:bold red)%(if)%(HEAD)%(then)* %(else)  %(end)%(color:reset)%(refname:short)' --color --count=10"
+  pbs         = "!git for-each-ref refs/heads refs/remotes --sort=-committerdate --format='%(color:italic 203)%(objectname:short)%(color:reset) - %(color:221)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(color:reset) - %(align:left,26)%(color:cyan)<%(authorname)>%(color:reset)%(end) %(color:bold red)%(if)%(HEAD)%(then)* %(else)  %(end)%(color:reset)%(refname:short)' --color"
   # git for-each-ref --sort=-committerdate ${refs} --format='%(HEAD)%(color:yellow)%(refname:short)|%(color:bold green)%(committerdate:relative)|%(color:blue)%(subject)|%(color:magenta)%(authorname)%(color:reset)' --color=always | column -ts'|'; \
   ### sort local/remote branch via committerdate (DESC). usage: $ git recent; $ git recent remotes 10
   recent      = "!f() { \
@@ -569,18 +569,18 @@
   # diff
   #-----------------------#
   # {{{
-  ### [d]iff with [r]emote branch
-  rd          = diff @{u}..@
-  ### [d]iff with [p]revious branch
-  pd          = diff @{-1}..@
-  #### [d]iff file [n]ame only
-  nd          = diff --name-status
+  ### [d]iff with [r]emote branch - requires difftastic tool installed
+  rd          = -c diff.external=difft diff @{u}..@
+  ### [d]iff with [p]revious branch - requires difftastic tool installed
+  pd          = -c diff.external=difft diff @{-1}..@
+  #### [d]iff file [n]ame only - requires difftastic tool installed
+  nd          = -c diff.external=difft diff --name-status
   #### [d]iff via colorful [w]ords
   wd          = diff --color-words -U0
   # [l]ine [d]iff
   ld          = !bash -c 'source ~/.marslo/.gitrc && git diff -U0 \"$@\" | diff-lines' -
   # ld        = !bash -l -c 'git diff -U0 "$@" | diff-lines' -
-  ldiff       = diff -U0
+  ldiff       = -c diff.external=difft diff -U0
   diffremote  = "!bash -c 'while read branch; do \n\
                              git fetch origin ${branch}; \n\
                              git ld $branch remotes/origin/${branch}; \n\
