@@ -4,8 +4,11 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2025-12-03 01:07:12
+# LastChange : 2025-12-08 18:11:42
 # =============================================================================
+
+# execute configuration only in the interactive shell
+[[ "${-}" != *i* ]] && return
 
 export iRCHOME="$HOME/.marslo"
 # credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
@@ -24,6 +27,9 @@ function isCentOS()  { test -f /etc/os-release && test 'centos' = "$(awk -F '[="
 # for public server (use common account)
 function bello()     { source ~/.marslo/.marslorc; set -o vi;  }
 function bye()       { source "${iRCHOME}"/.bye; set -o emacs; }
+
+# rebuild brew cache
+if isOSX && ! test -d "$(brew --cache)"; then brew upgrade >/dev/null 2>&1; fi
 
 # /--------------------------------------------------------------
 #      _       __            _ _     _              _
@@ -65,7 +71,7 @@ if isOSX; then
   GROOVY_HOME="$(brew --prefix groovy)"
   FZF_HOME="$(brew --prefix fzf)"
   test -f "${iRCHOME}"/.imac  && source "${iRCHOME}"/.imac
-elif isLinux; then                                            ## for Ubuntu/RHEL/CentOS
+elif isLinux; then                                            # for Ubuntu/RHEL/CentOS
   isDebian && export DEBIAN_FRONTEND=noninteractive
   test -f "${iRCHOME}"/.irhel && source <( /bin/cat "${iRCHOME}"/.irhel )
 fi
@@ -79,7 +85,7 @@ test -f "$HOME"/.cargo/env                 && source "$HOME"/.cargo/env
 test -s "$HOME"/.sdkman/bin/sdkman-init.sh && source "$HOME"/.sdkman/bin/sdkman-init.sh
 test -f "$HOME"/.rbenv/bin/rbenv           && eval "$("$HOME"/.rbenv/bin/rbenv init - bash)"
 test -f "$HOME"/.docker/init-bash.sh       && source "$HOME"/.docker/init-bash.sh       # docker desktop
-type -P pyenv      >/dev/null              && eval "$(pyenv init -)"
+type -P pyenv >/dev/null                   && eval "$(pyenv init -)"
 
 # /--------------------------------------------------------------
 #                   __ _
@@ -141,15 +147,18 @@ test -e /usr/share/terminfo/78/xterm-256color && export TERM='xterm-256color'
 #            |___/
 # --------------------------------------------------------------/
 # rewrite help and history
-[[ -f "${iRCHOME}/bin/help"    ]] && source "${iRCHOME}/bin/help"
-[[ -f "${iRCHOME}/bin/history" ]] && source "${iRCHOME}/bin/history"
+test -f "${iRCHOME}/bin/help"    && source "${iRCHOME}/bin/help"
+test -f "${iRCHOME}/bin/history" && source "${iRCHOME}/bin/history"
 
 source <( /bin/cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im,icolor}.sh )
-isOSX     && source <( /bin/cat "${iRCHOME}"/bin/ii.sh )
-! isLinux && test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
-test -f "${iRCHOME}"/bin/now       && bash   "${iRCHOME}"/bin/now
-test -f "${iRCHOME}"/.tmux-session && source "${iRCHOME}"/.tmux-session
-isOSX     && echo ''
+isOSX && source <( /bin/cat "${iRCHOME}"/bin/ii.sh )
+# not show system info in vscode/cursor terminal and nvim terminal
+if [[ "${TERM_PROGRAM:-}" != "cursor" && "${TERM_PROGRAM:-}" != "vscode" && -z "${NVIM}" ]]; then
+  ! isLinux && test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
+  test -f "${iRCHOME}"/bin/now        && bash   "${iRCHOME}"/bin/now
+  test -f "${iRCHOME}"/.tmux-session  && source "${iRCHOME}"/.tmux-session
+  isOSX     && echo ''
+fi
 
 # type -P starship >/dev/null 2>&1 && eval "$(starship init bash)"
 
@@ -163,6 +172,6 @@ isOSX     && echo ''
 #               | |             __/ |
 #               |_|            |___/
 # --------------------------------------------------------------/
-! test -f "${iRCHOME}"/bin/fzf-git.sh || source "${iRCHOME}"/bin/fzf-git.sh
+if test -f "${iRCHOME}"/bin/fzf-git.sh; then source "${iRCHOME}"/bin/fzf-git.sh; fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------

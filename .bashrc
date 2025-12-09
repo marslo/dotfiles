@@ -11,24 +11,27 @@ fi
 
 # for :terminal in nvim, avoid scp issue from non-mac system
 if test 'Darwin' = "$(/usr/bin/uname)"; then
-  test -f /opt/homebrew/bin/brew && eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null)"
-  test -f /usr/local/bin/brew    && eval "$(/usr/local/bin/brew shellenv 2>/dev/null)"
-  command -v brew >/dev/null && source "$(brew --prefix git)"/etc/bash_completion.d/git-*.sh \
-                             || source "$(brew --prefix git)"/etc/bash_completion.d/git-prompt.sh
+  test -f /opt/homebrew/bin/brew && HOMEBREW_PREFIX="/opt/homebrew";
+  test -f /usr/local/bin/brew    && HOMEBREW_PREFIX="/usr/local";
+  test -f "${HOMEBREW_PREFIX}"/bin/brew && eval "$("${HOMEBREW_PREFIX}"/bin/brew shellenv 2>/dev/null)"
+
+  if [[ "${BASH:-}" = "${HOMEBREW_PREFIX}/bin/bash" || "${BASH:-}" = "${HOMEBREW_PREFIX}/opt/bash/bin/bash" ]]; then
+    command -v brew >/dev/null   && source "${HOMEBREW_PREFIX}"/opt/git/etc/bash_completion.d/git-*.sh \
+                                 || source "${HOMEBREW_PREFIX}"/opt/git/etc/bash_completion.d/git-prompt.sh
+  fi
 else
   test -f "/etc/bash_completion.d/git-prompt"         && source "/etc/bash_completion.d/git-prompt"
   test -f "/usr/local/libexec/git-core/git-prompt.sh" && source "/usr/local/libexec/git-core/git-prompt.sh"
 fi
 
 # remove empty line:
-# - sed '/^$/d'
-# - awk 'NF > 0' or awk 'NF'
-# remove duplicate line:
-# - awk '!x[$0]++'
-# - https://stackoverflow.com/a/11532197/2940319
+# - sed: `sed '/^$/d'`
+# - awk: `awk 'NF > 0' or awk 'NF'`
+# remove duplicate line: https://stackoverflow.com/a/11532197/2940319
+# - awk: `awk '!x[$0]++'`
 if [[ 'Darwin' = "$(uname)" ]]; then
-  test -f "$(brew --prefix coreutils)/libexec/gnubin/paste" &&
-       export PATH=$( echo "${PATH}" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | "$(brew --prefix coreutils)/libexec/gnubin/paste" -s -d: )
+  test -f "${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin/paste" &&
+       export PATH=$( echo "${PATH}" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | "${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin/paste" -s -d: )
 else
   command -v paste >/dev/null &&
        export PATH=$( echo "${PATH}" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | paste -s -d: )
@@ -39,16 +42,18 @@ if [[ -f /etc/os-release ]] && [[ 'debian' = $(awk -F '=' '/ID_LIKE/ { print $2 
   export DEBIAN_FRONTEND=noninteractive
 fi
 
+# to load .marslorc in nvim terminal
+if [[ -n "${NVIM}" ]]; then
+  test -f ~/.marslo/.marslorc && source ~/.marslo/.marslorc
+fi
 function bello() { source ~/.bash_profile; }
 
 # https://brettterpstra.com/2014/07/12/making-cd-in-bash-a-little-better/
 # export FIGNORE="Application Scripts:Applications (Parallels):ScrivWatcher:ScriptingAdditions"
-# test -f ~/.fzf.bash && source ~/.fzf.bash
-
+if test -f ~/.fzf.bash; then source ~/.fzf.bash; fi
 # generated for envman. do not edit.
-# test -s "$HOME/.config/envman/load.sh" && source "$HOME/.config/envman/load.sh"
-
+if test -s "$HOME/.config/envman/load.sh"; then source "$HOME/.config/envman/load.sh"; fi
 # generated for tt
-test -f "$HOME/.tt/.ttenv" && source "$HOME/.tt/.ttenv"
+if test -f "$HOME/.tt/.ttenv"; then source "$HOME/.tt/.ttenv"; fi
 
 # vim: tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
