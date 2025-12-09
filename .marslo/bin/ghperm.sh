@@ -43,7 +43,7 @@ function usage() {
   echo -e "  $(c G)-m$(c), $(c G)--mrvl$(c)               use personal PAT"
   echo -e "  $(c G)--srv $(c 0Mi)<ACCOUNT>$(c)          use service account PAT. Currently, acceptable values are:"
   echo -e "                            - $(c Mi)srv-release1$(c)"
-  echo -e "                            - $(c Mi)sa-ip-se-jenkins$(c)"
+  echo -e "                            - $(c Mi)sa-ip-sw-jenkins$(c)"
   echo -e "  $(c G)-u$(c), $(c G)--url$(c)                show repository URL instead of full name"
   echo -e "  $(c G)-p$(c), $(c G)--permission $(c 0Mi)<PERM>$(c)  filter by permission. acceptable values are:"
   echo -e "                            - $(c Mi)admin$(c), $(c Mi)maintain$(c), $(c Mi)write$(c), $(c Mi)triage$(c), $(c Mi)read$(c)"
@@ -62,7 +62,7 @@ while [[ $# -gt 0 ]]; do
     -o | --org        ) ORG="${2}"; shift 2;;
     --srv             ) case "${2:-}" in
                           'srv-release1'     ) GITHUB_TOKEN="$(passToken 'marvell/re/ghe/srv-release1')" ;;
-                          'sa_ip-sw-jenkins' ) GITHUB_TOKEN="$(passToken 'marvell/re/ghe/sa_ip-sw-jenkins')" ;;
+                          'sa-ip-sw-jenkins' ) GITHUB_TOKEN="$(passToken 'marvell/re/ghe/sa_ip-sw-jenkins')" ;;
                           *                  ) die "ERROR: '${2:-<empty>}' is not acceptable for option \`--srv\`";;
                         esac;
                         shift 2 ;;

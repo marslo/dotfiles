@@ -4,7 +4,7 @@
 #   FileName: utils
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2025-10-27 19:06:04
+# LastChange: 2025-12-05 18:31:52
 # =============================================================================
 
 # using source instead of alias in ~/.marslo/.marslorc
@@ -79,8 +79,12 @@ alias egrep='command egrep -i -n --color=always'
 alias egp='command egrep -v "(#|^$)"'
 alias h='history | grep -i --color=always'
 alias his='history'
+
 alias diff='diff --color=auto'
-alias difft='difft --override="*.csv:LaTeX"'
+# left - right
+alias diff-left="diff --color=auto --old-line-format='%L' --new-line-format='' --unchanged-line-format=''"
+# right - left
+alias diff-right="diff --color=auto --old-line-format='' --new-line-format='%L' --unchanged-line-format=''"
 
 if isOSX; then alias more='more -r'                ; fi
 if isOSX; then alias man='man 2>/dev/null'         ; fi
@@ -105,7 +109,6 @@ alias tmuxls='tmux ls -F "#{session_created} #{session_name}: #{session_windows}
 # alias polipo='polipo -c $HOME/.marslo/polipo/config daemonise=true >/dev/null 2>&1 &'
 alias polipo='polipo -c $HOME/.marslo/polipo/config >/dev/null 2>&1 &'
 alias myaws='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.marslo/Marslo/Tools/Softwares/sshkey/marslo-aws.pem ec2-user@ec2-54-193-78-97.us-west-1.compute.amazonaws.com'
-alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_env/ubuntu/backups/ss/sslocal-config.json  -d start --log=/Users/marslo/.marslo/log/sslocal.log'
 alias sshmarslo='ssh marslo@118.193.233.78'
 alias nd='npm run deploy'
 # alias rg='rg --hidden --follow --smart-case --vimgrep --ignore-file=$HOME/.rgignore --color=always'
@@ -161,6 +164,9 @@ alias imbusy='cat /dev/urandom | hexdump -C | grep "ca fe"'
 alias weekno='date +"%V"'
 alias daysleft='echo "There are $(($(date +%j -d"Dec 31, $(date +%Y)")-$(date +%j))) left in year $(date +%Y)."'
 alias weather='curl wttr.in/sanjose?mMFn'
+
+type -P sslocal >/dev/null         && alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_env/ubuntu/backups/ss/sslocal-config.json  -d start --log=/Users/marslo/.marslo/log/sslocal.log'
 type -P npm-groovy-lint >/dev/null && alias npm-groovy-lint="$(type -P npm-groovy-lint) --failon warning --noserver"
+type -P difft >/dev/null           && alias difft='difft --override="*.csv:LaTeX"'
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

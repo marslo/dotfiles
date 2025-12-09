@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-11-04 02:01:53
+"    LastChange : 2025-12-08 17:51:23
 " =============================================================================
 
 runtime macros/matchit.vim
@@ -39,7 +39,7 @@ endif
 
 " set shell=/opt/homebrew/bin/bash
 if IsMac() && executable('brew')
-  let s:brewBash = expand(trim( system('brew --prefix bash') )) . '/bin/bash'
+  let s:brewBash = expand(trim( system('brew --prefix') )) . '/bin/bash'
 else
   let s:brewBash = expand(trim( system('command -v bash') ))
 endif
