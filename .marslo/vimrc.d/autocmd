@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-07-09 16:49:01
+"    LastChange : 2025-12-09 18:13:43
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -50,6 +50,9 @@ if has( 'autocmd' )
     autocmd FileType           json                setlocal commentstring=//\ %s
     " for json conccellevel issue
     autocmd BufEnter           *.json              ++nested call timer_start(10, { -> execute('setlocal concealcursor=') })
+    " force set jsonc for json with comments
+    autocmd BufNewFile,BufRead *[Cc]onfig.json,*[Ss]ettings.json,*.jsonc setlocal filetype=jsonc
+    " autocmd BufRead,BufNewFile *.json                                    setlocal filetype=jsonc
     autocmd FileType           markdown,html
             \ let g:AutoPairsCompleteOnlyOnSpace = 1 |
             \ let b:AutoPairs = autopairs#AutoPairsDefine({
