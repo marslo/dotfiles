@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-11-04 02:18:07
+"    LastChange : 2025-12-09 19:12:21
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -539,10 +539,18 @@ let g:ale_ansible_language_server_config = {}
 let g:ale_ansible_language_server_executable = 'ansible-language-server'
 " autocmd FileType python  let g:ale_virtualtext_prefix = '🐍 '
 " autocmd FileType sh      let g:ale_virtualtext_prefix = '💡 '
+" vscodejson requires `$ npm install -g vscode-langservers-extracted`
 let g:ale_linters = {
-      \ 'c':   ['clang', 'cppcheck'],
-      \ 'cpp': ['clang++', 'cppcheck']
+      \ 'c'          : ['clang', 'cppcheck'],
+      \ 'cpp'        : ['clang++', 'cppcheck'],
+      \ 'json'       : ['vscodejson'],
+      \ 'jsonc'      : ['vscodejson'],
+      \ 'html'       : ['vscodehtml'],
+      \ 'css'        : ['vscodecss'],
+      \ 'markdown'   : ['vscodemarkdown'],
+      \ 'javascript' : ['eslint']
       \}
+" let g:ale_linters_explicit = 1
 
 " junegunn/fzf.vim
 nnoremap <silent> <leader>ff :Files<CR>

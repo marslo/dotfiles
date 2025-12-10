@@ -1,9 +1,9 @@
 {
-  "//":  "suppress the python not valid/found issue when open nvim",
+  //  "suppress the python not valid/found issue when open nvim",
   "snippets.ultisnips.pythonPrompt": false,
   "codeLens.enable": true,
   "groovy.enable": true,
-  "//": "$ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk",
+  //: "$ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk",
   "groovy.java.home": "/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home",
   "groovy.project.referencedLibraries": [
     "/opt/homebrew/opt/groovy/libexec/lib/*",
