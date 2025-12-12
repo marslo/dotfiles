@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2025-12-08 18:11:42
+# LastChange : 2025-12-11 21:24:30
 # =============================================================================
 
 # execute configuration only in the interactive shell
@@ -29,7 +29,12 @@ function bello()     { source ~/.marslo/.marslorc; set -o vi;  }
 function bye()       { source "${iRCHOME}"/.bye; set -o emacs; }
 
 # rebuild brew cache
-if isOSX && ! test -d "$(brew --cache)"; then brew upgrade >/dev/null 2>&1; fi
+if isOSX; then
+  test -d "$(brew --cache)" || brew upgrade >/dev/null 2>&1
+
+  test -f /opt/homebrew/bin/brew && HOMEBREW_PREFIX="/opt/homebrew"
+  test -f /usr/local/bin/brew    && HOMEBREW_PREFIX="/usr/local"
+fi
 
 # /--------------------------------------------------------------
 #      _       __            _ _     _              _
@@ -45,9 +50,9 @@ GREP="$(type -P grep)"
 COLUMN="$(type -P column)"
 
 if isOSX && [[ 0 = $(type -P brew >/dev/null; echo $?) ]]; then
-  test -x "$(brew --prefix)/bin/gls"               && LS="$(brew --prefix)/bin/gls"
-  test -x "$(brew --prefix)/bin/ggrep"             && GREP="$(brew --prefix)/bin/ggrep"
-  test -x "$(brew --prefix util-linux)/bin/column" && COLUMN="$(brew --prefix util-linux)/bin/column"
+  test -x "${HOMEBREW_PREFIX}/bin/gls"                   && LS="${HOMEBREW_PREFIX}/bin/gls"
+  test -x "${HOMEBREW_PREFIX}/bin/ggrep"                 && GREP="${HOMEBREW_PREFIX}/bin/ggrep"
+  test -x "${HOMEBREW_PREFIX}/opt/util-linux/bin/column" && COLUMN="${HOMEBREW_PREFIX}/opt/util-linux/bin/column"
 else
   test -x '/usr/bin/ls'   && LS='/usr/bin/ls'      || LS='/bin/ls'
   test -x '/usr/bin/grep' && GREP='/usr/bin/grep'  || GREP='/bin/grep'
@@ -68,12 +73,12 @@ GROOVY_HOME='/opt/groovy/current'
 FZF_HOME="${iRCHOME}"/utils/fzf
 
 if isOSX; then
-  GROOVY_HOME="$(brew --prefix groovy)"
-  FZF_HOME="$(brew --prefix fzf)"
-  test -f "${iRCHOME}"/.imac  && source "${iRCHOME}"/.imac
+  GROOVY_HOME="${HOMEBREW_PREFIX}/opt/groovy"
+  FZF_HOME="${HOMEBREW_PREFIX}/opt/fzf"
+  test -f "${iRCHOME}"/.imac   && source "${iRCHOME}"/.imac
 elif isLinux; then                                            # for Ubuntu/RHEL/CentOS
   isDebian && export DEBIAN_FRONTEND=noninteractive
-  test -f "${iRCHOME}"/.irhel && source <( /bin/cat "${iRCHOME}"/.irhel )
+  test -f "${iRCHOME}"/.ilinux && source <( /bin/cat "${iRCHOME}"/.ilinux )
 fi
 
 test -f "${iRCHOME}"/.env                  && source "${iRCHOME}"/.env
@@ -106,6 +111,7 @@ shopt -s histappend
 shopt -s globstar
 shopt -s autocd
 # shopt -s extdebug -- fcf
+# shopt -s nullglob -- completion source
 
 ### disable ctrl+s lock putty : # stty -echo; stty stop undef; stty start undef
 # - [reference](https://stackoverflow.com/a/25391867/2940319)

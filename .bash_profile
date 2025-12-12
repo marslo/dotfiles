@@ -39,7 +39,6 @@ if test 'Darwin' = "$(/usr/bin/uname -s)"; then
   # shellcheck disable=SC2015
   type -P brew >/dev/null && source "${HOMEBREW_PREFIX}"/opt/git/etc/bash_completion.d/git-*.sh \
                           || source "${HOMEBREW_PREFIX}"/opt/git/etc/bash_completion.d/git-prompt.sh
-  test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
 else
   type -P paste >/dev/null &&
        export PATH=$( echo "$PATH" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | paste -s -d: )

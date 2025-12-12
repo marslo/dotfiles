@@ -16,8 +16,15 @@
 # test -f "${GIT_COMPLETION_DIR}"/git-completion.bash && source "${GIT_COMPLETION_DIR}"/git-completion.bash
 # test -f "${GIT_COMPLETION_DIR}"/git-prompt.sh       && source "${GIT_COMPLETION_DIR}"/git-prompt.sh
 
-for _i in $( /bin/ls -1 ${iRCHOME}/.alias ); do
-  source "${iRCHOME}/.alias/${_i}"
-done
+test -f "${iRHOME}"/.alias && source "${iRHOME}"/.alias
+
+# git completion in linux
+if isLinux; then
+  isDebian && GIT_COMPLETION_DIR='/opt/git/contrib/completion'
+  isFedora && GIT_COMPLETION_DIR='/usr/share/doc/git/contrib/completion'
+  if compgen -G "${GIT_COMPLETION_DIR}/*git*" >/dev/null; then
+    for file in "${GIT_COMPLETION_DIR}"/*git*.[bs]*h; do source "${file}"; done
+  fi
+fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
