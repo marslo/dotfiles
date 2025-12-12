@@ -4,8 +4,10 @@
 #   FileName: .imac
 #     Author: marslo.jiao@gmail.com
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2025-11-13 22:15:31
-#   Comments: using `brew --prefix` for $HOMEBEW_PREFIX set as `/opt/homebrew`
+# LastChange: 2025-12-11 21:19:50
+#   Comments:
+#             2024-11-04: using `brew --prefix` for $HOMEBEW_PREFIX set as `/opt/homebrew`
+#             2025-12-11: using ${HOMEBREW_OPT}/${HOMEBEW_PREFIX} instead of `brew --prefix xxx` for quick load
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
 
@@ -54,8 +56,8 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   # /usr/local/Caskroom/neovim-nightly/nightly-7aa5637/nvim-macos-x86_64/bin/nvim
   # NVIM_HOME='/usr/local/neovim'
   # vim-tabnine
-  LLVM_HOME="$(brew --prefix llvm)"
-  TRASH_HOME="$(brew --prefix trash)"
+  LLVM_HOME="${HOMEBREW_OPT}/llvm"
+  TRASH_HOME="${HOMEBREW_OPT}/trash"
 
   TOOLS_PATH="${TOOLS_PATH:-}"
   # self-compiled vim, using `/opt/homebrew/bin/vim` ( brew install --cask macvim-app ) instead of
@@ -92,36 +94,36 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   # JAVA_HOME="$(brew --prefix openjdk@21)"
   # java 24
   JAVA_HOME=$(/usr/libexec/java_home)                             # $ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
-  GROOVY_HOME="$(brew --prefix groovy)/libexec"                   # -> "${HOMEBREW_OPT}/groovy/libexec"
+  GROOVY_HOME="${HOMEBREW_OPT}/groovy/libexec"                   # -> "${HOMEBREW_OPT}/groovy/libexec"
   # GROOVY_HOME="/opt/groovy/current"                             # -> for groovydoc issue
   GROOVY_CLASSPATH="${GROOVY_CLASSPATH:+$GROOVY_CLASSPATH:}"
   [[ -d "${GROOVY_HOME}/lib"              ]] && GROOVY_CLASSPATH+=".:$(echo "${GROOVY_HOME}"/lib/*.jar | tr ' ' ':'):"
   [[ -d '/opt/jenkins/latest/WEB-INF/lib' ]] && GROOVY_CLASSPATH+="$(echo /opt/jenkins/latest/WEB-INF/lib/*.jar | tr ' ' ':'):"
   [[ -d '/opt/jenkins/plugins'            ]] && GROOVY_CLASSPATH+="$(echo /opt/jenkins/plugins/*/latest/WEB-INF/lib/*.jar | tr ' ' ':')"
-  test -f "$(brew --prefix coreutils)/libexec/gnubin/paste" &&
-       GROOVY_CLASSPATH=$( echo "${GROOVY_CLASSPATH}" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | "$(brew --prefix coreutils)/libexec/gnubin/paste" -s -d: )
+  test -f "${HOMEBREW_OPT}/coreutils/libexec/gnubin/paste" &&
+       GROOVY_CLASSPATH=$( echo "${GROOVY_CLASSPATH}" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | "${HOMEBREW_OPT}/coreutils/libexec/gnubin/paste" -s -d: )
   CLASSPATH=".:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar"
   CLASSPATH+=":$GROOVY_CLASSPATH"
-  test -f "$(brew --prefix coreutils)/libexec/gnubin/paste" &&
-       CLASSPATH=$( echo "${CLASSPATH}" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | "$(brew --prefix coreutils)/libexec/gnubin/paste" -s -d: )
-  CPPFLAGS="-I$(brew --prefix openjdk)/include"                   # https://stackoverflow.com/a/69504284/2940319
+  test -f "${HOMEBREW_OPT}/coreutils/libexec/gnubin/paste" &&
+       CLASSPATH=$( echo "${CLASSPATH}" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | "${HOMEBREW_OPT}/coreutils/libexec/gnubin/paste" -s -d: )
+  CPPFLAGS="-I${HOMEBREW_OPT}/openjdk/include"                   # https://stackoverflow.com/a/69504284/2940319
   # JAVA_OPTS+='-Dhttp.proxyHost=ipamunix.sample.com -Dhttp.proxyPort=8080'
 
   # NODE_HOME="${HOMEBREW_OPT}/node@12"
-  NODE_HOME="$(brew --prefix node)"
+  NODE_HOME="${HOMEBREW_OPT}/node"
   MYSQL_HOME='/usr/local/mysql'
   ITERM2_ADDITIONAL="${HOME}/.iterm2"
 
   TCLTK_HOME="${HOMEBREW_OPT}/tcl-tk"                              # -> "$(brew --prefix tcl-tk)"
   SQLITE_HOME="${HOMEBREW_OPT}/sqlite"
-  RUBY_HOME=$(brew --prefix ruby)
+  RUBY_HOME="${HOMEBREW_OPT}/ruby"
   RUBY_CONFIGURE_OPTS="--with-openssl-dir=${OPENSSL_HOME}"
   _GEM_VERSION="$("${RUBY_HOME}"/bin/ruby -e 'puts "#{RUBY_VERSION}+#{RUBY_PATCHLEVEL < 0 ? 0 : RUBY_PATCHLEVEL}"')"
   RUBY_GEM_HOME="${HOMEBREW_PREFIX}"/lib/ruby/gems/"${_GEM_VERSION}"
   ED_HOME="${HOMEBREW_OPT}/ed"
 
   PYTHON_VERSION="$(/usr/bin/sed -rn 's/^([^[0-9]+)([0-9]+\.[0-9]+).*$/\2/p' < <("${HOMEBREW_PREFIX}"/bin/python3 --version))"
-  PYTHON_HOME=$(brew --prefix python@${PYTHON_VERSION})
+  PYTHON_HOME="${HOMEBREW_OPT}/python@${PYTHON_VERSION}"
   PYTHONPATH="${HOMEBREW_PREFIX}/lib/python${PYTHON_VERSION}/site-packages"
   PYTHONUSERBASE="$(${PYTHON_HOME}/libexec/bin/python -c 'import site; print(site.USER_BASE)')"   # PYTHONUSERBASE=$PYTHONPATH
   PYTHON_CONFIGURE_OPTS="--with-tcltk-includes='-I${TCLTK_HOME}/include' --with-tcltk-libs='-L${TCLTK_HOME}/lib -ltcl8.6 -ltk8.6'"
@@ -208,10 +210,13 @@ BASH_COMPLETION_DIR="${HOMEBREW_PREFIX}/etc/bash_completion.d"               # B
 BASH_COMPLETION_2="$(brew --prefix bash-completion@2)/etc/profile.d/bash_completion.sh"
 test -f "${BASH_COMPLETION_2}" && source "${BASH_COMPLETION_2}"
 
+# for fcf
 if test -d "${BASH_COMPLETION_DIR}"; then
-  source <( cat "${BASH_COMPLETION_DIR}"/{brew,tmux,tig-completion.bash} )
-  if ls "${BASH_COMPLETION_DIR}"/*git*    >/dev/null 2>&1; then source <( cat "${BASH_COMPLETION_DIR}"/*git* )    ; fi
-  if ls "${BASH_COMPLETION_DIR}"/*docker* >/dev/null 2>&1; then source <( cat "${BASH_COMPLETION_DIR}"/*docker* ) ; fi
+  shopt -s nullglob
+  for script in "${BASH_COMPLETION_DIR}"/{brew,tmux,tig-completion.bash,*git*,*docker*}; do
+    [[ -f "${script}" ]] && source "${script}"
+  done
+  shopt -u nullglob
 fi
 
 # iTerm2
@@ -241,10 +246,10 @@ brew-whatprovides() {
 # nvm
 # disabled for issue -- nvm is not compatible with the "NPM_CONFIG_PREFIX" environment variable --
 # [[ -d "$HOME/.nvm" ]] && export NPM_CONFIG_PREFIX="${NVM_DIR}"
-[[ -d "$HOME/.nvm" ]] && export NVM_DIR="$HOME/.nvm"
+test -d "$HOME/.nvm" && export NVM_DIR="$HOME/.nvm"
 # load nvm
-[[ -s "${HOMEBREW_OPT}/nvm/nvm.sh"                    ]] && source "${HOMEBREW_OPT}/nvm/nvm.sh"
+test -s "${HOMEBREW_OPT}/nvm/nvm.sh" && source "${HOMEBREW_OPT}/nvm/nvm.sh"
 # load nvm bash_completion
-[[ -s "${HOMEBREW_OPT}/nvm/etc/bash_completion.d/nvm" ]] && source "${HOMEBREW_OPT}/nvm/etc/bash_completion.d/nvm"
+test -s "${HOMEBREW_OPT}/nvm/etc/bash_completion.d/nvm" && source "${HOMEBREW_OPT}/nvm/etc/bash_completion.d/nvm"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
