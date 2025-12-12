@@ -39,7 +39,7 @@
   ssh-set     = !git https-unset
   ssh-unset   = !git https-set
   ssh-status  = "!~/.marslo/gitconfig.d/bin/https-settings.sh --check ssh"
-  ssh-st      = !git ssh-st
+  ssh-st      = !git ssh-status
   https-local = "!~/.marslo/gitconfig.d/bin/https-local.sh"
   https-lunset= "!git config --local --unset-all url.\"https://github.com/\".insteadOf"
 
@@ -547,6 +547,7 @@
 
   ### [r]eset to [o]riginal and re[b]ase
   rob         = "!f() { \
+                        : git rebase ; \
                         if [ 0 -eq $# ]; then \
                           branch=$(git rev-parse --abbrev-ref HEAD); \
                         else \
