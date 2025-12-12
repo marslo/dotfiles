@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2025-12-11 21:24:19
+#   LastChange : 2025-12-11 21:57:02
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -30,6 +30,8 @@ test -f "${RT_COMPLETION}"                          && source "${RT_COMPLETION}"
 test -f "${COMPLETION_DIR}"/cht.sh/cht.sh           && source "${COMPLETION_DIR}"/cht.sh/cht.sh
 test -f "${COMPLETION_DIR}"/complete_alias          && source "${COMPLETION_DIR}"/complete_alias
 test -f "${COMPLETION_DIR}"/npm-groovy-lint.sh      && source "${COMPLETION_DIR}"/npm-groovy-lint.sh
+# for git alias completion - should load after source git-completion.sh ( after .imac/.ilinux )
+test -f "${COMPLETION_DIR}"/gitalias.sh             && source "${COMPLETION_DIR}"/gitalias.sh
 
 type -P commitlint >/dev/null                       && source "${COMPLETION_DIR}/commitlint.sh"
 type -P pre-commit >/dev/null                       && source "${COMPLETION_DIR}/pre-commit.sh"
@@ -42,7 +44,7 @@ type -P pip        >/dev/null                       && source "${COMPLETION_DIR}
 type -P poetry     >/dev/null                       && source "${COMPLETION_DIR}/poetry.sh"
 # test -d "${NPM_COMPLETION}"                       && source "${NPM_COMPLETION}/npm-completion.sh"
 # via `vault -autocomplete-install`
-type -P vault      >/dev/null                       && complete -C "$(type -P valut)" vault
+type -P vault      >/dev/null                       && complete -C "$(type -P vault)" vault
 type -t _fd        >/dev/null 2>&1                  && complete -F _fd -o nosort -o bashdefault -o default ff ffs
 type -t _comp_cmd_chromium_browser >/dev/null 2>&1  && complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome
 complete -o default -o bashdefault chrome
@@ -51,11 +53,9 @@ complete -o default -o bashdefault chrome
 if test -f "$HOME"/.fzf.bash; then
   source "$HOME"/.fzf.bash
 else
-  type -P fzf >/dev/null                        && eval "$(command fzf --bash)"
-  test -f "${FZF_HOME}/shell/key-bindings.bash" && source "${FZF_HOME}/shell/key-bindings.bash"
+  type -P fzf >/dev/null                            && eval "$(command fzf --bash)"
+  test -f "${FZF_HOME}/shell/key-bindings.bash"     && source "${FZF_HOME}/shell/key-bindings.bash"
 fi
-type -t _fzf_opts_completion >/dev/null 2>&1    && complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
-
-# git completion in linux set in .ilinux
+type -t _fzf_opts_completion >/dev/null 2>&1        && complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
