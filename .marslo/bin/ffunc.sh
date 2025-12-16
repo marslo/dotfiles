@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-11-07 03:04:30
+#   LastChange : 2025-12-16 13:44:15
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -112,50 +112,75 @@ function cat() {                           # smart cat
 }
 
 function fdInRC() {                        # [f]in[d] [in] [rc] files
-  declare -A ignoreList=(
+  local -A ignoreList=(
     [base]='.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf'
-    [rc]='ss/ log*/ .completion/ bin/bash-completion/ *.png *.pem *.p12 *.pub *.lst'
+    [rc]='ss/ log*/ .completion/ bin/bash-completion/ .archive/ *.png *.pem *.p12 *.pub *.lst'
     [config]='*.bak *backup'
     [extra]='*.pem *.p12 *.png *.jpg *.jpeg *.gif *.svg *.zip *.tar *.gz *.bz2 *.xz *.7z *.rar'
   )
 
-  local -a rcPaths=( "$HOME"/.marslo "$HOME"/.idlerc "$HOME"/.ssh "$HOME"/.jfrog "$HOME"/.pip "$HOME"/.config/nvim "$HOME"/.cht.sh "$HOME"/.git-templates )
+  local -a rcPaths=( "${HOME}"/.marslo "${HOME}"/.idlerc "${HOME}"/.ssh "${HOME}"/.jfrog "${HOME}"/.pip "${HOME}"/.config/nvim "${HOME}"/.cht.sh "${HOME}"/.git-templates )
   local -a configPaths=( cheat github-copilot htop yamllint pip ncdu bat gh )
-  local -a fdOpt=( --type f --hidden --follow --unrestricted --ignore-file "$HOME"/.fdignore )
-  local doExtraIgnore=false
 
+  local doExtraIgnore=false
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -x|--extra-ignore ) doExtraIgnore=true ; shift ;;
-      *                 ) break ;;
+      *                 ) break                      ;;
     esac
   done
 
-  # shellcheck disable=SC2086
-  function buildExcludes() {
+  local -a fdOpt=( --color=never --type f --hidden --follow --unrestricted --ignore-file "${HOME}/.fdignore" )
+
+  # GNU/BSD stat compatible
+  local -a statCmd=()
+  if stat --printf '%y|%n\n' /dev/null >/dev/null 2>&1; then
+    statCmd=( stat --printf '%y | %n\n' )
+  else
+    statCmd=( stat -f '%Sm | %N' -t '%Y-%m-%d %H:%M:%S' )
+  fi
+
+  # to build up exclude args safely ( --exclude a --exclude b ... )
+  buildExcludes() {
     local key="$1"
-    printf -- "--exclude %s " ${ignoreList[${key}]}
+    local -a items=()
+    read -r -a items <<< "${ignoreList[${key}]}"
+
+    local it
+    for it in "${items[@]}"; do
+      printf '%s\0' --exclude "${it}"
+    done
   }
 
-  # shellcheck disable=SC2207
-  ${doExtraIgnore} && fdOpt+=( $(buildExcludes extra) )
-  fdOpt+=(--exec stat --printf="%y | %n\n")
+  # excludes array ( to replace the eval )
+  local -a exRc=() exCfg=() exExtra=()
+  mapfile -d '' -t exRc   < <(buildExcludes rc)
+  mapfile -d '' -t exCfg  < <(buildExcludes config)
+  ${doExtraIgnore} && mapfile -d '' -t exExtra < <(buildExcludes extra)
 
-  (
-    eval "fd --max-depth 1 --hidden --exclude '*archive*' '${ignoreList[base]}' $HOME ${fdOpt[*]@Q}" ;
-    echo "${rcPaths[@]}" |
-         fmt -1 |
-         xargs -P"$(nproc)" -r -I{} bash -c "[[ -d {} ]] && fd . {} $(buildExcludes rc) ${fdOpt[*]@Q}" ;
-    echo "${configPaths[@]}" |
-         fmt -1 |
-         xargs -P"$(nproc)" -r -I{} bash -c "[[ -d $HOME/.config/{} ]] && fd . $HOME/.config/{} --max-depth 1 $(buildExcludes config) ${fdOpt[*]@Q}" ;
-  ) |
-    sort -ru |
-    uniq
+  # to setup ~/.config roots
+  local -a cfgRoots=()
+  local c
+  for c in "${configPaths[@]}"; do
+    [[ -d "${HOME}/.config/${c}" ]] && cfgRoots+=( "${HOME}/.config/${c}" )
+  done
+
+  {
+    # top-level rc-like files under $HOME
+    fd --max-depth 1 "${ignoreList[base]}" "${HOME}" --exclude '*archive*' "${fdOpt[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
+    # rcPaths
+    fd . "${rcPaths[@]}" "${fdOpt[@]}" "${exRc[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
+    # ~/.config
+    if (( ${#cfgRoots[@]} > 0 )); then
+      fd . "${cfgRoots[@]}" --max-depth 1 "${fdOpt[@]}" "${exCfg[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
+    fi;
+  } |
+  sort -ru |
+  uniq
 }
 
 function fzfInPath() {                     # return file name via fzf in particular folder
-  local -a fdOpt=(--type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore")
+  local -a fdOpt=( --type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore" )
   if ! uname -r | grep -q 'Microsoft'; then fdOpt+=(--exec-batch ls -t); fi
   [[ '.' = "${1}" ]] && path="${1}" || path=". ${1}"
   fd "${path}" "${fdOpt[@]}" | fzf --cycle --multi "${*:2}" --header "filter in ${1} :"
@@ -267,14 +292,14 @@ function imgview() {                       # [view] [im]a[g]e via [imgcat](https
 # shellcheck disable=SC2016
 function b() {                             # chrome [b]ookmarks browser with jq
   if [ "$(uname)" = "Darwin" ]; then
-    if [[ -e "$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks" ]]; then
-      bookmarks_path="$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks"
-    else
-      bookmarks_path="$HOME/Library/Application Support/Google/Chrome/Default/Bookmarks"
+    if test -e "$HOME/Library/Application Support/Google/Chrome/Default/Bookmarks"; then
+      bookmarkPath="$HOME/Library/Application Support/Google/Chrome/Default/Bookmarks"
+    elif test -e "$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks"; then
+      bookmarkPath="$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks"
     fi
     open=open
   else
-    bookmarks_path="$HOME/.config/google-chrome/Default/Bookmarks"
+    bookmarkPath="$HOME/.config/google-chrome/Default/Bookmarks"
     open=xdg-open
   fi
 
@@ -282,7 +307,7 @@ function b() {                             # chrome [b]ookmarks browser with jq
      def ancestors: while(. | length >= 2; del(.[-1,-2]));
      . as $in | paths(.url?) as $key | $in | getpath($key) | {name,url, path: [$key[0:-2] | ancestors as $a | $in | getpath($a) | .name?] | reverse | join("/") } | .path + "/" + .name + "\t" + .url'
 
-  urls=$( jq -r "${jq_script}" < "${bookmarks_path}" \
+  urls=$( jq -r "${jq_script}" < "${bookmarkPath}" \
              | sed -E $'s/(.*)\t(.*)/\\1\t\x1b[36m\\2\x1b[m/g' \
              | fzf --ansi \
              | cut -d$'\t' -f2
@@ -1067,10 +1092,10 @@ function inMounted() {
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 function goto() {                          # another `cd`
-  path=$(echo "path/to/target" \
-              "path/to/source" |
-         fmt -1 |
-         fzf --prompt "path>"
+  path=$( echo "path/to/target" \
+               "path/to/source" |
+          fmt -1 |
+          fzf --prompt '➤ '
         )
 
   name="$(sed -rn 's:^([^/]+).*:\1:p' <<< "${path}")"
@@ -1764,6 +1789,8 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
     activeVenv "${_venv}"
     echo -e "$(c Wd)>>$(c) $(c Wid)install pip package$(c) $(c Cis)pynvim$(c) $(c Wdi)for nvim ..$(c)"
     python3 -m pip install --upgrade pynvim
+    echo -e "$(c Wd)>>$(c) $(c Wid)install pip package$(c) $(c Cis)pylint$(c) $(c Wdi) ..$(c)"
+    python3 -m pip install --upgrade pylint
     if [[ -f ./requirements.txt ]]; then
       echo -e "$(c Wd)>>$(c) $(c Wid)install$(c) $(c Cis)./requirements.txt$(c) $(c Wdi)automatically ..$(c)"
       python3 -m pip install -r ./requirements.txt
