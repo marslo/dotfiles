@@ -43,7 +43,7 @@ if [[ -f /etc/os-release ]] && [[ 'debian' = $(awk -F '=' '/ID_LIKE/ { print $2 
 fi
 
 # to load .marslorc in nvim terminal
-if [[ -n "${NVIM}" ]]; then
+if [[ -n "${NVIM}" ]] || [[ -n "${VIMRUNTIME:-}" ]] || [[ 'docker_desktop' == "${TERM_PROGRAM}" ]]; then
   test -f ~/.marslo/.marslorc && source ~/.marslo/.marslorc
 fi
 function bello() { source ~/.bash_profile; }
