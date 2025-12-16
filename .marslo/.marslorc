@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2025-12-11 21:24:30
+# LastChange : 2025-12-15 17:28:09
 # =============================================================================
 
 # execute configuration only in the interactive shell
@@ -156,10 +156,16 @@ test -e /usr/share/terminfo/78/xterm-256color && export TERM='xterm-256color'
 test -f "${iRCHOME}/bin/help"    && source "${iRCHOME}/bin/help"
 test -f "${iRCHOME}/bin/history" && source "${iRCHOME}/bin/history"
 
-source <( /bin/cat "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im,icolor}.sh )
-isOSX && source <( /bin/cat "${iRCHOME}"/bin/ii.sh )
-# not show system info in vscode/cursor terminal and nvim terminal
-if [[ "${TERM_PROGRAM:-}" != "cursor" && "${TERM_PROGRAM:-}" != "vscode" && -z "${NVIM}" ]]; then
+for script in "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im,icolor}.sh; do
+  test -f "${script}" && source "${script}";
+done
+isOSX && test -f "${iRCHOME}"/bin/ii.sh && source "${iRCHOME}"/bin/ii.sh
+
+# disable system info shows in vscode/cursor/docker-desktop terminal and nvim/vim terminal
+declare programs=('cursor' 'vscode' 'docker_desktop')
+# shellcheck disable=SC2155
+declare programsRE="^($(IFS='|'; printf '%s' "${programs[*]}"))$"
+if ! [[ -n "${NVIM:-}" || -n "${VIMRUNTIME:-}" || "${TERM_PROGRAM:-}" =~ ${programsRE} ]]; then
   ! isLinux && test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
   test -f "${iRCHOME}"/bin/now        && bash   "${iRCHOME}"/bin/now
   test -f "${iRCHOME}"/.tmux-session  && source "${iRCHOME}"/.tmux-session
