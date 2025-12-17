@@ -39,6 +39,7 @@
   attributesfile    = ~/.gitattributes
   fileMode          = true
   sshCommand        = ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa
+  abbrev            = 10
 [pager]
   branch            = less -FRXK
   diff              = diff-highlight | less
