@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-12-09 19:12:21
+"    LastChange : 2026-01-12 19:51:02
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -107,7 +107,7 @@ if IsNvim()
   Plug 'rafamadriz/friendly-snippets'
 
   " treesitter & lint
-  Plug 'nvim-treesitter/nvim-treesitter', { 'do': ':TSUpdate' }
+  Plug 'nvim-treesitter/nvim-treesitter', { 'branch': 'master', 'do': ':TSUpdate' }
   Plug 'mfussenegger/nvim-lint'
 endif
 
@@ -178,7 +178,7 @@ let g:rainbow_active    = 1
 let g:rainbow_operators = 1
 let g:rainbow_conf      = {
   \ 'guifgs' : [ '#6A5ACD', '#ff6347', '#b58900', '#9acd32', '#EEC900', '#9A32CD', '#EE7600', '#268bd2', '#183172' ],
-  \ 'ctermfgs' : 'xterm-256color' ==? $TERM ? [ '75', '147', '108', '196', '208', '66', '106', '172', '115', '129' ] : [ 'lightblue', 'lightgreen', 'yellow', 'red', 'magenta' ],
+  \ 'ctermfgs' : 'xterm-256color' ==? $TERM ? [ '75', '176', '108', '167', '208', '66', '106', '172', '115', '142' ] : [ 'lightblue', 'lightgreen', 'yellow', 'red', 'magenta' ],
   \ 'parentheses': ['start=/(/ end=/)/ fold', 'start=/\[/ end=/\]/ fold', 'start=/{/ end=/}/ fold'],
   \ 'operators': '_,_',
   \ 'separately': {

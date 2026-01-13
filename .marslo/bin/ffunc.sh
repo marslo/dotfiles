@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2025-12-16 13:44:15
+#   LastChange : 2026-01-12 20:38:47
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -207,7 +207,7 @@ function runrc() {                         # runrc - source/[run] [rc] files
            sed -rn 's/^[^|]* \| (.+)$/\1/p' |
            fzf ${option:-} --multi --cycle \
                --marker='✓' \
-               --bind "ctrl-y:execute-silent(echo -n {+} | ${COPY})+abort" \
+               --bind "ctrl-y:execute-silent(printf '%s' {+} | ${COPY})" \
                --header 'Press CTRL-Y to copy name into clipboard'
          )
   [[ -n "${files}" ]] &&
@@ -281,7 +281,7 @@ function imgview() {                       # [view] [im]a[g]e via [imgcat](https
   fd --unrestricted --type f --exclude .git --exclude node_modules '^*\.(png|jpeg|jpg|xpm|bmp)$' |
   fzf "$@" --height 100% \
            --preview "imgcat -W \$FZF_PREVIEW_COLUMNS -H \$FZF_PREVIEW_LINES {}" \
-           --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
+           --bind "ctrl-y:execute-silent(printf '%s' {+} | pbcopy)+abort" \
            --header 'Press CTRL-Y to copy name into clipboard' \
            --preview-window 'down:80%:nowrap' \
            --exit-0 \
@@ -387,7 +387,7 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
               --cycle \
               --exit-0 \
               --prompt 'pass> ' \
-              --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
+              --bind "ctrl-y:execute-silent(printf '%s' {+} | pbcopy)+abort" \
               --header 'Press CTRL-Y to copy name into clipboard' \
       )
 
@@ -559,7 +559,7 @@ function vimrc() {                         # vimrc - fzf list all rc files in da
   [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="$(type -P nvim)"
   fdInRC -x | sed -rn 's/^[^|]* \| (.+)$/\1/p' \
             | fzf "${foption[@]}" --bind="enter:become(${VIM} {+})" \
-                          --bind "ctrl-y:execute-silent(echo -n {+} | ${COPY})+abort" \
+                          --bind "ctrl-y:execute-silent(printf '%s' {+} | ${COPY})" \
                           --header 'Press CTRL-Y to copy name into clipboard'
 }
 
@@ -1369,7 +1369,7 @@ function kns() {                           # [k]ubectl [n]ame[s]pace
                     --ansi \
                     --height 60% \
                     --prompt "${namespace}@${context} > " \
-                    --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)' \
+                    --bind "ctrl-y:execute-silent(printf '%s' {+} | pbcopy)" \
                     --preview-window up,60%,follow,rounded \
                     --preview "kubecolor --force-colors --namespace {+} get ${resources:-pods,sts} 2>&1 \
                               | grep -vE 'metrics\\.k8s\\.io/v1beta1.*unable to handle the request'" \
@@ -1445,7 +1445,7 @@ function kcani() {                         # [k]ubectl [can]-[i]
                       rg --color=always --colors match:fg:142 --passthru "${namespace}" |
                       fmt -1 |
                       fzf -1 -0 --no-sort --prompt='namespace> ' \
-                          --bind 'ctrl-y:execute-silent(echo -n {+} | pbcopy)+abort' \
+                          --bind "ctrl-y:execute-silent(printf '%s' {+} | pbcopy)+abort" \
                           --header 'Press CTRL-Y to copy name into clipboard'
              )
   [[ -z "${namespaces}" ]] && echo -e "$(c Rs)ERROR: select at least one namespace !$(c)" && return
