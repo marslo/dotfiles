@@ -4,13 +4,14 @@
 #   FileName : imarslo
 #     Author : marslo.jiao@gmail.com
 #    Created : 2017-10-30 19:07:45
-# LastChange : 2025-10-27 19:15:12
+# LastChange : 2026-01-08 00:49:06
 # =============================================================================
 
 MYWORKSPACE="$HOME/iMarslo"
 
 alias irc="cd $HOME/.marslo"
 alias desk="cd $HOME/Desktop"
+alias cdrs="cd $HOME/Desktop/re/scripts"
 
 alias cfg="cd ~/.config/"
 alias vimd="cd ~/.marslo/vimrc.d"

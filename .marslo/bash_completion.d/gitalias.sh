@@ -8,4 +8,12 @@ function _git_bb() {
   _git_checkout
 }
 
+function _git_pl() {
+  _git_checkout
+}
+
+function _git_del() {
+  _git_checkout
+}
+
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
