@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-01-12 19:51:02
+"    LastChange : 2026-01-12 22:23:13
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -177,7 +177,7 @@ let g:mundo_width          = 26
 let g:rainbow_active    = 1
 let g:rainbow_operators = 1
 let g:rainbow_conf      = {
-  \ 'guifgs' : [ '#6A5ACD', '#ff6347', '#b58900', '#9acd32', '#EEC900', '#9A32CD', '#EE7600', '#268bd2', '#183172' ],
+  \ 'guifgs' : [ '#6A5ACD', '#FF6347', '#E3A828', '#458588', '#EEC900', '#9A32CD', '#6679CC', '#EE7600', '#268BD2', '#9ACD32' ],
   \ 'ctermfgs' : 'xterm-256color' ==? $TERM ? [ '75', '176', '108', '167', '208', '66', '106', '172', '115', '142' ] : [ 'lightblue', 'lightgreen', 'yellow', 'red', 'magenta' ],
   \ 'parentheses': ['start=/(/ end=/)/ fold', 'start=/\[/ end=/\]/ fold', 'start=/{/ end=/}/ fold'],
   \ 'operators': '_,_',
