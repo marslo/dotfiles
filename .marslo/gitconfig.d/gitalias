@@ -2,7 +2,7 @@
 #     FileName : gitalias
 #       Author : marslo.jiao@gmail.com
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2025-12-16 17:18:53
+#   LastChange : 2026-01-14 21:13:01
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -31,7 +31,7 @@
   slap        = blame -s -w -C -M
   stt         = status -sb
   graph       = log --graph --oneline --decorate=short --branches='*'
-  me          = "!f() { printf \"\\033[0;3;35m$(git config user.name)\\033[0m <\\033[0;3;36m$(git config user.email)\\033[0m>\"; }; f"
+  me          = "!~/.marslo/gitconfig.d/bin/show-me.sh"
   set-user    = "!~/.marslo/gitconfig.d/bin/set-git-user.sh --verbose"
   https-set   = "!~/.marslo/gitconfig.d/bin/https-settings.sh --on"
   https-unset = "!~/.marslo/gitconfig.d/bin/https-settings.sh --off"
@@ -86,7 +86,7 @@
   # https://stackoverflow.com/a/40480534/2940319
   show-tags   = "!bash -c 'git show-ref -d --tags | cut -b 42- | sort | sed \"s/\\^{}//\" | uniq -c | sed \"s/2\\ refs\\/tags\\// a /\" | sed \"s/1\\ refs\\/tags\\//lw /\"'"
   # to show merged tags - tags merged into current HEAD
-  tshow       = "!git for-each-ref --merged HEAD refs/tags --sort=-creatordate --format='%(color:yellow)%(objectname:short)%(color:reset) - %(color:italic #925c76)%(creatordate:format:%Y-%m-%d %H:%M)%(color:reset) - %(color:#678963)%(refname:short)%(color:reset) %(color:#5c5c5c)# %(subject)%(color:reset)'"
+  tshow       = "!git for-each-ref --merged HEAD refs/tags --sort=-creatordate --format='%(color:yellow)%(objectname:short)%(color:reset) - %(color:italic #9C6C83)%(creatordate:format:%Y-%m-%d %H:%M)%(color:reset) - %(color:#678963)%(refname:short)%(color:reset) %(color:#5c5c5c)# %(subject)%(color:reset)'"
   tlog        = "!git for-each-ref --sort=-creatordate --format='[%(objecttype)] - %(objectname) - %(refname:strip=2)' refs/tags"
   # https://stackoverflow.com/a/53535353/2940319
   ### [p]retty [b]ranch
