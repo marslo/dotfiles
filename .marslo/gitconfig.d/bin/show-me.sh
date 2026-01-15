@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2155
 #=============================================================================
 #     FileName : show-me.sh
 #       Author : marslo
 #      Created : 2026-01-14 19:06:20
-#   LastChange : 2026-01-14 21:13:07
+#   LastChange : 2026-01-14 22:00:14
 #=============================================================================
 
 set -euo pipefail
@@ -20,38 +21,62 @@ function show() {
   esac
 }
 
+function setPath() {
+  local path="${1#file:}"
+  # shellcheck disable=SC2015
+  [[ "${path}" == *"gitconfig.d/"* ]] && echo "${path##*gitconfig.d/}" || echo "${path/#$HOME/\~}"
+}
+
+
+function getScopeColor() {
+  local _result=''
+  case "${1}" in
+    'local' | 'global' ) _result="${1}"   ;;
+    *                  ) _result='others' ;;
+  esac
+  echo "${_result}"
+}
+
+function getInitials() {
+  local name="${1}"
+  local capitalized=${2:-false}
+  name="${name:0:1}"
+  [[ "${capitalized}" == true ]] && echo "${name^^}" || echo "${name}"
+}
+
 function showScope(){
   local scope=''
   local file=''
 
-  while read -r _scope _file _value; do
-    local sColor=''
-    case "${_scope}" in
-      'local' | 'global' ) sColor="${_scope}" ;;
-      *                  ) sColor='others'    ;;
-    esac
-    # scope="$(echo "${_scope:0:1}" | tr '[:lower:]' '[:upper:]')"
-    scope="${_scope:0:1}"
+  read -r nScope nPath _ <<< "$(git config --show-scope --show-origin user.name  2>/dev/null)"
+  read -r eScope ePath _ <<< "$(git config --show-scope --show-origin user.email 2>/dev/null)"
 
-    if [[ "${_file}" == *"gitconfig.d/"* ]]; then
-      file="${_file##*gitconfig.d/}"
-    else
-      _file="${_file#file:}"
-      file="${_file/#$HOME/\~}"
-    fi
-  done< <(git config --show-scope --show-origin user.name)
+  # file:<path>
+  local nFile="$(setPath "${nPath}")"
+  local eFile="$(setPath "${ePath}")"
+  [[ "${nPath}" == "${ePath}" ]] && file="${nFile}" || file="${nFile} <${eFile}>"
 
-  printf "\t\t%s %s %s" "$(show warn '#')" \
-                        "$(show warn "${file}")" \
-                        "$(show "${sColor}" "[${scope}]")"
+  # scope
+  scope="$(show "$(getScopeColor "${nScope}")"  "$(getInitials "${nScope}" true)")"
+  if [[ "${nScope}" != "${eScope}" ]]; then
+    scope+="$(show warn ' <')"
+    scope+="$(show "$(getScopeColor "${eScope}")" "$(getInitials "${eScope}" true)")"
+    scope+="$(show warn '>')"
+  fi
+
+  printf "\t\t%s %s %s%s%s" "$(show warn '#')" \
+                            "$(show warn "${file}")" \
+                            "$(show warn "[")" \
+                            "${scope}" \
+                            "$(show warn "]")"
 }
 
-function showMe() {
+function main() {
   printf "%s <%s> %s" "$(show name "$(git config user.name)")" \
                       "$(show mail "$(git config user.email)")" \
                       "$(showScope)"
 }
 
-showMe
+main "$@"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
