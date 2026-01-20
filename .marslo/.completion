@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2025-12-11 21:57:02
+#   LastChange : 2026-01-20 15:43:28
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -22,9 +22,6 @@ declare RT_COMPLETION="$HOME/.jfrog/jfrog_bash_completion"
 declare COMPLETION_DIR="${HOME}"/.marslo/bash_completion.d
 declare ANSIBLE_COMPLETION_PATH="${COMPLETION_DIR}/ansible-completion"            # https://github.com/dysosmus/ansible-completion
 # declare NPM_COMPLETION="$HOME/.npm/lib/node_modules/npm-completion"             # for npm-completion https://github.com/Jephuff/npm-bash-completion
-
-test -d "${GROOVY_HOME}/bin"                        && eval "$(/bin/cat "${GROOVY_HOME}"/bin/*_completion)"
-test -d "${ANSIBLE_COMPLETION_PATH}"                && eval "$(/bin/cat "${ANSIBLE_COMPLETION_PATH}"/*.bash)"
 
 test -f "${RT_COMPLETION}"                          && source "${RT_COMPLETION}"
 test -f "${COMPLETION_DIR}"/cht.sh/cht.sh           && source "${COMPLETION_DIR}"/cht.sh/cht.sh
@@ -48,6 +45,15 @@ type -P vault      >/dev/null                       && complete -C "$(type -P va
 type -t _fd        >/dev/null 2>&1                  && complete -F _fd -o nosort -o bashdefault -o default ff ffs
 type -t _comp_cmd_chromium_browser >/dev/null 2>&1  && complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome
 complete -o default -o bashdefault chrome
+
+# instead of eval "$(/bin/cat "${ANSIBLE_COMPLETION_PATH}"/*.bash)" -- for fcf
+if compgen -G "${ANSIBLE_COMPLETION_PATH}/*.bash" >/dev/null; then
+  shopt -s nullglob
+  for script in "${ANSIBLE_COMPLETION_PATH}"/*.bash; do
+    [[ -f "${script}" ]] && source "${script}"
+  done
+  shopt -u nullglob
+fi
 
 # fzf
 if test -f "$HOME"/.fzf.bash; then
