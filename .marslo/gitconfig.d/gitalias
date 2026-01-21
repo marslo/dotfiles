@@ -2,7 +2,7 @@
 #     FileName : gitalias
 #       Author : marslo.jiao@gmail.com
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2026-01-21 15:05:46
+#   LastChange : 2026-01-21 15:44:03
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -11,38 +11,37 @@
 #-----------------------------------------------------------------------------#
 
 [alias]
-  aa          = add --all
-  sts         = status
-  rb          = rebase
-  co          = checkout --force --recurse-submodules
-  cl          = clean -dffx
-  cn          = clone --recurse-submodules --tags
-  cp          = cherry-pick
-  wc          = whatchanged
-  gca         = gc --aggressive
-  fa          = fetch --prune --prune-tags --force --all
-  ma          = merge --all --progress
-  psa         = push origin --all
-  pst         = push origin --tags
-  root        = rev-parse --show-toplevel
-  first       = rev-list --max-parents=0 HEAD
-  last        = cat-file commit HEAD
-  undo        = reset HEAD~1 --mixed
-  slap        = blame -s -w -C -M
-  stt         = status -sb
-  graph       = log --graph --oneline --decorate=short --branches='*'
-  me          = "!~/.marslo/gitconfig.d/bin/show-me.sh"
-  set-user    = "!~/.marslo/gitconfig.d/bin/set-git-user.sh --verbose"
-  https-set   = "!~/.marslo/gitconfig.d/bin/https-settings.sh --on"
-  https-unset = "!~/.marslo/gitconfig.d/bin/https-settings.sh --off"
-  https-status= "!~/.marslo/gitconfig.d/bin/https-settings.sh --check https"
-  https-st    = !git https-status
-  ssh-set     = !git https-unset
-  ssh-unset   = !git https-set
-  ssh-status  = "!~/.marslo/gitconfig.d/bin/https-settings.sh --check ssh"
-  ssh-st      = !git ssh-status
-  https-local = "!~/.marslo/gitconfig.d/bin/https-local.sh"
-  https-lunset= "!git config --local --unset-all url.\"https://github.com/\".insteadOf"
+  aa           = add --all
+  sts          = status
+  rb           = rebase
+  co           = checkout --force --recurse-submodules
+  cl           = clean -dffx
+  cn           = clone --recurse-submodules --tags
+  cp           = cherry-pick
+  wc           = whatchanged
+  gca          = gc --aggressive
+  fa           = fetch --prune --prune-tags --force --all
+  ma           = merge --all --progress
+  psa          = push origin --all
+  pst          = push origin --tags
+  root         = rev-parse --show-toplevel
+  first        = rev-list --max-parents=0 HEAD
+  last         = cat-file commit HEAD
+  undo         = reset HEAD~1 --mixed
+  slap         = blame -s -w -C -M
+  stt          = status -sb
+  graph        = log --graph --oneline --decorate=short --branches='*'
+  set-user     = "!~/.marslo/gitconfig.d/bin/set-git-user.sh --verbose"
+  https-set    = "!~/.marslo/gitconfig.d/bin/https-settings.sh --on"
+  https-unset  = "!~/.marslo/gitconfig.d/bin/https-settings.sh --off"
+  https-status = "!~/.marslo/gitconfig.d/bin/https-settings.sh --check https"
+  https-st     = !git https-status
+  ssh-set      = !git https-unset
+  ssh-unset    = !git https-set
+  ssh-status   = "!~/.marslo/gitconfig.d/bin/https-settings.sh --check ssh"
+  ssh-st       = !git ssh-status
+  https-local  = "!~/.marslo/gitconfig.d/bin/https-local.sh"
+  https-lunset = "!git config --local --unset-all url.\"https://github.com/\".insteadOf"
 
   #-----------------------#
   # pretty show
