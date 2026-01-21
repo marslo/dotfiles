@@ -27,7 +27,6 @@ function setPath() {
   [[ "${path}" == *"gitconfig.d/"* ]] && echo "${path##*gitconfig.d/}" || echo "${path/#$HOME/\~}"
 }
 
-
 function getScopeColor() {
   local _result=''
   case "${1}" in
