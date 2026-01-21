@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2025-11-25 19:37:00
+"    LastChange : 2026-01-20 18:59:50
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -89,30 +89,38 @@ syn match UrlNoSpell '\w\+:\/\/[^[:space:]]\+' contains=@NoSpell
 function! GroovyKeywords() abort
   " remove potential interference from polyglot.
   silent! syn clear groovyDocComment
+  " uncolor
+  syntax keyword NoColor                 git
 
   " basic keywords
-  " syntax keyword newJDKMethods collectEntries eachWithIndex collectMany
-  " syntax cluster groovyJDKMethods add=newJDKMethods
-  syntax keyword groovyJDKMethods       collectEntries collectMany eachWithIndex
-  syntax keyword groovyKeywords         it Object Closure stage withEnv
-  syntax keyword groovyStandardKeywords writeCSV
-  syntax keyword groovyType             Map List String
-
-  " Strong Match for @Field annotation in Groovy,  Using `containsexcluded` ensures it isn't accidentally swallowed by other rules.
-  syntax match groovyFieldAnnotation /@Field/ display
+  syntax keyword groovyJDKMethods        collectEntries collectMany eachWithIndex
+  syntax keyword groovyKeywords          Object Closure stage withEnv
+  syntax keyword JenkinsPluginsKeywords  writeCSV toString
 
   " handling common map/list definitions
-  syntax keyword groovyCustomTypes Map List String Object
+  syntax keyword groovyCustomTypes       Map List String Object
 
-  " forced linking (using ! to override the .fg link in ts)
-  highlight! link groovyFieldAnnotation GreenBold
-  highlight! link groovyCustomTypes     Type
-  highlight! link groovyDocComment      Comment
+  syntax match   groovyLogicalOperator   "&&\|||"            containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
+  syntax match   groovyCustomKeywords    "\<it\>"            containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
+  syntax match   groovyCustomKeywords    "\<it\(\([?]\=\.[a-zA-Z0-9_]\+\>\)\(\s*(\)\@!\)\+"
+        \ containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
+  syntax match   jenkinsfileCoreStepNew  "\<params\>"        containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
+  syntax match   jenkinsfileCoreStepNew  "\<env\>"           containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
+  syntax match   jenkinsfileCoreStepNew  "\<currentBuild\>"  containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
+  syntax match   jenkinsfileCoreStepNew  "\<params\(\([?]\=\.[a-zA-Z0-9_]\+\>\)\(\s*(\)\@!\)\+"
+        \ containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
+  syntax match   jenkinsfileCoreStepNew  "\<env\(\([?]\=\.[a-zA-Z0-9_]\+\>\)\(\s*(\)\@!\)\+"
+        \ containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
+  syntax match   jenkinsfileCoreStepNew  "\<currentBuild\(\([?]\=\.[a-zA-Z0-9_]\+\>\)\(\s*(\)\@!\)\+"
+        \ containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
+
+  " Strong Match for @Field annotation in Groovy,  Using `containsexcluded` ensures it isn't accidentally swallowed by other rules.
+  syntax match   groovyFieldAnnotation /@Field/ display
 
   " doc comment region, support /** .. **/ and /** .. */
   syntax region  groovyDocComment start="/\*\*"  end="\s*\*\*/" end="\s*\*/" keepend contains=groovyCommentTitle,@groovyHtml,groovyDocTags,groovyTodo,@Spell
 endfunction
-autocmd Syntax groovy,Jenkinsfile call GroovyKeywords()
+autocmd Syntax groovy,Jenkinsfile,jenkinsfile call GroovyKeywords()
 
 " redir into new tab: https://vim.fandom.com/wiki/Capture_ex_command_outputhttps://vim.fandom.com/wiki/Capture_ex_command_output
 " `gt`, `:tabfirst`, `:tabnext`, `:tablast` ... to switch tabs : https://vim.fandom.com/wiki/Alternative_tab_navigation
