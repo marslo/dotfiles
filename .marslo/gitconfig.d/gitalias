@@ -2,7 +2,7 @@
 #     FileName : gitalias
 #       Author : marslo.jiao@gmail.com
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2026-01-14 21:13:01
+#   LastChange : 2026-01-21 15:05:46
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -53,9 +53,8 @@
   # --follow : all logs including before renamed
   # --stat   : show a summary of the total additions and removals for that commit
   changes     = log -M --follow --stat --
-  ### [p]retty [t]ag
   ls          = log --stat --pretty=short --graph
-  ### [p]retty [l]og[s]
+  ### [p]retty [l]og(s)
   pl          = !git --no-pager log --color --graph --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset)'" --abbrev-commit --date=relative --max-count=3
   pls         = log --color --graph --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset)'" --abbrev-commit --date=relative
   ### [p]revious branch [p]retty [l]og
@@ -80,6 +79,7 @@
                             done < <(git rev-parse --abbrev-ref HEAD); \n\
                            '"
   pshow       = show -s --pretty='tformat:%C(red)%h%C(reset) %C(green)(%s)%C(reset)'
+  ### [p]retty [t]ag(s)
   pt          = "!git for-each-ref --sort=-authordate refs/tags --format='%(color:6)%(objectname:short)%(color:reset) - %(align:left,38)%(color:yellow)[%(objecttype) : %(refname:short)]%(color:reset)%(end) %(subject) %(color:green)(%(if)%(taggerdate)%(then)%(taggerdate:format:%Y-%m-%d %H:%M:%S)%(else)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(end))%(color:reset) %(color:blue)%(if)%(taggername)%(then)<%(taggername)>%(else)<%(committername)>%(end)%(color:reset)' --color --count=10"
   pts         = "!git for-each-ref --sort=-taggerdate refs/tags --format='%(color:6)%(objectname:short)%(color:reset) - %(color:yellow)[%(objecttype) : %(refname:short)]%(color:reset) - %(subject) %(color:green)(%(if)%(taggerdate)%(then)%(taggerdate:format:%Y-%m-%d %H:%M:%S)%(else)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(end))%(color:reset) %(color:blue)%(if)%(taggername)%(then)<%(taggername)>%(else)<%(committername)>%(end)%(color:reset)' --color"
   prettytags  = "!git for-each-ref --color=always refs/tags --sort=-creatordate --format='%(align:20)%(creatordate:format:%Y-%m-%d %H:%M)%(end) %(align:18)[%(refname:short)]%(end) %(align:25)%(subject)%(end) <%(if)%(taggername)%(then)%(taggername)%(else)%(committername)%(end)>'"
@@ -392,23 +392,6 @@
   # info      = !bash -c '. ~/.marslo/.marslorc && gitinfo'
   ls-effort   = !git log --pretty=format: --name-only | sort | uniq -c | sort -rg
   tagcommit   = rev-list -1
-
-  # if a branch name is specified, on top of the specified branch.
-  ### [m]erge github [p]ull [r]equest on top of the current branch or,
-  mpr         = "!f() { \
-                        declare currentBranch=\"$(git symbolic-ref --short HEAD)\"; \
-                        declare branch=\"${2:-$currentBranch}\"; \
-                        if [ $(printf \"%s\" \"$1\" | grep '^[0-9]\\+$' > /dev/null; printf $?) -eq 0 ]; then \
-                          git fetch origin refs/pull/$1/head:pr/$1 && \
-                          git checkout -B $branch && \
-                          git rebase $branch pr/$1 && \
-                          git checkout -B $branch && \
-                          git merge pr/$1 && \
-                          git branch -D pr/$1 && \
-                          git commit --amend -m \"$(git log -1 --pretty=%B)\n\nClose #$1\"; \
-                        fi \
-                      }; f \
-                "
 
   init-repo   = "!f() { \
                         declare help=\"\"\"\
