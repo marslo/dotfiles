@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-01-20 18:59:50
+"    LastChange : 2026-01-20 22:54:48
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -100,25 +100,41 @@ function! GroovyKeywords() abort
   " handling common map/list definitions
   syntax keyword groovyCustomTypes       Map List String Object
 
-  syntax match   groovyLogicalOperator   "&&\|||"            containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
-  syntax match   groovyCustomKeywords    "\<it\>"            containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
-  syntax match   groovyCustomKeywords    "\<it\(\([?]\=\.[a-zA-Z0-9_]\+\>\)\(\s*(\)\@!\)\+"
-        \ containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
-  syntax match   jenkinsfileCoreStepNew  "\<params\>"        containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
-  syntax match   jenkinsfileCoreStepNew  "\<env\>"           containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
-  syntax match   jenkinsfileCoreStepNew  "\<currentBuild\>"  containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
-  syntax match   jenkinsfileCoreStepNew  "\<params\(\([?]\=\.[a-zA-Z0-9_]\+\>\)\(\s*(\)\@!\)\+"
-        \ containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
-  syntax match   jenkinsfileCoreStepNew  "\<env\(\([?]\=\.[a-zA-Z0-9_]\+\>\)\(\s*(\)\@!\)\+"
-        \ containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
-  syntax match   jenkinsfileCoreStepNew  "\<currentBuild\(\([?]\=\.[a-zA-Z0-9_]\+\>\)\(\s*(\)\@!\)\+"
-        \ containedin=ALLBUT,groovyComment,groovyString,groovyDocComment
+  let s:common_ctx  = ' containedin=ALLBUT,groovyComment,groovyLineComment,groovyBlockComment,groovyDocComment,groovyString,groovyGString'
+  let s:op_patterns = [
+        \ '\(<=>\|==\~\|=\~\|->\)',
+        \ '\(=\|==\|!=\|>=\|<=\|&&\|||\)',
+        \ '\(++\|--\)',
+        \ '\(<<<\|>>>\|<<\|>>\)',
+        \ '\(+\|-\|%\|&\|\^\)=\=',
+        \ '/='
+        \ ]
+  for pat in s:op_patterns
+    execute 'syntax match groovyOperator "' . pat . '"' . s:common_ctx
+  endfor
 
-  " Strong Match for @Field annotation in Groovy,  Using `containsexcluded` ensures it isn't accidentally swallowed by other rules.
-  syntax match   groovyFieldAnnotation /@Field/ display
+  let s:core_objects = ['params', 'env', 'currentBuild']
+  for obj in s:core_objects
+    execute 'syntax match jenkinsfileCoreStepNew "\<' . obj . '\>"' . s:common_ctx
+    execute 'syntax match jenkinsfileCoreStepNew "\<' . obj . '\(\([?]\=\.[a-zA-Z0-9_]\+\>\)\(\s*(\)\@!\)\+"' . s:common_ctx
+  endfor
+  execute 'syntax match groovyCustomKeywords "\<it\>"' . s:common_ctx
+  execute 'syntax match groovyCustomKeywords "\<it\(\([?]\=\.[a-zA-Z0-9_]\+\>\)\(\s*(\)\@!\)\+"' . s:common_ctx
+
+  " Strong Match for @Field/@NonCPS annotation in Groovy,  Using `containsexcluded` ensures it isn't accidentally swallowed by other rules.
+  syntax match   groovyFieldAnnotation /@\(Field\|NonCPS\)/ display
+  " @Library(...) annotation in Jenkinsfile
+  syntax match   jenkinsLibraryTarget  /'[^']*'\|"[^"]*"/   contained
+  syntax match   jenkinsLibraryKeyword /@Library/           contained
+  syntax region  jenkinsLibraryRegion
+        \ start=/@Library\s*(/
+        \ end=/)/
+        \ contains=jenkinsLibraryKeyword,jenkinsLibraryTarget,groovyComment
+        \ keepend
 
   " doc comment region, support /** .. **/ and /** .. */
   syntax region  groovyDocComment start="/\*\*"  end="\s*\*\*/" end="\s*\*/" keepend contains=groovyCommentTitle,@groovyHtml,groovyDocTags,groovyTodo,@Spell
+  syntax match   groovyDocTags  contained "@\(description\)\>"
 endfunction
 autocmd Syntax groovy,Jenkinsfile,jenkinsfile call GroovyKeywords()
 
