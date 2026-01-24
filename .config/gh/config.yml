@@ -23,10 +23,10 @@ aliases:
     me: api user --jq ".login"
     repopath: repo view --json nameWithOwner -q .nameWithOwner
     # co: pr checkout
-    co: '!$HOME/.marslo/bin/gh-pr --checkout'
-    cl: '!$HOME/.marslo/bin/gh-pr --close'
-    close: '!$HOME/.marslo/bin/gh-pr --close'
-    prc: '!$HOME/.marslo/bin/gh-pr-create "$@"'
+    co: '!$HOME/.marslo/bin/gh-ops-pr --checkout'
+    cl: '!$HOME/.marslo/bin/gh-ops-pr --close'
+    close: '!$HOME/.marslo/bin/gh-ops-pr --close'
+    pro: '!$HOME/.marslo/bin/gh-new-pr --open'
 # The path to a unix socket through which send HTTP connections. If blank, HTTP traffic will be handled by net/http.DefaultTransport.
 http_unix_socket:
 # What web browser gh should use when opening URLs. If blank, will refer to environment.
