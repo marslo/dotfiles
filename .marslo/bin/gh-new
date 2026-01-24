@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck source=/dev/null disable=SC2155
 #=============================================================================
-#     FileName : gh-new-pr
+#     FileName : gh-new
 #       Author : marslo
 #      Created : 2026-01-23 11:52:14
-#   LastChange : 2026-01-23 22:00:14
+#   LastChange : 2026-01-23 22:03:33
 #=============================================================================
 
 set -euo pipefail
@@ -33,7 +33,7 @@ OPTIONS
   $(c G)-V$(c), $(c G)--verbose$(c)        show verbose output
   $(c G)--dryrun$(c)             show the command to be executed, but do not run it
   $(c G)-h$(c), $(c G)--help$(c)           show this help message
-  $(c C)--$(c) $(c 0Mi)<GH_OPTS>$(c)         pass all following arguments to the underlying '$(c i)gh pr create$(c)' command
+  $(c C)--$(c) $(c 0Wdi)[$(c 0Mi)GH_OPTS$(c 0Wdi)]$(c)         pass all following arguments to the underlying '$(c i)gh pr create$(c)' command
 
 EXAMPLES
   $(c 0Wdi)# create a PR from the current branch to a selected base branch$(c)

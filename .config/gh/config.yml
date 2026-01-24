@@ -14,19 +14,23 @@ pager:
 # Aliases allow you to create nicknames for gh commands
 aliases:
     bugs: issue list --label="bugs"
+    prs: pr list
     open: repo view --web
-    propen: pr view --web
     myissues: issue list --author "@me" --state open
-    merge-clean: '!gh pr merge "$1" --squash --delete-branch'
     as: auth status
     sa: account switch
     me: api user --jq ".login"
-    repopath: repo view --json nameWithOwner -q .nameWithOwner
+    repo-path: repo view --json nameWithOwner -q .nameWithOwner
     # co: pr checkout
-    co: '!$HOME/.marslo/bin/gh-ops-pr --checkout'
-    cl: '!$HOME/.marslo/bin/gh-ops-pr --close'
-    close: '!$HOME/.marslo/bin/gh-ops-pr --close'
-    pro: '!$HOME/.marslo/bin/gh-new-pr --open'
+    co: '!$HOME/.marslo/bin/gh-ops --checkout'
+    cl: '!$HOME/.marslo/bin/gh-ops --close'
+    close: '!$HOME/.marslo/bin/gh-ops --close'
+    # propen: pr view --web
+    propen: '!$HOME/.marslo/bin/gh-ops --open'
+    # merge-clean: '!gh pr merge "$1" --squash --delete-branch'
+    merge-clean: '!$HOME/.marslo/bin/gh-ops --merge -- --delete-branch'
+    pro: '!$HOME/.marslo/bin/gh-new --open'
+    pr-new: '!$HOME/.marslo/bin/gh-new --open'
 # The path to a unix socket through which send HTTP connections. If blank, HTTP traffic will be handled by net/http.DefaultTransport.
 http_unix_socket:
 # What web browser gh should use when opening URLs. If blank, will refer to environment.
