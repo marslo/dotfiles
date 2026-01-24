@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck source=/dev/null disable=SC2155
 #=============================================================================
-#     FileName : gh-pr
+#     FileName : gh-ops-pr
 #       Author : marslo
 #      Created : 2026-01-21 20:38:07
-#   LastChange : 2026-01-23 15:47:22
+#   LastChange : 2026-01-23 19:22:52
 #  Inspired by : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/
 #=============================================================================
 
@@ -92,7 +92,7 @@ function main() {
     case "$1" in
       --co | --checkout ) OPTION="checkout" ; shift  ;;
       --cl | --close    ) OPTION="close"    ; shift  ;;
-      -h | --help       ) showHelp          ; exit 0 ;;
+      -h | --help       ) showHelp                   ;;
       -v | --verbose    ) VERBOSE=true      ; shift  ;;
       --dryrun          ) DRYRUN=true       ; shift  ;;
       *                 ) echo "Unknown argument: $1" >&2; exit 1 ;;
