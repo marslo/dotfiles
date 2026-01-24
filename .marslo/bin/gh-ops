@@ -4,7 +4,7 @@
 #     FileName : gh-ops
 #       Author : marslo
 #      Created : 2026-01-21 20:38:07
-#   LastChange : 2026-01-24 00:36:49
+#   LastChange : 2026-01-24 02:23:06
 #  Inspired by : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/
 #=============================================================================
 
@@ -12,7 +12,7 @@ set -euo pipefail
 
 declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
-declare -r PREVIEW_BIN="${CURRENT_DIR}/gh.d/gh-ops-preview"
+declare -r JQ_FILE="${CURRENT_DIR}/gh.d/gh-ops-preview.jq"
 
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
@@ -101,13 +101,13 @@ function checkTools() {
 }
 
 function openPR() {
-  local prId="${1:-}"
+  local PR_ID="${1:-}"
 
   if "${SHOULD_OPEN}"; then
     # shellcheck disable=SC2015
-    test -n "${prId:-}" && {
-      local -a openCmd=( gh pr view "${prId}" --web )
-      "${VERBOSE}" && show info "opening PR $(c 0Mi)\`#${prId}\`$(c 0Wdi) in web browser ...$(c)" || :
+    test -n "${PR_ID:-}" && {
+      local -a openCmd=( gh pr view "${PR_ID}" --web )
+      "${VERBOSE}" && show info "opening PR $(c 0Mi)\`#${PR_ID}\`$(c 0Wdi) in web browser ...$(c)" || :
       "${openCmd[@]}"
     } || {
       show warning "cannot open PR: no PR ID found"
@@ -115,13 +115,16 @@ function openPR() {
   fi
 }
 
+# shellcheck disable=SC2016,SC2064
 function getId() {
-  local template prId CACHE_FILE
-  CACHE_FILE="/tmp/gh_ops_cache_$$"
-  # shellcheck disable=SC2064
-  trap "rm -f ${CACHE_FILE}" EXIT
+  test -f "${JQ_FILE}" || show error "missing JQ filter file at ${JQ_FILE}"
+  export JQ_FILTER="$(cat "${JQ_FILE}")"
 
-  template='"'
+  local CACHE_FILE="/tmp/gh_ops_cache_$$"
+  trap "rm -f ${CACHE_FILE}" EXIT
+  : > "${CACHE_FILE}"
+
+  local template='"'
   template+='#\(.number) - \(.title)'
   template+='\t'
   template+='Author: \(.user.login)\n'
@@ -131,42 +134,75 @@ function getId() {
   template+='\(if .title == (.body // "") then "" else "\n\n" + (.body // "") end)'
   template+='"'
 
-  gh api 'repos/:owner/:repo/pulls' |
+  local EXTRACT_ID_CMD='sed -n "$(( {n}+1 ))p" "'${CACHE_FILE}'" | sed -En "s/^#([0-9]+).*/\1/p"'
+
+  local REMOTE_CMD=''
+  REMOTE_CMD+='change-preview('
+  REMOTE_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
+  REMOTE_CMD+='if [ -n "${id}" ]; then gh pr view "${id}" --json mergeable,reviewDecision,reviewRequests,reviews,body --jq "$JQ_FILTER" 2>/dev/null; else echo "Loading..."; fi'
+  REMOTE_CMD+=')+'
+  REMOTE_CMD+='transform-preview-label('
+  REMOTE_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
+  REMOTE_CMD+='printf "\033[1;36m[ REMOTE #%s ]\033[0m" "${id}"'
+  REMOTE_CMD+=')'
+  export CMD_REMOTE="${REMOTE_CMD}"
+
+  local LOCAL_CMD=''
+  LOCAL_CMD+='change-preview('
+  LOCAL_CMD+='content=$( sed -n "$(({n}+1))p" "'${CACHE_FILE}'" | cut -f2- ); '
+  LOCAL_CMD+='printf "%b\n" "${content}"'
+  LOCAL_CMD+=')+'
+  LOCAL_CMD+='transform-preview-label('
+  LOCAL_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
+  LOCAL_CMD+='printf "\033[1;35m[ LOCAL #%s ]\033[0m" "${id}"'
+  LOCAL_CMD+=')'
+  export CMD_LOCAL="${LOCAL_CMD}"
+
+  # result:transform-list-label
+  local BIND_RESULT_CMD='if [[ -z ${FZF_QUERY} ]]; then echo " ${FZF_MATCH_COUNT} items "; else echo " ${FZF_MATCH_COUNT} matches for [${FZF_QUERY}] "; fi'
+
+  # focus:transform-preview-label
+  local BIND_FOCUS_CMD=''
+  BIND_FOCUS_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
+  BIND_FOCUS_CMD+='if echo "${FZF_PREVIEW_LABEL}" | grep -q -i "remote"; then '
+  BIND_FOCUS_CMD+='  printf "\033[1;36m[ REMOTE #%s ]\033[0m" "${id}"; '
+  BIND_FOCUS_CMD+='else '
+  BIND_FOCUS_CMD+='  printf "\033[1;35m[ LOCAL #%s ]\033[0m" "${id}"; '
+  BIND_FOCUS_CMD+='fi'
+
+  # ctrl-/:transform
+  local BIND_TOGGLE_CMD=''
+  BIND_TOGGLE_CMD+='if echo "${FZF_PREVIEW_LABEL}" | grep -q -i "remote"; then '
+  BIND_TOGGLE_CMD+='  echo "${CMD_LOCAL}"; '
+  BIND_TOGGLE_CMD+='else '
+  BIND_TOGGLE_CMD+='  echo "${CMD_REMOTE}"; '
+  BIND_TOGGLE_CMD+='fi'
+
+  local PR_ID=''
+  PR_ID=$(
+    gh api 'repos/:owner/:repo/pulls?per_page=50' |
     jq ".[] | ${template}" |
-    sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/' > "${CACHE_FILE}"
-
-  export CMD_REMOTE="change-preview(sed -n \"\$(( {n} + 1 ))p\" \"${CACHE_FILE}\" | bash \"${PREVIEW_BIN}\")+change-preview-label([ REMOTE ])"
-  export CMD_LOCAL="change-preview(content=\$(sed -n \"\$(( {n} + 1 ))p\" \"${CACHE_FILE}\" | cut -f2-); printf '%b\n' \"\$content\")+change-preview-label([ LOCAL ])"
-
-  prId=$(
-    cat "${CACHE_FILE}" |
+    sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/' |
+    tee "${CACHE_FILE}" |
     fzf --ansi \
         --with-nth=1 \
         --delimiter='\t' \
-        --preview-label="[ Local ]" \
-        --preview="content=\$(sed -n \"\$(( {n} + 1 ))p\" \"${CACHE_FILE}\" | cut -f2-); printf '%b\n' \"\$content\"" \
-        --preview-window=top:60%:wrap \
+        --preview-window=top:65%:wrap \
+        --preview='content=$(sed -n "$(( {n}+1 ))p" "'${CACHE_FILE}'" | cut -f2-); printf "%b\n" "$content"' \
+        --preview-label=$'\033[1;35m[ Local ]\033[0m' \
+        --bind "result:transform-list-label:${BIND_RESULT_CMD}" \
+        --bind "focus:transform-preview-label:${BIND_FOCUS_CMD}" \
+        --bind "ctrl-/:transform:${BIND_TOGGLE_CMD}" \
         --bind "ctrl-y:execute-silent(echo {1} | sed -En 's/^#([0-9]+).*/\1/p' | pbcopy)" \
-        --bind "ctrl-o:execute-silent(echo {1} | awk '{print \$1}' | xargs gh pr view --web)" \
-        --bind "ctrl-/:transform:
-          if echo \"\$FZF_PREVIEW_LABEL\" | grep -q -i \"remote\"; then
-            echo \"\$CMD_LOCAL\"
-          else
-            if [ -f \"${PREVIEW_BIN}\" ]; then
-               echo \"\$CMD_REMOTE\"
-            else
-               echo \"change-preview-label([ ⚠️ Script Missing ])\"
-            fi
-          fi" |
+        --bind "ctrl-o:execute-silent(echo {1} | awk '{print \$1}' | xargs gh pr view --web)" |
     sed -En 's/^#([0-9]+).*/\1/p'
   )
 
-  unset CMD_REMOTE CMD_LOCAL
-  test -n "${prId}" && echo "${prId}" || return 1
+  unset JQ_FILTER CMD_REMOTE CMD_LOCAL
+  test -n "${PR_ID}" && echo "${PR_ID}" || return 1
 }
 
 function main() {
-
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -c | --checkout ) OPTION='checkout'         ; shift     ;;
@@ -184,16 +220,16 @@ function main() {
   checkTools
 
   # shellcheck disable=SC2155
-  local prId="$( getId )"
+  local PR_ID="$( getId )"
   local cmd=( gh pr )
   case "${OPTION}" in
-    checkout | close ) cmd+=( "${OPTION}" "${prId}"          )    ;;
-    merge            ) cmd+=( "${OPTION}" "${prId}" --squash )    ;;
+    checkout | close ) cmd+=( "${OPTION}" "${PR_ID}"          )    ;;
+    merge            ) cmd+=( "${OPTION}" "${PR_ID}" --squash )    ;;
     *                ) show error "unknown option: \`${OPTION}\`" ;;
   esac
 
-  test -z "${prId}" && exit 0
-  "${SHOULD_OPEN}"  && { openPR "${prId}"; exit 0; }
+  test -z "${PR_ID}" && exit 0
+  "${SHOULD_OPEN}"  && { openPR "${PR_ID}"; exit 0; }
 
   ( "${DRYRUN}" || "${VERBOSE}" ) && {
     local msg="command to be executed: \`$(c 0Cdi)\$ ${cmd[*]}${GH_OPTS[*]:+ ${GH_OPTS[*]}}$(c 0Wdi)\` ...$(c)"
@@ -203,7 +239,7 @@ function main() {
 
   printf "$(c Ci)~~> %s$(c) $(c 0Mis)#%s$(c)%b $(c Ci)..$(c)\n" \
          "${OPTION}" \
-         "${prId}" \
+         "${PR_ID}" \
          "${GH_OPTS[*]:+ with gh OPTS $(c 0Mis)${GH_OPTS[*]}$(c)}" >&2
   "${cmd[@]}" "${GH_OPTS[@]}"
 }
