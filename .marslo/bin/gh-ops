@@ -4,27 +4,28 @@
 #     FileName : gh-ops
 #       Author : marslo
 #      Created : 2026-01-21 20:38:07
-#   LastChange : 2026-01-23 22:03:34
+#   LastChange : 2026-01-24 00:36:49
 #  Inspired by : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/
 #=============================================================================
 
 set -euo pipefail
 
-declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
+declare -r PREVIEW_BIN="${CURRENT_DIR}/gh.d/gh-ops-preview"
 
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
-if [[ -f "${BIN_DIR}/bash-color.sh" ]]; then
-  source "${BIN_DIR}/bash-color.sh"
+if [[ -f "${CURRENT_DIR}/bash-color.sh" ]]; then
+  source "${CURRENT_DIR}/bash-color.sh"
 else
   c() { :; }
 fi
 
 declare -r USAGE="""
 NAME
-  $(c Csi)${ME}$(c) - interactively GitHub PR using fzf
+  $(c Cs)${ME}$(c) - interactively GitHub PR using fzf
 
 USAGE
   $(c Ys)\$ ${ME}$(c) $(c Wdi)[$(c)$(c Gis)OPTIONS$(c)$(c Wdi)]$(c)
@@ -33,23 +34,27 @@ OPTIONS
   $(c G)-c$(c), $(c G)--checkout$(c)       checkout the selected pull request ( $(c Cis)*default$(c) )
   $(c G)-C$(c), $(c G)--close$(c)          close the selected pull request
   $(c G)-o$(c), $(c G)--open$(c)           open the selected pull request in the web browser
-  $(c G)-v$(c), $(c G)--verbose$(c)        show verbose output
+  $(c G)-m$(c), $(c G)--merge$(c)          merge the selected pull request with squash
+  $(c G)-V$(c), $(c G)--verbose$(c)        show verbose output
   $(c G)--dryrun$(c)             show the command to be executed, but do not run it
   $(c G)-h$(c), $(c G)--help$(c)           show this help message
-  $(c C)--$(c) $(c 0Mi)<GH_OPTS>$(c)         pass all following arguments to the underlying '$(c 0i)gh pr checkout/close$(c)' command
+  $(c C)--$(c) $(c 0Wdi)[$(c 0Mi)GH_OPTIONS$(c 0Wdi)]$(c)      pass all following arguments to the underlying '$(c 0i)gh pr checkout/close$(c)' command
 
 EXAMPLES
   $(c Wdi)# interactively select a pull request and checkout the corresponding branch$(c)
-  $(c Ys)\$ ${ME} $(c 0Gi)--checkout$(c)
-
-  $(c Wdi)# interactively select a pull request and close it$(c)
-  $(c Ys)\$ ${ME} $(c 0Gi)--close$(c)
+  $(c 0Ys)\$ ${ME} $(c 0Wdi)or $(c 0Ys)\$ ${ME} $(c 0Gi)--checkout$(c)
 
   $(c Wdi)# update all submodules after checkout$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--checkout $(c 0Ci)-- $(c 0Mi)--recurse-submodules$(c)
 
   $(c Wdi)# close the PR and delete the branch$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--close $(c 0Ci)-- $(c 0Mi)--delete-branch$(c)
+
+TIPS
+  while in the fzf selection menu:
+    • press $(c 0Bsi)ctrl-y$(c) to copy the PR ID to clipboard
+    • press $(c 0Bsi)ctrl-o$(c) to open the selected PR in the web browser
+    • press $(c 0Bsi)ctrl-/$(c) to toggle between local and remote preview (requires the preview script to be present)
 """
 
 declare OPTION='checkout'
@@ -60,7 +65,8 @@ declare SHOULD_OPEN=false
 
 function showHelp() { echo -e "${USAGE}"; exit 0; }
 function show() {
-  local tag tcolor body extra
+  local tag tcolor body
+  local extra=''
   local bcolor="$(c 0Wi)"
 
   case "$1" in
@@ -110,7 +116,10 @@ function openPR() {
 }
 
 function getId() {
-  local template prId
+  local template prId CACHE_FILE
+  CACHE_FILE="/tmp/gh_ops_cache_$$"
+  # shellcheck disable=SC2064
+  trap "rm -f ${CACHE_FILE}" EXIT
 
   template='"'
   template+='#\(.number) - \(.title)'
@@ -122,19 +131,37 @@ function getId() {
   template+='\(if .title == (.body // "") then "" else "\n\n" + (.body // "") end)'
   template+='"'
 
-  prId=$(
-    gh api 'repos/:owner/:repo/pulls' |
+  gh api 'repos/:owner/:repo/pulls' |
     jq ".[] | ${template}" |
-    sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/' |
-    fzf --with-nth=1 \
+    sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/' > "${CACHE_FILE}"
+
+  export CMD_REMOTE="change-preview(sed -n \"\$(( {n} + 1 ))p\" \"${CACHE_FILE}\" | bash \"${PREVIEW_BIN}\")+change-preview-label([ REMOTE ])"
+  export CMD_LOCAL="change-preview(content=\$(sed -n \"\$(( {n} + 1 ))p\" \"${CACHE_FILE}\" | cut -f2-); printf '%b\n' \"\$content\")+change-preview-label([ LOCAL ])"
+
+  prId=$(
+    cat "${CACHE_FILE}" |
+    fzf --ansi \
+        --with-nth=1 \
         --delimiter='\t' \
-        --preview="printf '%b\n' {2}" \
+        --preview-label="[ Local ]" \
+        --preview="content=\$(sed -n \"\$(( {n} + 1 ))p\" \"${CACHE_FILE}\" | cut -f2-); printf '%b\n' \"\$content\"" \
         --preview-window=top:60%:wrap \
         --bind "ctrl-y:execute-silent(echo {1} | sed -En 's/^#([0-9]+).*/\1/p' | pbcopy)" \
-        --bind "ctrl-o:execute-silent(echo {1} | awk '{print \$1}' | xargs gh pr view --web)" |
+        --bind "ctrl-o:execute-silent(echo {1} | awk '{print \$1}' | xargs gh pr view --web)" \
+        --bind "ctrl-/:transform:
+          if echo \"\$FZF_PREVIEW_LABEL\" | grep -q -i \"remote\"; then
+            echo \"\$CMD_LOCAL\"
+          else
+            if [ -f \"${PREVIEW_BIN}\" ]; then
+               echo \"\$CMD_REMOTE\"
+            else
+               echo \"change-preview-label([ ⚠️ Script Missing ])\"
+            fi
+          fi" |
     sed -En 's/^#([0-9]+).*/\1/p'
   )
 
+  unset CMD_REMOTE CMD_LOCAL
   test -n "${prId}" && echo "${prId}" || return 1
 }
 
@@ -142,12 +169,13 @@ function main() {
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -c | --checkout ) OPTION="checkout"        ; shift      ;;
-      -C | --close    ) OPTION="close"           ; shift      ;;
-      -o | --open     ) SHOULD_OPEN=true         ; shift      ;;
-      -v | --verbose  ) VERBOSE=true             ; shift      ;;
-      --dryrun        ) DRYRUN=true              ; shift      ;;
-      --              ) shift; GH_OPTS+=( "$@" ) ; break      ;;
+      -c | --checkout ) OPTION='checkout'         ; shift     ;;
+      -C | --close    ) OPTION='close'            ; shift     ;;
+      -m | --merge    ) OPTION='merge'            ; shift     ;;
+      -o | --open     ) SHOULD_OPEN=true          ; shift     ;;
+      -V | --verbose  ) VERBOSE=true              ; shift     ;;
+      --dryrun        ) DRYRUN=true               ; shift     ;;
+      --              ) shift ; GH_OPTS+=( "$@" ) ; break     ;;
       -h | --help     ) showHelp                              ;;
       *               ) show error "unknown argument: \`$1\`" ;;
     esac
@@ -157,19 +185,26 @@ function main() {
 
   # shellcheck disable=SC2155
   local prId="$( getId )"
-  local cmd=( gh pr "${OPTION}" "${prId}" )
+  local cmd=( gh pr )
+  case "${OPTION}" in
+    checkout | close ) cmd+=( "${OPTION}" "${prId}"          )    ;;
+    merge            ) cmd+=( "${OPTION}" "${prId}" --squash )    ;;
+    *                ) show error "unknown option: \`${OPTION}\`" ;;
+  esac
 
   test -z "${prId}" && exit 0
   "${SHOULD_OPEN}"  && { openPR "${prId}"; exit 0; }
 
   ( "${DRYRUN}" || "${VERBOSE}" ) && {
-
-    local msg="command to be executed: \`$(c 0Cdi)\$ ${cmd[*]} ${GH_OPTS[*]}$(c 0Wdi)\` ...$(c)"
+    local msg="command to be executed: \`$(c 0Cdi)\$ ${cmd[*]}${GH_OPTS[*]:+ ${GH_OPTS[*]}}$(c 0Wdi)\` ...$(c)"
     # shellcheck disable=SC2015
     "${VERBOSE}" && show verbose "${msg}" || { show dryrun "${msg}"; exit 0; }
   }
 
-  printf "$(c Ci)~~> %s$(c) $(c Mis)#%s$(c) $(c Ci)..$(c)\n" "${OPTION}" "${prId}" >&2
+  printf "$(c Ci)~~> %s$(c) $(c 0Mis)#%s$(c)%b $(c Ci)..$(c)\n" \
+         "${OPTION}" \
+         "${prId}" \
+         "${GH_OPTS[*]:+ with gh OPTS $(c 0Mis)${GH_OPTS[*]}$(c)}" >&2
   "${cmd[@]}" "${GH_OPTS[@]}"
 }
 
