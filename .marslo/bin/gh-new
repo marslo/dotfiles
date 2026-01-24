@@ -4,7 +4,7 @@
 #     FileName : gh-new-pr
 #       Author : marslo
 #      Created : 2026-01-23 11:52:14
-#   LastChange : 2026-01-23 19:22:50
+#   LastChange : 2026-01-23 22:00:14
 #=============================================================================
 
 set -euo pipefail
@@ -33,7 +33,7 @@ OPTIONS
   $(c G)-V$(c), $(c G)--verbose$(c)        show verbose output
   $(c G)--dryrun$(c)             show the command to be executed, but do not run it
   $(c G)-h$(c), $(c G)--help$(c)           show this help message
-  $(c C)--$(c) $(c 0Mi)[GH_OPTS]$(c)         pass all following arguments to the underlying 'gh pr create' command
+  $(c C)--$(c) $(c 0Mi)<GH_OPTS>$(c)         pass all following arguments to the underlying '$(c i)gh pr create$(c)' command
 
 EXAMPLES
   $(c 0Wdi)# create a PR from the current branch to a selected base branch$(c)
@@ -52,7 +52,6 @@ declare DRYRUN=false
 declare VERBOSE=false
 declare -a GH_OPTS=()
 declare SHOULD_OPEN=false
-
 
 function showHelp() { echo -e "${USAGE}"; exit 0; }
 function joinBy {
@@ -134,7 +133,9 @@ function checkTools() {
     type -P "${tool}" >/dev/null 2>&1 || missing+=( "${tool}" )
   done
 
-  [[ ${#missing[@]} -gt 0 ]] && show error "missing required tools: $(c 0Mi)$(joinBy ', ' "${missing[@]}")$(c)"
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    show error "missing required tools: $(c 0Mi)$(joinBy ', ' "${missing[@]}")$(c)"
+  fi
 }
 
 function openPR() {
@@ -158,12 +159,12 @@ function main() {
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -o | --open       ) SHOULD_OPEN=true         ; shift        ;;
-      -V | --verbose    ) VERBOSE=true             ; shift        ;;
-      -D | --dryrun     ) DRYRUN=true              ; shift        ;;
-      --                ) shift; GH_OPTS+=( "$@" ) ; break        ;;
-      -h | --help       ) showHelp                                ;;
-      *                 ) echo "Unknown argument: $1" >&2; exit 1 ;;
+      -o | --open    ) SHOULD_OPEN=true         ; shift        ;;
+      -V | --verbose ) VERBOSE=true             ; shift        ;;
+      -D | --dryrun  ) DRYRUN=true              ; shift        ;;
+      --             ) shift; GH_OPTS+=( "$@" ) ; break        ;;
+      -h | --help    ) showHelp                                ;;
+      *              ) echo "Unknown argument: $1" >&2; exit 1 ;;
     esac
   done
 
@@ -178,7 +179,7 @@ function main() {
   mapfile -d '' -t cmd < <( prCreate )
 
   ( "${DRYRUN}" || "${VERBOSE}" ) && {
-    local cmdstr="${cmd[*]//$'\n'/\\\\n}"
+    local cmdstr="${cmd[*]//$'\n'/\\\\n} ${GH_OPTS[*]}"
     local msg="command to be executed: \`$(c 0Cdi)\$ ${cmdstr}$(c 0Wdi)\` ...$(c)"
     # shellcheck disable=SC2015
     "${VERBOSE}" && show verbose "${msg}" || { show dryrun "${msg}"; exit 0; }
