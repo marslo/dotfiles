@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-01-23 14:11:14
+"    LastChange : 2026-01-27 14:16:41
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -38,11 +38,17 @@ if ! IsNvim()
   if exists( '$TMUX' )        | set TERM=xterm-256color | endif
 endif
 if 'xterm-256color' ==? $TERM | set t_Co=256            | endif
-set termguicolors
+if has('termguicolors')       | set termguicolors       | endif
 
 if has( 'gui_running' ) || 'xterm-256color' ==? $TERM
   set background=dark
-  colorscheme gruvbox-material                                      " sainnhe/gruvbox-material
+
+  if exists('$SSH_CONNECTION') || exists('$SSH_TTY') || exists('$SSH_CLIENT')
+    let g:everforest_background = 'hard'
+    colorscheme everforest                                          " sainnhe/everforest
+  else
+    colorscheme gruvbox-material                                    " sainnhe/gruvbox-material
+  endif
 
   """ terminal : `:help terminal-info`
   let &t_AB = "\e[48;5;%dm"
