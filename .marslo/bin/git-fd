@@ -4,16 +4,19 @@
 #     FileName : git-fd
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-10 19:59:15
-#   LastChange : 2025-11-06 10:52:15
+#   LastChange : 2026-01-28 00:48:27
 #=============================================================================
 
 set -euo pipefail
 
+# shellcheck disable=SC2155
+declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
-if [[ -f "${HOME}/.marslo/bin/bash-color.sh" ]]; then
-  source "${HOME}/.marslo/bin/bash-color.sh"
+if [[ -f "${CURRENT_DIR}/bash-color.sh" ]]; then
+  source "${CURRENT_DIR}/bash-color.sh"
 else
   c() { :; }
 fi
@@ -28,6 +31,7 @@ declare DIFF_FILTER_INCLUDE=''
 declare DIFF_FILTER_EXCLUDE=''
 declare USE_FZF=false
 declare VERBOSE=false
+declare BLOB=''
 # shellcheck disable=SC2155
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
 # shellcheck disable=SC2155
@@ -52,6 +56,7 @@ OPTIONS
   $(c Gi)--add$(c), $(c Gi)--no-add$(c)         include/exclude added files
   $(c Gi)--modify$(c), $(c Gi)--no-modify$(c)   include/exclude modified files
   $(c Gi)--rename$(c), $(c Gi)--no-rename$(c)   include/exclude renamed files
+  $(c Gi)--blob $(c 0Wi)<hash>$(c)           find commits containing the specified blob object hash
 
   $(c Gi)-v$(c), $(c Gi)--verbose$(c)           show verbose output
   $(c Gi)-h$(c), $(c Gi)--help$(c)              show this help message
@@ -174,6 +179,7 @@ while [[ $# -gt 0 ]]; do
     --no-rename    ) DIFF_FILTER_EXCLUDE+="r"                ; shift   ;;
     --fzf          ) USE_FZF=true                            ; shift   ;;
     --no-fzf       ) USE_FZF=false                           ; shift   ;;
+    --blob         ) BLOB="$2"                               ; shift 2 ;;
     -v | --verbose ) VERBOSE=true                            ; shift   ;;
     -h | --help    ) showHelp                                          ;;
     --             ) shift                                             ;;
@@ -182,6 +188,14 @@ while [[ $# -gt 0 ]]; do
 done
 
 "${VERBOSE}" && [[ -z "${AUTHOR}" ]] && echo -e "$(c Wdi)WARNING: no author specified ...$(c)"
+
+# or: git log --all --find-object="${hash}" --pretty=format:"%H %an %cd %s"
+if test -n "${BLOB:-}"; then
+  while read -r commit; do
+    git for-each-ref --contains "${commit}";
+  done< <(git log --all --find-object="${BLOB}" --pretty=format:"%H")
+  exit 0
+fi
 
 declare -a logCmd
 logCmd=(git log)
@@ -208,7 +222,7 @@ declare nameFiltered=false
 
 # -g, --grep
 if [[ -n "${GREP_PATTERN}" ]]; then
-  mapfile -t initialFiles < <(git grep -Il --color=never "${GREP_PATTERN}")
+  mapfile -t initialFiles < <( git grep -Il --color=never "${GREP_PATTERN}" )
   grepFiltered=true
   if [[ ${#initialFiles[@]} -eq 0 ]]; then
     echo "No files found matching content grep pattern: ${GREP_PATTERN}"
@@ -216,39 +230,55 @@ if [[ -n "${GREP_PATTERN}" ]]; then
   fi
   matchesFiles=("${initialFiles[@]}")
 else
-  mapfile -t initialFiles < <(git ls-files)
-  matchesFiles=("${initialFiles[@]}")
+  if [[ -z "${FILE_PATTERN}" ]]; then
+    mapfile -t initialFiles < <( git ls-files )
+    matchesFiles=( "${initialFiles[@]}" )
+  fi
 fi
 
 # -f, --file
 if [[ -n "${FILE_PATTERN}" ]]; then
-  mapfile -t filteredFiles < <(printf '%s\n' "${matchesFiles[@]}" | grep -i --color=never "${FILE_PATTERN}")
-  matchesFiles=("${filteredFiles[@]}")
-  nameFiltered=true
-  if "${VERBOSE}"; then
-    [[ ${#matchesFiles[@]} -eq 0 ]] &&
-    { echo "no files left after applying file name pattern: ${FILE_PATTERN}"; }
+  if [[ "${grepFiltered}" == true || -z "${FILE_PATTERN}" ]]; then
+    mapfile -t filteredFiles < <( printf '%s\n' "${matchesFiles[@]}" | grep -i --color=never "${FILE_PATTERN}" )
+    matchesFiles=("${filteredFiles[@]}")
+    nameFiltered=true
+    if "${VERBOSE}"; then
+      [[ ${#matchesFiles[@]} -eq 0 ]] && echo "no files left after applying file name pattern: ${FILE_PATTERN}";
+    fi
+  else
+    pathSpecs+=( "*${FILE_PATTERN}*" )
+    nameFiltered=true
   fi
 fi
 
 # -e, --ext
 if [[ -n "${EXT}" ]]; then
   EXT_NO_DOT="${EXT#.}"
-  mapfile -t filteredFiles < <(printf '%s\n' "${matchesFiles[@]}" | grep -Ei --color=never "\.${EXT_NO_DOT}$")
-  matchesFiles=("${filteredFiles[@]}")
-  if "${VERBOSE}"; then
-    [[ ${#matchesFiles[@]} -eq 0 ]] &&
-    { echo "no files left after applying extension filter: ${EXT}"; }
+  if [[ ${#pathSpecs[@]} -gt 0 ]]; then
+    declare baseSpec="${pathSpecs[0]}"
+    pathSpecs=( "${baseSpec}*.${EXT_NO_DOT}" )
+  else
+    mapfile -t filteredFiles < <( printf '%s\n' "${matchesFiles[@]}" | grep -Ei --color=never "\.${EXT_NO_DOT}$" )
+    matchesFiles=( "${filteredFiles[@]}" )
+    if "${VERBOSE}"; then
+      [[ ${#matchesFiles[@]} -eq 0 ]] &&
+      { echo "no files left after applying extension filter: ${EXT}"; }
+    fi
   fi
 fi
 
-if [[ "${grepFiltered}" = true || "${nameFiltered}" = true || -n "${EXT}" ]]; then
-  if [[ ${#matchesFiles[@]} -gt 0 ]]; then
-    logCmd+=(-- "${matchesFiles[@]}")
-  else
-    "${VERBOSE}" &&
-    { echo "no files matched the combined file filters. no commits to show."; }
-  fi
+# shellcheck disable=SC2015
+if [[ "${grepFiltered}" = true ]]; then
+  [[ ${#matchesFiles[@]} -gt 0 ]] && logCmd+=( -- "${matchesFiles[@]}" ) || {
+    "${VERBOSE}" && echo "no files matched the combined file filters.";
+    exit 0
+  }
+elif [[ ${#pathSpecs[@]} -gt 0 ]]; then
+  logCmd+=(-- "${pathSpecs[@]}")
+elif [[ "${nameFiltered}" = true || -n "${EXT}" ]]; then
+  [[ ${#matchesFiles[@]} -gt 0 ]] && logCmd+=( -- "${matchesFiles[@]}" ) || {
+    "${VERBOSE}" && echo "no files matched."; exit 0;
+  }
 fi
 
 "${VERBOSE}" && echo -e "$(c Wdi)DEBUG: executing command:$(c)\n  $(c Gdi)${logCmd[*]}$(c)\n"
