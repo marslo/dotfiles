@@ -32,7 +32,7 @@ function getBranch() {
                    git for-each-ref refs/heads refs/remotes --sort=-committerdate --format="%(refname:short)";
                  } |
                  grep -v --color=never -E "^(${current}|origin/${current})$" |
-                 # awk 'NF && !seen[$0]++' |
+                 # awk 'NF && !seen[$0]++'
                  awk -v cur="${current}" -v remote=$'\033[0;3m' -v local=$'\033[0;32m' -v reset=$'\033[0m' '
                    NF  { a[++n] = $0; if ( $0 !~ /^origin\// ) L[$0] = 1; }
                    END {

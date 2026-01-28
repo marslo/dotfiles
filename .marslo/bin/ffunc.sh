@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-01-12 20:38:47
+#   LastChange : 2026-01-28 00:02:25
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -65,19 +65,20 @@ function copy() {                          # smart copy
   local -a fdOpt=(--type f --hidden --follow --exclude .git --exclude node_modules)
   [[ "$(pwd)" = "$HOME" ]] && fdOpt+=(--max-depth 3)
   if ! uname -r | grep -q "Microsoft"; then fdOpt+=(--exec-batch ls -t); fi
+  local -a fzfOpt=( --exit-0 --height 50% --multi --cycle --preview "${CAT[*]} --color=always {}" --preview-window 'right,60%,wrap,rounded' )
 
   if [[ 0 -eq $# ]]; then
-    file=$( fd . "${fdOpt[@]}" | fzf --cycle --exit-0 ) &&
+    file=$( fd . "${fdOpt[@]}" | fzf "${fzfOpt[@]}" ) &&
          "${COPY}" < "${file}" &&
-         echo -e "$(c Wd)>>$(c) $(c Gis)${file}$(c) $(c Wdi)has been copied ..$(c)"
+         printf "$(c Wd)>>$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${file}"
   elif [[ 1 -eq $# ]] && [[ -d "$1" ]]; then
     local target=$1;
-    file=$( fd . "${target}" "${fdOpt[@]}" | fzf --cycle --exit-0 ) &&
+    file=$( fd . "${target}" "${fdOpt[@]}" | fzf "${fzfOpt[@]}" ) &&
          "${COPY}" < "${file}" &&
-         echo -e "$(c Wd)>>$(c) $(c Gis)${file}$(c) $(c Wdi)has been copied ..$(c)"
+         printf "$(c Wd)>>$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${file}"
   else
     "${COPY}" < "$1" &&
-      echo -e "$(c Wd)>>$(c) $(c Gis)$1$(c) $(c Wdi)has been copied ..$(c)"
+       printf "$(c Wd)>>$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${1}"
   fi
 }
 
@@ -92,22 +93,29 @@ function copy() {                          # smart copy
 #   - otherwise respect `bat` options, and shows via `bat`
 # shellcheck disable=SC2046,SC2155
 function cat() {                           # smart cat
+  local -a CAT=( "$(type -P cat)" )
+  command -v bat >/dev/null && CAT=( "$(type -P bat)" --theme='gruvbox-dark' )
+
+  # reading from pipe == [[ -p /dev/stdin ]]
+  [[ ! -t 0      ]] && { "${CAT[@]}" "$@"; return; }
+  # force use cat
+  [[ '-c' = "$1" ]] && { $(type -P cat) "${@:2}"; return; }
+
   local -a fdOpt=(--type f --hidden --follow --exclude .git --exclude node_modules)
-  local CAT="$(type -P cat)"
   [[ "$(pwd)" = "$HOME" ]] && fdOpt+=(--max-depth 3)
   if ! uname -r | grep -q "Microsoft"; then fdOpt+=(--exec-batch ls -t); fi
-  command -v bat >/dev/null && CAT="$(type -P bat)"
+  local -a fzfOpt=(--height 60% --multi --cycle --preview "${CAT[*]} --color=always {}" --preview-window 'right,60%,wrap,rounded')
 
+  # reading from fd + fzf
   if [[ 0 -eq $# ]]; then
-    "${CAT}" --theme='gruvbox-dark' $(fd . "${fdOpt[@]}" | fzf --multi --cycle --exit-0)
-  elif [[ '-c' = "$1" ]]; then
-    $(type -P cat) "${@:2}"
+    local selected=$( fd . "${fdOpt[@]}" | fzf --exit-0 "${fzfOpt[@]}" )
+    # using IFS to handle file name with space
+    [[ -n "$selected" ]] && echo "${selected}" | xargs -d '\n' "${CAT[@]}"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
     local target=$1;
-    fd . "${target}" "${fdOpt[@]}" |
-      fzf --multi --cycle --bind="enter:become(${CAT} --theme='gruvbox-dark' {+})" ;
+    fd . "${target}" "${fdOpt[@]}" | fzf --bind="enter:become(${CAT[*]} {+})" "${fzfOpt[@]}";
   else
-    "${CAT}" --theme='gruvbox-dark' "${@:1:$#-1}" "${@: -1}"
+    "${CAT[@]}" "${@:1:$#-1}" "${@: -1}"
   fi
 }
 
@@ -1002,15 +1010,16 @@ function fmount() {                        # fmount - [mount] with [f]zf
   local host
   local path
   local mpoint
-  local fzfOpt=''
-  local verbose=''
+  local -a fzfOpt=()
+  local verbose=false
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --auto       ) fzfOpt+=' --reverse --bind start:+accept' ; shift   ;;
-      --debug      ) verbose='true'                            ; shift   ;;
-      --silent     ) verbose='false'                           ; shift   ;;
-      -q | --query ) fzfOpt+=" --query $2"                     ; shift 2 ;;
+      --auto       ) fzfOpt+=( --reverse --bind start:+accept ) ; shift   ;;
+      --debug      ) verbose=true                               ; shift   ;;
+      --silent     ) verbose=false                              ; shift   ;;
+      -q | --query ) fzfOpt+=( --query "$2"  )                  ; shift 2 ;;
+      *            ) echo -e "$(c Rs)ERROR$(c): Invalid option '$1' ..." >&2 ; return 1 ;;
     esac
   done
 
@@ -1018,19 +1027,19 @@ function fmount() {                        # fmount - [mount] with [f]zf
   getMounted mounted
   [[ "${#mounted[@]}" -gt 0 ]] && pattern=$(IFS='|'; echo "${mounted[*]}") || pattern='^$'
 
-  mpoint=$( echo "${points}" | fmt -1 |
+  mpoint=$( printf "%s\n" "${points[@]}" |
             awk -v pattern="${pattern}" '$0 !~ pattern' |
-            fzf --prompt='󰉖 ' ${fzfOpt}
+            fzf --prompt='󰉖 ' "${fzfOpt[@]}"
           )
 
   if [[ -z "${mpoint}" ]]; then
-    [[ 'true' = "${verbose}" ]] && echo -e "$(c Wdi)~~> no mount point been selected ...$(c)"
+    ${verbose} && echo -e "$(c Wdi)~~> no mount point been selected ...$(c)"
     return
   fi
 
   while read -r host path; do
     processMount "${host}" "${path}" "${verbose}"
-  done< <( echo "${mpoint}" | fmt -1 | sed -rn 's!^([^:]+):(.+)$!\1 \2!p' )
+  done< <( printf "%s\n" "${mpoint}" | sed -rn 's!^([^:]+):(.+)$!\1 \2!p' )
 }
 
 # fumount      : using fzf to select mount point and umount it
@@ -1048,7 +1057,7 @@ function fumount() {                       # fumount - [umount] with [f]zf
     esac
   done
 
-  force="$([[ 'Darwin' = "$(uname)" ]] && [[ "${force}" ]] && force=true)"
+  force="$( [[ 'Darwin' = "$(uname)" ]] && [[ "${force}" ]] && force=true )"
 
   mpoint=$( mount | sed -rn 's://[^\ ]+\son\s([^\ ]+).*:\1:p' | fzf --prompt='󰉖 ' )
   [[ -z "${mpoint}" ]] && echo -e "$(c Wdi)~~> no mount point in current environment ...$(c)" && return
