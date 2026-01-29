@@ -4,7 +4,7 @@
 #     FileName : gh-new
 #       Author : marslo
 #      Created : 2026-01-23 11:52:14
-#   LastChange : 2026-01-23 22:03:33
+#   LastChange : 2026-01-28 22:44:59
 #=============================================================================
 
 set -euo pipefail
@@ -15,11 +15,8 @@ declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
-if [[ -f "${BIN_DIR}/bash-color.sh" ]]; then
-  source "${BIN_DIR}/bash-color.sh"
-else
-  c() { :; }
-fi
+# shellcheck disable=SC2015
+test -f "${BIN_DIR}/bash-color.sh" && source "${BIN_DIR}/bash-color.sh" || { c() { :; }; }
 
 declare -r USAGE="""
 NAME
@@ -31,7 +28,8 @@ USAGE
 OPTIONS
   $(c G)-o$(c), $(c G)--open$(c)           open the created PR in the web browser
   $(c G)-V$(c), $(c G)--verbose$(c)        show verbose output
-  $(c G)--dryrun$(c)             show the command to be executed, but do not run it
+  $(c G)-a$(c), $(c G)--auto$(c)           automatically open the current PR if exists in current branch
+  $(c G)-D$(c), $(c G)--dryrun$(c)         show the command to be executed, but do not run it
   $(c G)-h$(c), $(c G)--help$(c)           show this help message
   $(c C)--$(c) $(c 0Wdi)[$(c 0Mi)GH_OPTS$(c 0Wdi)]$(c)         pass all following arguments to the underlying '$(c i)gh pr create$(c)' command
 
@@ -50,6 +48,7 @@ EXAMPLES
 """
 declare DRYRUN=false
 declare VERBOSE=false
+declare AUTO_OPEN=false
 declare -a GH_OPTS=()
 declare SHOULD_OPEN=false
 
@@ -86,19 +85,24 @@ function isPushed() {
   fi
 }
 
-function prCreate() {
+function prCmd() {
+  # nameref
+  local -n arrRef=$1
+
   local current="$(git branch --show-current)"
   test -z "${current}" && show error 'Not in a git repository or detached HEAD'
   isPushed "${current}"
   local gpreview="git show --color=always origin/{-1}"
-  local main="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)"
+  test -f "$(git rev-parse --absolute-git-dir)"/refs/remotes/origin/HEAD &&
+    main="$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's|^origin/||')" ||
+    main="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)"
   local base=$({
                  echo "${main}";
-                 git for-each-ref refs/remotes/origin --sort=-committerdate --format="%(refname:short)" | sed 's#^origin/##' ;
+                 git for-each-ref refs/remotes/origin --sort=-committerdate --format="%(refname:lstrip=3)"
                } |
-               awk '!seen[$0]++' |
-               grep -v --color=never -E "^(${current}|HEAD)$" |
-               fzf +m --prompt=' ' -0 \
+               awk 'NF && $0!~/^(HEAD|origin)$/ && !seen[$0]++' |
+               grep -v --color=never -E "^(${current})$" |
+               fzf +m --ansi --prompt=' ' -0 \
                    --height 50% --min-height 10+ \
                    --style full --no-input-border \
                    --preview "${gpreview} -s" \
@@ -108,7 +112,7 @@ function prCreate() {
                    --bind 'ctrl-y:execute-silent(git log origin/{-1} -1 --pretty=format:"%H" | pbcopy)'
               )
 
-  test -z "${base:-}" && show error 'no branch selected, aborting PR creation'
+  test -z "${base:-}" && { show error 'no branch selected, aborting PR creation'; exit 1; }
   ! "${DRYRUN}" && show info "drafting PR : \`$(c 0Yi)${current}$(c 0Wdi)\` -> \`$(c 0Yi)${base}$(c 0Wdi)\`"
 
   # TODO: using AI to generate better body
@@ -116,13 +120,13 @@ function prCreate() {
   local body=$(git log -1 --pretty=%B)
   test -z "${body}" && body="auto-generated PR from commit: '${title}'"
 
-  local cmd=( gh pr create
+  # shellcheck disable=SC2034
+  arrRef=( gh pr create
               --base "${base}"
               --head "${current}"
               --title "${title}"
               --body "${body}"
-            )
-  printf "%s\0" "${cmd[@]}"
+         )
 }
 
 function checkTools() {
@@ -140,9 +144,10 @@ function checkTools() {
 
 function openPR() {
   local prId="${1:-}"
-  test -z "${prId}" && prId="$(gh pr view --json number -q .number 2>/dev/null)"
+  local open="${2:-$SHOULD_OPEN}"
 
-  if "${SHOULD_OPEN}"; then
+  if [[ 'true' = "${open}" ]]; then
+    test -z "${prId}" && prId="$(gh pr view --json number -q .number 2>/dev/null)";
     # shellcheck disable=SC2015
     test -n "${prId:-}" && {
       local -a openCmd=( gh pr view "${prId}" --web )
@@ -160,6 +165,7 @@ function main() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -o | --open    ) SHOULD_OPEN=true         ; shift        ;;
+      -a | --auto    ) AUTO_OPEN=true           ; shift        ;;
       -V | --verbose ) VERBOSE=true             ; shift        ;;
       -D | --dryrun  ) DRYRUN=true              ; shift        ;;
       --             ) shift; GH_OPTS+=( "$@" ) ; break        ;;
@@ -170,13 +176,14 @@ function main() {
 
   checkTools
 
-  if prId=$(gh pr view --json number -q .number 2>/dev/null); then
+  if "${AUTO_OPEN}" && prId=$(gh pr view --json number -q .number 2>/dev/null); then
     show info "existing PR found: \`$(c 0Mi)#${prId}$(c 0Wdi)\`, opening it ...$(c)"
-    openPR "${prId}"
+    openPR "${prId}" 'true'
     exit 0
   fi
 
-  mapfile -d '' -t cmd < <( prCreate )
+  local -a cmd=()
+  prCmd cmd
 
   ( "${DRYRUN}" || "${VERBOSE}" ) && {
     local cmdstr="${cmd[*]//$'\n'/\\\\n} ${GH_OPTS[*]}"

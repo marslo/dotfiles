@@ -4,19 +4,17 @@
 #     FileName : git-changed
 #       Author : marslo
 #      Created : 2025-08-22 15:24:56
-#   LastChange : 2025-12-04 02:29:14
+#   LastChange : 2026-01-28 09:02:02
 #=============================================================================
 
 set -euo pipefail
 
-# credit: https://github.com/ppo/bash-colors
-if test -f "${HOME}/.marslo/bin/bash-color.sh"; then
-  source "${HOME}/.marslo/bin/bash-color.sh"
-else
-  # or copy & paste the `c()` function from https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
-  c() { :; }
-fi
+# shellcheck disable=SC2155
+declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 
+# credit: https://github.com/ppo/bash-colors
+# shellcheck disable=SC2015
+test -f "${CURRENT_DIR}/bash-color.sh" && source "${CURRENT_DIR}/bash-color.sh" || { c() { :; }; }
 
 # section toggles (default all if none specified)
 declare showStaged=0 showUnstaged=0 showUntracked=0 showIgnored=0 anySection=0
@@ -24,36 +22,35 @@ declare showStaged=0 showUnstaged=0 showUntracked=0 showIgnored=0 anySection=0
 declare showTitle=0
 declare -a pathspec=()
 
-# shellcheck disable=SC2125
+# shellcheck disable=SC2125,SC2155
 declare USAGE="""
-Show changed files grouped by sections.
+NAME
+  $(c Ys)git changed$(c) - Show changed files grouped by sections.
 
-USAGE:
-  \$ git changed [OPTIONS] [--] [PATHSPEC...]
+USAGE
+  $(c Ys)\$ git changed $(c 0Wdi)[$(c 0Gi)OPTIONS$(c 0Wdi)] [$(c 0Mi)--$(c 0Wdi)] [$(c 0Ci)PATHSPEC...$(c 0Wdi)]$(c)
 
 SECTIONS (CAN SPECIFY MULTIPLE)
-  -s,  --staged       show staged changes ( A/C/M/R )
-  -us, --unstaged     show unstaged changes ( A/C/M/R )
-  -ut, --untracked    show untracked files ( excluding ignored )
-  -i,  --ignored      show ignored files ( from .gitignore / global ignore )
-  -a,  --all          show all sections ( default if none specified )
+  $(c 0G)-a$(c),  $(c 0G)--all$(c)          show all sections ( default if none specified )
+  $(c 0G)-s$(c),  $(c 0G)--staged$(c)       show staged changes ( A/C/M/R )
+  $(c 0G)-us$(c), $(c 0G)--unstaged$(c)     show unstaged changes ( A/C/M/R )
+  $(c 0G)-ut$(c), $(c 0G)--untracked$(c)    show untracked files ( excluding ignored )
+  $(c 0G)-i$(c),  $(c 0G)--ignored$(c)      show ignored files ( from .gitignore / global ignore )
 
-TITLE DISPLAY
-  --all-titles   print section titles even if empty ( default: only if has output )
-  --no-title     do not print section titles ( just the file names )
+  $(c 0G)--all-titles$(c)        print section titles even if empty ( default: only if has output )
+  $(c 0G)--no-title$(c)          do not print section titles ( just the file names )
 
-OTHER
-  -h, --help     show this help
+  $(c 0G)-h$(c), $(c 0G)--help$(c)          show this help
 
 NOTES
-  • You may pass multiple PATHSPECs; use \`--\` to stop option parsing
-  • Deleted files are not shown by default. To include deletions, change the diff-filter from ACMR to ACMRD in the function if desired
+  • multiple PATHSPECs are allowed; use \`$(c 0M)--$(c)\` to stop option parsing
+  • deleted files are not shown by default. To include deletions, change the diff-filter from ACMR to ACMRD in the function if desired
 
 EXAMPLES
-  \$ git changed
-  \$ git changed --staged --untracked
-  \$ git changed --ignored -- src/ "*.log"
-  \$ git changed --no-title -- '*.c' '!:test/*'
+  $(c 0Ys)\$ git changed$(c)
+  $(c 0Ys)\$ git changed$(c) $(c 0Gi)--staged --untracked$(c)
+  $(c 0Ys)\$ git changed$(c) $(c 0Gi)--ignored$(c) $(c 0Mi)--$(c) $(c 0Ci)src/ \"*.log\"$(c)
+  $(c 0Ys)\$ git changed$(c) $(c 0Gi)--no-title$(c) $(c 0Mi)--$(c) $(c 0Ci)'*.c' '!:test/*'$(c)
 """
 
 function usage() { echo -e "${USAGE}"; exit 0; }
@@ -64,10 +61,6 @@ function die() {
   echo -e "$(c Ri)ERROR$(c)$(c i): ${msg}.$(c) $(c 0Wdi)exit ...$(c)" >&2; exit "${exitcode}";
 }
 function main()  {
-  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    die "fatal: not a git repository (or any of the parent directories): .git" '128'
-  fi
-
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
       -a  | --all       ) showStaged=1    ; showUnstaged=1; showUntracked=1; showIgnored=1; anySection=1 ;;
@@ -86,6 +79,11 @@ function main()  {
     esac
     shift
   done
+
+  git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
+    echo "fatal: not a git repository (or any of the parent directories): .git" >&2;
+    exit 128
+  }
 
   # default to all sections if none explicitly chosen
   if [[ "${anySection}" -eq 0 ]]; then

@@ -15,11 +15,8 @@ declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
-if [[ -f "${CURRENT_DIR}/bash-color.sh" ]]; then
-  source "${CURRENT_DIR}/bash-color.sh"
-else
-  c() { :; }
-fi
+# shellcheck disable=SC2015
+test -f "${CURRENT_DIR}/bash-color.sh" && source "${CURRENT_DIR}/bash-color.sh" || { c() { :; }; }
 
 declare EXT=''
 declare AUTHOR=''
@@ -187,6 +184,10 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
+  echo "fatal: not a git repository (or any of the parent directories): .git" >&2;
+  exit 128
+}
 "${VERBOSE}" && [[ -z "${AUTHOR}" ]] && echo -e "$(c Wdi)WARNING: no author specified ...$(c)"
 
 # or: git log --all --find-object="${hash}" --pretty=format:"%H %an %cd %s"
