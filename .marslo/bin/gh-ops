@@ -4,7 +4,7 @@
 #     FileName : gh-ops
 #       Author : marslo
 #      Created : 2026-01-21 20:38:07
-#   LastChange : 2026-01-24 02:23:06
+#   LastChange : 2026-01-28 10:05:57
 #  Inspired by : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/
 #=============================================================================
 
@@ -34,7 +34,9 @@ OPTIONS
   $(c G)-c$(c), $(c G)--checkout$(c)       checkout the selected pull request ( $(c Cis)*default$(c) )
   $(c G)-C$(c), $(c G)--close$(c)          close the selected pull request
   $(c G)-o$(c), $(c G)--open$(c)           open the selected pull request in the web browser
-  $(c G)-m$(c), $(c G)--merge$(c)          merge the selected pull request with squash
+  $(c G)-a$(c), $(c G)--auto$(c)           automatically open the PR in the web browser after selection
+  $(c G)-s$(c), $(c G)--squash$(c)         squash merge the selected pull request and delete the branch
+  $(c G)-r$(c), $(c G)--rebase$(c)         rebase merge the selected pull request and delete
   $(c G)-V$(c), $(c G)--verbose$(c)        show verbose output
   $(c G)--dryrun$(c)             show the command to be executed, but do not run it
   $(c G)-h$(c), $(c G)--help$(c)           show this help message
@@ -62,6 +64,7 @@ declare DRYRUN=false
 declare VERBOSE=false
 declare -a GH_OPTS=()
 declare SHOULD_OPEN=false
+declare AUTO_OPEN=false
 
 function showHelp() { echo -e "${USAGE}"; exit 0; }
 function show() {
@@ -101,13 +104,16 @@ function checkTools() {
 }
 
 function openPR() {
-  local PR_ID="${1:-}"
+  local id="${1:-}"
 
   if "${SHOULD_OPEN}"; then
+    "${AUTO_OPEN}" && {
+      test -z "${id:-}" && id="$(gh pr view --json number -q .number 2>/dev/null)"
+    }
     # shellcheck disable=SC2015
-    test -n "${PR_ID:-}" && {
-      local -a openCmd=( gh pr view "${PR_ID}" --web )
-      "${VERBOSE}" && show info "opening PR $(c 0Mi)\`#${PR_ID}\`$(c 0Wdi) in web browser ...$(c)" || :
+    test -n "${id:-}" && {
+      local -a openCmd=( gh pr view "${id}" --web )
+      "${VERBOSE}" && show info "opening PR $(c 0Mi)\`#${id}\`$(c 0Wdi) in web browser ...$(c)" || :
       "${openCmd[@]}"
     } || {
       show warning "cannot open PR: no PR ID found"
@@ -207,8 +213,10 @@ function main() {
     case "$1" in
       -c | --checkout ) OPTION='checkout'         ; shift     ;;
       -C | --close    ) OPTION='close'            ; shift     ;;
-      -m | --merge    ) OPTION='merge'            ; shift     ;;
+      -s | --squash   ) OPTION='squash'           ; shift     ;;
+      -r | --rebase   ) OPTION='rebase'           ; shift     ;;
       -o | --open     ) SHOULD_OPEN=true          ; shift     ;;
+      -a | --auto     ) AUTO_OPEN=true            ; shift     ;;
       -V | --verbose  ) VERBOSE=true              ; shift     ;;
       --dryrun        ) DRYRUN=true               ; shift     ;;
       --              ) shift ; GH_OPTS+=( "$@" ) ; break     ;;
@@ -223,13 +231,14 @@ function main() {
   local PR_ID="$( getId )"
   local cmd=( gh pr )
   case "${OPTION}" in
-    checkout | close ) cmd+=( "${OPTION}" "${PR_ID}"          )    ;;
-    merge            ) cmd+=( "${OPTION}" "${PR_ID}" --squash )    ;;
+    checkout | close ) cmd+=( "${OPTION}" "${PR_ID}"    )         ;;
+    squash           ) cmd+=( merge "${PR_ID}" --squash )         ;;
+    rebase           ) cmd+=( merge "${PR_ID}" --rebase )         ;;
     *                ) show error "unknown option: \`${OPTION}\`" ;;
   esac
 
   test -z "${PR_ID}" && exit 0
-  "${SHOULD_OPEN}"  && { openPR "${PR_ID}"; exit 0; }
+  "${SHOULD_OPEN}" && { openPR "${PR_ID}"; exit 0; }
 
   ( "${DRYRUN}" || "${VERBOSE}" ) && {
     local msg="command to be executed: \`$(c 0Cdi)\$ ${cmd[*]}${GH_OPTS[*]:+ ${GH_OPTS[*]}}$(c 0Wdi)\` ...$(c)"

@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 #=============================================================================
-#     FileName : git-filesize
+#     FileName : git-file-size
 #       Author : marslo
 #      Created : 2026-01-28 00:21:28
-#   LastChange : 2026-01-28 00:21:28
+#   LastChange : 2026-01-28 09:20:44
 #=============================================================================
 
 set -euo pipefail
+
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
+  echo "fatal: not a git repository (or any of the parent directories): .git" >&2;
+  exit 128
+}
 
 git rev-list --objects --all |
   git cat-file --batch-check='%(objectname) %(objecttype) %(objectsize) %(rest)' |
