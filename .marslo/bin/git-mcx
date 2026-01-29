@@ -110,6 +110,11 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
+  echo "fatal: not a git repository (or any of the parent directories): .git" >&2;
+  exit 128
+}
+
 function msgPreview() {
   echo -e "\n--------------- $(c Wdi)git message preview$(c) ---------------"
   printf  "%s\n" "${1}" | command bat --plain --language=COMMIT_EDITMSG --style=plain
