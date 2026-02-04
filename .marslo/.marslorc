@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2025-12-15 17:28:09
+# LastChange : 2026-02-03 16:36:32
 # =============================================================================
 
 # execute configuration only in the interactive shell
@@ -48,8 +48,10 @@ fi
 LS="$(type -P ls)"
 GREP="$(type -P grep)"
 COLUMN="$(type -P column)"
+CAT="$(type -P cat)"
 
 if isOSX && [[ 0 = $(type -P brew >/dev/null; echo $?) ]]; then
+  test -x "${HOMEBREW_PREFIX}/bin/bat"                   && CAT="${HOMEBREW_PREFIX}/bin/bat"
   test -x "${HOMEBREW_PREFIX}/bin/gls"                   && LS="${HOMEBREW_PREFIX}/bin/gls"
   test -x "${HOMEBREW_PREFIX}/bin/ggrep"                 && GREP="${HOMEBREW_PREFIX}/bin/ggrep"
   test -x "${HOMEBREW_PREFIX}/opt/util-linux/bin/column" && COLUMN="${HOMEBREW_PREFIX}/opt/util-linux/bin/column"

@@ -4,7 +4,7 @@
 #     FileName : gh-ops
 #       Author : marslo
 #      Created : 2026-01-21 20:38:07
-#   LastChange : 2026-01-28 10:05:57
+#   LastChange : 2026-02-03 15:23:15
 #  Inspired by : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/
 #=============================================================================
 
@@ -121,6 +121,12 @@ function openPR() {
   fi
 }
 
+# shellcheck disable=SC2015,SC2059
+function jc() {
+  [ $# == 0 ] && printf "\\u001b[0m" || \
+  printf "${1}" | sed 's/\(.\)/\1;/g;s/\([SDIUFNHT]\)/1\1/g;s/\([KRGYBMCW]\)/3\1/g;s/\([krgybmcw]\)/4\1/g;y/SDIUFNHTsdiufnhtKRGYBMCWkrgybmcw/12345789123457890123456701234567/;s/^\(.*\);$/\\u001b[\1m/g'
+}
+
 # shellcheck disable=SC2016,SC2064
 function getId() {
   test -f "${JQ_FILE}" || show error "missing JQ filter file at ${JQ_FILE}"
@@ -130,15 +136,14 @@ function getId() {
   trap "rm -f ${CACHE_FILE}" EXIT
   : > "${CACHE_FILE}"
 
-  local template='"'
-  template+='#\(.number) - \(.title)'
-  template+='\t'
-  template+='Author: \(.user.login)\n'
-  template+='Created: \(.created_at)\n'
-  template+='Updated: \(.updated_at)\n\n'
-  template+='\(.title)'
-  template+='\(if .title == (.body // "") then "" else "\n\n" + (.body // "") end)'
-  template+='"'
+  local TEMPLATE='"'
+  TEMPLATE+='#\(.number) - \(.title)'
+  TEMPLATE+='\t'
+  TEMPLATE+="$(jc Cs)Author:$(jc) \(.user.login)\n"
+  TEMPLATE+="$(jc Ys)Created:$(jc) \(.created_at) $(jc Ms)•$(jc) $(jc Ys)Updated:$(jc) \(.updated_at)\n\n"
+  TEMPLATE+='\(.title)'
+  TEMPLATE+='\( .title as $t | (.body // "") | if startswith($t) then .[($t | length):] else . end | sub("^\\s+"; "") | if . == "" then "" else "\n\n" + . end )'
+  TEMPLATE+='"'
 
   local EXTRACT_ID_CMD='sed -n "$(( {n}+1 ))p" "'${CACHE_FILE}'" | sed -En "s/^#([0-9]+).*/\1/p"'
 
@@ -187,14 +192,14 @@ function getId() {
   local PR_ID=''
   PR_ID=$(
     gh api 'repos/:owner/:repo/pulls?per_page=50' |
-    jq ".[] | ${template}" |
-    sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/' |
+    jq ".[] | ${TEMPLATE}" |
+    sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/' -e 's/\\u001b/\\033/g' |
     tee "${CACHE_FILE}" |
     fzf --ansi \
         --with-nth=1 \
         --delimiter='\t' \
         --preview-window=top:65%:wrap \
-        --preview='content=$(sed -n "$(( {n}+1 ))p" "'${CACHE_FILE}'" | cut -f2-); printf "%b\n" "$content"' \
+        --preview='content=$(sed -n "$(( {n}+1 ))p" "'${CACHE_FILE}'" | cut -f2-); printf "%b\n" "${content}"' \
         --preview-label=$'\033[1;35m[ Local ]\033[0m' \
         --bind "result:transform-list-label:${BIND_RESULT_CMD}" \
         --bind "focus:transform-preview-label:${BIND_FOCUS_CMD}" \

@@ -92,6 +92,7 @@
   autocorrect       = immediate
 [merge]
   renamelimit       = 10000
+  ff                = only
 
 [trailer "sign"]
   key               = Signed-off-by
