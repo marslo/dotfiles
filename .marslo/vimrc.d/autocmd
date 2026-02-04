@@ -106,7 +106,6 @@ if has( 'autocmd' )
             \| silent retab!
             \| setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4 autoindent
             \| setlocal fileformat=unix
-            \| silent retab!
     autocmd FileType python syntax keyword pythonDecorator print self
     autocmd FileType python set isk-=.
     autocmd Syntax   python setlocal foldmethod=indent

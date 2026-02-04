@@ -1,22 +1,47 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2155
 #=============================================================================
 #     FileName : git-file-size
 #       Author : marslo
 #      Created : 2026-01-28 00:21:28
-#   LastChange : 2026-01-28 09:20:44
+#   LastChange : 2026-01-29 13:11:36
 #=============================================================================
 
 set -euo pipefail
+
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
+
+declare num='-10'
+declare usage="""
+USAGE: \$ ${ME} [-N]
+
+OPTIONS:
+  -N : show top N largest files (default: -10)
+"""
+
+function showHelp() { echo -e "${usage}" >&2; exit 0; }
+
+function main() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      "$(awk '{a=0}/-[0-9]+/{a=1}a' <<< "$1")" ) num="$1" ; shift ;;
+                                             * ) showHelp ;;
+    esac
+  done
+  num=${num//-/}
+
+  git rev-list --objects --all |
+    git cat-file --batch-check='%(objectname) %(objecttype) %(objectsize) %(rest)' |
+    awk '{printf "%s\t%.2f MB\t%s\n", $1, $3/1024/1024, $4}' |
+    sort -rn -k2 |
+    head -n "${num}"
+}
 
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   echo "fatal: not a git repository (or any of the parent directories): .git" >&2;
   exit 128
 }
 
-git rev-list --objects --all |
-  git cat-file --batch-check='%(objectname) %(objecttype) %(objectsize) %(rest)' |
-  awk '{printf "%s\t%.2f MB\t%s\n", $1, $3/1024/1024, $4}' |
-  sort -rn -k 2 |
-  head -10
+main "$@"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
