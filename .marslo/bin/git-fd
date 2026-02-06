@@ -238,6 +238,7 @@ else
 fi
 
 # -f, --file
+declare -a pathSpecs=()
 if [[ -n "${FILE_PATTERN}" ]]; then
   if [[ "${grepFiltered}" == true || -z "${FILE_PATTERN}" ]]; then
     mapfile -t filteredFiles < <( printf '%s\n' "${matchesFiles[@]}" | grep -i --color=never "${FILE_PATTERN}" )
