@@ -2,7 +2,7 @@
 # shellcheck source=/dev/null disable=SC2086,SC2124
 
 # USAGE:
-# $ git stats --author="marslo" --after="2022-01-01"
+# $ git stat --author="marslo" --after="2022-01-01"
 # .. files changed : 1046
 # .. lines inserted : 14096
 # .. lines deleted : 8871
@@ -21,9 +21,14 @@
 
 shopt -s extglob
 
-# credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
-# shellcheck disable=SC2154
-source "${iRCHOME}"/bin/bash-color.sh
+# shellcheck disable=SC2155
+declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${CURRENT_DIR}/bash-color.sh" && source "${CURRENT_DIR}/bash-color.sh" || { c() { :; }; }
 
 function die() { echo -e "$(c R)ERROR$(c) : $*" >&2; exit 2; }
 function exitOnError() { if [ $? -ne 0 ]; then echo -e "$(c R)ERROR$(c) : $*" >&2; exit 1; fi; }
@@ -135,29 +140,38 @@ declare commitsCount=false
 declare GIT_OPT
 
 usage="""
-\t $(c R)git-stat$(c) - to get git statistic for line-changes and commit count
-\nSYNOPSIS:
-\n\t$(c sY)\$ git stat [ -h | --help ]
-\t\t   [ -v | --verbose | --debug ]
-\t\t   [ -a | --all ]
-\t\t   [ -l | --line-change ]
-\t\t   [ -c | --commit-count ]
-\t\t   [ -u | --user | --account <account> ]
-\t\t   [ -- <GIT_OPT> ]$(c)
-\nEXAMPLE:
-\n\tshow help
-\t\t$(c G)\$ git stat -h$(c) | $(c G)\$ git stat --help$(c)
-\n\tget verbose
-\t\t$(c G)\$ git stat -v$(c) | $(c G)\$ git stat --verbose$(c) | $(c G)\$ git stat --debug$(c)
-\n\tto list all statistic for current user
-\t\t$(c G)\$ git stat -a$(c)
-\n\tto list line changes for current user since 1 month ago
-\t\t$(c G)\$ git stat --line-change -- --since='1 month ago'$(c)
-\n\tto list line-changes statistic for particular account
-\t\t$(c G)\$ git stat -l -u <account>$(c) | $(c G)\$ git stat --line-change --account <account>$(c)
-\n\tto list statistic for current user with specific GIT_OPT
-\t\t$(c G)\$ git stat -a -- --after='2022-01-01' --before='2023-01-01'$(c)
-\t\t$(c G)\$ git stat -l -- --since='2 weeks 3 days 2 hours 30 minutes 59 seconds ago'$(c)
+NAME
+  $(c Cs)git-stat$(c) - to get git statistic for line-changes and commit count
+
+SYNOPSIS
+  $(c sY)\$ git stat $(c 0Wi)[ OPTIONS ]$(c)
+
+OPTIONS
+  $(c G)-a$(c), $(c G)--all$(c)                       show all statistic $(c i)( line-changes and commit count )$(c)
+  $(c G)-l$(c), $(c G)--lc$(c), $(c G)--line-change$(c)         show line-changes statistic
+  $(c G)-c$(c), $(c G)--cc$(c), $(c G)--commit-count$(c)        show commit count
+  $(c G)-u$(c), $(c G)--user$(c), $(c G)--author$(c) $(c Mi)<account>$(c)  specify the account to get statistic for $(c i)( default: current git user )$(c)
+  $(c Cs)--$(c) $(c Bi)<GIT_OPT>$(c)                    specify GIT_OPT to filter statistic
+                                  $(c Wdi)# e.g. $(c 0Cs)-- $(c 0Bi)--since='1 month ago'$(c) or $(c 0Cs)-- $(c 0Bi)--after='2022-01-01'$(c 0Wdi) etc.$(c)
+  $(c G)-h$(c), $(c G)--help$(c)                      show this help message and exit
+  $(c G)-v$(c), $(c G)--verbose$(c), $(c G)--debug$(c)          show statistic with more details
+
+EXAMPLE
+  $(c Wdi)# get verbose$(c)
+  $(c Y)\$ git stat $(c 0Gi)-v$(c) | $(c 0Y)\$ git stat $(c 0Gi)--verbose$(c) | $(c 0Y)\$ git stat $(c 0Gi)--debug$(c)
+
+  $(c Wdi)# to list all statistic for current user$(c)
+  $(c Y)\$ git stat $(c 0Gi)-a$(c)
+
+  $(c Wdi)# to list line changes for current user since 1 month ago$(c)
+  $(c Y)\$ git stat $(c 0Gi)--line-change $(c 0Csi)-- $(c 0Mi)--since='1 month ago'$(c)
+
+  $(c Wdi)# to list line-changes statistic for particular account$(c)
+  $(c Y)\$ git stat $(c 0Gi)-l -u $(c 0Mi)<account>$(c) | $(c G)\$ git stat $(c 0Gi)--line-change --account $(c 0Mi)<account>$(c)
+
+  $(c Wdi)# to list statistic for current user with specific GIT_OPT$(c)
+  $(c Y)\$ git stat $(c 0Gi)-a $(c 0Csi)-- $(c 0Bi)--after='2022-01-01' --before='2023-01-01'$(c)
+  $(c Y)\$ git stat $(c 0Gi)-l $(c 0Csi)-- $(c 0Bi)--since='2 weeks 3 days 2 hours 30 minutes 59 seconds ago'$(c)
 """
 
 [[ 0 = "$#" ]] && showHelp
