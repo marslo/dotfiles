@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-02-03 19:21:51
+#   LastChange : 2026-02-05 18:02:28
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -46,9 +46,15 @@ _fzf_compgen_dir() {
 #        ... | fzf "${fzfopt[@]}"
 function _load_fzf_context() {
   local -a CAT=( "$(type -P cat)" )
-  type -P bat >/dev/null && CAT=( "$(type -P bat)" --theme='gruvbox-dark' --color=always --line-range :500 )
-  local previewCmd="file -bL --mime-encoding {} | grep -iq 'binary' && file -bL {} || ${CAT[*]} {}"
-  local -a fzfopt=( --exit-0 --height 50% --multi --cycle --preview "${previewCmd}" --preview-window 'right,60%,nowrap,rounded,+15' )
+  type -P bat >/dev/null && CAT=( "$(type -P bat)" --theme='Nord' --color=always --line-range :500 )
+  local previewCmd="if file -bL --mime-encoding {} | grep -iq 'binary' && ! iconv -f utf-8 -t utf-8 {} >/dev/null 2>&1; then file -bL {}; else ${CAT[*]} {}; fi"
+  local -a fzfopt=( --exit-0
+                    --height 50%
+                    --multi --cycle
+                    --preview "${previewCmd}"
+                    --preview-window 'right,60%,nowrap,rounded,+15'
+                    --bind 'ctrl-/:toggle-preview'
+                  )
   typeset -p fzfopt
 }
 
@@ -57,10 +63,9 @@ function _load_fzf_context() {
 function _load_fd_context() {
   local -a fdopt=( --type f --hidden --follow --exclude .git --exclude node_modules )
   [[ "$(pwd)" = "$HOME" ]] && fdopt+=( --max-depth 3 )
-  uname -r | grep -q 'Microsoft' || fdopt+=( --exec-batch ls -t )
+  isWSL || fdopt+=( --exec-batch ls -t )
   typeset -p fdopt
 }
-
 
 # /**************************************************************
 #   __     __              _   _ _ _ _
@@ -220,7 +225,7 @@ function fzfInPath() {                     # return file name via fzf in particu
 
   local -a fdopt=( --type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore" )
   [[ 'true' = "${stripcwd:-}" ]] && fdopt+=( --strip-cwd-prefix )
-  uname -r | grep -q 'Microsoft' || fdopt+=( --exec-batch ls -t )
+  isWSL || fdopt+=( --exec-batch ls -t )
 
   [[ '.' = "${path}" ]] || path=". ${path}"
   fd "${path}" "${fdopt[@]}" | fzf "${fzfopt[@]}"
@@ -233,26 +238,30 @@ function fzfInPath() {                     # return file name via fzf in particu
 # @description : default rcPaths: ~/.marslo ~/.config/nvim ~/.*rc ~/.*profile ~/.*ignore
 # shellcheck disable=SC2046,SC1090
 function runrc() {                         # runrc - source/[run] [rc] files
-  local files
-  local -a options=()
-
+  local -a files=()
+  local -a options=( --multi --cycle --marker='✓')
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -* ) options+=( "$1" "$2" ); shift 2 ;;
        * ) break                           ;;
     esac
   done
-  local -a fzfopt=( --multi --cycle --marker='✓')
 
-  files=$( fdInRC -x |
-           sed -rn 's/^[^|]* \| (.+)$/\1/p' |
-           fzf "${fzfopt[@]}" "${options[@]}" \
-               --bind "ctrl-y:execute-silent(printf '%s' {+} | ${COPY})" \
-               --header 'Press CTRL-Y to copy name into clipboard'
-         )
-  [[ -n "${files}" ]] &&
-    source $(xargs -r <<< "${files}") &&
-    echo -e "$(c Wd)>>$(c) $(c Mis)$(xargs -r -I{} bash -c "basename {}" <<< ${files} | awk -v d=', ' '{s=(NR==1?s:s d)$0}END{print s}')$(c) $(c Wdi)have been sourced ..$(c)"
+  eval "$( _load_fzf_context )"
+
+  mapfile -t files < <(
+    fdInRC -x |
+    sed -rn 's/^[^|]* \| (.+)$/\1/p' |
+    fzf "${options[@]}" "${fzfopt[@]}" \
+        --preview-window 'right,55%,nowrap,rounded,+15' \
+        --bind "ctrl-y:execute-silent(printf '%s' {+} | ${COPY})" \
+        --header 'Press CTRL-Y to copy name into clipboard'
+  )
+
+  [[ ${#files[@]} -gt 0 ]] && {
+    source "${files[@]}";
+    printf "$(c Wd)>>$(c) $(c Mis)%s$(c) $(c Wdi)have been sourced ..$(c)\n" "${files[@]}"
+  }
 }
 
 # fman - fzf list and preview for manpage
@@ -322,8 +331,9 @@ function imgview() {                       # [view] [im]a[g]e via [imgcat](https
   fzf "$@" --height 100% \
            --preview "imgcat -W \$FZF_PREVIEW_COLUMNS -H \$FZF_PREVIEW_LINES {}" \
            --bind "ctrl-y:execute-silent(printf '%s' {+} | pbcopy)+abort" \
+           --bind 'ctrl-/:toggle-preview' \
            --header 'Press CTRL-Y to copy name into clipboard' \
-           --preview-window 'down:80%:nowrap' \
+           --preview-window 'up:80%:nowrap' \
            --exit-0 \
   >/dev/null || true
 }
@@ -331,23 +341,25 @@ function imgview() {                       # [view] [im]a[g]e via [imgcat](https
 # https://github.com/junegunn/fzf/wiki/Examples#bookmarks
 # shellcheck disable=SC2016
 function b() {                             # chrome [b]ookmarks browser with jq
+  local ghome="${HOME}/Library/Application Support/Google"
+  local bookmark=''
   if [ "$(uname)" = "Darwin" ]; then
-    if test -e "$HOME/Library/Application Support/Google/Chrome/Default/Bookmarks"; then
-      bookmarkPath="$HOME/Library/Application Support/Google/Chrome/Default/Bookmarks"
-    elif test -e "$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks"; then
-      bookmarkPath="$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks"
+    if test -e "${ghome}/Chrome/Default/Bookmarks"; then
+      bookmark="${ghome}/Chrome/Default/Bookmarks"
+    elif test -e "${ghome}/Chrome Canary/Default/Bookmarks"; then
+      bookmark="${ghome}/Chrome Canary/Default/Bookmarks"
     fi
     open=open
   else
-    bookmarkPath="$HOME/.config/google-chrome/Default/Bookmarks"
+    bookmark="$HOME/.config/google-chrome/Default/Bookmarks"
     open=xdg-open
   fi
 
-  jq_script='
-     def ancestors: while(. | length >= 2; del(.[-1,-2]));
+  local template='
+     def ancestors: while( . | length >= 2; del(.[-1,-2]) );
      . as $in | paths(.url?) as $key | $in | getpath($key) | {name,url, path: [$key[0:-2] | ancestors as $a | $in | getpath($a) | .name?] | reverse | join("/") } | .path + "/" + .name + "\t" + .url'
 
-  urls=$( jq -r "${jq_script}" < "${bookmarkPath}" \
+  urls=$( jq -r "${template}" < "${bookmark}" \
              | sed -E $'s/(.*)\t(.*)/\\1\t\x1b[36m\\2\x1b[m/g' \
              | fzf --ansi \
              | cut -d$'\t' -f2
@@ -365,9 +377,9 @@ function b() {                             # chrome [b]ookmarks browser with jq
 # @usage       : $ fmsh [ --eval <COMMAND> ] [ --json ]
 # shellcheck disable=SC2155
 function fmsh() {                          # connect [m]ongodb with mongo[sh] with [f]zf
-  local cmd=''
-  local evalCmd=''
-  local jsonPrint='false'
+  local -a command=()
+  local -a evalCmd=()
+  local jsonPrint=false
   declare -A credentials=(
                            ['username@database']='path/to/credential'
                          )
@@ -407,15 +419,15 @@ function fmsh() {                          # connect [m]ongodb with mongo[sh] wi
 function fpw() {                           # copy or show [p]ass[w]ord from pass store with [f]zf
   local passStoreDir="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
   local passClipTime="${PASSWORD_STORE_CLIP_TIME:-45}"
-  local show='false'
-  local clip=''
+  local show=false
+  local clip=false
   local plugin=''
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -s | --show ) show='true' ; shift ;;
-      -c | --clip ) clip='true' ; shift ;;
-         --slient ) clip='true' ; shift ;;
+      -s | --show ) show=true ; shift ;;
+      -c | --clip ) clip=true ; shift ;;
+         --slient ) clip=true ; shift ;;
                 * ) break               ;;
     esac
   done
@@ -433,13 +445,13 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
 
   if command pass "${path}" | grep 'otpauth://' >/dev/null; then
     plugin="otp"
-    show='true'                                 # show otp by default
+    show=true                                   # show otp by default
   fi
 
   if [[ -n "${clip}" ]]; then                   # `--clip` or `-c` is the highest priority
-    [[ 'true' = "${clip}"  ]] && option='--clip' || option='show'
+    "${clip}" && option='--clip' || option='show'
   else                                          # `--show` or `-s` is the secondary priority
-    [[ 'true' = "${show}"  ]] && option='show'   || option='--clip'
+    "${show}" && option='show'   || option='--clip'
   fi
 
   [[ -n "${path}" ]] &&
@@ -475,7 +487,6 @@ function vim() {                           # magic vim - fzf list in most recent
   local -a voption=()
   local target
   local orgv=false                         # force using vim instead of nvim
-  local VIM="$(type -P vim)"
 
   local -a fdopt=( --type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore" )
   local -a ignores=(
@@ -488,7 +499,7 @@ function vim() {                           # magic vim - fzf list in most recent
     fdopt+=(--exclude "${pattern}")
   done <<< "$(printf '%s\n' "${ignores[@]}")"
   [[ "$(pwd)" = "$HOME" ]] && fdopt+=( --max-depth 3 )
-  uname -r | grep -q 'Microsoft' || fdopt+=( --exec-batch ls -t )
+  isWSL || fdopt+=( --exec-batch ls -t )
 
   eval "$( _load_fzf_context )"
 
@@ -501,11 +512,12 @@ function vim() {                           # magic vim - fzf list in most recent
       --startuptime ) voption+=( "$1" "$2" ) ; shift 2 ;;
                 -Nu ) voption+=( "$1" "$2" ) ; shift 2 ;;
               --cmd ) voption+=( "$1" "$2" ) ; shift 2 ;;
-                 -* ) fzfopt+=( "$1" "$2" )  ; shift 2 ;;
-                  * ) break                          ;;
+                 -* ) fzfopt+=(  "$1" "$2" ) ; shift 2 ;;
+                  * ) break                            ;;
     esac
   done
 
+  local VIM="$(type -P vim)"
   ! "${orgv}" && command -v nvim >/dev/null && VIM="$(type -P nvim)"
 
   if [[ 0 -eq "$#" ]] && [[ 0 -eq "${#voption}" ]]; then
@@ -584,23 +596,27 @@ function vimr() {                          # vimr - open file(s) via [vim] in wh
 #   - using `-v` force using `command vim` instead of `command nvim`
 # shellcheck disable=SC2155
 function vimrc() {                         # vimrc - fzf list all rc files in data modified order
-  local orgv                               # force using vim instead of nvim
+  local orgv=false                         # force using vim instead of nvim
   local VIM="$(type -P vim)"
-  local -a foption=(--multi --cycle)
+  local -a foption=( --multi --cycle )
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -v ) orgv=1                  ; shift   ;;
+      -v ) orgv=true               ; shift   ;;
       -q ) foption+=(--query "$2") ; shift 2 ;;
        * ) break                             ;;
     esac
   done
 
-  [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="$(type -P nvim)"
+  eval "$( _load_fzf_context  )"
+
+  "${orgv}" || command -v nvim >/dev/null && VIM="$(type -P nvim)"
   fdInRC -x | sed -rn 's/^[^|]* \| (.+)$/\1/p' \
-            | fzf "${foption[@]}" --bind="enter:become(${VIM} {+})" \
-                          --bind "ctrl-y:execute-silent(printf '%s' {+} | ${COPY})" \
-                          --header 'Press CTRL-Y to copy name into clipboard'
+            | fzf "${foption[@]}" "${fzfopt[@]}" \
+                  --bind="enter:become(${VIM} {+})" \
+                  --preview-window 'right,55%,nowrap,rounded,+15' \
+                  --bind "ctrl-y:execute-silent(printf '%s' {+} | ${COPY})" \
+                  --header 'Press CTRL-Y to copy name into clipboard'
 }
 
 # vimdiff      : magic vimdiff, using fzf list in recent modified order
@@ -781,6 +797,7 @@ function lsps() {                          # [l]i[s]t [p]roces[s]
       -p | --pid ) showPid="true" ; shift ;;
     esac
   done
+  local cmd=''
 
   # shellcheck disable=SC2016,SC1078,SC1079
   #   --header $'Press CTRL-R to reload\n' --header-lines 1 \
