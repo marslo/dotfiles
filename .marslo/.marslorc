@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2026-02-03 16:36:32
+# LastChange : 2026-02-04 19:24:18
 # =============================================================================
 
 # execute configuration only in the interactive shell
@@ -15,9 +15,9 @@ export iRCHOME="$HOME/.marslo"
 test -f "${iRCHOME}/bin/bash-color.sh" && source "${iRCHOME}/bin/bash-color.sh"
 
 function isWSL()     { uname -r | command grep --color=never -q -i 'microsoft'; }
-function isCygwin()  { test "$(uname -s)" =~ 'CYGWIN_NT'; }
-function isGitBash() { test "$(uname -s)" =~ 'MINGW64_NT'; }
-function isOSX()     { test 'Darwin' = "$(uname -s)"; }
+function isCygwin()  { test "$(uname -s)" =~ 'CYGWIN_NT';       }
+function isGitBash() { test "$(uname -s)" =~ 'MINGW64_NT';      }
+function isOSX()     { test 'Darwin' = "$(uname -s)";           }
 function isLinux()   { ! isWSL && test 'Linux' = "$(uname -s)"; }
 function isDebian()  { test -f /etc/os-release && grep -iqE 'ID_LIKE="?debian' /etc/os-release; }
 function isFedora()  { test -f /etc/os-release && test 'fedora' = "$(awk -F '='    '/^ID=/ { print $2 }' /etc/os-release)"; }

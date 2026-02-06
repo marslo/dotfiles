@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2026-01-20 15:43:28
+#   LastChange : 2026-02-05 20:46:21
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -39,6 +39,7 @@ type -P bat        >/dev/null                       && source "${COMPLETION_DIR}
 type -P pipx       >/dev/null                       && source "${COMPLETION_DIR}/pipx.sh"
 type -P pip        >/dev/null                       && source "${COMPLETION_DIR}/pip.sh"
 type -P poetry     >/dev/null                       && source "${COMPLETION_DIR}/poetry.sh"
+type -P code       >/dev/null                       && source "${COMPLETION_DIR}/code"
 # test -d "${NPM_COMPLETION}"                       && source "${NPM_COMPLETION}/npm-completion.sh"
 # via `vault -autocomplete-install`
 type -P vault      >/dev/null                       && complete -C "$(type -P vault)" vault

@@ -647,4 +647,4 @@ if IsVim()
   imap         <C-M-L> <Plug>(copilot-accept-line)
 endif
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:
