@@ -1,0 +1,47 @@
+[files]
+ignore-hidden = true
+ignore-files = true
+ignore-dot = true
+ignore-vcs = true
+ignore-global = true
+ignore-parent = true
+extend-exclude = [
+  "*.color",
+  "*color",
+  "**/*.color",
+  "**/.signingmanager/**",
+  "**/*.current"
+]
+
+[default]
+binary = false
+check-filename = true
+check-file = true
+unicode=true
+locale = "en"
+extend-ignore-re = [
+  "(?m)^\\s*bind.*$",
+  "(?m)^\\s*alias.*$",
+  # [c]ommit, d[i]ff, ...
+  "\\w*\\[\\w\\]\\w*",
+  # ansicolor
+  "\\w*\\\\033\\S+",
+]
+
+[default.extend-words]
+# <typo> = "<correction>"
+caf = 'caf'
+sav = 'sav'
+Wew = 'Wew'
+STARTIN = 'STARTIN'
+siduction = 'siduction'
+Siduction = 'Siduction'
+evolveos = 'evolveos'
+iz = 'iz'
+windo = 'windo'
+ue = 'ue'
+ine = 'ine'
+elete = 'elete'
+Mis = 'Mis'
+Ot = 'Ot'
+ba = 'ba'
