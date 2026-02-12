@@ -4,7 +4,7 @@
 #   FileName: .imac
 #     Author: marslo.jiao@gmail.com
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2025-12-11 21:19:50
+# LastChange: 2026-02-09 15:50:32
 #   Comments:
 #             2024-11-04: using `brew --prefix` for $HOMEBEW_PREFIX set as `/opt/homebrew`
 #             2025-12-11: using ${HOMEBREW_OPT}/${HOMEBEW_PREFIX} instead of `brew --prefix xxx` for quick load
@@ -34,6 +34,7 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   ZLIB_HOME="${HOMEBREW_OPT}/zlib"
   LIBICONV_HOME="${HOMEBREW_OPT}/libiconv"
   NCURSES_HOME="${HOMEBREW_OPT}/ncurses"
+  PARALLEL_HOME="${HOMEBREW_OPT}/parallel"                        # conflict with moreutils parallel, so not set to PATH
 
   # https://stackoverflow.com/q/77849563/2940319
   BINUTILS="${HOMEBREW_OPT}/binutils"
@@ -157,8 +158,9 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   test -d "${INETUTILS}"                 && UTLS_PATH+=":${INETUTILS}"
 
   SPECIAL_TOOLS="${SPECIAL_TOOLS:-}"
-  test -d "${ICU4C_711}" && SPECIAL_TOOLS+=":${ICU4C_711}/bin"
-  test -d "${ICU4C_711}" && SPECIAL_TOOLS+=":${ICU4C_711}/sbin"
+  test -d "${ICU4C_711}"     && SPECIAL_TOOLS+=":${ICU4C_711}/bin"
+  test -d "${ICU4C_711}"     && SPECIAL_TOOLS+=":${ICU4C_711}/sbin"
+  test -d "${PARALLEL_HOME}" && SPECIAL_TOOLS+=":${PARALLEL_HOME}/bin"
 
   TEMP_PATH="${TOOLS_PATH}"
   TEMP_PATH+=":${SCRIPT_BINS}"
@@ -168,7 +170,7 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   test -d "${SQLITE_HOME}"       && TEMP_PATH+=":${SQLITE_HOME}/bin"
   test -d "${ITERM2_ADDITIONAL}" && TEMP_PATH+=":${ITERM2_ADDITIONAL}"
 
-  PATH="$SPECIAL_TOOLS:$TEMP_PATH:$PATH"
+  PATH="${SPECIAL_TOOLS}:${TEMP_PATH}:$PATH"
 
   # eval "$(/usr/libexec/path_helper)"
   export JAVA_HOME GROOVY_HOME PATH

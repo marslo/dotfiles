@@ -13,24 +13,25 @@ prefer_editor_prompt: disabled
 pager:
 # Aliases allow you to create nicknames for gh commands
 aliases:
-    bugs: issue list --label="bugs"
+    me: api user --jq ".login"
+    as: auth status
+    sa: auth switch
     prs: pr list
     open: repo view --web
+    bugs: issue list --label="bugs"
     myissues: issue list --author "@me" --state open
-    as: auth status
-    sa: account switch
-    me: api user --jq ".login"
     repo-path: repo view --json nameWithOwner -q .nameWithOwner
     # co: pr checkout
     co: '!$HOME/.marslo/bin/gh-ops --checkout'
     cl: '!$HOME/.marslo/bin/gh-ops --close'
-    close: '!$HOME/.marslo/bin/gh-ops --close'
-    # propen: pr view --web
-    propen: '!$HOME/.marslo/bin/gh-ops --open'
     # merge-clean: '!gh pr merge "$1" --squash --delete-branch'
-    merge-clean: '!$HOME/.marslo/bin/gh-ops --merge -- --delete-branch'
-    pro: '!$HOME/.marslo/bin/gh-new --open'
+    squash-clean: '!$HOME/.marslo/bin/gh-ops --squash -- --delete-branch'
+    rebase-clean: '!$HOME/.marslo/bin/gh-ops --rebase -- --delete-branch'
+    # propen: pr view --web
+    pro: '!$HOME/.marslo/bin/gh-new --open --auto'
+    pr-open: '!$HOME/.marslo/bin/gh-ops --open'
     pr-new: '!$HOME/.marslo/bin/gh-new --open'
+    pr-close: '!$HOME/.marslo/bin/gh-ops --close'
 # The path to a unix socket through which send HTTP connections. If blank, HTTP traffic will be handled by net/http.DefaultTransport.
 http_unix_socket:
 # What web browser gh should use when opening URLs. If blank, will refer to environment.

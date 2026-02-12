@@ -1,8 +1,8 @@
 #-----------------------------------------------------------------------------#
 #     FileName : gitalias
-#       Author : marslo.jiao@gmail.com
+#       Author : marslo
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2026-01-21 15:44:03
+#   LastChange : 2026-02-10 18:00:12
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -54,19 +54,20 @@
   changes     = log -M --follow --stat --
   ls          = log --stat --pretty=short --graph
   ### [p]retty [l]og(s)
-  pl          = !git --no-pager log --color --graph --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset)'" --abbrev-commit --date=relative --max-count=3
-  pls         = log --color --graph --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset)'" --abbrev-commit --date=relative
+  pl          = !git -c log.decorate=short --no-pager log --color --graph --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) %C(#A557A5)[%G?]%C(reset)'" --abbrev-commit --date=relative --max-count=3
+  pls         = !git -c log.decorate=full log --color --graph --decorate --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset) %C(#A557A5)[%G?]%C(reset)'" --abbrev-commit --date=relative
   ### [p]revious branch [p]retty [l]og
-  ppl         = !git --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=3 @{-1}
+  ppl         = !git --no-pager log --color --graph --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) %C(#A557A5)[%G?]%C(reset)'" --abbrev-commit --date=relative --max-count=3 @{-1}
   ### [f]ull [p]retty [l]log
-  fpl         = log --color --graph --pretty=tformat:'%C(cyan)%H%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset)' --abbrev-commit --date=relative
+  fpl         = log --graph --abbrev-commit --decorate --format=format:"'%C(#83a598)%H%C(reset) - %C(cyan)%aD%C(reset) %C(green)(%ar)%C(reset)%C(auto)%d%C(reset)%n'""'          %C(italic white)%s%C(reset) %C(dim white)- %an%C(reset) %C(#A557A5)[%G?]%C(reset)'"
   fl          = log -p --graph --color --graph
   who-renamed = "!bash -c \"git log -M --summary | grep -E '^\\s*rename.*{.*=>.*}'\""
-  dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format='%C(6)%h%C(reset) %C(yellow)(%ad)%C(reset) %s %C(blue)<%an>%C(reset)'
+  dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format="'%C(6)%h%C(reset) %C(yellow)(%ad)%C(reset) %s %C(blue)<%an>%C(reset)'"
   revlog      = log --max-count=3 --color --graph --notes=linrev --pretty=tformat:'%C(bold red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset) %N' --abbrev-commit --date=relative
-  ### Showing all branches and their relationshps
-  tree        = log --color --graph --pretty=oneline --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --decorate --abbrev-commit --all
+  ### showing all branches and their relationships
   clog        = log --color --graph --all --decorate --simplify-by-decoration --oneline
+  tree        = log --color --graph --all --decorate --abbrev-commit --pretty=oneline --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)'
+  ### [r]emote [log]
   rlog        = "!bash -c 'while read branch; do \n\
                               git fetch --all --force; \n\
                               git pl refs/remotes/origin/${branch}; \n\
@@ -77,6 +78,7 @@
                               git pls refs/remotes/origin/${branch}; \n\
                             done < <(git rev-parse --abbrev-ref HEAD); \n\
                            '"
+  # @deprecated
   pshow       = show -s --pretty='tformat:%C(red)%h%C(reset) %C(green)(%s)%C(reset)'
   ### [p]retty [t]ag(s)
   pt          = "!git for-each-ref --sort=-authordate refs/tags --format='%(color:6)%(objectname:short)%(color:reset) - %(align:left,38)%(color:yellow)[%(objecttype) : %(refname:short)]%(color:reset)%(end) %(subject) %(color:green)(%(if)%(taggerdate)%(then)%(taggerdate:format:%Y-%m-%d %H:%M:%S)%(else)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(end))%(color:reset) %(color:blue)%(if)%(taggername)%(then)<%(taggername)>%(else)<%(committername)>%(end)%(color:reset)' --color --count=10"
