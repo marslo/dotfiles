@@ -1,5 +1,7 @@
 # yamllint disable rule:indentation
 ---
+exclude: '^(.*/screenfetch-dev|.*/gitalias|.*/\.vault/.*|\.signingmanager/.*|.*\.current|.*colors?)$'
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -7,10 +9,10 @@ repos:
       - id: trailing-whitespace
         name: Trim Trailing Whitespace
         args: [--markdown-linebreak-ext=md]
-        exclude: ^(.*/merge\.sh|\.marslo/gitconfig.*)$
+        exclude: ^(.*/merge\.sh|\.marslo/gitconfig.*|\.signingmanager/.*')$
       - id: end-of-file-fixer
         name: End Of File Fixer
-        exclude: ^(.*/merge\.sh|\.marslo/gitconfig.*)$
+        exclude: ^(.*/merge\.sh|\.marslo/gitconfig.*|\.signingmanager/.*')$
       - id: check-yaml
         name: Check YAML
         args: ["--unsafe"]
@@ -47,3 +49,11 @@ repos:
         name: Remove Tabs (4 spaces)
         args: [--whitespaces-count, '4']
         files: '\.py$'
+
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.43.3
+    hooks:
+      - id: typos
+        name: Typos
+        args: ["--write-changes"]
+        exclude: ^(.*/vimrc.d/snips/.*|.*/vimrc.d/shortcuts|.*/.gpg/.*)$
