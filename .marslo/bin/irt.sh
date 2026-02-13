@@ -4,7 +4,7 @@
 #     FileName : irt.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2012
-#   LastChange : 2020-11-05 20:03:52
+#   LastChange : 2025-01-23 14:19:17
 # =============================================================================
 
 RT_URL='https://my.artifactory.com/artifactory'
@@ -69,7 +69,7 @@ function rtsearch() {
 }
 
 function rtsp() {
-  usage="""$(c sM)rtsp$(c) - artifactory search with properties - search artifacts via properites
+  usage="""$(c sM)rtsp$(c) - artifactory search with properties - search artifacts via properties
   \nSYNOPSIS
   \n\t$(c sY)\$ rtsp [wvi] [property name] [property value] [repo]$(c)
   \nEXAMPLE
@@ -250,7 +250,7 @@ function rtdel() {
 function rtbdi() {
   usage="""$(c sM)rtbdi$(c) - artifactory build discard - clean artifacts in Artifactory via build info
   \nSYNOPSIS
-  \n\t$(c sY)\$ rtbdi [wvl] [repo] [build-id [build-id [build-id]]]
+  \n\t$(c sY)\$ rtbdi [wvi] [repo] [build-id [build-id [build-id]]]
   \nEXAMPLE
   \n\tremove both build info and artifacts in vail precommit #520
   \n\t$(c G)\$ rtbdi i precommit 520$(c)
@@ -282,9 +282,10 @@ function rtbdi() {
       if echo "${bid}" | grep -E "/${_i}" >/dev/null; then
         info="""following build info and associate artifacts gonna be removed:\n
              project : ${rtProj}
-           repo name : ${rtName}
+           repo name : ${rtProj}-${rtName}-local
           build name : ${buildName}
             build id : ${_i}
+             api url : ${RT_URL}/api/build/${buildName}?buildNumbers=${_i}&artifacts=1$(c)
         """
         echo -e "$(c Y)${info}$(c)"
         curl -sIg \

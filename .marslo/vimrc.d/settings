@@ -52,7 +52,7 @@ set nobackup noswapfile nowritebackup noundofile noendofline nobuflisted
 set number                                                          " line number
 set report=0
 set autoread                                                        " set auto read when a file is changed by outside
-set showmatch                                                       " show matching bracets (shortly jump to the other bracets)
+set showmatch                                                       " show matching brackets (shortly jump to the other brackets)
 set matchtime=1                                                     " the shortly time
 set tabstop=2                                                       " tab width
 set softtabstop=2                                                   " width for backspace

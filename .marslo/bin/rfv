@@ -10,7 +10,7 @@
 set -o allexport -o errexit -o nounset -o pipefail
 # https://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin
 
-SHELL=$(which bash)
+SHELL=$(type -P bash)
 
 # Set rows to the number of lines in the terminal
 rows=$(tput lines)
@@ -77,10 +77,10 @@ rg --color=always --line-number --hidden --no-heading --smart-case --column  --i
     --height 100% \
     --layout default \
     --disabled \
-    --bind "start:reload($RG_PREFIX {q})+unbind(ctrl-r)+execute-silent(spin_me &)" \
+    --bind "start:reload(${RG_PREFIX} {q})+unbind(ctrl-r)+execute-silent(spin_me &)" \
     --bind "ctrl-f:unbind(change,ctrl-f)+change-prompt(⍨ ‣ )+enable-search+rebind(ctrl-r)+transform-query(echo {q} > /tmp/rg-fzf-r; cat /tmp/rg-fzf-f)" \
     --bind "ctrl-r:unbind(ctrl-r)+change-prompt(ᓙ ‣ )+disable-search+reload($RG_PREFIX {q} || true)+rebind(change,ctrl-f)+transform-query(echo {q} > /tmp/rg-fzf-f; cat /tmp/rg-fzf-r)" \
-    --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+    --bind "change:reload:sleep 0.1; ${RG_PREFIX} {q} || true" \
     --color "hl:-1:underline,hl+:-1:underline:reverse,prompt:#404945,header:italic:#928374" \
     --delimiter : \
     --listen \

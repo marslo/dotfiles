@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-01-12 20:38:47
+#   LastChange : 2026-02-05 18:02:28
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -42,6 +42,31 @@ _fzf_compgen_dir() {
   fd --type d --hidden --follow --exclude ".git" . "$1"
 }
 
+# usage: eval "$( _load_fzf_context )"
+#        ... | fzf "${fzfopt[@]}"
+function _load_fzf_context() {
+  local -a CAT=( "$(type -P cat)" )
+  type -P bat >/dev/null && CAT=( "$(type -P bat)" --theme='Nord' --color=always --line-range :500 )
+  local previewCmd="if file -bL --mime-encoding {} | grep -iq 'binary' && ! iconv -f utf-8 -t utf-8 {} >/dev/null 2>&1; then file -bL {}; else ${CAT[*]} {}; fi"
+  local -a fzfopt=( --exit-0
+                    --height 50%
+                    --multi --cycle
+                    --preview "${previewCmd}"
+                    --preview-window 'right,60%,nowrap,rounded,+15'
+                    --bind 'ctrl-/:toggle-preview'
+                  )
+  typeset -p fzfopt
+}
+
+# usage: eval "$( _load_fd_context )"
+#        fd . "${fdopt[@]}" | ...
+function _load_fd_context() {
+  local -a fdopt=( --type f --hidden --follow --exclude .git --exclude node_modules )
+  [[ "$(pwd)" = "$HOME" ]] && fdopt+=( --max-depth 3 )
+  isWSL || fdopt+=( --exec-batch ls -t )
+  typeset -p fdopt
+}
+
 # /**************************************************************
 #   __     __              _   _ _ _ _
 #  / _|___/ _|  ___   _  _| |_(_) (_) |_ _  _
@@ -62,22 +87,22 @@ _fzf_compgen_dir() {
 # shellcheck disable=SC2317
 function copy() {                          # smart copy
   [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)" && return;
-  local -a fdOpt=(--type f --hidden --follow --exclude .git --exclude node_modules)
-  [[ "$(pwd)" = "$HOME" ]] && fdOpt+=(--max-depth 3)
-  if ! uname -r | grep -q "Microsoft"; then fdOpt+=(--exec-batch ls -t); fi
+
+  eval "$( _load_fd_context  )"
+  eval "$( _load_fzf_context )"
 
   if [[ 0 -eq $# ]]; then
-    file=$( fd . "${fdOpt[@]}" | fzf --cycle --exit-0 ) &&
+    file=$( fd . "${fdopt[@]}" | fzf "${fzfopt[@]}" ) &&
          "${COPY}" < "${file}" &&
-         echo -e "$(c Wd)>>$(c) $(c Gis)${file}$(c) $(c Wdi)has been copied ..$(c)"
+         printf "$(c Wd)>>$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${file}"
   elif [[ 1 -eq $# ]] && [[ -d "$1" ]]; then
     local target=$1;
-    file=$( fd . "${target}" "${fdOpt[@]}" | fzf --cycle --exit-0 ) &&
+    file=$( fd . "${target}" "${fdopt[@]}" | fzf "${fzfopt[@]}" ) &&
          "${COPY}" < "${file}" &&
-         echo -e "$(c Wd)>>$(c) $(c Gis)${file}$(c) $(c Wdi)has been copied ..$(c)"
+         printf "$(c Wd)>>$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${file}"
   else
     "${COPY}" < "$1" &&
-      echo -e "$(c Wd)>>$(c) $(c Gis)$1$(c) $(c Wdi)has been copied ..$(c)"
+       printf "$(c Wd)>>$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${1}"
   fi
 }
 
@@ -87,27 +112,32 @@ function copy() {                          # smart copy
 # @description :
 #   - using `bat` by default if `command -v bat`
 #     - using `-c` ( `c`at ) as 1st parameter, to force using `type -P cat` instead of `type -P bat`
-#   - if `bat` without  paramter, then search file via `fzf` and shows via `bat`
-#   - if `bat` with 1   paramter, and `$1` is directory, then search file via `fzf` from `$1` and shows via `bat`
+#   - if `bat` without  parameter, then search file via `fzf` and shows via `bat`
+#   - if `bat` with 1   parameter, and `$1` is directory, then search file via `fzf` from `$1` and shows via `bat`
 #   - otherwise respect `bat` options, and shows via `bat`
 # shellcheck disable=SC2046,SC2155
 function cat() {                           # smart cat
-  local -a fdOpt=(--type f --hidden --follow --exclude .git --exclude node_modules)
-  local CAT="$(type -P cat)"
-  [[ "$(pwd)" = "$HOME" ]] && fdOpt+=(--max-depth 3)
-  if ! uname -r | grep -q "Microsoft"; then fdOpt+=(--exec-batch ls -t); fi
-  command -v bat >/dev/null && CAT="$(type -P bat)"
+  local -a CAT=( "$(type -P cat)" )
+  command -v bat >/dev/null && CAT=( "$(type -P bat)" --theme='gruvbox-dark' --color=always )
 
+  # reading from pipe == [[ -p /dev/stdin ]]
+  [[ ! -t 0      ]] && { "${CAT[@]}" "$@"; return; }
+  # force use cat
+  [[ '-c' = "$1" ]] && { $(type -P cat) "${@:2}"; return; }
+
+  eval "$( _load_fd_context  )"
+  eval "$( _load_fzf_context )"
+
+  # reading from fd + fzf
   if [[ 0 -eq $# ]]; then
-    "${CAT}" --theme='gruvbox-dark' $(fd . "${fdOpt[@]}" | fzf --multi --cycle --exit-0)
-  elif [[ '-c' = "$1" ]]; then
-    $(type -P cat) "${@:2}"
+    local selected=$( fd . "${fdopt[@]}" | fzf --exit-0 "${fzfopt[@]}" )
+    # using IFS to handle file name with space
+    [[ -n "$selected" ]] && echo "${selected}" | xargs -d '\n' "${CAT[@]}"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
     local target=$1;
-    fd . "${target}" "${fdOpt[@]}" |
-      fzf --multi --cycle --bind="enter:become(${CAT} --theme='gruvbox-dark' {+})" ;
+    fd . "${target}" "${fdopt[@]}" | fzf --bind="enter:become(${CAT[*]} {+})" "${fzfopt[@]}";
   else
-    "${CAT}" --theme='gruvbox-dark' "${@:1:$#-1}" "${@: -1}"
+    "${CAT[@]}" "${@:1:$#-1}" "${@: -1}"
   fi
 }
 
@@ -130,7 +160,7 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
     esac
   done
 
-  local -a fdOpt=( --color=never --type f --hidden --follow --unrestricted --ignore-file "${HOME}/.fdignore" )
+  local -a fdopt=( --color=never --type f --hidden --follow --unrestricted --ignore-file "${HOME}/.fdignore" )
 
   # GNU/BSD stat compatible
   local -a statCmd=()
@@ -167,23 +197,38 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
 
   {
     # top-level rc-like files under $HOME
-    fd --max-depth 1 "${ignoreList[base]}" "${HOME}" --exclude '*archive*' "${fdOpt[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
+    fd --max-depth 1 "${ignoreList[base]}" "${HOME}" --exclude '*archive*' "${fdopt[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
     # rcPaths
-    fd . "${rcPaths[@]}" "${fdOpt[@]}" "${exRc[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
+    fd . "${rcPaths[@]}" "${fdopt[@]}" "${exRc[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
     # ~/.config
     if (( ${#cfgRoots[@]} > 0 )); then
-      fd . "${cfgRoots[@]}" --max-depth 1 "${fdOpt[@]}" "${exCfg[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
+      fd . "${cfgRoots[@]}" --max-depth 1 "${fdopt[@]}" "${exCfg[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
     fi;
   } |
-  sort -ru |
-  uniq
+  sort -ru
 }
 
+# usage: fzfInPath <path> [<fzf-opts> ...] [stripcwd: <true|false>]
 function fzfInPath() {                     # return file name via fzf in particular folder
-  local -a fdOpt=( --type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore" )
-  if ! uname -r | grep -q 'Microsoft'; then fdOpt+=(--exec-batch ls -t); fi
-  [[ '.' = "${1}" ]] && path="${1}" || path=". ${1}"
-  fd "${path}" "${fdOpt[@]}" | fzf --cycle --multi "${*:2}" --header "filter in ${1} :"
+  local path="${1}"
+  local last="${*: -1}"
+
+  local -a fzfopt=( --cycle --multi --header "filter in ${1} :" )
+  if [[ $# -ge 2 ]]; then
+    if [[ 'true' = "${last}" || 'false' = "${last}" ]]; then
+      fzfopt+=( "${@:2:$#-2}" )
+      stripcwd=${last}
+    else
+      fzfopt+=( "${@:2}" )
+    fi
+  fi
+
+  local -a fdopt=( --type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore" )
+  [[ 'true' = "${stripcwd:-}" ]] && fdopt+=( --strip-cwd-prefix )
+  isWSL || fdopt+=( --exec-batch ls -t )
+
+  [[ '.' = "${path}" ]] || path=". ${path}"
+  fd "${path}" "${fdopt[@]}" | fzf "${fzfopt[@]}"
 }
 
 # runrc        : filter rc files from "${rcPaths}" and source the selected item(s)
@@ -193,26 +238,30 @@ function fzfInPath() {                     # return file name via fzf in particu
 # @description : default rcPaths: ~/.marslo ~/.config/nvim ~/.*rc ~/.*profile ~/.*ignore
 # shellcheck disable=SC2046,SC1090
 function runrc() {                         # runrc - source/[run] [rc] files
-  local files
-  local option
-
+  local -a files=()
+  local -a options=( --multi --cycle --marker='✓')
   while [[ $# -gt 0 ]]; do
     case "$1" in
-          -* ) option+="$1 $2 "; shift 2 ;;
-           * ) break                     ;;
+      -* ) options+=( "$1" "$2" ); shift 2 ;;
+       * ) break                           ;;
     esac
   done
 
-  files=$( fdInRC -x |
-           sed -rn 's/^[^|]* \| (.+)$/\1/p' |
-           fzf ${option:-} --multi --cycle \
-               --marker='✓' \
-               --bind "ctrl-y:execute-silent(printf '%s' {+} | ${COPY})" \
-               --header 'Press CTRL-Y to copy name into clipboard'
-         )
-  [[ -n "${files}" ]] &&
-    source $(xargs -r <<< "${files}") &&
-    echo -e "$(c Wd)>>$(c) $(c Mis)$(xargs -r -I{} bash -c "basename {}" <<< ${files} | awk -v d=', ' '{s=(NR==1?s:s d)$0}END{print s}')$(c) $(c Wdi)have been sourced ..$(c)"
+  eval "$( _load_fzf_context )"
+
+  mapfile -t files < <(
+    fdInRC -x |
+    sed -rn 's/^[^|]* \| (.+)$/\1/p' |
+    fzf "${options[@]}" "${fzfopt[@]}" \
+        --preview-window 'right,55%,nowrap,rounded,+15' \
+        --bind "ctrl-y:execute-silent(printf '%s' {+} | ${COPY})" \
+        --header 'Press CTRL-Y to copy name into clipboard'
+  )
+
+  [[ ${#files[@]} -gt 0 ]] && {
+    source "${files[@]}";
+    printf "$(c Wd)>>$(c) $(c Mis)%s$(c) $(c Wdi)have been sourced ..$(c)\n" "${files[@]}"
+  }
 }
 
 # fman - fzf list and preview for manpage
@@ -282,8 +331,9 @@ function imgview() {                       # [view] [im]a[g]e via [imgcat](https
   fzf "$@" --height 100% \
            --preview "imgcat -W \$FZF_PREVIEW_COLUMNS -H \$FZF_PREVIEW_LINES {}" \
            --bind "ctrl-y:execute-silent(printf '%s' {+} | pbcopy)+abort" \
+           --bind 'ctrl-/:toggle-preview' \
            --header 'Press CTRL-Y to copy name into clipboard' \
-           --preview-window 'down:80%:nowrap' \
+           --preview-window 'up:80%:nowrap' \
            --exit-0 \
   >/dev/null || true
 }
@@ -291,23 +341,25 @@ function imgview() {                       # [view] [im]a[g]e via [imgcat](https
 # https://github.com/junegunn/fzf/wiki/Examples#bookmarks
 # shellcheck disable=SC2016
 function b() {                             # chrome [b]ookmarks browser with jq
+  local ghome="${HOME}/Library/Application Support/Google"
+  local bookmark=''
   if [ "$(uname)" = "Darwin" ]; then
-    if test -e "$HOME/Library/Application Support/Google/Chrome/Default/Bookmarks"; then
-      bookmarkPath="$HOME/Library/Application Support/Google/Chrome/Default/Bookmarks"
-    elif test -e "$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks"; then
-      bookmarkPath="$HOME/Library/Application Support/Google/Chrome Canary/Default/Bookmarks"
+    if test -e "${ghome}/Chrome/Default/Bookmarks"; then
+      bookmark="${ghome}/Chrome/Default/Bookmarks"
+    elif test -e "${ghome}/Chrome Canary/Default/Bookmarks"; then
+      bookmark="${ghome}/Chrome Canary/Default/Bookmarks"
     fi
     open=open
   else
-    bookmarkPath="$HOME/.config/google-chrome/Default/Bookmarks"
+    bookmark="$HOME/.config/google-chrome/Default/Bookmarks"
     open=xdg-open
   fi
 
-  jq_script='
-     def ancestors: while(. | length >= 2; del(.[-1,-2]));
+  local template='
+     def ancestors: while( . | length >= 2; del(.[-1,-2]) );
      . as $in | paths(.url?) as $key | $in | getpath($key) | {name,url, path: [$key[0:-2] | ancestors as $a | $in | getpath($a) | .name?] | reverse | join("/") } | .path + "/" + .name + "\t" + .url'
 
-  urls=$( jq -r "${jq_script}" < "${bookmarkPath}" \
+  urls=$( jq -r "${template}" < "${bookmark}" \
              | sed -E $'s/(.*)\t(.*)/\\1\t\x1b[36m\\2\x1b[m/g' \
              | fzf --ansi \
              | cut -d$'\t' -f2
@@ -325,9 +377,9 @@ function b() {                             # chrome [b]ookmarks browser with jq
 # @usage       : $ fmsh [ --eval <COMMAND> ] [ --json ]
 # shellcheck disable=SC2155
 function fmsh() {                          # connect [m]ongodb with mongo[sh] with [f]zf
-  local cmd=''
-  local evalCmd=''
-  local jsonPrint='false'
+  local -a command=()
+  local -a evalCmd=()
+  local jsonPrint=false
   declare -A credentials=(
                            ['username@database']='path/to/credential'
                          )
@@ -367,15 +419,15 @@ function fmsh() {                          # connect [m]ongodb with mongo[sh] wi
 function fpw() {                           # copy or show [p]ass[w]ord from pass store with [f]zf
   local passStoreDir="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
   local passClipTime="${PASSWORD_STORE_CLIP_TIME:-45}"
-  local show='false'
-  local clip=''
+  local show=false
+  local clip=false
   local plugin=''
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -s | --show ) show='true' ; shift ;;
-      -c | --clip ) clip='true' ; shift ;;
-         --slient ) clip='true' ; shift ;;
+      -s | --show ) show=true ; shift ;;
+      -c | --clip ) clip=true ; shift ;;
+         --silent ) clip=true ; shift ;;
                 * ) break               ;;
     esac
   done
@@ -393,13 +445,13 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
 
   if command pass "${path}" | grep 'otpauth://' >/dev/null; then
     plugin="otp"
-    show='true'                                 # show otp by default
+    show=true                                   # show otp by default
   fi
 
   if [[ -n "${clip}" ]]; then                   # `--clip` or `-c` is the highest priority
-    [[ 'true' = "${clip}"  ]] && option='--clip' || option='show'
+    "${clip}" && option='--clip' || option='show'
   else                                          # `--show` or `-s` is the secondary priority
-    [[ 'true' = "${show}"  ]] && option='show'   || option='--clip'
+    "${show}" && option='show'   || option='--clip'
   fi
 
   [[ -n "${path}" ]] &&
@@ -425,19 +477,18 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
 # @description :
 #   - if `nvim` installed using `nvim` instead of `vim`
 #     - using `-v` to force using `vim` instead of `nvim` even if nvim installed
-#   - if `vim` commands without paramters, then call fzf and using vim to open selected file
-#   - if `vim` commands with paramters
-#       - if single paramters and parameters is directlry, then call fzf in target directory and using vim to open selected file
+#   - if `vim` commands without parameters, then call fzf and using vim to open selected file
+#   - if `vim` commands with parameters
+#       - if single parameters and parameters is directlry, then call fzf in target directory and using vim to open selected file
 #       - otherwise call regular vim to open file(s)
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vim`
 # shellcheck disable=SC2155
 function vim() {                           # magic vim - fzf list in most recent modified order
   local -a voption=()
   local target
-  local orgv                               # force using vim instead of nvim
-  local VIM="$(type -P vim)"
-  local -a foption=(--multi --cycle )
-  local -a fdOpt=(--type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore")
+  local orgv=false                         # force using vim instead of nvim
+
+  local -a fdopt=( --type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore" )
   local -a ignores=(
     '*.pem' '*.p12'
     '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg'
@@ -445,33 +496,35 @@ function vim() {                           # magic vim - fzf list in most recent
     'Music' '.target_book' '_book' 'OneDrive*'
   )
   while read -r pattern; do
-    fdOpt+=(--exclude "${pattern}")
+    fdopt+=(--exclude "${pattern}")
   done <<< "$(printf '%s\n' "${ignores[@]}")"
+  [[ "$(pwd)" = "$HOME" ]] && fdopt+=( --max-depth 3 )
+  isWSL || fdopt+=( --exec-batch ls -t )
 
-  [[ "$(pwd)" = "$HOME" ]] && fdOpt+=(--max-depth 3)
-  if ! uname -r | grep -q "Microsoft"; then fdOpt+=(--exec-batch ls -t); fi
+  eval "$( _load_fzf_context )"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-                 -v ) orgv=1               ; shift   ;;
-        -h | --help ) voption+=("$1")      ; shift   ;;
-          --version ) voption+=("$1")      ; shift   ;;
-                 -c ) voption+=("$1" "$2") ; shift   ;;
-      --startuptime ) voption+=("$1" "$2") ; shift 2 ;;
-                -Nu ) voption+=("$1" "$2") ; shift 2 ;;
-              --cmd ) voption+=("$1" "$2") ; shift 2 ;;
-                 -* ) foption+=("$1" "$2") ; shift 2 ;;
-                  * ) break                          ;;
+                 -v ) orgv=true              ; shift   ;;
+        -h | --help ) voption+=( "$1" )      ; shift   ;;
+          --version ) voption+=( "$1" )      ; shift   ;;
+                 -c ) voption+=( "$1" "$2" ) ; shift   ;;
+      --startuptime ) voption+=( "$1" "$2" ) ; shift 2 ;;
+                -Nu ) voption+=( "$1" "$2" ) ; shift 2 ;;
+              --cmd ) voption+=( "$1" "$2" ) ; shift 2 ;;
+                 -* ) fzfopt+=(  "$1" "$2" ) ; shift 2 ;;
+                  * ) break                            ;;
     esac
   done
 
-  [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="$(type -P nvim)"
+  local VIM="$(type -P vim)"
+  ! "${orgv}" && command -v nvim >/dev/null && VIM="$(type -P nvim)"
 
   if [[ 0 -eq "$#" ]] && [[ 0 -eq "${#voption}" ]]; then
-    fd . "${fdOpt[@]}" | fzf "${foption[@]}" --bind="enter:become(${VIM} {+})"
+    fd . "${fdopt[@]}" | fzf "${fzfopt[@]}" --bind="enter:become(${VIM} {+})"
   elif [[ 1 -eq "$#" ]] && [[ -d "${1}" ]]; then
     [[ '.' = "${1}" ]] && finalTarget=("${1}") || finalTarget=('.' "${1}")
-    fd "${finalTarget[@]}" "${fdOpt[@]}" | fzf "${foption[@]}" --bind="enter:become(${VIM} {+})"
+    fd "${finalTarget[@]}" "${fdopt[@]}" | fzf "${fzfopt[@]}" --bind="enter:become(${VIM} {+})"
   else
     "${VIM}" "${voption[@]}" "$@"
   fi
@@ -502,33 +555,32 @@ function vimr() {                          # vimr - open file(s) via [vim] in wh
   local repodir
   # shellcheck disable=SC2155
   local VIM="$(type -P vim)"
-  local -a fdOpt=(--type f --hidden --ignore-file "$HOME/.fdignore")
+  type -P nvim >/dev/null && VIM="$(type -P nvim)"
+
+  local -a fdopt=( --type f --hidden --ignore-file "$HOME/.fdignore" )
   local -a ignores=(
     '*.pem' '*.p12'
     '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg'
     '*.zip' '*.tar' '*.gz' '*.bz2' '*.xz' '*.7z' '*.rar'
     'Music' '.target_book' '_book' 'OneDrive*'
   )
-  while read -r pattern; do fdOpt+=(--exclude "${pattern}"); done <<< "$(printf '%s\n' "${ignores[@]}" | sort -u)"
-  fdOpt+=(--exec-batch ls -t)
+  while read -r pattern; do fdopt+=( --exclude "${pattern}" ); done <<< "$(printf '%s\n' "${ignores[@]}" | sort -u)"
+  fdopt+=( --exec-batch ls -t )
 
-  command -v nvim >/dev/null && VIM="$(type -P nvim)"
-
-  isrepo=$(git rev-parse --is-inside-work-tree >/dev/null 2>&1; echo $?)
-  if [[ 0 = "${isrepo}" ]]; then
-    repodir="$(git rev-parse --show-toplevel)"
-    # shellcheck disable=SC2164
-    files=$( fd . "${repodir}" "${fdOpt[@]}" |
-                  sed "s|^${repodir}/||" |
-                  fzf --multi \
-                  --bind "ctrl-o:execute($EDITOR {})" \
-                  --bind "ctrl-r:reload(fd . ${repodir} ${fdOpt[*]@Q})" \
-                  --preview 'bat --color=always --line-range :500 {}' \
-                  --height 50% |
-                  awk -v prefix="${repodir}/" '{print prefix $0}'
-           )
-    # shellcheck disable=SC2046
-    [[ -z "${files}" ]] || ${VIM} $(xargs -r <<< "${files}")
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    repodir="$( git rev-parse --show-toplevel )"
+    local -a files=()
+    mapfile -t files < <(
+      fd . "${repodir}" "${fdopt[@]}" |
+        sed "s|^${repodir}/||" |
+        fzf --multi \
+             --bind "ctrl-r:reload(fd . ${repodir} ${fdopt[*]@Q} | sed 's|^${repodir}/||')" \
+             --preview "cd \"${repodir}\" && bat --color=always --line-range :500 {}" \
+             --preview-window '60%:nowrap,+15' \
+             --height 50% |
+        awk -v prefix="${repodir}/" '{print prefix $0}'
+    )
+    [[ ${#files[@]} -gt 0 ]] && "${VIM}" "${files[@]}"
   else
     ${VIM}
   fi
@@ -544,69 +596,75 @@ function vimr() {                          # vimr - open file(s) via [vim] in wh
 #   - using `-v` force using `command vim` instead of `command nvim`
 # shellcheck disable=SC2155
 function vimrc() {                         # vimrc - fzf list all rc files in data modified order
-  local orgv                               # force using vim instead of nvim
+  local orgv=false                         # force using vim instead of nvim
   local VIM="$(type -P vim)"
-  local -a foption=(--multi --cycle)
+  local -a foption=( --multi --cycle )
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -v ) orgv=1                  ; shift   ;;
+      -v ) orgv=true               ; shift   ;;
       -q ) foption+=(--query "$2") ; shift 2 ;;
        * ) break                             ;;
     esac
   done
 
-  [[ 1 -ne "${orgv}" ]] && command -v nvim >/dev/null && VIM="$(type -P nvim)"
+  eval "$( _load_fzf_context  )"
+
+  "${orgv}" || command -v nvim >/dev/null && VIM="$(type -P nvim)"
   fdInRC -x | sed -rn 's/^[^|]* \| (.+)$/\1/p' \
-            | fzf "${foption[@]}" --bind="enter:become(${VIM} {+})" \
-                          --bind "ctrl-y:execute-silent(printf '%s' {+} | ${COPY})" \
-                          --header 'Press CTRL-Y to copy name into clipboard'
+            | fzf "${foption[@]}" "${fzfopt[@]}" \
+                  --bind="enter:become(${VIM} {+})" \
+                  --preview-window 'right,55%,nowrap,rounded,+15' \
+                  --bind "ctrl-y:execute-silent(printf '%s' {+} | ${COPY})" \
+                  --header 'Press CTRL-Y to copy name into clipboard'
 }
 
 # vimdiff      : magic vimdiff, using fzf list in recent modified order
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
-#   - if any of paramters is directory, then get file path via fzf in target path first
+#   - if any of parameters is directory, then get file path via fzf in target path first
 #   - if `vimdiff` commands without parameter , then compare files in `.` and `~/.marslo`
 #   - if `vimdiff` commands with 1  parameter , then compare files in current path and `$1`
 #   - if `vimdiff` commands with 2  parameters, then compare files in `$1` and `$2`
-#   - otherwise ( if more than 2 parameters )  , then compare files in `${*: -2:1}` and `${*: -1}` with paramters of `${*: 1:$#-2}`
+#   - otherwise ( if more than 2 parameters )  , then compare files in `${*: -2:1}` and `${*: -1}` with parameters of `${*: 1:$#-2}`
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vimdiff`
 function vimdiff() {                       # smart vimdiff
   local lFile
   local rFile
-  local option
-  local var
+  local -a var=()
+  local -a options=()
+  local -a fzfopt=( --cycle --multi --header 'filter in rc paths:' )
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --help ) option+="$1 "   ; shift   ;;
-          -* ) option+="$1 $2 "; shift 2 ;;
-           * ) break                     ;;
+      --help ) options+=( "$1" )      ; shift   ;;
+          -* ) options+=( "$1" "$2" ) ; shift 2 ;;
+           * ) break                            ;;
     esac
   done
+  fzfopt+=( "${options[@]}" )
 
   if [[ 0 -eq $# ]]; then
-    lFile=$(fzfInPath '.' "${option}")
+    lFile=$(fzfInPath '.' "${options[@]}" true)
     [[ -z "${lFile}" ]] && return 1
-    rFile=$(fdInRC -x | sed -rn 's/^[^|]* \| (.+)$/\1/p' | fzf --cycle --multi ${option} --header 'filter in rc paths:')
+    rFile=$(fdInRC -x | sed -rn 's/^[^|]* \| (.+)$/\1/p' | fzf "${fzfopt[@]}" )
   elif [[ 1 -eq $# ]]; then
-    lFile=$(fzfInPath '.' "${option}")
+    lFile=$(fzfInPath '.' "${options[@]}" true)
     [[ -z "${lFile}" ]] && return 1
-    [[ -d "$1"       ]] && rFile=$(fzfInPath "$1" "${option}") || rFile="$1"
+    [[ -d "$1"       ]] && rFile=$(fzfInPath "$1" "${options[@]}") || rFile="$1"
   elif [[ 2 -eq $# ]]; then
-    [[ -d "$1"       ]] && lFile=$(fzfInPath "$1" "${option}") || lFile="$1"
+    [[ -d "$1"       ]] && lFile=$(fzfInPath "$1" "${options[@]}") || lFile="$1"
     [[ -z "${lFile}" ]] && return 1
-    [[ -d "$2"       ]] && rFile=$(fzfInPath "$2" "${option}") || rFile="$2"
+    [[ -d "$2"       ]] && rFile=$(fzfInPath "$2" "${options[@]}") || rFile="$2"
   else
-    var="${*: 1:$#-2}"
+    var=( "${@:1:$#-2}" )
     [[ -d "${*: -2:1}" ]] && lFile=$(fzfInPath "${*: -2:1}") || lFile="${*: -2:1}"
     [[ -z "${lFile}"   ]] && return 1
     [[ -d "${*: -1}"   ]] && rFile=$(fzfInPath "${*: -1}")   || rFile="${*: -1}"
   fi
 
-  [[ -f "${lFile}" ]] && [[ -f "${rFile}" ]] && $(type -P vim) -d ${var} "${lFile}" "${rFile}"
+  [[ -f "${lFile}" ]] && [[ -f "${rFile}" ]] && $(type -P vim) -d "${var[@]}" "${lFile}" "${rFile}"
 }
 
 # vd           : open vimdiff loaded files from ~/.vim_mru_files
@@ -617,12 +675,14 @@ function vimdiff() {                       # smart vimdiff
 #   - if `vd` commands with `-a` ( [q]uiet ) parameter, list 10 most recently used files via fzf and automatic select top 2, and open selected files by vimdiff
 function vd() {                            # vd - open [v]im[d]iff loaded files from ~/.vim_mru_files
   [[ 1 -eq $# ]] && [[ '-q' = "$1" ]] && opt='--bind start:select+down+select+accept' || opt=''
-  # shellcheck disable=SC2046
-  files=$( grep --color=none -v '^#' ~/.vim_mru_files |
-           xargs -r -d'\n' -I_ bash -c "sed 's:\~:$HOME:' <<< _" |
-           fzf --multi 3 --sync --cycle --reverse ${opt}
-         ) &&
-  vimdiff $(xargs -r <<< "${files}")
+
+  local -a files=()
+  mapfile -t files < <(
+    grep --color=none -v '^#' ~/.vim_mru_files |
+     xargs -r -d'\n' -I_ bash -c "sed 's:\~:$HOME:' <<< _" |
+     fzf --multi 3 --sync --cycle --reverse ${opt}
+  )
+  [[ ${#files[@]} -lt 2 ]] || vimdiff "${files[@]}"
 }
 
 
@@ -653,19 +713,36 @@ function cdp() {                           # cdp - [c][d] to selected [p]arent d
 }
 
 function cdd() {                           # cdd - [c][d] to selected sub [d]irectory
-  local dir
+  local dir=''
   # shellcheck disable=SC2164
   dir=$(fd --type d --hidden --ignore-file ~/.fdignore | fzf --no-multi -0) && cd "${dir}"
 }
 
 function cdr() {                           # cdd - [c][d] to selected [r]epo directory - same series: `vimr`
-  local repodir
+  local repodir=''
+
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "Not in a git repository"
+    return 1
+  fi
+
   repodir="$(git rev-parse --show-toplevel)"
-  # shellcheck disable=SC2164
-  dir=$( ( echo './'; fd . "${repodir}" --type d --hidden --ignore-file ~/.fdignore |
-                     xargs -r -I{} bash -c "echo {} | sed \"s|${repodir}/||g\""
-         ) | fzf --no-multi -0
-       ) && cd "${repodir}/${dir}"
+  selection=$(
+    {
+      if [[ "${PWD}" != "${repodir}" ]]; then
+        echo ".."
+        echo "<root>"
+      fi
+
+      fd . "${repodir}" --type d --hidden --ignore-file ~/.fdignore --color=never | sed "s|^${repodir}/||"
+    } | fzf --no-multi --exit-0 --prompt ' ' --height 40% --layout=reverse
+  )
+  case "${selection}" in
+    "" )       return                                 ;;
+    "<root>" ) cd "${repodir}" || exit 1              ;;
+    ".." )     cd ..                                  ;;
+    * )        cd "${repodir}/${selection}" || exit 1 ;;
+  esac
 }
 
 function cdf() {                           # [c][d] into the directory of the selected [f]ile
@@ -720,6 +797,7 @@ function lsps() {                          # [l]i[s]t [p]roces[s]
       -p | --pid ) showPid="true" ; shift ;;
     esac
   done
+  local cmd=''
 
   # shellcheck disable=SC2016,SC1078,SC1079
   #   --header $'Press CTRL-R to reload\n' --header-lines 1 \
@@ -932,7 +1010,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
 # @return         : 0 - mounted, 1 - not mounted
 function checkMountPoint() { mount | grep -qE "//[^\ ]+\son\s${1}.+"; echo $?; }
 
-# processMount : porcess mount in WSL ( mount -t cifs ) or OSX ( mount -t smbfs )
+# processMount : process mount in WSL ( mount -t cifs ) or OSX ( mount -t smbfs )
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @references  :
@@ -1002,15 +1080,16 @@ function fmount() {                        # fmount - [mount] with [f]zf
   local host
   local path
   local mpoint
-  local fzfOpt=''
-  local verbose=''
+  local -a fzfopt=()
+  local verbose=false
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --auto       ) fzfOpt+=' --reverse --bind start:+accept' ; shift   ;;
-      --debug      ) verbose='true'                            ; shift   ;;
-      --silent     ) verbose='false'                           ; shift   ;;
-      -q | --query ) fzfOpt+=" --query $2"                     ; shift 2 ;;
+      --auto       ) fzfopt+=( --reverse --bind start:+accept ) ; shift   ;;
+      --debug      ) verbose=true                               ; shift   ;;
+      --silent     ) verbose=false                              ; shift   ;;
+      -q | --query ) fzfopt+=( --query "$2"  )                  ; shift 2 ;;
+      *            ) echo -e "$(c Rs)ERROR$(c): Invalid option '$1' ..." >&2 ; return 1 ;;
     esac
   done
 
@@ -1018,19 +1097,19 @@ function fmount() {                        # fmount - [mount] with [f]zf
   getMounted mounted
   [[ "${#mounted[@]}" -gt 0 ]] && pattern=$(IFS='|'; echo "${mounted[*]}") || pattern='^$'
 
-  mpoint=$( echo "${points}" | fmt -1 |
+  mpoint=$( printf "%s\n" "${points[@]}" |
             awk -v pattern="${pattern}" '$0 !~ pattern' |
-            fzf --prompt='󰉖 ' ${fzfOpt}
+            fzf --prompt='󰉖 ' "${fzfopt[@]}"
           )
 
   if [[ -z "${mpoint}" ]]; then
-    [[ 'true' = "${verbose}" ]] && echo -e "$(c Wdi)~~> no mount point been selected ...$(c)"
+    ${verbose} && echo -e "$(c Wdi)~~> no mount point been selected ...$(c)"
     return
   fi
 
   while read -r host path; do
     processMount "${host}" "${path}" "${verbose}"
-  done< <( echo "${mpoint}" | fmt -1 | sed -rn 's!^([^:]+):(.+)$!\1 \2!p' )
+  done< <( printf "%s\n" "${mpoint}" | sed -rn 's!^([^:]+):(.+)$!\1 \2!p' )
 }
 
 # fumount      : using fzf to select mount point and umount it
@@ -1048,7 +1127,7 @@ function fumount() {                       # fumount - [umount] with [f]zf
     esac
   done
 
-  force="$([[ 'Darwin' = "$(uname)" ]] && [[ "${force}" ]] && force=true)"
+  force="$( [[ 'Darwin' = "$(uname)" ]] && [[ "${force}" ]] && force=true )"
 
   mpoint=$( mount | sed -rn 's://[^\ ]+\son\s([^\ ]+).*:\1:p' | fzf --prompt='󰉖 ' )
   [[ -z "${mpoint}" ]] && echo -e "$(c Wdi)~~> no mount point in current environment ...$(c)" && return
@@ -1219,7 +1298,7 @@ function mkclr() {                         # [m]a[k]e environment variable [c][l
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : list compilation environment variable via `fzf`, and export selected items
-#   - if paramter is [ -f | --full ], then load full tool paths
+#   - if parameter is [ -f | --full ], then load full tool paths
 # shellcheck disable=SC1090,SC2155
 function mkexp() {                         # [m]a[k]e environment variable [e][x][p]ort
   local usage="$(c Cs)mkexp$(c) - $(c Csi)m$(c)a$(c Csi)k$(c)e environment $(c Csi)exp$(c)ort"
@@ -1667,7 +1746,7 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
 
   [[ 'true' = "${dind}" ]] && k8sOpt='-l devops.domain/docker.builder=true' || k8sOpt=''
   # shellcheck disable=SC2086
-  nodes=$( kubecolor --kubeconfig ~/.kube/config get nodes ${k8sOpt} -o json |
+ nodes=$( kubecolor --kubeconfig ~/.kube/config get nodes ${k8sOpt} -o json |
               jq -r '.items[] | select(.spec.taints|not) | select(.status.conditions[].reason=="KubeletReady" and .status.conditions[].status=="True") | .metadata.name' |
               fzf --prompt "hostname >"
          )

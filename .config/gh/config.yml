@@ -1,3 +1,4 @@
+---
 # The current version of the config schema
 version: 1
 # What protocol to use when performing git operations. Supported values: ssh, https
@@ -12,16 +13,25 @@ prefer_editor_prompt: disabled
 pager:
 # Aliases allow you to create nicknames for gh commands
 aliases:
-    co: pr checkout
-    bugs: issue list --label="bugs"
-    open: repo view --web
-    propen: pr view --web
-    myissues: issue list --author "@me" --state open
-    merge-clean: '!gh pr merge "$1" --squash --delete-branch'
-    as: auth status
-    sa: account switch
     me: api user --jq ".login"
-    repopath: repo view --json nameWithOwner -q .nameWithOwner
+    as: auth status
+    sa: auth switch
+    prs: pr list
+    open: repo view --web
+    bugs: issue list --label="bugs"
+    myissues: issue list --author "@me" --state open
+    repo-path: repo view --json nameWithOwner -q .nameWithOwner
+    # co: pr checkout
+    co: '!$HOME/.marslo/bin/gh-ops --checkout'
+    cl: '!$HOME/.marslo/bin/gh-ops --close'
+    # merge-clean: '!gh pr merge "$1" --squash --delete-branch'
+    squash-clean: '!$HOME/.marslo/bin/gh-ops --squash -- --delete-branch'
+    rebase-clean: '!$HOME/.marslo/bin/gh-ops --rebase -- --delete-branch'
+    # propen: pr view --web
+    pro: '!$HOME/.marslo/bin/gh-new --open --auto'
+    pr-open: '!$HOME/.marslo/bin/gh-ops --open'
+    pr-new: '!$HOME/.marslo/bin/gh-new --open'
+    pr-close: '!$HOME/.marslo/bin/gh-ops --close'
 # The path to a unix socket through which send HTTP connections. If blank, HTTP traffic will be handled by net/http.DefaultTransport.
 http_unix_socket:
 # What web browser gh should use when opening URLs. If blank, will refer to environment.

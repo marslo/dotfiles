@@ -160,7 +160,7 @@ function diff-lines() {
 # Modified by marslo.vida@gmail.com
 # date: 2013-10-15 17:54:58
 # Based on discussion at http://kerneltrap.org/mailarchive/git/2007/11/12/406496
-# For get git infor
+# to get git info
 function gitinfo() {
   # pushd . >/dev/null
   # Find base of git directory
@@ -316,12 +316,12 @@ function gitFetch() {
     if git remote prune origin --dry-run | ${GREP} prune; then
       prBranch=$(git remote prune origin --dry-run | ${GREP} prune | awk -F'origin/' '{print $NF}')
       if [ "${cBranch}" = "${prBranch}" ] && [ -z "${mdFiles}" ]; then
-        echo -e "\\033[32mThe current branch ${cBranch} has been rmeoved in remote. And the current branch has no modified files!\\033[0m"
+        echo -e "\\033[32mThe current branch ${cBranch} has been removed in remote. And the current branch has no modified files!\\033[0m"
         ISStashed=false
       fi
 
       if git branch | ${GREP} "${prBranch}"; then
-        echo -e "\\033[35mREMOVE LOCAL BRNACH ${prBranch}, due to ${prBranch} has been rmeoved in remote.\\033[0m"
+        echo -e "\\033[35mREMOVE LOCAL BRANCH ${prBranch}, due to ${prBranch} has been removed in remote.\\033[0m"
         if ! git branch -D "${prBranch}"; then
           echo -e "\\033[32mWARNING: REMOVE LOCAL BRANCH ${prBranch} failed!!\\033[0m"
         fi

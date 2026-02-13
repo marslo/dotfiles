@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-01-12 22:23:13
+"    LastChange : 2026-01-20 23:08:41
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -65,9 +65,10 @@ Plug 'junegunn/gv.vim'                                              " │
 Plug 'zivyangll/git-blame.vim'                                      " ╯
 Plug 'pearofducks/ansible-vim'
 Plug 'morhetz/gruvbox'                                              " ╮
-Plug 'sainnhe/gruvbox-material'                                     " ├ theme
-Plug 'luisiacc/gruvbox-baby', { 'branch': 'main' }                  " ╯
-Plug 'marslo/marslo.vim'                                            " theme for t_Co=16
+Plug 'sainnhe/gruvbox-material'                                     " │
+Plug 'luisiacc/gruvbox-baby', { 'branch': 'main' }                  " ├ theme
+Plug 'sainnhe/everforest'                                           " │
+Plug 'marslo/marslo.vim'                                            " ╯ t_Co=16
 Plug 'luochen1990/rainbow'
 Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }           " color show
 Plug 'amadeus/vim-css'
@@ -77,7 +78,7 @@ Plug 'dense-analysis/ale'
 " Plug 'vim-scripts/vim-gradle'                                     " ╮ groovy
 " Plug 'modille/groovy.vim'                                         " ├ /usr/local/vim/share/vim/vim90/syntax/groovy.vim
 Plug 'sheerun/vim-polyglot'                                         " ╯ yaml.ansible
-Plug 'marslo/Jenkinsfile-vim-syntax'                                " Jenkinsfile
+" Plug 'marslo/Jenkinsfile-vim-syntax'                              " Jenkinsfile
 Plug 'ekalinin/Dockerfile.vim'                                      " dockerfile
 Plug 'rizzatti/dash.vim'
 Plug 'parkr/vim-jekyll'                                             " github page
@@ -646,4 +647,4 @@ if IsVim()
   imap         <C-M-L> <Plug>(copilot-accept-line)
 endif
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:

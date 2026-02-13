@@ -9,9 +9,15 @@ rules:
 
   line-length: disable
 
+  # {}
   braces:
     min-spaces-inside: 1
     max-spaces-inside: 1
 
+  # []
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+
   truthy:
-    allowed-values: ['yes', 'no', 'true', 'false', 'on', 'off']
+    allowed-values: [ 'yes', 'no', 'true', 'false', 'on', 'off' ]

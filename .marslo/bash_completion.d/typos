@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+_typos_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    opts="
+        --file-list -j --threads --sort --force-exclude -h --help -V --version
+        -c --config --isolated --exclude --hidden --no-ignore --no-ignore-dot
+        --no-ignore-global --no-ignore-parent --no-ignore-vcs --binary
+        --no-check-filenames --no-check-files --no-unicode --locale
+        --diff -w --write-changes --files --file-types
+        --highlight-identifiers --identifiers --highlight-words --words
+        --dump-config --type-list --format --color -v --verbose -q --quiet
+    "
+
+    case "${prev}" in
+        --format)
+            COMPREPLY=( $(compgen -W "silent brief long json sarif" -- ${cur}) )
+            return 0
+            ;;
+        --color)
+            COMPREPLY=( $(compgen -W "auto always never" -- ${cur}) )
+            return 0
+            ;;
+        --locale)
+            COMPREPLY=( $(compgen -W "en en-us en-gb en-ca en-au" -- ${cur}) )
+            return 0
+            ;;
+        -c|--config|--file-list|--dump-config)
+            COMPREPLY=( $(compgen -f -- ${cur}) )
+            return 0
+            ;;
+        -j|--threads)
+            return 0
+            ;;
+        --exclude)
+            return 0
+            ;;
+        *)
+            ;;
+    esac
+
+    if [[ ${cur} == -* ]]; then
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
+
+    COMPREPLY=( $(compgen -f -d -- ${cur}) )
+}
+
+complete -F _typos_completion typos
+# complete -F _typos_completion typo
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

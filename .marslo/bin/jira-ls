@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+#=============================================================================
+#     FileName : jira-ls
+#       Author : marslo
+#      Created : 2026-01-21 20:57:09
+#   LastChange : 2026-01-29 18:22:25
+#=============================================================================
+
+set -euo pipefail
+
+declare STATUS="status in (New, \"To Do\", \"In Progress\")"
+function passToken() { pass show "${1}" | head -n1; }
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --new         ) STATUS="status in (New)"                             ; shift  ;;
+    --in-progress ) STATUS="status in (\"In Progress\")"                 ; shift  ;;
+    --todo        ) STATUS="status in (\"To Do\")"                       ; shift  ;;
+    --open        ) STATUS="status in (New, \"To Do\", \"In Progress\")" ; shift  ;;
+    *             ) echo "Unknown argument: $1" >&2                      ; exit 1 ;;
+  esac
+done
+
+declare JIRA_API_TOKEN="${JIRA_API_TOKEN:-$(passToken marvell/marslo/jira)}"
+
+query="project=IPBUSW AND ${STATUS} AND assignee=currentUser()"
+json="$( curl -u "marslo:${JIRA_API_TOKEN}" \
+              --data-urlencode "jql=${query}" \
+              --get \
+              --silent \
+              --compressed \
+              'https://essjira.marvell.com/rest/api/2/search'
+      )"
+
+declare GET_ID="echo {1} | awk -F. '{printf \"%s\", \$1}'"
+declare FORMAT_CONTENT="echo {1} | sed 's/\. /: /' | tr -d '\n'"
+
+declare TEMPLATE='"'
+TEMPLATE+='\(.key). \(.fields.summary)'
+TEMPLATE+='\t'
+TEMPLATE+='Reporter: \(.fields.reporter.displayName)\n'
+TEMPLATE+='Created: \(.fields.created)\n'
+TEMPLATE+='Updated: \(.fields.updated)\n\n'
+TEMPLATE+='\(.fields.description)'
+TEMPLATE+='"'
+
+echo "${json}" | jq ".issues[] | ${TEMPLATE}" |
+sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/' |
+fzf --with-nth=1 \
+    --delimiter='\t' \
+    --preview='echo {2}' \
+    --preview-window=top:70%:wrap \
+    --bind "ctrl-y:execute-silent(${GET_ID} | pbcopy)" \
+    --bind "ctrl-Y:execute-silent(${FORMAT_CONTENT} | pbcopy)" \
+    --bind "ctrl-o:execute(${GET_ID} | xargs -I {} open https://essjira.marvell.com/browse/{})" \
+    --preview-window=top:wrap |
+cut -f1 |
+sed -e 's/\. /: /'
+
+# to setup branch name
+# awk '{printf "%s/%s/%s", "sandbox", "marslo", $1}'
+# sed -e 's/\. /\t/' -e 's/[^a-zA-Z0-9\t]/-/g' |
+# awk '{printf "%s/%s/%s", "issue", $1, tolower($2)}'
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2025-11-25 19:36:50
+"    LastChange : 2026-01-20 22:54:11
 " =============================================================================
 
 " color table
@@ -96,25 +96,37 @@ highlight clear SignColumn
 " sainnhe/gruvbox-material: gruvbox_material.vim
 highlight RedItalic          cterm=italic   ctermfg=167   gui=italic    guifg=#ea6962
 highlight OrangeItalic       cterm=italic   ctermfg=208   gui=italic    guifg=#e78a4e
+highlight OrangeStandard     cterm=NONE     ctermfg=208   gui=NONE      guifg=#e78a4e
 highlight YellowItalic       cterm=italic   ctermfg=214   gui=italic    guifg=#d8a657
+highlight YellowStandard     cterm=NONE     ctermfg=214   gui=NONE      guifg=#d8a657
 highlight GreenItalic        cterm=italic   ctermfg=142   gui=italic    guifg=#a9b665
 highlight AquaItalic         cterm=italic   ctermfg=108   gui=italic    guifg=#89b482
 highlight BlueItalic         cterm=italic   ctermfg=109   gui=italic    guifg=#7daea3
+highlight BlueStandard       cterm=NONE     ctermfg=109   gui=NONE      guifg=#7daea3
 highlight PurpleItalic       cterm=italic   ctermfg=175   gui=italic    guifg=#d3869b
 highlight PurpleStandard     cterm=NONE     ctermfg=175   gui=NONE      guifg=#d3869b
+highlight GreenBold          cterm=bold     ctermfg=142   gui=bold      guifg=#a9b665
 highlight link shFunctionKey GreenItalic
 
 " for groovy
-" highlight! groovyType      cterm=italic   ctermfg=214   gui=italic    guifg=#d8a657
 highlight! groovyType        cterm=NONE     ctermfg=214   gui=NONE      guifg=#d8a657
 highlight! Boolean           cterm=italic   ctermfg=175   gui=italic    guifg=#d3869b
 " https://github.com/sheerun/vim-polyglot/blob/master/syntax/groovy.vim#L159
-highlight! link groovyJDKBuiltin       PurpleItalic
-highlight! link TSFuncBuiltin          GreenItalic
-highlight! link groovyKeywords         PurpleItalic
-highlight! link groovyStandardKeywords PurpleStandard
-highlight! link groovyDocTags          YellowItalic
-highlight! link groovyDocParam         GreenItalic
+highlight! link groovyJDKBuiltin        PurpleItalic
+highlight! link TSFuncBuiltin           GreenItalic
+highlight! link groovyKeywords          PurpleItalic
+highlight! link JenkinsPluginsKeywords  PurpleStandard
+highlight! link groovyDocTags           YellowItalic
+highlight! link groovyDocParam          GreenItalic
+highlight! link groovyCustomTypes       Type
+highlight! link groovyDocComment        Comment
+highlight! link groovyFieldAnnotation   GreenBold
+highlight! link jenkinsLibraryKeyword   GreenBold
+highlight! link jenkinsfileCoreStepNew  PurpleItalic
+highlight! link groovyCustomKeywords    AquaItalic
+highlight! link groovyLogicalOperator   OrangeStandard
+highlight! link jenkinsLibraryTarget    AquaItalic
+
 " syn groovyJDKMethods : flatten leftShift reverse collectEntries readLines toInteger eachFile compareTo push splitEachLine upto call eachLine eachLine withPrintWriter immutable withWriterAppend any step read newOutputStream times collect tokenize toList getIn invokeMethods putAt previous intersect findAll withReader writeLine withWriter readBytes subMap join println grep newInputStream getOut count eachWithIndex getAt find every getErr each eachByte getText newReader append dump newWriter inspect sort size write pop print asWritable inject withStream asList reverseEach newPrintWriter collectMany next waitForOrKill isCase
 " highlight! link groovyJDKMethods AquaItalic
 

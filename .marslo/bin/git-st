@@ -1,49 +1,74 @@
 #!/usr/bin/env bash
-# shellcheck source=/dev/null
+# shellcheck source=/dev/null disable=SC2155
 #=============================================================================
 #     FileName : git-st
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-02-01 03:39:19
-#   LastChange : 2025-06-24 16:12:47
+#   LastChange : 2026-02-12 17:28:59
 #   references : https://stackoverflow.com/q/77919418/2940319
 #=============================================================================
 
-source "$HOME"/.marslo/bin/bash-color.sh
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${BIN_DIR}/bash-color.sh" && source "${BIN_DIR}/bash-color.sh" || { c() { :; }; }
 
 declare gdiff=''
-declare rlog='false'
 declare branch=''
+declare rlog=false
 
-declare emptyRepo='false'
-if ! git rev-parse --abbrev-ref HEAD   >/dev/null 2>&1; then emptyRepo='true';  fi
+declare emptyRepo=false
+if ! git rev-parse --abbrev-ref HEAD >/dev/null 2>&1; then emptyRepo=true;  fi
+
+function showLog() {
+  branch="${1:-$(git rev-parse --abbrev-ref HEAD)}"
+  local format='%C(#678963)%h%C(reset) -%C(italic yellow)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr) %C(italic blue)<%an>%C(reset) %C(italic #6971a3)[%G?]%C(reset)'
+  local -a cmd=( git --no-pager log
+                     --color
+                     --graph
+                     --decorate=auto
+                     --pretty=tformat:"${format}"
+                     --abbrev-commit
+                     --date=relative
+                     --max-count=3
+                )
+
+  printf "\n$(c Wdi)~~>$(c) $(c Ysi)%s$(c) $(c Wdi):$(c)\n" "${branch}"
+  "${cmd[@]}" "${branch}"
+}
 
 # declare insideRepo='false'
 # if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then insideRepo='true'; fi
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -r | --remote-log ) rlog='true'; shift ;;
+    -r | --remote-log ) rlog=true; shift ;;
+    *                 ) echo "USAGE: ${ME} [-r|--remote-log]" >&2; exit 1 ;;
   esac
 done
 
-if [[ 'true' = "${emptyRepo}" ]]; then
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
+  echo "fatal: not a git repository (or any of the parent directories): .git" >&2;
+  exit 128
+}
+
+if "${emptyRepo}"; then
   git status -sb
   exit 0
 else
   # COLUMNS='128'
   gdiff=$(COLUMNS="$(tput cols)" git --no-pager diff --stat --relative | head -n-1)
   awk 'FNR==NR { k=$1; $1=""; map[k]=$0; next } { print $0 map[$2] }' \
-      <(echo -e "${gdiff}") <(git status -sb) | column -t -s '|' -o '|' | sed -e '1 s/|$//'
+      <(echo -e "${gdiff}") <(git status -sb)
+      # | column -t -s '|' -o '|' | sed -e '1 s/|$//'
 fi
 
 if [[ -z "${gdiff}" ]]; then
-  branch=$(git rev-parse --abbrev-ref HEAD)
-  echo -e "\n$(c Wdi)~~>$(c) $(c Yi)${branch}$(c) $(c Wdi):$(c) "
-  git --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=3
-  if [[ 'true' = "${rlog}" ]]; then
-    echo -e "\n$(c Wdi)~~>$(c) $(c Yi)remotes/origin/${branch}$(c) $(c Wdi):$(c) "
-    git --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative --max-count=3 remotes/origin/"${branch}"
-  fi
+  showLog "$(git rev-parse --abbrev-ref HEAD)"
+  "${rlog}" && showLog remotes/origin/"${branch}"
 fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

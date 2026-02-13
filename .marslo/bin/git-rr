@@ -15,7 +15,7 @@ function isRepo() { git rev-parse --git-dir >/dev/null 2>&1 || exitOnError 'not 
 function getRevision() { sha=$(git rev-parse -q --verify "$1^{commit}"); echo "${sha}"; }
 function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
 
-function showParmas() {
+function showParams() {
   [[ 6 -ne $# ]] && die "wrong parameters in showParams function"
   local author=$1
   local authorEmail=$2
@@ -105,7 +105,7 @@ function doModify() {
   local commitEmail=$5
   local commitDate=$6
   local cmd="""bash "${dir}/git-mi" --author=\"${author}\" --authorEmail=\"${authorEmail}\" --authorDate=\"${authorDate}\" --committer=\"${committer}\" --commitEmail=\"${commitEmail}\" --commitDate=\"${commitDate}\" """
-  eval "${cmd}" || exitOnError 'failed to modify revision informations'
+  eval "${cmd}" || exitOnError 'failed to modify revision information'
 }
 
 
@@ -168,7 +168,7 @@ else
       c | cp | cherry-pick ) cherryPick='true'           ;;
       s | set              ) setEnv='true'               ;;
       u | unSet            ) unSetEnv='true'             ;;
-      r | revison          ) needsArg; sha="$OPTARG"     ;;
+      r | revision         ) needsArg; sha="$OPTARG"     ;;
       ??*                  ) die "Illegal option --$OPT" ;;
       ?                    ) die "Illegal option --$OPT" ;;
     esac
@@ -204,7 +204,7 @@ else
   commitEmail=$(echo "${values}"  |  awk -F'|' '{print $5}' | trim)
 fi
 
-[[ 'true' = "${verbose}"    ]] && showParmas "${author}" "${authorEmail}" "${authorDate}" "${committer}" "${commitEmail}" "${commitDate}"
+[[ 'true' = "${verbose}"    ]] && showParams "${author}" "${authorEmail}" "${authorDate}" "${committer}" "${commitEmail}" "${commitDate}"
 [[ 'true' = "${cherryPick}" ]] && git cherry-pick "${revision}"
 [[ 'true' = "${setEnv}"     ]] && doSetEnv "${author}" "${authorEmail}" "${authorDate}" "${committer}" "${commitEmail}" "${commitDate}"
 doModify "${author}" "${authorEmail}" "${authorDate}" "${committer}" "${commitEmail}" "${commitDate}"

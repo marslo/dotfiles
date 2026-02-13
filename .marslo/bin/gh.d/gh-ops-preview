@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#=============================================================================
+#     FileName : gh-ops-preview
+#       Author : marslo
+#      Created : 2026-01-23 23:20:5
+#   LastChange : 2026-01-24 00:36:47
+#   Description : Preview GitHub PR details in terminal with colors -- using for gh-ops
+#=============================================================================
+
+# shellcheck disable=SC2155
+declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r JQ_FILE="${CURRENT_DIR}/gh-ops-preview.jq"
+
+test -f "${JQ_FILE}" || { echo "Error: JQ filter file not found at: $JQ_FILE"; exit 1; }
+
+declare raw="$*"
+if [[ -z "$raw" ]]; then raw="$(cat)"; fi
+
+declare id=$(echo "${raw}" | sed -E "s/\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" | sed -En 's/^#([0-9]+).*/\1/p')
+if [[ -z "${id:-}" ]]; then id=$(echo "${raw:-}" | grep -oE "[0-9]+" | head -1); fi
+
+if [[ -n "${id:-}" ]]; then
+  gh pr view "${id}" \
+    --json mergeable,reviewDecision,reviewRequests,reviews,body \
+    --jq "$(cat "$JQ_FILE")" 2>/dev/null
+else
+  echo "Error: Could not extract PR ID"
+fi
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

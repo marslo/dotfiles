@@ -1,0 +1,263 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null disable=SC2155
+#=============================================================================
+#     FileName : gh-ops
+#       Author : marslo
+#      Created : 2026-01-21 20:38:07
+#   LastChange : 2026-02-03 15:23:15
+#  Inspired by : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/
+#=============================================================================
+
+set -euo pipefail
+
+declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
+declare -r JQ_FILE="${CURRENT_DIR}/gh.d/gh-ops-preview.jq"
+
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+if [[ -f "${CURRENT_DIR}/bash-color.sh" ]]; then
+  source "${CURRENT_DIR}/bash-color.sh"
+else
+  c() { :; }
+fi
+
+declare -r USAGE="""
+NAME
+  $(c Cs)${ME}$(c) - interactively GitHub PR using fzf
+
+USAGE
+  $(c Ys)\$ ${ME}$(c) $(c Wdi)[$(c)$(c Gis)OPTIONS$(c)$(c Wdi)]$(c)
+
+OPTIONS
+  $(c G)-c$(c), $(c G)--checkout$(c)       checkout the selected pull request ( $(c Cis)*default$(c) )
+  $(c G)-C$(c), $(c G)--close$(c)          close the selected pull request
+  $(c G)-o$(c), $(c G)--open$(c)           open the selected pull request in the web browser
+  $(c G)-a$(c), $(c G)--auto$(c)           automatically open the PR in the web browser after selection
+  $(c G)-s$(c), $(c G)--squash$(c)         squash merge the selected pull request and delete the branch
+  $(c G)-r$(c), $(c G)--rebase$(c)         rebase merge the selected pull request and delete
+  $(c G)-V$(c), $(c G)--verbose$(c)        show verbose output
+  $(c G)--dryrun$(c)             show the command to be executed, but do not run it
+  $(c G)-h$(c), $(c G)--help$(c)           show this help message
+  $(c C)--$(c) $(c 0Wdi)[$(c 0Mi)GH_OPTIONS$(c 0Wdi)]$(c)      pass all following arguments to the underlying '$(c 0i)gh pr checkout/close$(c)' command
+
+EXAMPLES
+  $(c Wdi)# interactively select a pull request and checkout the corresponding branch$(c)
+  $(c 0Ys)\$ ${ME} $(c 0Wdi)or $(c 0Ys)\$ ${ME} $(c 0Gi)--checkout$(c)
+
+  $(c Wdi)# update all submodules after checkout$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--checkout $(c 0Ci)-- $(c 0Mi)--recurse-submodules$(c)
+
+  $(c Wdi)# close the PR and delete the branch$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--close $(c 0Ci)-- $(c 0Mi)--delete-branch$(c)
+
+TIPS
+  while in the fzf selection menu:
+    • press $(c 0Bsi)ctrl-y$(c) to copy the PR ID to clipboard
+    • press $(c 0Bsi)ctrl-o$(c) to open the selected PR in the web browser
+    • press $(c 0Bsi)ctrl-/$(c) to toggle between local and remote preview (requires the preview script to be present)
+"""
+
+declare OPTION='checkout'
+declare DRYRUN=false
+declare VERBOSE=false
+declare -a GH_OPTS=()
+declare SHOULD_OPEN=false
+declare AUTO_OPEN=false
+
+function showHelp() { echo -e "${USAGE}"; exit 0; }
+function show() {
+  local tag tcolor body
+  local extra=''
+  local bcolor="$(c 0Wi)"
+
+  case "$1" in
+    info             ) tag="$1";    shift; body="${*}"; tcolor="$(c 0Gi)"                      ;;
+    warning          ) tag="$1";    shift; body="${*}"; tcolor="$(c 0Yi)"                      ;;
+    error            ) tag="$1";    shift; body="${*}"; tcolor="$(c 0Ri)"                      ;;
+    dryrun | verbose ) tag=">> $1"; shift; body="${*}"; tcolor="$(c 0Wdi)"; bcolor="${tcolor}" ;;
+    *                ) tag='error';        body="${*}"; tcolor="$(c 0Ri)"                      ;;
+  esac
+
+  [[ 'error' == "${tag}" ]] && extra="$(c Wdi). exit ...$(c)" || extra=''
+  printf "%b%s$(c)%b: %b$(c)%b\n" "${tcolor}" "${tag^^}" "${bcolor}" "${body}" "${extra}" >&2;
+  [[ 'error' == "${tag}" ]] && exit 1 || :
+}
+
+function joinBy {
+  local d=${1-} f=${2-}
+  if shift 2; then printf %s "$f" "${@/#/$d}"; fi
+}
+
+function checkTools() {
+  local -a tools=( 'gh' 'fzf' )
+  local -a missing=()
+
+  for tool in "${tools[@]}"; do
+    type -P "${tool}" >/dev/null 2>&1 || missing+=( "${tool}" )
+  done
+
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    show error "missing required tools: $(c 0Mi)$(joinBy ', ' "${missing[@]}")$(c)"
+  fi
+}
+
+function openPR() {
+  local id="${1:-}"
+
+  if "${SHOULD_OPEN}"; then
+    "${AUTO_OPEN}" && {
+      test -z "${id:-}" && id="$(gh pr view --json number -q .number 2>/dev/null)"
+    }
+    # shellcheck disable=SC2015
+    test -n "${id:-}" && {
+      local -a openCmd=( gh pr view "${id}" --web )
+      "${VERBOSE}" && show info "opening PR $(c 0Mi)\`#${id}\`$(c 0Wdi) in web browser ...$(c)" || :
+      "${openCmd[@]}"
+    } || {
+      show warning "cannot open PR: no PR ID found"
+    }
+  fi
+}
+
+# shellcheck disable=SC2015,SC2059
+function jc() {
+  [ $# == 0 ] && printf "\\u001b[0m" || \
+  printf "${1}" | sed 's/\(.\)/\1;/g;s/\([SDIUFNHT]\)/1\1/g;s/\([KRGYBMCW]\)/3\1/g;s/\([krgybmcw]\)/4\1/g;y/SDIUFNHTsdiufnhtKRGYBMCWkrgybmcw/12345789123457890123456701234567/;s/^\(.*\);$/\\u001b[\1m/g'
+}
+
+# shellcheck disable=SC2016,SC2064
+function getId() {
+  test -f "${JQ_FILE}" || show error "missing JQ filter file at ${JQ_FILE}"
+  export JQ_FILTER="$(cat "${JQ_FILE}")"
+
+  local CACHE_FILE="/tmp/gh_ops_cache_$$"
+  trap "rm -f ${CACHE_FILE}" EXIT
+  : > "${CACHE_FILE}"
+
+  local TEMPLATE='"'
+  TEMPLATE+='#\(.number) - \(.title)'
+  TEMPLATE+='\t'
+  TEMPLATE+="$(jc Cs)Author:$(jc) \(.user.login)\n"
+  TEMPLATE+="$(jc Ys)Created:$(jc) \(.created_at) $(jc Ms)•$(jc) $(jc Ys)Updated:$(jc) \(.updated_at)\n\n"
+  TEMPLATE+='\(.title)'
+  TEMPLATE+='\( .title as $t | (.body // "") | if startswith($t) then .[($t | length):] else . end | sub("^\\s+"; "") | if . == "" then "" else "\n\n" + . end )'
+  TEMPLATE+='"'
+
+  local EXTRACT_ID_CMD='sed -n "$(( {n}+1 ))p" "'${CACHE_FILE}'" | sed -En "s/^#([0-9]+).*/\1/p"'
+
+  local REMOTE_CMD=''
+  REMOTE_CMD+='change-preview('
+  REMOTE_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
+  REMOTE_CMD+='if [ -n "${id}" ]; then gh pr view "${id}" --json mergeable,reviewDecision,reviewRequests,reviews,body --jq "$JQ_FILTER" 2>/dev/null; else echo "Loading..."; fi'
+  REMOTE_CMD+=')+'
+  REMOTE_CMD+='transform-preview-label('
+  REMOTE_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
+  REMOTE_CMD+='printf "\033[1;36m[ REMOTE #%s ]\033[0m" "${id}"'
+  REMOTE_CMD+=')'
+  export CMD_REMOTE="${REMOTE_CMD}"
+
+  local LOCAL_CMD=''
+  LOCAL_CMD+='change-preview('
+  LOCAL_CMD+='content=$( sed -n "$(({n}+1))p" "'${CACHE_FILE}'" | cut -f2- ); '
+  LOCAL_CMD+='printf "%b\n" "${content}"'
+  LOCAL_CMD+=')+'
+  LOCAL_CMD+='transform-preview-label('
+  LOCAL_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
+  LOCAL_CMD+='printf "\033[1;35m[ LOCAL #%s ]\033[0m" "${id}"'
+  LOCAL_CMD+=')'
+  export CMD_LOCAL="${LOCAL_CMD}"
+
+  # result:transform-list-label
+  local BIND_RESULT_CMD='if [[ -z ${FZF_QUERY} ]]; then echo " ${FZF_MATCH_COUNT} items "; else echo " ${FZF_MATCH_COUNT} matches for [${FZF_QUERY}] "; fi'
+
+  # focus:transform-preview-label
+  local BIND_FOCUS_CMD=''
+  BIND_FOCUS_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
+  BIND_FOCUS_CMD+='if echo "${FZF_PREVIEW_LABEL}" | grep -q -i "remote"; then '
+  BIND_FOCUS_CMD+='  printf "\033[1;36m[ REMOTE #%s ]\033[0m" "${id}"; '
+  BIND_FOCUS_CMD+='else '
+  BIND_FOCUS_CMD+='  printf "\033[1;35m[ LOCAL #%s ]\033[0m" "${id}"; '
+  BIND_FOCUS_CMD+='fi'
+
+  # ctrl-/:transform
+  local BIND_TOGGLE_CMD=''
+  BIND_TOGGLE_CMD+='if echo "${FZF_PREVIEW_LABEL}" | grep -q -i "remote"; then '
+  BIND_TOGGLE_CMD+='  echo "${CMD_LOCAL}"; '
+  BIND_TOGGLE_CMD+='else '
+  BIND_TOGGLE_CMD+='  echo "${CMD_REMOTE}"; '
+  BIND_TOGGLE_CMD+='fi'
+
+  local PR_ID=''
+  PR_ID=$(
+    gh api 'repos/:owner/:repo/pulls?per_page=50' |
+    jq ".[] | ${TEMPLATE}" |
+    sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/' -e 's/\\u001b/\\033/g' |
+    tee "${CACHE_FILE}" |
+    fzf --ansi \
+        --with-nth=1 \
+        --delimiter='\t' \
+        --preview-window=top:65%:wrap \
+        --preview='content=$(sed -n "$(( {n}+1 ))p" "'${CACHE_FILE}'" | cut -f2-); printf "%b\n" "${content}"' \
+        --preview-label=$'\033[1;35m[ Local ]\033[0m' \
+        --bind "result:transform-list-label:${BIND_RESULT_CMD}" \
+        --bind "focus:transform-preview-label:${BIND_FOCUS_CMD}" \
+        --bind "ctrl-/:transform:${BIND_TOGGLE_CMD}" \
+        --bind "ctrl-y:execute-silent(echo {1} | sed -En 's/^#([0-9]+).*/\1/p' | pbcopy)" \
+        --bind "ctrl-o:execute-silent(echo {1} | awk '{print \$1}' | xargs gh pr view --web)" |
+    sed -En 's/^#([0-9]+).*/\1/p'
+  )
+
+  unset JQ_FILTER CMD_REMOTE CMD_LOCAL
+  test -n "${PR_ID}" && echo "${PR_ID}" || return 1
+}
+
+function main() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -c | --checkout ) OPTION='checkout'         ; shift     ;;
+      -C | --close    ) OPTION='close'            ; shift     ;;
+      -s | --squash   ) OPTION='squash'           ; shift     ;;
+      -r | --rebase   ) OPTION='rebase'           ; shift     ;;
+      -o | --open     ) SHOULD_OPEN=true          ; shift     ;;
+      -a | --auto     ) AUTO_OPEN=true            ; shift     ;;
+      -V | --verbose  ) VERBOSE=true              ; shift     ;;
+      --dryrun        ) DRYRUN=true               ; shift     ;;
+      --              ) shift ; GH_OPTS+=( "$@" ) ; break     ;;
+      -h | --help     ) showHelp                              ;;
+      *               ) show error "unknown argument: \`$1\`" ;;
+    esac
+  done
+
+  checkTools
+
+  # shellcheck disable=SC2155
+  local PR_ID="$( getId )"
+  local cmd=( gh pr )
+  case "${OPTION}" in
+    checkout | close ) cmd+=( "${OPTION}" "${PR_ID}"    )         ;;
+    squash           ) cmd+=( merge "${PR_ID}" --squash )         ;;
+    rebase           ) cmd+=( merge "${PR_ID}" --rebase )         ;;
+    *                ) show error "unknown option: \`${OPTION}\`" ;;
+  esac
+
+  test -z "${PR_ID}" && exit 0
+  "${SHOULD_OPEN}" && { openPR "${PR_ID}"; exit 0; }
+
+  ( "${DRYRUN}" || "${VERBOSE}" ) && {
+    local msg="command to be executed: \`$(c 0Cdi)\$ ${cmd[*]}${GH_OPTS[*]:+ ${GH_OPTS[*]}}$(c 0Wdi)\` ...$(c)"
+    # shellcheck disable=SC2015
+    "${VERBOSE}" && show verbose "${msg}" || { show dryrun "${msg}"; exit 0; }
+  }
+
+  printf "$(c Ci)~~> %s$(c) $(c 0Mis)#%s$(c)%b $(c Ci)..$(c)\n" \
+         "${OPTION}" \
+         "${PR_ID}" \
+         "${GH_OPTS[*]:+ with gh OPTS $(c 0Mis)${GH_OPTS[*]}$(c)}" >&2
+  "${cmd[@]}" "${GH_OPTS[@]}"
+}
+
+main "$@"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

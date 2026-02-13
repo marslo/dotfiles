@@ -4,7 +4,7 @@
 #   FileName: utils
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2025-12-05 18:31:52
+# LastChange: 2026-02-12 14:54:18
 # =============================================================================
 
 # using source instead of alias in ~/.marslo/.marslorc
@@ -144,7 +144,7 @@ alias cmount='mount | column -t'
 alias dstat='dstat -cdgilmnprsy'
 alias wget='wget --no-cookies --no-check-certificate --timeout=1 --tries=3 --retry-connrefused'
 alias curl='command curl --insecure --globoff --netrc-file ~/.marslo/.netrc'
-alias gcurl="command curl --insecure --globoff -H \"Accept: application/vnd.github+json\" -H \"User-Agent: curl\" -H \"Authorization: Bearer ${GITHUB_API_TOKEN}\""
+alias gcurl="command curl --insecure --globoff -H \"Accept: application/vnd.github+json\" -H \"User-Agent: curl\" -H \"Authorization: Bearer $(gh auth token)\""
 alias myip='command curl --insecure --globoff -sS https://ipecho.net/plain'
 
 alias lsock='sudo /usr/sbin/lsof -i -P'             # lsock:        Display open sockets

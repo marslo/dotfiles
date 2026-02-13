@@ -15,7 +15,7 @@ function isRepo() { git rev-parse --git-dir >/dev/null 2>&1 || exitOnError 'not 
 function getRevision() { sha=$(git rev-parse -q --verify "$1^{commit}"); echo "${sha}"; }
 function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
 
-function showParmas() {
+function showParams() {
   [[ 6 -ne $# ]] && die "wrong parameters in showParams function"
   local author=$1
   local authorEmail=$2
@@ -78,7 +78,7 @@ EOF
 
   # shellcheck disable=SC1090
   source "${tmpfile}"
-  [[ 'true' = "${slient}" ]] || echo -e """  .. environment variable has been added to ..\n     $(c G)${tmpfile}$(c)  """
+  [[ 'true' = "${silent}" ]] || echo -e """  .. environment variable has been added to ..\n     $(c G)${tmpfile}$(c)  """
 
 }
 
@@ -110,7 +110,7 @@ help='false'
 verbose='false'
 unSetEnv='false'
 remove='false'
-slient='false'
+silent='false'
 sha=''
 filepath=''
 usage="""
@@ -118,7 +118,7 @@ usage="""
 \nSYNOPSIS:$(c sY)
 \n\t\$ git set [ -v | --verbose | --debug ]
 \t\t  [ -h | --help ]
-\t\t  [ -s | --slient ]
+\t\t  [ -s | --silent ]
 \t\t  [ -u | --unset ]
 \t\t  [ -d | --rm | --delete ]
 \t\t  [ -r | --revision=<sha1> ]$(c)
@@ -155,8 +155,8 @@ else
       v | verbose | debug  ) verbose='true'              ;;
       u | unset            ) unSetEnv='true'             ;;
       d | rm | delete      ) remove='true'               ;;
-      s | slient           ) slient='true'               ;;
-      r | revison          ) needsArg; sha="$OPTARG"     ;;
+      s | silent           ) silent='true'               ;;
+      r | revision          ) needsArg; sha="$OPTARG"     ;;
       f | file             ) filepath="$OPTARG"          ;;
       ??*                  ) die "Illegal option --$OPT" ;;
       ?                    ) die "Illegal option --$OPT" ;;
@@ -196,6 +196,6 @@ commitDate=$(echo "${values}"   |  awk -F'|' '{print $6}' | trim)
 
 doSetEnv "${author}" "${authorEmail}" "${authorDate}" "${committer}" "${commitEmail}" "${commitDate}"
 # shellcheck disable=SC2015
-[[ 'true' = "${verbose}" ]] && showParmas "${author}" "${authorEmail}" "${authorDate}" "${committer}" "${commitEmail}" "${commitDate}" || true
+[[ 'true' = "${verbose}" ]] && showParams "${author}" "${authorEmail}" "${authorDate}" "${committer}" "${commitEmail}" "${commitDate}" || true
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
