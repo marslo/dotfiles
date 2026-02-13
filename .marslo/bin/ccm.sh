@@ -18,13 +18,12 @@
 
 set -euo pipefail
 
-# credit: https://github.com/ppo/bash-colors
-if [[ -f "${HOME}/.marslo/bin/bash-color.sh" ]]; then
-  source "${HOME}/.marslo/bin/bash-color.sh"
-else
-  # or copy & paste the `c()` function from https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
-  c() { :; }
-fi
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
 
 # config
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
