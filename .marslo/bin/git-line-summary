@@ -57,4 +57,3 @@ echo " lines    : $(count)"
 echo " authors  :"
 result
 echo
-

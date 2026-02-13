@@ -265,7 +265,7 @@ __compal__get_alias_body() {
 ##  command in the last pipeline;
 ##
 ##  warn: this function is made for alias body expansion; as such it does not
-##  support commmand substitutions, etc.; if you run its output as argv, then
+##  support command substitutions, etc.; if you run its output as argv, then
 ##  you run at your own risk; quotes and escapes may also disturb the result;
 ##
 ##  $1

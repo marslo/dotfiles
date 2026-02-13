@@ -31,13 +31,13 @@ usage="""
 \t\t\t\t\t\t\t  + the long parameters MUST use '$(c R)=$(c)' to identify opt and args
 \n\tto reset author, authorEmail, authorDate, committer, commitEmail and commitDate
 \t\t$(c G)\$ git mi --author=<username>   --authorEmail=<username@domain> --authorDate=<date> \\
-\t\t\t --commiter=<username> --commitEmail=<username@domain> --commitDate=<date>$(c)
+\t\t\t --committer=<username> --commitEmail=<username@domain> --commitDate=<date>$(c)
 \t\tOR :
 \t\t$(c G)\$ git mi -a <username> -e <username@domain> -d <date> \\
 \t\t\t -c <username> -E <username@domain> -D <date>$(c)
 \t\tOR short opt mixed with long opt :
 \t\t$(c G)\$ git mi -a <username> -e <username@domain> -d <date> \\
-\t\t\t --commiter=<username> --commitEmail=<username@domain> --commitDate=<date>$(c)
+\t\t\t --committer=<username> --commitEmail=<username@domain> --commitDate=<date>$(c)
 """
 
 # credit belongs to https://stackoverflow.com/a/28466267/519360
@@ -51,7 +51,7 @@ while getopts hvr:a:e:d:c:E:D:-: OPT; do
   case "$OPT" in
     h | help             ) help=true                       ;;
     v | verbose | debug  ) verbose=true                    ;;
-    r | revison          ) needsArg; revision="$OPTARG"    ;;
+    r | revision         ) needsArg; revision="$OPTARG"    ;;
     a | author           ) needsArg; author="$OPTARG"      ;;
     e | ae | authorEmail ) needsArg; authorEmail="$OPTARG" ;;
     d | ad | authorDate  ) needsArg; authorDate="$OPTARG"  ;;

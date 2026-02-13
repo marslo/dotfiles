@@ -112,8 +112,8 @@ function copy() {                          # smart copy
 # @description :
 #   - using `bat` by default if `command -v bat`
 #     - using `-c` ( `c`at ) as 1st parameter, to force using `type -P cat` instead of `type -P bat`
-#   - if `bat` without  paramter, then search file via `fzf` and shows via `bat`
-#   - if `bat` with 1   paramter, and `$1` is directory, then search file via `fzf` from `$1` and shows via `bat`
+#   - if `bat` without  parameter, then search file via `fzf` and shows via `bat`
+#   - if `bat` with 1   parameter, and `$1` is directory, then search file via `fzf` from `$1` and shows via `bat`
 #   - otherwise respect `bat` options, and shows via `bat`
 # shellcheck disable=SC2046,SC2155
 function cat() {                           # smart cat
@@ -427,7 +427,7 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
     case "$1" in
       -s | --show ) show=true ; shift ;;
       -c | --clip ) clip=true ; shift ;;
-         --slient ) clip=true ; shift ;;
+         --silent ) clip=true ; shift ;;
                 * ) break               ;;
     esac
   done
@@ -477,9 +477,9 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
 # @description :
 #   - if `nvim` installed using `nvim` instead of `vim`
 #     - using `-v` to force using `vim` instead of `nvim` even if nvim installed
-#   - if `vim` commands without paramters, then call fzf and using vim to open selected file
-#   - if `vim` commands with paramters
-#       - if single paramters and parameters is directlry, then call fzf in target directory and using vim to open selected file
+#   - if `vim` commands without parameters, then call fzf and using vim to open selected file
+#   - if `vim` commands with parameters
+#       - if single parameters and parameters is directlry, then call fzf in target directory and using vim to open selected file
 #       - otherwise call regular vim to open file(s)
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vim`
 # shellcheck disable=SC2155
@@ -623,11 +623,11 @@ function vimrc() {                         # vimrc - fzf list all rc files in da
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
-#   - if any of paramters is directory, then get file path via fzf in target path first
+#   - if any of parameters is directory, then get file path via fzf in target path first
 #   - if `vimdiff` commands without parameter , then compare files in `.` and `~/.marslo`
 #   - if `vimdiff` commands with 1  parameter , then compare files in current path and `$1`
 #   - if `vimdiff` commands with 2  parameters, then compare files in `$1` and `$2`
-#   - otherwise ( if more than 2 parameters )  , then compare files in `${*: -2:1}` and `${*: -1}` with paramters of `${*: 1:$#-2}`
+#   - otherwise ( if more than 2 parameters )  , then compare files in `${*: -2:1}` and `${*: -1}` with parameters of `${*: 1:$#-2}`
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vimdiff`
 function vimdiff() {                       # smart vimdiff
   local lFile
@@ -1010,7 +1010,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
 # @return         : 0 - mounted, 1 - not mounted
 function checkMountPoint() { mount | grep -qE "//[^\ ]+\son\s${1}.+"; echo $?; }
 
-# processMount : porcess mount in WSL ( mount -t cifs ) or OSX ( mount -t smbfs )
+# processMount : process mount in WSL ( mount -t cifs ) or OSX ( mount -t smbfs )
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @references  :
@@ -1298,7 +1298,7 @@ function mkclr() {                         # [m]a[k]e environment variable [c][l
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : list compilation environment variable via `fzf`, and export selected items
-#   - if paramter is [ -f | --full ], then load full tool paths
+#   - if parameter is [ -f | --full ], then load full tool paths
 # shellcheck disable=SC1090,SC2155
 function mkexp() {                         # [m]a[k]e environment variable [e][x][p]ort
   local usage="$(c Cs)mkexp$(c) - $(c Csi)m$(c)a$(c Csi)k$(c)e environment $(c Csi)exp$(c)ort"

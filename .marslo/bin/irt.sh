@@ -69,7 +69,7 @@ function rtsearch() {
 }
 
 function rtsp() {
-  usage="""$(c sM)rtsp$(c) - artifactory search with properties - search artifacts via properites
+  usage="""$(c sM)rtsp$(c) - artifactory search with properties - search artifacts via properties
   \nSYNOPSIS
   \n\t$(c sY)\$ rtsp [wvi] [property name] [property value] [repo]$(c)
   \nEXAMPLE
