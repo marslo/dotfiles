@@ -1,5 +1,12 @@
 [user]
-  name  = marslo
-  email = marslo@domain.com
+  name       = marslo
+  email      = marslo.jiao@gmail.com
+  signingkey = 6C549DA3FA02DB3D
+
+[commit]
+    gpgsign  = true
+
+[tag]
+    gpgsign  = true
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:

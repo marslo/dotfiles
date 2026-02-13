@@ -29,7 +29,9 @@ extend-ignore-re = [
   "\\w+=.*\\\\033.*",
   "\\w*\\\\033\\S+",
   # $(c xxx)..$(c)
-  "\\S*\\$\\(c[^)]+\\)\\S*"
+  "\\S*\\$\\(c[^)]+\\)\\S*",
+  # vim modeline
+  "(?m)^.*\\bvim:.*$"
 ]
 
 [default.extend-words]
