@@ -10,12 +10,12 @@
 set -euo pipefail
 
 # shellcheck disable=SC2155
-declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
-test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
+test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
 function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
 function showUsage() { echo -e "${usage}" >&2; exit 0; }
@@ -66,7 +66,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# mandatory: $ npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github$(c)
+# mandatory: $ npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec
 # optional:  $ npm install -g conventional-changelog-cli conventional-changelog-angular
 declare -a npmcmd=(npm install -g)
 if "${init}"; then

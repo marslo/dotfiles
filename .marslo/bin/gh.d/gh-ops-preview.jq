@@ -5,8 +5,8 @@ def c(code; text): "\u001b[" + code + "m" + text + "\u001b[0m";
 def status_bar:
   (
     if .mergeable == "MERGEABLE" then
-       if .reviewDecision == "APPROVED" then c("32"; "✔ Mergeable Status")
-       else c( "32"; "• Mergeable Status" ) end
+       if .reviewDecision == "APPROVED" then c("32"; "✔ Mergeable")
+       else c( "32"; "• Mergeable" ) end
     else c( "31"; "✖ Conflict" ) end
   )
   + "\t" +
@@ -51,4 +51,4 @@ status_bar + "\n" +
 reviewers_section +
 reviews_section +
 "\n\n--------------------------------------\n" +
-.body
+( .body | gsub("(?m)^[ \t]+"; "") )

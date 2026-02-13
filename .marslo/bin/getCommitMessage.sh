@@ -4,7 +4,7 @@
 #     FileName : getCommitMessage.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2025-10-10 18:37:50
+#   LastChange : 2026-02-13 00:41:26
 #   references : https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit?tab=t.0
 #=============================================================================
 
@@ -22,14 +22,14 @@
 set -euo pipefail
 
 # shellcheck disable=SC2155
-declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
-test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
+test -f "${CURRENT_DIR}/bash-colors.sh" && source "${CURRENT_DIR}/bash-colors.sh" || { c() { :; }; }
 
-types=(
+declare -a types=(
   "feat:     $(c Wdi)a new feature$(c)"
   "fix:      $(c Wdi)a bug fix$(c)"
   "docs:     $(c Wdi)documentation only changes$(c)"
@@ -65,7 +65,7 @@ function runInteractive() {
     output="$("$@")" || return 130
   fi
 
-  printf -v "$__varname" "%s" "$output"
+  printf -v "${__varname}" "%s" "${output}"
 }
 
 # SOH: `\001` - Start of Heading

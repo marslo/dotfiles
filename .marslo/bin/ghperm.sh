@@ -22,12 +22,12 @@ declare VVERBOSE=false
 declare -a LINES=()
 
 # shellcheck disable=SC2155
-declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
-test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
+test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
 function die() {
   local exitcode=1 msg; local -a args=( "$@" ); local last="${!#}";
@@ -80,6 +80,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+[[ -z "${GITHUB_TOKEN:-}" ]] && die "GITHUB_TOKEN cannot be empty. Please set it in environment or use \`--mrvl\` or \`--srv\` option."
 [[ -n "${ORG:-}" ]] && url="${GITHUB_API_URL}/orgs/${ORG}/repos?per_page=100&type=all" \
                     || url="${GITHUB_API_URL}/user/repos?per_page=100&type=all"
 "${VERBOSE}" && printf "%b------------ DEBUG INFO -------------%b\n" "$(c Wdi)" "$(c)"

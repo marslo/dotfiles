@@ -4,18 +4,18 @@
 #     FileName : git-changed
 #       Author : marslo
 #      Created : 2025-08-22 15:24:56
-#   LastChange : 2026-01-28 09:02:02
+#   LastChange : 2026-02-12 23:55:32
 #=============================================================================
 
 set -euo pipefail
 
 # shellcheck disable=SC2155
-declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
-test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
+test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
 # section toggles (default all if none specified)
 declare showStaged=0 showUnstaged=0 showUntracked=0 showIgnored=0 anySection=0

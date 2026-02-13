@@ -10,15 +10,15 @@
 
 set -euo pipefail
 
-declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
-declare -r JQ_FILE="${CURRENT_DIR}/gh.d/gh-ops-preview.jq"
+declare -r JQ_FILE="${HERE}/gh.d/gh-ops-preview.jq"
 
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
-if [[ -f "${CURRENT_DIR}/bash-colors.sh" ]]; then
-  source "${CURRENT_DIR}/bash-colors.sh"
+if [[ -f "${HERE}/bash-colors.sh" ]]; then
+  source "${HERE}/bash-colors.sh"
 else
   c() { :; }
 fi

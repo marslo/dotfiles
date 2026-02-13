@@ -4,17 +4,17 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-02-05 18:02:28
+#   LastChange : 2026-02-12 23:54:10
 #  Description : [f]zf [func]tion
 #=============================================================================
 
 # shellcheck disable=SC2155
-declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
-test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
+test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
 # /**************************************************************
 #  ___        ___
@@ -397,25 +397,26 @@ function fmsh() {                          # connect [m]ongodb with mongo[sh] wi
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --eval ) evalCmd="$2"     ; shift 2 ;;
-      --json ) jsonPrint='true' ; shift   ;;
+      --eval ) evalCmd=( "$2" ) ; shift 2 ;;
+      --json ) jsonPrint=true   ; shift   ;;
            * ) break                      ;;
     esac
   done
 
-  cmd="mongosh 'mongodb://mongodb.domain.com:27017'"
-  cmd+=" --username '${username}' --password '$(pass show ${passPath})'"
-  cmd+=" --authenticationDatabase '${database}'"
+  command=( mongosh 'mongodb://mongodb.domain.com:27017' )
+  command+=( --username '${username}' --password '$(pass show ${passPath} | head -n1)' )
+  command+=( --authenticationDatabase(${database} )
   if [[ -n "${evalCmd}" ]]; then
-    if [[ 'true' = "${jsonPrint}" ]]; then
-      cmd+=" --eval \"db = db.getSiblingDB('${database}'); printjson( ${evalCmd} )\""
-      cmd+=" | tr \"'\" '\"' | jq -r"
+    if "${jsonPrint}"; then
+      command+=( --eval "db = db.getSiblingDB('${database}'); printjson( ${evalCmd} )" )
+      # command+=" | tr \"'\" '\"' | jq -r"
     else
-      cmd+=" --eval \"db = db.getSiblingDB('${database}'); ${evalCmd}\""
+      command+=( --eval "db = db.getSiblingDB('${database}'); ${evalCmd}" )
     fi
   fi
 
-  eval "${cmd}"
+  # shellcheck disable=SC2015
+  "${jsonPrint}" && { "${command[@]}" | jq -r; } || "${command[@]}"
 }
 
 # fpw          : using `fzf` to copy password from pass store into clipboard
@@ -1082,7 +1083,7 @@ function getMounted() {
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @usage       : fmount [--auto] [--debug] [--silent]
 function fmount() {                        # fmount - [mount] with [f]zf
-  local points="1.2.3.4:/path hostname:/path/to/target"
+  local -a points=( "1.2.3.4:/path" "hostname:/path/to/target" )
   local host
   local path
   local mpoint
