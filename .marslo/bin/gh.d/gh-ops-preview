@@ -8,8 +8,8 @@
 #=============================================================================
 
 # shellcheck disable=SC2155
-declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
-declare -r JQ_FILE="${CURRENT_DIR}/gh-ops-preview.jq"
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r JQ_FILE="${HERE}/gh-ops-preview.jq"
 
 test -f "${JQ_FILE}" || { echo "Error: JQ filter file not found at: $JQ_FILE"; exit 1; }
 

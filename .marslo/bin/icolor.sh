@@ -273,43 +273,4 @@ function showLSColors() {
   )
 }
 
-
-# solarized ansi colors (exporting for grins)
-function solarizedColors () {
-  local base03='\033[0;30;40m'
-  local base02='\033[1;30;40m'
-  local base01='\033[0;32;40m'
-  local base00='\033[0;33;40m'
-  local base0='\033[0;34;40m'
-  local base1='\033[0;36;40m'
-  local base2='\033[0;37;40m'
-  local base3='\033[1;37;40m'
-  local yellow='\033[1;33;40m'
-  local orange='\033[0;31;40m'
-  local red='\033[1;31;40m'
-  local magenta='\033[1;35;40m'
-  local violet='\033[0;35;40m'
-  local blue='\033[1;34;40m'
-  local cyan='\033[1;36;40m'
-  local green='\033[1;32;40m'
-  local reset='\033[0m'
-
-  echo -e "base03  ${base03}Test$reset"
-  echo -e "base02  ${base02}Test$reset"
-  echo -e "base01  ${base01}Test$reset"
-  echo -e "base00  ${base00}Test$reset"
-  echo -e "base0   ${base0}Test$reset"
-  echo -e "base1   ${base1}Test$reset"
-  echo -e "base2   ${base2}Test$reset"
-  echo -e "base3   ${base3}Test$reset"
-  echo -e "yellow  ${yellow}Test$reset"
-  echo -e "orange  ${orange}Test$reset"
-  echo -e "red     ${red}Test$reset"
-  echo -e "magenta ${magenta}Test$reset"
-  echo -e "violet  ${violet}Test$reset"
-  echo -e "blue    ${blue}Test$reset"
-  echo -e "cyan    ${cyan}Test$reset"
-  echo -e "green   ${green}Test$reset"
-}
-
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
