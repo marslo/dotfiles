@@ -4,10 +4,16 @@
 #     FileName : rgba2hex-help
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-02 22:02:37
-#   LastChange : 2025-04-06 16:36:35
+#   LastChange : 2026-02-12 23:38:15
 #=============================================================================
 
-source "${HOME}"/.marslo/bin/bash-color.sh
+# shellcheck disable=SC2155
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
 
 # shellcheck disable=SC2155
 declare usage="""

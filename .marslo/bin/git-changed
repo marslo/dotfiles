@@ -10,11 +10,12 @@
 set -euo pipefail
 
 # shellcheck disable=SC2155
-declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
-
-# credit: https://github.com/ppo/bash-colors
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
-test -f "${CURRENT_DIR}/bash-color.sh" && source "${CURRENT_DIR}/bash-color.sh" || { c() { :; }; }
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
 
 # section toggles (default all if none specified)
 declare showStaged=0 showUnstaged=0 showUntracked=0 showIgnored=0 anySection=0

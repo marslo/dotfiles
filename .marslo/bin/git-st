@@ -14,7 +14,7 @@ declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
-test -f "${BIN_DIR}/bash-color.sh" && source "${BIN_DIR}/bash-color.sh" || { c() { :; }; }
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
 
 declare gdiff=''
 declare branch=''

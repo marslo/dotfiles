@@ -21,13 +21,14 @@ declare VERBOSE=false
 declare VVERBOSE=false
 declare -a LINES=()
 
-# credit: https://github.com/ppo/bash-colors
-if [[ -f "${HOME}/.marslo/bin/bash-color.sh" ]]; then
-  source "${HOME}/.marslo/bin/bash-color.sh"
-else
-  # or copy & paste the `c()` function from https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
-  c() { :; }
-fi
+# shellcheck disable=SC2155
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
+
 function die() {
   local exitcode=1 msg; local -a args=( "$@" ); local last="${!#}";
   [[ "${last}" =~ ^[0-9]+$ ]] && { exitcode="${last}"; unset "args[$(( ${#args[@]} - 1 ))]"; }

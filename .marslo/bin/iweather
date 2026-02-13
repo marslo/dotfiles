@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2034,SC1111,SC1110
+# shellcheck source=/dev/null disable=SC2034,SC1111,SC1110
 # ===========================================================================
 #     FileName : iweather
 #       Author : marslo
 #      Created : 2023-08-11 03:05:27
-#   LastChange : 2025-04-06 16:36:07
+#   LastChange : 2026-02-12 23:39:26
 # ===========================================================================
 
 shopt -s extglob
 
-# credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
-# shellcheck disable=SC2154,SC1091
-source "${iRCHOME}"/bin/bash-color.sh
+# shellcheck disable=SC2155
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
 
 function die() { echo -e "$(c R)~~> ERROR$(c) : $*" >&2; exit 2; }
 function showHelp() { echo -e "${usage}"; exit 0; }
