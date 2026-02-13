@@ -4,7 +4,7 @@
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-01-26 23:18:38
 #   LastChange : 2025-04-06 09:53:30
-#     comments : for csv foramt requires `rs` installed
+#     comments : for csv format requires `rs` installed
 #=============================================================================
 
 csv=false

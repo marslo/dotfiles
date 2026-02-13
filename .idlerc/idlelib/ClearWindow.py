@@ -23,13 +23,19 @@ clear-window=<Control-Key-l>
 
 """
 
+
 class ClearWindow:
 
     menudefs = [
-        ('options', [None,
-               ('Clear Shell Window', '<<clear-window>>'),
-       ]),]
-		 
+        (
+            "options",
+            [
+                None,
+                ("Clear Shell Window", "<<clear-window>>"),
+            ],
+        ),
+    ]
+
     def __init__(self, editwin):
         self.editwin = editwin
         self.text = self.editwin.text
@@ -39,7 +45,7 @@ class ClearWindow:
 
     def undo_event(self, event):
         text = self.text
-        
+
         text.mark_set("iomark2", "iomark")
         text.mark_set("insert2", "insert")
         self.editwin.undo.undo_event(event)
@@ -49,9 +55,8 @@ class ClearWindow:
         text.mark_set("insert", "insert2")
         text.mark_unset("iomark2")
         text.mark_unset("insert2")
-        
 
-    def clear_window2(self, event): # Alternative method
+    def clear_window2(self, event):  # Alternative method
         # work around the ModifiedUndoDelegator
         text = self.text
         text.undo_block_start()
@@ -61,8 +66,8 @@ class ClearWindow:
         text.mark_set("iomark", "iomark2")
         text.mark_unset("iomark2")
         text.undo_block_stop()
-        if self.text.compare('insert', '<', 'iomark'):
-            self.text.mark_set('insert', 'end-1c')
+        if self.text.compare("insert", "<", "iomark"):
+            self.text.mark_set("insert", "end-1c")
         self.editwin.set_line_and_column()
 
     def clear_window(self, event):
@@ -72,10 +77,9 @@ class ClearWindow:
 
         # clear the window, but preserve current command
         self.text.delete(1.0, "iomark linestart")
-        if self.text.compare('insert', '<', 'iomark'):
-            self.text.mark_set('insert', 'end-1c')
+        if self.text.compare("insert", "<", "iomark"):
+            self.text.mark_set("insert", "end-1c")
         self.editwin.set_line_and_column()
- 
+
         # restore undo delegator
         self.editwin.per.insertfilter(undo)
- 

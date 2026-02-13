@@ -22,10 +22,14 @@ locale = "en"
 extend-ignore-re = [
   "(?m)^\\s*bind.*$",
   "(?m)^\\s*alias.*$",
+  "(?m)^\\s*snip.*$",
   # [c]ommit, d[i]ff, ...
   "\\w*\\[\\w\\]\\w*",
   # ansicolor
+  "\\w+=.*\\\\033.*",
   "\\w*\\\\033\\S+",
+  # $(c xxx)..$(c)
+  "\\S*\\$\\(c[^)]+\\)\\S*"
 ]
 
 [default.extend-words]
@@ -36,12 +40,10 @@ Wew = 'Wew'
 STARTIN = 'STARTIN'
 siduction = 'siduction'
 Siduction = 'Siduction'
-evolveos = 'evolveos'
 iz = 'iz'
 windo = 'windo'
 ue = 'ue'
-ine = 'ine'
-elete = 'elete'
 Mis = 'Mis'
 Ot = 'Ot'
 ba = 'ba'
+UMARK = 'UMARK'

@@ -31,7 +31,7 @@ function diff-lines() {
 # date: 2013-10-15 17:54:58
 
 # Based on discussion at http://kerneltrap.org/mailarchive/git/2007/11/12/406496
-# For get git infor
+# to get git info
 function gitinfo() {
   pushd . >/dev/null
 

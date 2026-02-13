@@ -13,7 +13,7 @@ source ./.marslo/bin/bash-color.sh
 irc="$HOME/.marslo"
 dotfolder='.'
 CP="$(type -P cp)"
-timestampe="$(date +%y%m%d%H%M%S)"
+timestamp="$(date +%y%m%d%H%M%S)"
 
 function isWSL()     { uname -r | command grep --color=never -q -i 'microsoft'; }
 function isOSX()     { test 'Darwin' = "$(uname -s)"; }
@@ -57,11 +57,11 @@ function doCopy() {
 }
 
 function backup() {
-  [[ -d "${irc}"        ]] && mv "${irc}"{,."${timestampe}"}
-  [[ -d "${irc}/bin"    ]] && mv "${irc}/bin"{,."${timestampe}"}
-  [[ -d "${irc}/.alias" ]] && mv "${irc}/.alias"{,."${timestampe}"}
-  [[ -d "$HOME/.docker" ]] && mv "$HOME/.docker"{,."${timestampe}"}
-  [[ -d "$HOME/.config" ]] && mv "$HOME/.config"{,."${timestampe}"}
+  [[ -d "${irc}"        ]] && mv "${irc}"{,."${timestamp}"}
+  [[ -d "${irc}/bin"    ]] && mv "${irc}/bin"{,."${timestamp}"}
+  [[ -d "${irc}/.alias" ]] && mv "${irc}/.alias"{,."${timestamp}"}
+  [[ -d "$HOME/.docker" ]] && mv "$HOME/.docker"{,."${timestamp}"}
+  [[ -d "$HOME/.config" ]] && mv "$HOME/.config"{,."${timestamp}"}
 }
 
 function createDir() {
