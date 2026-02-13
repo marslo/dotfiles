@@ -4,10 +4,16 @@
 #     FileName : ansi2hex
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-24 14:30:33
-#   LastChange : 2025-03-31 11:22:01
+#   LastChange : 2026-02-12 23:35:24
 #=============================================================================
 
-source "${HOME}"/.marslo/bin/bash-color.sh
+# shellcheck disable=SC2155
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
 
 declare isPreview=false
 declare noColor=false

@@ -4,14 +4,19 @@
 #     FileName : ff
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-15 23:23:39
-#   LastChange : 2025-04-06 16:36:31
+#   LastChange : 2026-02-12 23:37:27
 #      example :
 #                - find all .DS_* and remove
 #                  $ fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --glob '*\.DS_*' $HOME | xargs -r rm
 #=============================================================================
 
-# credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
-source "${iRCHOME}/bin/bash-color.sh"
+# shellcheck disable=SC2155
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
 
 declare opt=''
 declare path='.'

@@ -4,17 +4,19 @@
 #     FileName : ssh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-05-27 20:12:14
-#   LastChange : 2025-05-28 01:05:42
+#   LastChange : 2026-02-12 23:32:49
 #        Usage : /path/to/ssh -- --help
 #=============================================================================
 
 set -euo pipefail
 
-if [[ -f "${HOME}/.marslo/bin/bash-color.sh" ]]; then
-  source "${HOME}/.marslo/bin/bash-color.sh"
-else
-  c() { :; }
-fi
+# shellcheck disable=SC2155
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
 
 function showHelp() { echo -e "${USAGE}"; }
 function die() { echo -e "$(c Ri)ERROR$(c) $(c Wdi): $*. exit ...$(c)" >&2; exit 1; }

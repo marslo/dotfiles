@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck shellcheck source=/dev/null disable=SC1078,SC1079,SC2086,SC2035,SC2155
+# shellcheck source=/dev/null disable=SC1078,SC1079,SC2086,SC2035,SC2155
 
 # references:
 # - [Git Rename Tag Guide](https://phoenixnap.com/kb/git-rename-tag)
@@ -7,9 +7,13 @@
 # $ git tag -a [new_tag] [old_tag]^{} -m [new_message]
 # ```
 
-# credit belongs to https://raw.githubusercontent.com/ppo/bash-colors/master/bash-colors.sh
-# shellcheck disable=SC2154
-source "${iRCHOME}"/bin/bash-color.sh
+# shellcheck disable=SC2155
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
 
 function gtr() {
   usage="""\t$(c B)g$(c)it $(c R)t$(c)ag $(c M)r$(c)ename - rename tag with original committer and date
