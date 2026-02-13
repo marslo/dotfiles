@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # shellcheck source=/dev/null disable=SC1078,SC1079
+#=============================================================================
+#     FileName : ldapsearch
+#       Author : marslo
+#      Created : 2023-01-06 21:49:44
+#   LastChange : 2026-02-13 01:32:51
+#=============================================================================
 
 shopt -s extglob
 
@@ -11,63 +17,87 @@ declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # shellcheck disable=SC2015
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
-usage="""TO SEARCH IN LDAP
-\nSYNOPSIS:
-\n\t$(c sY)\$ ldapsearch <userId> [ field [ field [ field ] ] ] [ -h | help ]$(c)
-\nExample:
-\n\tget help
-\n\t\t$(c G)\$ ldapsearch help$(c)
-\n\tget all information for <userId>
-\n\t\t$(c G)\$ ldapsearch <userId>$(c)
-\n\tget only DN for <userId>
-\n\t\t$(c G)\$ ldapsearch <userId> dn$(c)
-\n\tget both DN and memberOf for <userId>
-\n\t\t$(c G)\$ ldapsearch <userId> dn memberOf$(c)
-"""
+usage="""SYNOPSIS
+  $(c Ys)\$ ldapsearch $(c 0Mi)<USER_ID> $(c 0Wd)[ $(c 0Ci)FIELD $(c 0Wd)[ $(c 0Ci)FIELD $(c 0Wd)[ $(c 0Ci)FIELD $(c 0Wd)] ] ] [ $(c 0G)OPTION $(c 0Wd)]$(c)
 
-function exitOnError() {
-  # shellcheck disable=SC2181
-  if [ $? -ne 0 ]; then
-    echo -e "$1.\nExiting."
-    exit 1
-  fi
+OPTIONS
+  $(c G)-h, --help$(c)    Show this help message and exit.
+
+EXAMPLE
+  $(c Wdi)# get help$(c)
+  $(c Y)\$ ldapsearch $(c 0G)-h$(c)
+
+  $(c Wdi)# get all information for $(c 0Wi)<USER_ID>$(c)
+  $(c Y)\$ ldapsearch $(c 0Mi)<USER_ID>$(c)
+
+  $(c Wdi)# get only DN for $(c 0Wi)<USER_ID>$(c)
+  $(c Y)\$ ldapsearch $(c 0Mi)<USER_ID> $(c 0Ci)dn$(c)
+
+  $(c Wdi)# get multiple FIELD for $(c 0Wi)marslo$(c)
+  $(c Y)\$ ldapsearch $(c 0Mi)marslo $(c 0Ci)dn memberOf displayName givenName sAMAccountName$(c)
+
+TIPS
+  $(c Gi)\`\`\`bash
+  $(c 0Wdi)# for macOS users$(c 0Gi)
+  \$ brew install gun-sed openldap
+  \`\`\`$(c)"""
+
+# shellcheck disable=SC2181
+function exitOnError() { if [ $? -ne 0 ]; then echo -e "$1.\nExiting."; exit 1; fi; }
+function help() { echo -e "${usage}"; exit 0; }
+function passToken() { pass show "${1}" | head -n1; }
+function escape_ere() { "${SED}" -E 's/[][(){}.^$*+?|\\]/\\&/g'; }
+# shellcheck disable=SC2155
+buildAttr() {
+  local -a _in=( "${@}" )
+  local _attr="$( printf '%s\n' "${_in[@]}" | escape_ere | paste -sd'|' - )"
+  printf '%s' "${_attr}"
 }
 
-function help() {
-  echo -e "${usage}"
-  exit 0
-}
+[[ 'Darwin' = "$(uname)" ]] && SED="$(brew --prefix gnu-sed)/libexec/gnubin/sed"     || SED='/usr/bin/sed'
+[[ 'Darwin' = "$(uname)" ]] && LDAPSEARCH="$(brew --prefix openldap)/bin/ldapsearch" || LDAPSEARCH='/usr/bin/ldapsearch'
 
-if [[ 'Darwin' = "$(uname)" ]]; then
-  SED="$(brew --prefix gnu-sed)/libexec/gnubin/sed"
-  LDAPSEARCH="$(brew --prefix openldap)/bin/ldapsearch"
-else
-  SED='/usr/bin/sed'
-  LDAPSEARCH='/usr/bin/ldapsearch'
+test -f "${SED}"        || { echo -e "$(c Rs)Error$(c 0Ri): $(c 0Gi)\`${SED}\` $(c 0Ri)not found.$(c)"; exit 1; }
+test -f "${LDAPSEARCH}" || { echo -e "$(c Rs)Error$(c 0Ri): $(c 0Gi)\`${LDAPSEARCH}\` $(c 0Ri)not found.$(c)"; exit 1; }
+
+declare -r account='<service.account>'
+declare -r ldasphost='ldaps://ldap.domain.com:636'
+declare -r basedn='dc=domain,dc=com'
+# shellcheck disable=SC2155
+declare -r password="*********"
+
+declare userId=''
+declare -a attributes=()
+declare -a SED_OPT=( "${SED}" -r '/^(#.*)$/d;/^\s*$/d' )
+declare -a command=()
+
+[[ $# -eq 0 ]] && help
+while test -n "$1"; do
+  case "$1" in
+    -h | --help | help ) help ;;
+    -*                 ) echo -e "Error: Invalid option '$1'."; exit 1 ;;
+    *                  ) userId="$1"; shift;
+                         attributes+=( "${@}" ); break ;;
+  esac
+done
+
+[[ -z "${userId}" ]] && echo -e "Error: Missing required argument <userId>." && exit 1
+
+command+=( "${LDAPSEARCH}" -LLL )
+command+=( -o ldif-wrap=no )
+command+=( -x )
+command+=( -H "${ldasphost}" )
+command+=( -b "${basedn}" )
+command+=( -D "${account}" )
+command+=( -w "${password}" )
+command+=( CN="${userId}" )
+
+if [[ ${#attributes[@]} -gt 0 ]]; then
+  attr="$(buildAttr "${attributes[@]}")"
+  SED_OPT=( "${SED}" -rn "s/^((${attr}):.*)$/\1/p" )
+  command+=( "${attributes[@]}" )
 fi
-userId="$1"
-attributes=''
-sedOpt="${SED} -r '/^(#.*)$/d;/^\s*$/d'"
 
-if [[ $# -gt 1 ]]; then
-  attributes="$(echo "${@: -$(( $#-1 ))}" | cut -d' ' -f1-)"
-  attr="${attributes//+( )/|}"
-  sedOpt="${SED} -rn 's/^((${attr}):.*)$/\1/p'"
-fi
-
-if [ $# -eq 0 ] || [ "$1" = "--help" ]|| [ "$1" = "help" ] || [ "$1" = '-h' ]; then
-  help
-else
-  command="${LDAPSEARCH} -LLL"
-  command+=" -o ldif-wrap=no"
-  command+=" -x"
-  command+=" -H ldaps://<domina.com>:636"
-  command+=" -b 'dc=<domain>,dc=com'"
-  command+=" -D <username>"
-  command+=" -w <password>"
-  command+=" CN=${userId} ${attributes} | ${sedOpt}"
-
-  eval "${command}"
-fi
+"${command[@]}" | "${SED_OPT[@]}"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
