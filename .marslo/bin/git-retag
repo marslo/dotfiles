@@ -7,9 +7,12 @@
 # $ git tag -a [new_tag] [old_tag]^{} -m [new_message]
 # ```
 
-# credit belongs to https://raw.githubusercontent.com/ppo/bash-colors/master/bash-colors.sh
-# shellcheck disable=SC2154
-source "${iRCHOME}"/bin/bash-color.sh
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
 
 function showHelp() { echo -e "${usage}"; exit 0; }
 function die() { echo -e "$(c R)ERROR$(c) : $*" >&2; exit 2; }

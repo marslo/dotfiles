@@ -4,7 +4,7 @@
 #     FileName : git-fd
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-10 19:59:15
-#   LastChange : 2026-01-28 00:48:27
+#   LastChange : 2026-02-12 23:41:02
 #=============================================================================
 
 set -euo pipefail
@@ -16,7 +16,7 @@ declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
-test -f "${CURRENT_DIR}/bash-color.sh" && source "${CURRENT_DIR}/bash-color.sh" || { c() { :; }; }
+test -f "${CURRENT_DIR}/bash-colors.sh" && source "${CURRENT_DIR}/bash-colors.sh" || { c() { :; }; }
 
 declare EXT=''
 declare AUTHOR=''

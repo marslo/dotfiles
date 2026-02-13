@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2086,SC2124,SC2317
+# shellcheck source=/dev/null disable=SC2086,SC2124,SC2317
 
 # USAGE:
 # $ git stats --author="marslo" --after="2022-01-01"
@@ -13,9 +13,13 @@
 
 shopt -s extglob
 
-# credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
-# shellcheck disable=SC2154,SC1091
-source "${iRCHOME}"/bin/bash-color.sh
+# shellcheck disable=SC2155
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
 
 function die() { echo -e "$(c R)ERROR$(c) : $*" >&2; exit 2; }
 function exitOnError() { if [ $? -ne 0 ]; then echo -e "$(c R)ERROR$(c) : $*" >&2; exit 1; fi; }

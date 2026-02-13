@@ -4,18 +4,18 @@
 #     FileName : ccr.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-25 08:29:23
-#   LastChange : 2025-04-22 00:13:02
+#   LastChange : 2026-02-12 23:37:14
 #=============================================================================
 
 set -euo pipefail
 
-# or copy & paste the `c()` function from https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
-if [[ -f "${HOME}/.marslo/bin/bash-color.sh" ]]; then
-  # credit: https://github.com/ppo/bash-colors
-  source "${HOME}/.marslo/bin/bash-color.sh"
-else
-  c() { :; }
-fi
+# shellcheck disable=SC2155
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
 
 # +----------------------+--------------------+---------------------+
 # | ENVIRONMENT VARIABLE | DEFAULT VALUE      | NOTE                |

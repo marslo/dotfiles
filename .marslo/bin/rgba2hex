@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
-# shellcheck source=/dev/null disable=SC2155
+# shellcheck source=/dev/null disable=SC2155,SC2015
 #=============================================================================
 #     FileName : rgba2hex
-#       Author : marslo.jiao@gmail.com
+#       Author : marslo
 #      Created : 2025-04-02 22:02:37
-#   LastChange : 2025-04-06 16:36:35
+#   LastChange : 2026-02-12 23:33:38
 #=============================================================================
 
 set -euo pipefail
-source "${HOME}"/.marslo/bin/bash-color.sh
-source "${HOME}"/.marslo/bin/rgba2hex-help
+
+declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
+test -f "${BIN_DIR}/rgba2hex-help"  && source "${BIN_DIR}/rgba2hex-help"  || { c() { :; }; }
 
 declare alpha=''
 declare colorCode=''
