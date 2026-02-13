@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-02-12 23:54:10
+#   LastChange : 2026-02-13 00:29:44
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -404,15 +404,11 @@ function fmsh() {                          # connect [m]ongodb with mongo[sh] wi
   done
 
   command=( mongosh 'mongodb://mongodb.domain.com:27017' )
-  command+=( --username '${username}' --password '$(pass show ${passPath} | head -n1)' )
-  command+=( --authenticationDatabase(${database} )
-  if [[ -n "${evalCmd}" ]]; then
-    if "${jsonPrint}"; then
-      command+=( --eval "db = db.getSiblingDB('${database}'); printjson( ${evalCmd} )" )
-      # command+=" | tr \"'\" '\"' | jq -r"
-    else
-      command+=( --eval "db = db.getSiblingDB('${database}'); ${evalCmd}" )
-    fi
+  command+=( --username "${username}" --password "$(pass show ${passPath} | head -n1)" )
+  command+=( --authenticationDatabase "${database}" )
+  if [[ -n "${#evalCmd[@]}" ]]; then
+    "${jsonPrint}" && command+=( --eval "db = db.getSiblingDB('${database}'); printjson( ${evalCmd} )" ) \
+                   || command+=( --eval "db = db.getSiblingDB('${database}'); ${evalCmd}" )
   fi
 
   # shellcheck disable=SC2015
