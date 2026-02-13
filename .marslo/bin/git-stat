@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
-# shellcheck source=/dev/null disable=SC2086,SC2124
+# shellcheck source=/dev/null disable=SC2086,SC2124,SC2155
 #=============================================================================
 #     FileName : git-stat
 #       Author : marslo
 #      Created : 2025-02-15 19:45:31
-#   LastChange : 2026-02-05 23:53:55
+#   LastChange : 2026-02-12 18:00:25
 #=============================================================================
 
 # USAGE:
-# $ git stat --author="marslo" --after="2022-01-01"
-# .. files changed : 1046
-# .. lines inserted : 14096
-# .. lines deleted : 8871
+# # show help
+# $ git stat -h or $ git stat -- --help
+#
 # $ git stat --author "marslo" -l -- --after='2025-01-01'
 # statistics for marslo - git@github.com:marslo/ibook.git :
 #
@@ -20,15 +19,11 @@
 #   files changed ......................... 100% ( 57/57 )
 #   line inserted ......................... 100% ( 2089/2089 )
 #   line deleted  ......................... 100% ( 462/462 )
-#
-# NOTICED: for osx environment
-# $ brew install gawk && sudo ln -sf /usr/local/bin/gawk /usr/local/bin/awk
-# $ export PATH="/usr/local/bin:$PATH"
 
 shopt -s extglob
 
-# shellcheck disable=SC2155
 declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
 
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
@@ -38,7 +33,7 @@ test -f "${CURRENT_DIR}/bash-color.sh" && source "${CURRENT_DIR}/bash-color.sh" 
 
 function die() { echo -e "$(c R)ERROR$(c) : $*" >&2; exit 2; }
 function exitOnError() { if [ $? -ne 0 ]; then echo -e "$(c R)ERROR$(c) : $*" >&2; exit 1; fi; }
-function showHelp() { echo -e "${usage}"; exit 0; }
+function showHelp() { echo -e "${USAGE}"; exit 0; }
 function isRepo() { git rev-parse --git-dir >/dev/null 2>&1 || exitOnError 'not a git repo !'; }
 function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
 function padRight() {
@@ -55,7 +50,6 @@ function padRight() {
 
 function debugLog(){
   case "$1" in --np | --no-pad ) pad=false; shift;; esac
-  # shellcheck disable=SC2155
   local str=$( echo -e "$@" | awk '{print "[DEBUG] >> " $0}' )
   echo -e "$(c Wid)${str}$(c)" | padRight
 }
@@ -64,17 +58,17 @@ function lineChangesStat() {
   local allChanges
   local userChanges
   local debugInfo
-  local -a cmd=( git log --shortstat --oneline --format=tformat: "${GIT_OPT[@]}" )
+  local -a cmd=( git log --shortstat --oneline --format=tformat: )
 
-  allChanges=$("${cmd[@]}" |
+  allChanges=$("${cmd[@]}" "${GIT_OPT[@]}" |
                awk '{ files+=$1; inserted+=$4; deleted+=$6 } END { print files, inserted, deleted }'
               )
-  userChanges=$("${cmd[@]}" --author="${author}" |
+  userChanges=$("${cmd[@]}" "${GIT_OPT[@]}" --author="${author}" |
                 awk '{ files+=$1; inserted+=$4; deleted+=$6 } END { print files, inserted, deleted }'
                )
 
   echo -e "\n$(c M)line changes$(c) :\n"
-  if [[ true = "${verbose}" ]]; then
+  if "${verbose}"; then
     debugInfo=$(echo "${allChanges} ${userChanges}" |
                 awk '{ files=$1; inserted=$2; deleted=$3; userFiles=$4; userInserted=$5; userDeleted=$6 } END \
                      {
@@ -107,13 +101,13 @@ function commitsCount() {
   local allCount
   local userCount
   local debugInfo
-  local -a cmd=( git shortlog -s -n "${GIT_OPT[@]}" )
+  local -a cmd=( git shortlog -s -n )
 
-  allCount=$( "${cmd[@]}" | awk '{ sum += $1; } END { print sum; }' )
-  userCount="$( "${cmd[@]}" --author="${author}" | awk '{sum += $1} END {print sum}' )"
+  allCount=$( "${cmd[@]}" "${GIT_OPT[@]}" | awk '{ sum += $1; } END { print sum; }' )
+  userCount="$( "${cmd[@]}" "${GIT_OPT[@]}" --author="${author}" | awk '{sum += $1} END {print sum}' )"
 
   echo -e "\n$(c M)commits$(c) :\n"
-  if [[ true = "${verbose}" ]]; then
+  if "${verbose}"; then
     debugInfo=$(echo -e "${allCount} ${userCount}" |
                 awk '{ aCount=$1; uCount=$2 } END \
                      { printf( "COMMITS\\n" )
@@ -131,72 +125,81 @@ function commitsCount() {
            padRight
 }
 
+# main
 declare verbose=false
-declare allStats=false
 declare lineChanges=false
 declare commitsCount=false
 declare -a GIT_OPT=()
-
-usage="""
+declare author="$( git config --get user.name )"
+declare -r USAGE="""
 NAME
-  $(c Cs)git-stat$(c) - to get git statistic for line-changes and commit count
+  $(c Cs)${ME}$(c) - to get git statistic for line-changes and commit count
 
 SYNOPSIS
-  $(c sY)\$ git stat $(c 0Wi)[ OPTIONS ]$(c)
+  $(c sY)\$ ${ME} $(c 0Wi)[ OPTIONS ]$(c)
 
 OPTIONS
   $(c G)-a$(c), $(c G)--all$(c)                       show all statistic $(c i)( line-changes and commit count )$(c)
   $(c G)-l$(c), $(c G)--lc$(c), $(c G)--line-change$(c)         show line-changes statistic
   $(c G)-c$(c), $(c G)--cc$(c), $(c G)--commit-count$(c)        show commit count
-  $(c G)-u$(c), $(c G)--user$(c), $(c G)--author$(c) $(c Mi)<account>$(c)  specify the account to get statistic for $(c i)( default: current git user )$(c)
-  $(c Cs)--$(c) $(c Bi)<GIT_OPT>$(c)                    specify GIT_OPT to filter statistic
-                                  $(c Wdi)# e.g. $(c 0Cs)-- $(c 0Bi)--since='1 month ago'$(c) or $(c 0Cs)-- $(c 0Bi)--after='2022-01-01'$(c 0Wdi) etc.$(c)
+  $(c G)-u$(c), $(c G)--user$(c), $(c G)--author$(c) $(c Ci)<account>$(c)  specify the account to get statistic for $(c 0i)( default: $(c 0Ci)\$(git config user.name)$(c 0i) )$(c)
+  $(c Cs)--$(c) $(c Mi)<GIT_OPT>$(c)                    specify GIT_OPT to filter statistic
+                                  $(c Wdi)# e.g. $(c 0Cs)-- $(c 0Mi)--since='1 month ago'$(c) or $(c 0Cs)-- $(c 0Mi)--after='2022-01-01'$(c 0Wdi) etc.$(c)
   $(c G)-h$(c), $(c G)--help$(c)                      show this help message and exit
   $(c G)-v$(c), $(c G)--verbose$(c), $(c G)--debug$(c)          show statistic with more details
 
 EXAMPLE
-  $(c Wdi)# get verbose$(c)
-  $(c Y)\$ git stat $(c 0Gi)-v$(c) | $(c 0Y)\$ git stat $(c 0Gi)--verbose$(c) | $(c 0Y)\$ git stat $(c 0Gi)--debug$(c)
+  $(c Wdi)# to list all statistic for $(c 0Wi)current user$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)-a$(c)
 
-  $(c Wdi)# to list all statistic for current user$(c)
-  $(c Y)\$ git stat $(c 0Gi)-a$(c)
+  $(c Wdi)# to list line changes for $(c 0Wi)current user $(c 0Wdi)since 1 month ago$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)--line-change $(c 0Csi)-- $(c 0Mi)--since='1 month ago'$(c)
 
-  $(c Wdi)# to list line changes for current user since 1 month ago$(c)
-  $(c Y)\$ git stat $(c 0Gi)--line-change $(c 0Csi)-- $(c 0Mi)--since='1 month ago'$(c)
+  $(c Wdi)# to list line-changes statistic for $(c 0Wi)particular account$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)-l -u $(c 0Ci)<account>$(c) | $(c Y)\$ ${ME} $(c 0Gi)--line-change --account $(c 0Ci)<account>$(c)
 
-  $(c Wdi)# to list line-changes statistic for particular account$(c)
-  $(c Y)\$ git stat $(c 0Gi)-l -u $(c 0Mi)<account>$(c) | $(c G)\$ git stat $(c 0Gi)--line-change --account $(c 0Mi)<account>$(c)
+  $(c Wdi)# to list statistic for $(c 0Wi)current user $(c 0Wdi)with specific GIT_OPT$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)-a $(c 0Csi)-- $(c 0Mi)--after='2022-01-01' --before='2023-01-01'$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)-l --verbose $(c 0Csi)-- $(c 0Mi)--since='2 weeks 3 days 2 hours 30 minutes 59 seconds ago'$(c)
 
-  $(c Wdi)# to list statistic for current user with specific GIT_OPT$(c)
-  $(c Y)\$ git stat $(c 0Gi)-a $(c 0Csi)-- $(c 0Bi)--after='2022-01-01' --before='2023-01-01'$(c)
-  $(c Y)\$ git stat $(c 0Gi)-l $(c 0Csi)-- $(c 0Bi)--since='2 weeks 3 days 2 hours 30 minutes 59 seconds ago'$(c)
+TIPS
+  $(c 0Wi)\`\`\`bash
+  $(c 0Wdi)# for macOS$(c)$(c 0Wi)
+  \$ brew install gawk && sudo ln -sf /usr/local/bin/gawk /usr/local/bin/awk
+  \$ export PATH=\"/usr/local/bin:\$PATH\"
+  \`\`\`$(c)
 """
 
 [[ 0 = "$#" ]] && showHelp
 
-# shellcheck disable=SC2155
-declare author="$( git config --get user.name )"
 while test -n "$1"; do
   case "$1" in
     -v | --verbose | --debug   ) verbose=true           ; shift   ;;
     -u | --author  | --user    ) author="$2"            ; shift 2 ;;
     -l | --lc | --line-change  ) lineChanges=true       ; shift   ;;
     -c | --cc | --commit-count ) commitsCount=true      ; shift   ;;
-    -a | --all                 ) allStats=true          ; shift   ;;
-    --                         ) shift ; GIT_OPT=("$@") ; break   ;;
-    -h | --help | *            ) showHelp                         ;;
+    -a | --all                 ) commitsCount=true;
+                                 lineChanges=true;        shift   ;;
+    -h                         ) showHelp                         ;;
+    --                         ) shift ;
+                                 case "$1" in
+                                   -h | --help ) showHelp         ;;
+                                   *           ) GIT_OPT=("$@")   ;;
+                                 esac; break                      ;;
+    *                          ) die "invalid option : '$*'"      ;;
   esac
 done
 
-if [[ true = "${allStats}" ]]; then
+isRepo
+# show all statistic if no specific statistic type is specified == -a | --all
+{ ! "${lineChanges}" && ! "${commitsCount}"; } && {
   lineChanges=true
   commitsCount=true
-fi
+}
 
-isRepo
-echo -e "statistics for $(c Csi)${author}$(c) - $(c Gi)$(git config --get remote.origin.url)$(c) :"
+printf "statistics for $(c Csi)%s$(c) - $(c Gi)%s$(c) :\n" "${author}" "$(git config --get remote.origin.url)"
 
-if [[ true = "${verbose}" ]]; then
+"${verbose}" && {
   debugLog "PARAMS"
   debugLog "\tverbose      : ${verbose}     "
   debugLog "\tGIT_OPT      : ${GIT_OPT[*]}  "
@@ -204,7 +207,7 @@ if [[ true = "${verbose}" ]]; then
   debugLog "\tlineChanges  : ${lineChanges} "
   debugLog "\tcommitsCount : ${commitsCount}"
   echo ''
-fi
+}
 
 "${lineChanges}"  && lineChangesStat
 "${commitsCount}" && commitsCount
