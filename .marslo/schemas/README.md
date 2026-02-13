@@ -1,6 +1,6 @@
 ## update.sh
 
-to automatical downloading and patching [SchemaStore.org](https://schemastore.org) JSON schemas for offline use in Neovim + coc.nvim or other YAML-aware editors.
+to automatic downloading and patching [SchemaStore.org](https://schemastore.org) JSON schemas for offline use in Neovim + coc.nvim or other YAML-aware editors.
 
 to fix the issue in yamllint warning:
 
