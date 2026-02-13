@@ -4,7 +4,7 @@
 #     FileName : gh-ops
 #       Author : marslo
 #      Created : 2026-01-21 20:38:07
-#   LastChange : 2026-02-03 15:23:15
+#   LastChange : 2026-02-12 21:45:44
 #  Inspired by : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/
 #=============================================================================
 
@@ -12,7 +12,7 @@ set -euo pipefail
 
 declare -r CURRENT_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
-declare -r JQ_FILE="${CURRENT_DIR}/gh.d/gh-ops-preview.jq"
+declare -r JQ_FILE="${CURRENT_DIR}/gh-ops-preview.jq"
 
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
