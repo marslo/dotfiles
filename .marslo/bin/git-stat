@@ -29,7 +29,7 @@ declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
-test -f "${CURRENT_DIR}/bash-color.sh" && source "${CURRENT_DIR}/bash-color.sh" || { c() { :; }; }
+test -f "${CURRENT_DIR}/bash-colors.sh" && source "${CURRENT_DIR}/bash-colors.sh" || { c() { :; }; }
 
 function die() { echo -e "$(c R)ERROR$(c) : $*" >&2; exit 2; }
 function exitOnError() { if [ $? -ne 0 ]; then echo -e "$(c R)ERROR$(c) : $*" >&2; exit 1; fi; }
