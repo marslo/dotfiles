@@ -11,12 +11,12 @@
 set -euo pipefail
 
 # shellcheck disable=SC2155
-declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
-test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
+test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
 function showHelp() { echo -e "${USAGE}"; }
 function die() { echo -e "$(c Ri)ERROR$(c) $(c Wdi): $*. exit ...$(c)" >&2; exit 1; }
@@ -28,20 +28,20 @@ declare -r USAGE="""
 SSH Wrapper with fzf Support
 
 USAGE
-  $(c Ys)\$ ${ME}                  $(c 0Mi)Launch fzf to select from SSH config (username@host)$(c)
-  $(c Ys)\$ ${ME} $(c 0Wdi)[$(c 0Gi)ssh args...$(c 0Wdi)]    $(c 0Mi)Forward arguments to the native SSH command$(c)
-  $(c Ys)\$ ${ME} -- $(c 0Wdi)[$(c 0Gi)wrapper options...$(c 0Wdi)]$(c)
+  $(c Cs)\$ ${ME}                  $(c 0Mi)Launch fzf to select from SSH config (username@host)$(c)
+  $(c Cs)\$ ${ME} $(c 0Wdi)[$(c 0Gi)ssh args...$(c 0Wdi)]    $(c 0Mi)Forward arguments to the native SSH command$(c)
+  $(c Cs)\$ ${ME} -- $(c 0Wdi)[$(c 0Gi)wrapper options...$(c 0Wdi)]$(c)
 
 WRAPPER OPTIONS $(c Wdi)(used only after --)$(c)
-  $(c Gi)--help$(c), $(c Gi)-h$(c)           Show this help message
-  $(c Gi)--alias$(c)              Show only Host aliases (without resolving Hostname)
-  $(c Gi)--fzf$(c)                Force interactive host selection via fzf
+  $(c G)--help$(c), $(c G)-h$(c)           Show this help message
+  $(c G)--alias$(c)              Show only Host aliases (without resolving Hostname)
+  $(c G)--fzf$(c)                Force interactive host selection via fzf
 
 DESCRIPTION
   This wrapper enhances ssh usability by integrating with fzf.
   • If no arguments are given, it launches fzf to pick a target from $(c Mi)~/.ssh/config$(c) or $(c Mi)~/.ssh/config.d/*$(c)
   • If arguments are present, they are passed to the original /usr/bin/ssh
-  • Use $(c Gi)'--'$(c) to separate wrapper options from ssh options
+  • Use $(c Yi)'--'$(c) to separate wrapper options from ssh options
 
 EXAMPLES
   $(c Ys)\$ ${ME}$(c)
@@ -94,17 +94,49 @@ if [[ "${USE_FZF}" != 'true' ]] && [[ "${#args[@]}" -gt 0 ]]; then
   exec /usr/bin/ssh "${args[@]}"
 fi
 
-hosts_list=$(
-  awk '
-    /^[[:space:]]*#/ || NF == 0 { next }
-    $1 == "Host"     { host=$2; next }
-    $1 == "Hostname" { ip=$2; next }
-    $1 == "User"     {
-      if (host && ip) {
-        printf "%s@%s : %s\n", $2, ip, host
-        host=ip=""
-      }
+hosts_list=$(awk '
+    BEGIN {
+      colorStart = "\033[37;2;3m"
+      colorEnd   = "\033[0m"
     }
+    # -------- helpers --------
+    function trimDomain(s) { sub(/\.marvell\.com$/, "", s); return s }
+    function isIPV4(s) { return (s ~ /^(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])){3}$/) }
+    function emit( i, key ) {
+      if (n_alias > 0 && ip != "" && user != "") {
+        for ( i = 1; i <= n_alias; i++ ) {
+          key = user "@" ip " : " alias[i]
+          if ( !(key in printed) ) {
+            # printf "%s%s%s : %s@%s\n", colorStart, alias[i], colorEnd, user, ip
+            printf "%s@%s : %s\n", user, ip, alias[i]
+            printed[key] = 1
+          }
+        }
+      }
+      n_alias = 0
+      delete alias
+      delete seenAlias
+      ip = user = ""
+    }
+    # -------- main --------
+    /^[[:space:]]*#/ || NF == 0 { next }
+
+    $1 == "Host" {
+      emit()
+      for ( i = 2; i <= NF; i++ ) {
+        if ( $i ~ /^#/ ) break
+        a = trimDomain($i)
+        if ( isIPV4(a) ) continue
+        if ( !(a in seenAlias) ) {
+          alias[++n_alias] = a
+          seenAlias[a] = 1
+        }
+      }
+      next
+    }
+    $1 == "User"     { user = $2; next }
+    $1 == "Hostname" { ip = $2; next }
+    END { emit() }
   ' "${SSH_CONFIG_FILES[@]}"
 )
 
@@ -127,14 +159,13 @@ target=$(
   --delimiter='[[:space:]]+:[[:space:]]+' \
   --with-nth="$([[ "${ONLY_ALIAS}" == true ]] && echo 2 || echo 1,2)" \
   --preview '
-    bash -c "
-      raw=\$1
-      user_ip=\$(cut -d \":\" -f2 <<< \"\$raw\" | xargs)
+    bash -ceu "
+      user_ip=\$(cut -d : -f2 <<< \"\$1\" | xargs)
       ip=\${user_ip#*@}
       user=\${user_ip%@*}
-      echo -e \"\033[36m[Host]\033[0m \033[35;3m\$user@\$ip\033[0m\n\"
-      ping -c1 -t1 -W0 \"\$ip\" 2>&1 | grep -E \"bytes|icmp|ttl|rtt|round-trip\" ||
-        echo -e \"\033[31mUnreachable or DNS error\033[0m\"
+      echo -e \"\033[36m[HOST]\033[0m \033[3;35m\$user@\$ip\033[0m\n\"
+      out=\$(/sbin/ping -c1 -o -W1 \"\$ip\" 2>&1)
+      [ \$? -eq 0 ] && echo \"\$out\" || echo -e \"\033[31mUnreachable or DNS error\033[0m\"
     " _ {}
   '
 )
@@ -142,7 +173,7 @@ target=$(
 [[ -z "${target}" ]] && die 'no target selected ...'
 
 IFS=':' read -ra parts <<< "${target}"
-ssh_target="${parts[0]//[[:space:]]/}"
-exec /usr/bin/ssh "${ssh_target}"
+sshTarget="${parts[0]//[[:space:]]/}"
+exec /usr/bin/ssh "${sshTarget}"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
-# shellcheck source=/dev/null disable=SC2034,SC1111,SC1110
+# shellcheck source=/dev/null disable=SC2034,SC1111,SC1110,SC2155
 # ===========================================================================
 #     FileName : iweather
 #       Author : marslo
 #      Created : 2023-08-11 03:05:27
-#   LastChange : 2026-02-12 23:39:26
+#   LastChange : 2026-02-13 00:24:13
 # ===========================================================================
 
 shopt -s extglob
 
-# shellcheck disable=SC2155
-declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
-test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
+test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
+# shellcheck disable=SC2015
+test -f "${HERE}/iweather.icon"  && source "${HERE}/iweather.icon" || die "missing file '$(c G)iweather.icon$(c)' ! copy or download it first! check details via $(c Y)$ iweather -h$(c)."
 
 function die() { echo -e "$(c R)~~> ERROR$(c) : $*" >&2; exit 2; }
 function showHelp() { echo -e "${usage}"; exit 0; }
@@ -51,7 +53,7 @@ function windDirection() {
 # shellcheck disable=SC2086
 function getLatLon() {
   ccity=$(echo "$*" | xargs | sed 's/ /%20/g')
-  ${CURL} ${curlOpt} "${API_HOME}/geo/1.0/direct?q=${ccity,,}&limit=1&appid=${appid}" | jq -r '.[] | "lat=" + (.lat|tostring) + "&lon=" + (.lon|tostring)' > "${locFile}"
+  "${CURL[@]}" "${API_HOME}/geo/1.0/direct?q=${ccity,,}&limit=1&appid=${appid}" | jq -r '.[] | "lat=" + (.lat|tostring) + "&lon=" + (.lon|tostring)' > "${locFile}"
   if [[ ! -s ${locFile} ]] || [[ ! -f "${locFile}" ]]; then
     echo '-1'
   else
@@ -66,57 +68,59 @@ function getWeatherData() {
   units='metric'
   exclude='hourly,daily,minutely,alerts'
   # shellcheck disable=SC1111,SC1110,SC2086
-  ${CURL} ${curlOpt} "${API_HOME}/data/3.0/onecall?${loc}&units=${units}&exclude=${exclude}&appid=${appid}" \
-          | jq -r .current > ${tempfile}
+  "${CURL[@]}" "${API_HOME}/data/3.0/onecall?${loc}&units=${units}&exclude=${exclude}&appid=${appid}" \
+               | jq -r .current > ${tempfile}
 }
 
 # shellcheck disable=SC2086,SC1091
-source "$(dirname $0)/iweather.icon"
 API_HOME='https://api.openweathermap.org'
-CURL="$(type -P curl)"
-tempfile='/tmp/open-weather-map.json'
-locFile='/tmp/omw-lat-lon'
-cname='San Jose'
-verbose='false'
-appid="${OWM_API_TOKEN}"
-curlOpt='-skg'
+declare -a CURL=( "$(type -P curl)" '-skg' )
+declare tempfile='/tmp/open-weather-map.json'
+declare locFile='/tmp/omw-lat-lon'
+declare cname='San Jose'
+declare verbose=false
+declare help=false
+declare appid="${OWM_API_TOKEN}"
 intranet=$(netstat -nr -f inet | awk '$3 ~ /UGScg|UG/' | awk '$2 ~ /10\.(85|86|87|68|78)\.[0-9]{1,3}\.[0-9]{1,3}/' | wc -l)
-[[ "${intranet}" -gt 0   ]] && curlOpt+=' -x http://sample.proxy.com:8080'
+[[ "${intranet}" -gt 0   ]] && CURL+=( -x 'http://ipamunix.marvell.com:8080' )
 
 # shellcheck disable=SC1078,SC1079
 usage="""
-$(c M)iweather$(c) - show weather status of city
-\nNOTICE:
-\n\t1. requires https://openweathermap.org/api API key first! and setup environment variable:
-\t   $(c Y)\$ export OWM_API_TOKEN=xxxxx$(c)
-\t2. copy or move $(c G)iweather.icon$(c) into same directory with current script
-\t   $(c Y)\$ cp dotfiles/.marslo/bin/iweather.icon .$(c)
-\t   $(c sW)# or$(c)
-\t   $(c Y)\$ curl -o iweather.icon https://github.com/marslo/dotfiles/raw/main/.marslo/bin/iweather.icon$(c)
-\nSYNOPSIS:
-\n\t$(c sY)\$ iweather [ -h | -v | -c <city> ]$(c)
-\nEXAMPLE:
-\n\tshow help
-\t   $(c G)\$ iweather -h$(c)
-\n\tto show current weather stats
-\t   $(c G)\$ iweather <city name>$(c) | $(c G)iweather -c <city name>$(c)
-USAGE:
-\n\t $ iweather -v
-\t  $(c G)Santa Clara$(c) : Few Clouds
-\t
-\t \033[38;5;226m   \\  /\033[0m        \033[38;5;214m17.36\033[0m °C
-\t \033[38;5;226m _ /""\033[38;5;250m.-.    \033[0m    → \033[38;5;220m3.6\033[0m m/s
-\t \033[38;5;226m   \\_\033[38;5;250m(   ).  \033[0m  10.00 km
-\t \033[38;5;226m   /\033[38;5;250m(___(__) \033[0m  80 %
-\t                0 mW/cm2
-\n\t $ iweather -c beijing -v
-\t  $(c G)Beijing$(c) : Clear Sky
-\t
-\t\033[38;5;226m    \\   /    \033[0m   \033[38;5;214m31.94\033[0m °C
-\t\033[38;5;226m     .-.     \033[0m   ↑ \033[38;5;220m2.05\033[0m m/s
-\t\033[38;5;226m  ― (   ) ―  \033[0m   10.00 km
-\t\033[38;5;226m     \`-’     \033[0m   57 %
-\t\033[38;5;226m    /   \\    \033[0m   4.6 mW/cm2
+$(c Cs)iweather$(c) - show weather status of city
+
+NOTICE
+  1. requires https://openweathermap.org/api API key first! and setup environment variable:
+    $(c Gi)\$ export OWM_API_TOKEN=xxxxx$(c)
+  2. copy or move $(c G)iweather.icon$(c) into same directory with current script
+    $(c Gi)\$ cp dotfiles/.marslo/bin/iweather.icon .$(c)
+    $(c Wdi)# or$(c)
+    $(c Gi)\$ curl -o iweather.icon https://github.com/marslo/dotfiles/raw/main/.marslo/bin/iweather.icon$(c)
+
+SYNOPSIS
+  $(c sY)\$ ${ME} $(c 0Wd)[ $(c 0G)-h $(c 0Wd)| $(c 0G)-v $(c 0Wd)| $(c 0G)-c $(c 0Mi)<city>$(c 0Wd) ]$(c)
+
+EXAMPLE
+  $(c Wdi)# to show current weather stats$(c)
+  $(c Cs)\$ ${ME} $(c 0Mi)<city name>$(c) | $(c Cs)\$ ${ME} $(c 0G)-c $(c 0Mi)<city name>$(c)
+
+USAGE
+  $(c Cs)$ ${ME} $(c 0Gi)-v$(c)
+    $(c G)Santa Clara$(c) : Few Clouds
+
+  \033[38;5;226m   \\  /\033[0m        \033[38;5;214m17.36\033[0m °C
+  \033[38;5;226m _ /""\033[38;5;250m.-.    \033[0m    → \033[38;5;220m3.6\033[0m m/s
+  \033[38;5;226m   \\_\033[38;5;250m(   ).  \033[0m  10.00 km
+  \033[38;5;226m   /\033[38;5;250m(___(__) \033[0m  80 %
+                 0 mW/cm2
+
+  $(c Cs)$ ${ME} $(c 0Gi)-c $(c 0Mi)beijing $(c 0Gi)-v$(c)
+    $(c G)Beijing$(c) : Clear Sky
+
+  \033[38;5;226m    \\   /    \033[0m   \033[38;5;214m31.94\033[0m °C
+  \033[38;5;226m     .-.     \033[0m   ↑ \033[38;5;220m2.05\033[0m m/s
+  \033[38;5;226m  ― (   ) ―  \033[0m   10.00 km
+  \033[38;5;226m     \`-’     \033[0m   57 %
+  \033[38;5;226m    /   \\    \033[0m   4.6 mW/cm2
 """
 
 if [[ 0 -eq $# ]]; then
@@ -135,7 +139,7 @@ else
       OPTARG="${OPTARG#=}"
     fi
     case "$OPT" in
-      h   ) help='true'                 ;;
+      h   ) help=true                   ;;
       v   ) verbose=true                ;;
       c   ) cname="$OPTARG"             ;;
       ??* ) die "Illegal option --$OPT" ;;
@@ -146,7 +150,7 @@ else
 fi
 
 
-[[ 'true' = "${help}"    ]] && showHelp
+"${help}" && showHelp
 [[ -z "${OWM_API_TOKEN}" ]] && die "setup environment variable '$(c M)OWM_API_TOKEN$(c)' first! check details via $(c Y)$ iweather -h$(c)."
 [[ -z "${sunny}"         ]] && die "setup $(c G)weather.icon$(c) first!"
 
@@ -184,7 +188,7 @@ declare -A descMap=(
                    )
 
 # shellcheck disable=SC2086
-[[ 'true' = "${verbose}" ]] && echo -e " $(c G)$(capitalized ${cname})$(c): $(capitalized ${description})"
+"${verbose}" && echo -e " $(c G)$(capitalized ${cname})$(c): $(capitalized ${description})"
 echo -e "${!codeMap["x${weatherIcon:0:-1}"]}"
 
 tput sc

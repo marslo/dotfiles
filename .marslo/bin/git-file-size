@@ -13,7 +13,8 @@ declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
 
 declare num='-10'
 declare usage="""
-USAGE: \$ ${ME} [-N]
+USAGE:
+  \$ ${ME} [-N]
 
 OPTIONS:
   -N : show top N largest files (default: -10)
@@ -24,8 +25,10 @@ function showHelp() { echo -e "${usage}" >&2; exit 0; }
 function main() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      "$(awk '{a=0}/-[0-9]+/{a=1}a' <<< "$1")" ) num="$1" ; shift ;;
-                                             * ) showHelp ;;
+      "$(awk '{a=0}/-[0-9]+/{a=1}a' <<< "$1")" ) num="$1"; shift ;;
+                                   -h | --help ) showHelp        ;;
+                                            -- ) shift           ;;
+                                             * ) echo "Unknown option: $1" >&2; exit 1 ;;
     esac
   done
   num=${num//-/}

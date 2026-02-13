@@ -4,18 +4,17 @@
 #     FileName : rrun
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-09 16:43:02
-#   LastChange : 2025-11-07 05:00:50
+#   LastChange : 2026-02-13 00:32:17
 #=============================================================================
 
 set -euo pipefail
-
 # shellcheck disable=SC2155
-declare -r BIN_DIR="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
-test -f "${BIN_DIR}/bash-colors.sh" && source "${BIN_DIR}/bash-colors.sh" || { c() { :; }; }
+test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
 declare FILE=''
 declare CMD=''
@@ -101,38 +100,55 @@ done
       colorEnd   = "\033[0m"
     }
 
-    # skip comments and empty lines
-    /^[[:space:]]*#/ || NF==0 { next }
-
-    function emit( i ) {
+    # -------- helpers --------
+    function trimDomain(s) { sub(/\.marvell\.com$/, "", s); return s }
+    function isIPV4(s) { return (s ~ /^(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])){3}$/) }
+    function emit( i, key ) {
       if (n_alias > 0 && ip != "" && user != "") {
-        for (i = 1; i <= n_alias; i++) {
-          printf "%s@%s : %s%s%s\n", user, ip, colorStart, alias[i], colorEnd
+        for ( i = 1; i <= n_alias; i++ ) {
+          key = user "@" ip " : " alias[i]
+          if ( !(key in printed) ) {
+            printf "%s%s%s : %s@%s\n", colorStart, alias[i], colorEnd, user, ip
+            printed[key] = 1
+          }
         }
-        n_alias = 0; delete alias
-        ip = user = ""
       }
+      n_alias = 0
+      delete alias
+      delete seenAlias
+      ip = user = ""
     }
 
-    # new host block
+    # -------- main --------
+    /^[[:space:]]*#/ || NF == 0 { next }
+
     $1 == "Host" {
       emit()
-      n_alias = 0; delete alias
-      for (i = 2; i <= NF; i++) { if ($i ~ /^#/) break; alias[++n_alias] = $i; }
+      for ( i = 2; i <= NF; i++ ) {
+        if ( $i ~ /^#/ ) break
+        a = trimDomain($i)
+        if ( isIPV4(a) ) continue
+        if ( !(a in seenAlias) ) {
+          alias[++n_alias] = a
+          seenAlias[a] = 1
+        }
+      }
       next
     }
 
-    $1 == "Hostname" { ip = $2; emit(); next }
-    $1 == "User"     { user = $2; emit(); next }
+    $1 == "User"     { user = $2; next }
+    $1 == "Hostname" { ip = $2; next }
+
     END { emit() }
   ' "${SSH_CONFIG}" |
   column -t |
   sort -k2 |
   fzf --prompt='󱚥 ' \
       --delimiter='[[:space:]]+:[[:space:]]+' \
+      --preview-window=right:60% \
       --preview '
         bash -ceu "
-          user_ip=\$(cut -d : -f1 <<< \"\$1\" | xargs)
+          user_ip=\$(cut -d : -f2 <<< \"\$1\" | xargs)
           ip=\${user_ip#*@}
           user=\${user_ip%@*}
           echo -e \"\033[36m>> HOST:\033[0m \033[3;35m\$user@\$ip\033[0m\n\"
@@ -142,10 +158,12 @@ done
       ' |
   awk -F':' '
     {
-      gsub(/^[ \t]+|[ \t]+$/, "", $1)           # trim leading/trailing whitespace
-      if ($1 != "") { s = s $1 "," }            # skip empty lines
+      # trim leading/trailing whitespace
+      gsub(/^[ \t]+|[ \t]+$/, "", $2)
+      # skip empty lines and uniq
+      if ( $2 != "" && !seen[$2]++ ) out = out ? out "," $2 : $2
     }
-    END { sub(/,$/, "", s); print s }           # remove trailing comma
+    END { print out }
   '
 )
 
