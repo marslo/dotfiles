@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # shellcheck source=/dev/null disable=SC2086
+#=============================================================================
+#     FileName : jira
+#       Author : marslo
+#      Created : 2024-02-02 02:36:45
+#   LastChange : 2026-02-13 04:57:36
+#=============================================================================
 
 # shellcheck disable=SC2155
 declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
@@ -9,85 +15,200 @@ declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # shellcheck disable=SC2015
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
-declare -a array
-declare project
-declare pattern
-declare issueType
-declare maxResults=100
+declare -a clauses=()
+declare project=''
+declare jql=''
+declare issueType=''
+declare output=''
+declare maxResults=10
 declare -i index=0
 declare condition='AND'
-declare url='https://jira.sample.com/rest/api/2'
-declare curlOpt='--silent --insecure --globoff --netrc-file ~/.marslo/.netrc'
-# shellcheck disable=SC2155
-declare usage="""
-\t jira - show Jira ID, Summary, IssueType, Created, Updated status
-\nSYNOPSIS:
-\n\t$(c sY)\$ jira [ -p   | --project <PROJECT_ID> ]
-\t       [ -t   | --type <ISSUE_TYPE> ]
-\t       [ -c   | --condition <AND|OR|IN> ] | [ -a ] | [ -o ]
-\t       [ -m   | --max <N> ]
-\t       [ -jql | --jql <'PATTERN'> ]
-\t       [ -i   | --index ]
-\t       [ -h   | --help ]$(c)
-\nEXAMPLE:
-\n\tget Release type in project ABC
-\t\t$(c G)\$ jira -p ABC -t Release -a$(c) | $(c G)jira -p ABC -t Release -c 'AND'$(c)
-\n\tget maximize 50 items from specific JQL pattern with index
-\t\t$(c G)\$ jira -i -m 50 -jql 'project=ABC AND resolution=Unresolved'$(c)
-\n\tget Unresolved type in project ABC in recent 3 months
-\t\t$(c G)$ jira -jql 'project = ABC AND resolution = Unresolved AND created > startOfMonth(-2)'$(c)
-\t\t$(c G)$ jira -jql 'project = ABC AND resolution = Unresolved AND created > -90d ORDER BY updated ASC'$(c)
+declare SHOW_INDEX=false
+declare VERBOSE=0
+declare -r URL='https://jira.domain.com/rest/api/2'
+declare -r PASS_PATH='path/in/pass'
+declare -a CURL=( curl --silent --insecure --globoff )
+CURL+=( -umarslo:"$(pass show "${PASS_PATH}" | head -n1)" )
+declare -r JQ_PROG='
+def clean: tostring | gsub("[\\r\\n]+"; " ");
+.issues[] | [
+  .key,
+  (.fields.summary | clean),
+  (.fields.status.name | clean),
+  (.fields.issuetype.name | clean),
+  (.fields.updated | clean),
+  (.fields.created | clean),
+  (.fields.customfield_10062 // "" | clean),
+  (.fields.assignee.displayName // "" | clean),
+  (.fields.creator.displayName // "" | clean)
+]
+| join("\u001f")
+'
+
+# shellcheck disable=SC1078,SC1079
+declare -r USAGE="""show Jira ID, Summary, IssueType, Created, Updated status
+
+SYNOPSIS
+  $(c Cs)\$ jira $(c 0Wd)[ $(c 0G)OPTION$(c 0Wd) ]$(c)
+
+OPTIONS
+  $(c 0G)-p$(c), $(c 0G)--project$(c) $(c 0Mi)<ID>$(c)    filter by project key
+  $(c 0G)-t$(c), $(c 0G)--type$(c) $(c 0Mi)<ISSUE_TYPE>$(c)       filter by issue type
+  $(c 0G)-c$(c), $(c 0G)--condition$(c) $(c 0Mi)AND|OR|IN$(c)     condition to combine multiple filters $(c i)(default: $(c 0Mi)AND$(c 0i))$(c)
+  $(c 0G)-a$(c), $(c 0G)--and$(c)                     shorthand for $(c Ci)--condition AND$(c)
+  $(c 0G)-o$(c), $(c 0G)--or$(c)                      shorthand for $(c Ci)--condition OR$(c)
+  $(c 0G)-m$(c), $(c 0G)--max$(c) $(c 0Mi)<N>$(c)                 maximum number of results to return $(c i)(default: $(c 0Mi)10$(c 0i))$(c)
+  $(c 0G)-j$(c), $(c 0G)--jql$(c) $(c 0Mi)<JQL_QUERY>$(c)         specify a custom JQL query (overrides other filters)
+  $(c 0G)-i$(c), $(c 0G)--index$(c)                   show index number for each result
+  $(c 0G)-h$(c), $(c 0G)--help$(c)                    display this help message and exit
+  $(c 0G)-v$(c), $(c 0G)-vv$(c), $(c 0G)--verbose$(c)            show debug information
+                                multiple $(c 0Gi)-v$(c) options increase verbosity $(c 0i)(max: $(c 0Yi)2$(c))$(c)
+
+EXAMPLE
+  $(c Wdi)# get Release type in project $(c 0Wi)ID$(c)
+  $(c Y)\$ jira $(c 0Gi)-p $(c 0Mi)ID $(c 0Gi)-t $(c 0Mi)Release $(c 0Gi)-a $(c 0Wdi)/ $(c 0Y)\$ jira $(c 0Gi)-p $(c 0Mi)ID $(c 0Gi)-t $(c 0Mi)Release $(c 0Gi)-c $(c 0Mi)'AND'$(c)
+
+  $(c Wdi)# get maximize 50 items from specific JQL jql with index$(c)
+  $(c Y)\$ jira $(c 0Gi)-i -m $(c 0Mi)50 $(c 0Gi)--jql $(c 0Mi)'project = ID AND resolution = Unresolved'$(c)
+
+  $(c Wdi)# get Unresolved type in project $(c 0Wi)ID $(c 0Wdi)in recent 3 months$(c)
+  $(c Y)$ jira $(c 0Gi)--jql $(c 0Mi)'project = ID AND resolution = Unresolved AND created > startOfMonth(-2)'$(c)
+  $(c Y)$ jira $(c 0Gi)--jql $(c 0Mi)'project = ID AND resolution = Unresolved AND created > -90d ORDER BY updated ASC'$(c)
+
+  $(c Wdi)# mixed filters with custom JQL == $(c 0Gdi)\`--jql 'project = ID AND resolution in (Fixed, Done)'\`$(c)
+  $(c Y)$ jira $(c 0Gi)--project $(c 0Mi)ID $(c 0Gi)--and --jql $(c 0Mi)'resolution in (Fixed, Done)' $(c 0Gi)-m $(c 0Mi)50$(c)
 """
 
 # credit: https://stackoverflow.com/a/17841619/2940319
-function join_by {
+function joinBy {
   local d=${1-} f=${2-}
   if shift 2; then printf %s "$f" "${@/#/$d}"; fi
 }
-function showHelp() { echo -e "${usage}"; exit 0; }
+function showHelp() { echo -e "${USAGE}"; exit 0; }
+function jqlQuote() {
+  local s="${1}"
+  s="${s//\"/\\\"}"
+  if [[ "${s}" =~ [[:space:]] || "${s}" =~ [\(\)\[\]\{\}\:\,] ]]; then
+    printf '"%s"' "${s}"
+  else
+    printf '%s' "${s}"
+  fi
+}
 
 [[ 0 = "$#" ]] && showHelp
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -p   | --project   ) project="$2"     ; shift 2                ;;
-    -t   | --type      ) issueType="$2"   ; shift 2                ;;
-    -m   | --max       ) maxResults="$2"  ; shift 2                ;;
-    -c   | --condition ) condition="$2"   ; shift 2                ;;
-    -a   | --and       ) condition='AND'  ; shift                  ;;
-    -o   | --or        ) condition='OR'   ; shift                  ;;
-    -i   | --index     ) showIndex='true' ; shift                  ;;
-    -jql | --jql       ) pattern="$2"     ; shift 2                ;;
-    -h   | --help      ) showHelp                                  ;;
-    *                  ) echo 'invalid option, try -h' >&2; exit 1 ;;
+    -p | --project   ) project="$2"     ; shift 2              ;;
+    -t | --type      ) issueType="$2"   ; shift 2              ;;
+    -m | --max       ) maxResults="$2"  ; shift 2              ;;
+    -c | --condition ) condition="$2"   ; shift 2              ;;
+    -a | --and       ) condition='AND'  ; shift                ;;
+    -o | --or        ) condition='OR'   ; shift                ;;
+    -i | --index     ) SHOW_INDEX=true  ; shift                ;;
+    -j | --jql       ) jql="$2"         ; shift 2              ;;
+    -v | --verbose   ) VERBOSE=1        ; shift                ;;
+    -vv              ) VERBOSE=2        ; shift                ;;
+    -h | --help      ) showHelp                                ;;
+    *                ) echo "invalid option '$1'." >&2; exit 1 ;;
   esac
 done
 
 condition=$(tr '[:lower:]' '[:upper:]' <<< "${condition}")
-if [[ -z "${pattern}" ]]; then
-  [[ -n "${project}"   ]] && array+=( "project=${project}" )
-  [[ -n "${issueType}" ]] && array+=( "issuetype=${issueType}" )
-  pattern=$(join_by " ${condition} " "${array[@]}")
-  pattern="${pattern}%20ORDER%20BY%20updated%20DESC"
+[[ -n "${project}"   ]] && clauses+=( "project = $(jqlQuote "${project}")" )
+[[ -n "${issueType}" ]] && clauses+=( "issuetype = $(jqlQuote "${issueType}")" )
+if [[ -z "${jql}" && ${#clauses[@]} -eq 0 ]]; then
+  echo 'No filters specified, exit.' >&2
+  exit 1
 fi
 
-pattern="$(printf %s "${pattern}" | jq -sRr @uri)"
-cmd="curl ${curlOpt} -XGET '${url}/search?jql=${pattern}&maxResults=${maxResults}'"
-output=$(eval "${cmd} | jq -r '.issues[]'")
-idx=''
+declare extrajql="$(joinBy " ${condition} " "${clauses[@]}")"
+if [[ -z "${jql}" ]]; then
+  jql="${extrajql} ORDER BY updated DESC"
+else
+  jql="${extrajql} ${condition} ${jql}"
+fi
 
-echo "${output}" |
-  jq -r '. | [.key, .fields.summary, .fields.status.name, .fields.issuetype.name, .fields.updated, .fields.created, .fields.customfield_10062] | join("|")' |
-  while IFS='|' read -r _key _summary _status _issuetype _updated _created _points; do
-    if [[ 'true' = "${showIndex}" ]]; then
-      index=$(( index+1 ))
-      idx="[${index}] - "
+CURL+=( --get --data-urlencode "jql=${jql}" --data-urlencode "maxResults=${maxResults}" "${URL}/search" )
+declare -a JQ=( jq -r "${JQ_PROG}" )
+output=$( "${CURL[@]}" | "${JQ[@]}" )
+
+function display() {
+  local out=""
+  local arg=""
+  while [[ "${#}" -gt 0 ]]; do
+    arg="${1}"; shift
+    case "${arg}" in
+      -u | --user ) [[ "${#}" -gt 0 ]] && shift;
+                    out+="${arg} \"marslo:\$(pass show marvell/marslo/jira | head -n1)\" "; continue ;;
+      -u* ) out+="-u\"marslo:\$(pass show marvell/marslo/jira | head -n1)\" "; continue ;;
+    esac
+
+    arg="${arg//\\u001f/•}"
+    arg="${arg//$'\x1f'/•}"
+    if [[ "${arg}" == *$'\n'* || "${arg}" == *$'\r'* ]]; then
+      arg="$(printf '%s' "${arg}" | tr -d '\r' | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//')"
     fi
-    echo ">> ${idx}[${_key}]: ${_summary}"
-    echo "..    status    : ${_status}"
-    echo "..    issuetype : ${_issuetype}"
-    echo "..    created   : ${_created}"
-    echo "..    updated   : ${_updated}"
-    echo ".. story points : ${_points}"
+    arg="${arg//\\/\\\\}"
+
+    if [[ "${arg}" =~ [[:space:]\&\|\;\<\>\(\)\$\`\"\'] ]] || [[ -z "${arg}" ]]; then
+      if [[ "${arg}" != *"'"* ]]; then
+        out+="'${arg}' "
+      else
+        arg="${arg//\"/\\\"}"  # escape double quotes
+        arg="${arg//\$/\\\$}"  # escape dollar sign
+        arg="${arg//\`/\\\`}"  # escape backticks
+        out+="\"${arg}\" "
+      fi
+    else
+      out+="${arg} "
+    fi
   done
+
+  printf '%s' "${out% }"
+}
+
+[[ "${VERBOSE}" -ge 1 ]] && {
+  echo -e "$(c 0Wi)=== Debug Info ===$(c)"
+  echo -e "$(c 0Wi)  # max results  : $(c 0Wdi)${maxResults}$(c)"
+  echo -e "$(c 0Wi)  # condition    : $(c 0Wdi)${condition}$(c)"
+  echo -e "$(c 0Wi)  # show index   : $(c 0Wdi)${SHOW_INDEX}$(c)"
+  echo -e "$(c 0Wi)  # jql query    : $(c 0Wdi)${jql}$(c)"
+  [[ -n "${extrajql}"   ]] && echo -e "$(c 0Wi)  # extra jql    : $(c 0Wdi)${extrajql}$(c)"
+  echo -e "$(c 0Wi)  # curl command : $(c 0Wdi)\$ $(display "${CURL[@]}") | $(display "${JQ[@]}")$(c)"
+  [[ "${VERBOSE}" -ge 2 ]] && echo -e "$(c 0Wi)  # jq command   : $(c 0Wdi)$(display "${JQ[@]}")$(c)"
+  [[ "${VERBOSE}" -ge 2 ]] && echo -e "$(c 0Wi)  # raw output   : $(c 0Wdi)${output//$'\x1f'/•}$(c)"
+  echo ''
+}
+
+function colors() {
+  case "$1" in
+    'New'         )        echo -e "$(c 0B  )${1}$(c)" ;;
+    'To Do'       )        echo -e "$(c 0B  )${1}$(c)" ;;
+    'Active'      )        echo -e "$(c 0G  )${1}$(c)" ;;
+    'In Progress' )        echo -e "$(c 0G  )${1}$(c)" ;;
+    'Epic'        )        echo -e "$(c 0Ms )${1}$(c)" ;;
+    'Story'       )        echo -e "$(c 0Y  )${1}$(c)" ;;
+    'Task'        )        echo -e "$(c 0C  )${1}$(c)" ;;
+    'Bug'         )        echo -e "$(c 0R  )${1}$(c)" ;;
+    'Done'        )        echo -e "$(c 0Gs )${1}$(c)" ;;
+    'Closed'      )        echo -e "$(c 0Gsi)${1}$(c)" ;;
+    '-p'          ) shift; echo -e "$(c 0Cs )${*}$(c)" ;;
+    '-i'          ) shift; echo -e "$(c 0i  )${*}$(c)" ;;
+    *             )        echo -e "$(c 0Wi )${1}$(c)" ;;
+  esac
+}
+
+declare idx=''
+while IFS=$'\x1f' read -r _key _summary _status _issuetype _updated _created _points _assignee _creator ; do
+  if "${SHOW_INDEX}"; then index=$(( index+1 )); idx="$(printf '[%03d] - ' "${index}")"; fi
+  echo -e "$(c 0Wd)>> ${idx}$(c 0Ys)${_key}$(c): $(c 0Ci)${_summary}$(c)"
+  echo -e "$(c 0Wdi)..    status    :$(c) $(colors "${_status}")"
+  echo -e "$(c 0Wdi)..    issuetype :$(c) $(colors "${_issuetype}")"
+  echo -e "$(c 0Wdi)..    assignee  :$(c) $(colors -i "${_assignee}")"
+  echo -e "$(c 0Wdi)..    creator   :$(c) $(colors -i "${_creator}")"
+  echo -e "$(c 0Wdi)..    created   :$(c) $(colors "${_created}")"
+  echo -e "$(c 0Wdi)..    updated   :$(c) $(colors "${_updated}")"
+  [[ -n "${_points}" ]] && echo -e "$(c 0Wdi).. story points :$(c) $(colors -p "${_points}")"
+done <<< "${output}"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
