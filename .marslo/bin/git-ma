@@ -22,7 +22,7 @@ function getInfo() {
   echo -n "$(eval "${command}" || exitOnError 'failed to get revision information')"
 }
 
-function showParmas() {
+function showParams() {
   [[ 6 -ne $# ]] && die "wrong parameters in showParams function"
   local author=$1
   local authorEmail=$2
@@ -107,7 +107,7 @@ usage="""
 
 if [[ 0 -eq $# ]]; then
   sha='HEAD'
-# simple usage: not starts with '-' && not contians '='
+# simple usage: not starts with '-' && not contains '='
 elif [[ 1 -eq $# ]] && [[ '-' != "${1::1}" ]] && [[ ! "$1" =~ '=' ]]; then
   sha="$1"
 # for '-'/'--' params
@@ -123,7 +123,7 @@ else
     case "$OPT" in
       h | help             ) help='true'                 ;;
       v | verbose | debug  ) verbose='true'              ;;
-      r | revison          ) needsArg; sha="$OPTARG"     ;;
+      r | revision         ) needsArg; sha="$OPTARG"     ;;
       ??*                  ) die "Illegal option --$OPT" ;;
       ?                    ) die "Illegal option --$OPT" ;;
     esac
@@ -151,7 +151,7 @@ doSet
 source "${tmpfile}"
 doCommitAll
 
-[[ 'true' = "${verbose}"    ]] && showParmas "${GIT_AUTHOR_NAME}" "${GIT_AUTHOR_EMAIL}" "${GIT_AUTHOR_DATE}" "${GIT_COMMITTER_NAME}" "${GIT_COMMITTER_EMAIL}" "${GIT_COMMITTER_DATE}"
+[[ 'true' = "${verbose}"    ]] && showParams "${GIT_AUTHOR_NAME}" "${GIT_AUTHOR_EMAIL}" "${GIT_AUTHOR_DATE}" "${GIT_COMMITTER_NAME}" "${GIT_COMMITTER_EMAIL}" "${GIT_COMMITTER_DATE}"
 if [[ 'true' = "${verbose}" ]] && [[ -n "${revision}" ]]; then
   echo -e """
     .. FINAL RESULT .. \n

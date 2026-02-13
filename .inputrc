@@ -10,7 +10,7 @@
 # [PS1](https://github.com/marslo/mylinux/blob/master/confs/home/.marslo/.env#L209)
 # set the mode string and cursor to indicate the vim mode
 #   - cursor shape:       `\1\e[<number> q\2` ( i.e.: `\1\e[4 q\2` )
-#   - cursor shape+color: `\1\e[<nubmer> q\e]12;<color>\a\2` ( i.e.: `\1\e[1 q\e]12;orange\a\2` )
+#   - cursor shape+color: `\1\e[<number> q\e]12;<color>\a\2` ( i.e.: `\1\e[1 q\e]12;orange\a\2` )
 #     0: blinking block
 #     1: blinking block (default)
 #     2: steady block

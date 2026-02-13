@@ -148,16 +148,16 @@ if has( 'autocmd' )
     autocmd VimEnter * if exists(":Tabularize") | exe ":AddTabularPattern 1== /^[^=]*\zs=/r1c1l0" | endif
   augroup END
 
-  augroup CollumnLimit
+  augroup ColumnLimit
     set colorcolumn=80
-    highlight CollumnLimit    guibg=NONE    guifg=#4e4e4e    ctermfg=240
+    highlight ColumnLimit    guibg=NONE    guifg=#4e4e4e    ctermfg=240
     autocmd!
-    let collumnLimit = 80
-    let pattern      = '\%<' . ( collumnLimit+1 ) . 'v.\%>' . collumnLimit . 'v'
-    let w:m1         = matchadd( 'CollumnLimit', pattern, -1 )
+    let columnLimit = 80
+    let pattern      = '\%<' . ( columnLimit+1 ) . 'v.\%>' . columnLimit . 'v'
+    let w:m1         = matchadd( 'ColumnLimit', pattern, -1 )
   augroup END
 
-  augroup TerminalForamt
+  augroup TerminalFormat
     if IsNvim()
       " autocmd! TermOpen,TermEnter * :IndentLinesDisable
       " autocmd! BufWinEnter        * if &l:buftype ==# 'help' | :IndentLinesDisable | endif

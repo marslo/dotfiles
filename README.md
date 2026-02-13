@@ -143,7 +143,7 @@ dotfiles                   # -> $HOME
   $ cp .inputrc ~/.inputrc
   ```
 
-![hybird mode for inputrc](https://marslo.github.io/ibook/screenshot/shell/bash-bind-mode-string-cursor-shape.gif)
+![hybrid mode for inputrc](https://marslo.github.io/ibook/screenshot/shell/bash-bind-mode-string-cursor-shape.gif)
 
 ### nvim
 

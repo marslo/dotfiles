@@ -14,7 +14,7 @@ CONFOPT="--prefix=${PREFIX} --with-features=huge --with-tlib=ncurses --with-maca
 CONFOPT+="--enable-autoservername --enable-multibyte -enable-libsodium --enable-nls "
 CONFOPT+="--with-compiledby='marslo <marslo.jiao@gmail.com>' "
 # CONFOPT+="--enable-gui=yes --with-x --enable-macos-x --enable-darwin --enable-fontset --enable-xim "
-# CONFOPT+="--enable-cscope "             # will casue kill:9
+# CONFOPT+="--enable-cscope "             # will cause kill:9
 
 dll_ruby='/usr/local/opt/ruby/lib/libruby.dylib'
 dll_perl='/System/Library/Perl/5.30/darwin-thread-multi-2level/CORE/libperl.dylib'

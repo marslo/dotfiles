@@ -261,7 +261,7 @@ ls.add_snippets(nil, {
             insert(2, "author"),
             text { "", "date: " },
             func(date, {}),
-            text { "", "cathegories: [" },
+            text { "", "categories: [" },
             insert(3, ""),
             text { "]", "lastmod: " },
             func(date, {}),
