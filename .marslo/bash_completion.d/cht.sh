@@ -8,7 +8,7 @@ _cht_complete() {
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     # opts="$(curl -s cheat.sh/:list)"
-    opts="$(cat "$HOME/.marslo/.completion/cht.sh/cht.sh.txt")"
+    opts="$(cat "$HOME/.marslo/.completion/cht.sh.txt")"
 
     if [ ${COMP_CWORD} = 1 ]; then
     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
