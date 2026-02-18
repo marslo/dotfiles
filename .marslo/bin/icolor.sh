@@ -3,7 +3,7 @@
 #     FileName : icolor.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-05-01 23:54:35
-#   LastChange : 2025-04-06 16:35:04
+#   LastChange : 2026-02-17 20:12:59
 #=============================================================================
 
 # ***************************************************************
@@ -43,8 +43,9 @@ function rgbtohex () {
 # - `rgbto256 0 95, 135` ==> 22
 function rgbto256 () {
   echo "define trunc(x){auto os;os=scale;scale=0;x/=1;scale=os;return x;};" \
-    "16 + 36 * trunc(${1}/51) + 6 * trunc(${2}/51) +" \
-    " trunc(${3}/51)" | bc
+       "16 + 36 * trunc(${1}/51) + 6 * trunc(${2}/51) +" \
+       " trunc(${3}/51)" |
+  bc
   # XTerm Color Number = 16 + 36 * R + 6 * G + B | 0 <= R,G,B <= 5
 }
 
@@ -262,14 +263,14 @@ function _showcolor_bg() {
 # shellcheck disable=SC2068
 function showLSColors() {
   ( # run in a subshell so it won't crash current color settings
-      dircolors -b >/dev/null
-      IFS=:
-      for ls_color in ${LS_COLORS[@]}; do # For all colors
-          color=${ls_color##*=}
-          ext=${ls_color%%=*}
-          echo -en "\E[${color}m${ext}\E[0m " # echo color and extension
-      done
-      echo
+    dircolors -b >/dev/null
+    IFS=:
+    for ls_color in ${LS_COLORS[@]}; do # For all colors
+        color=${ls_color##*=}
+        ext=${ls_color%%=*}
+        echo -en "\E[${color}m${ext}\E[0m " # echo color and extension
+    done
+    echo
   )
 }
 

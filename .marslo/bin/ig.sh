@@ -182,16 +182,21 @@ function gitclean() {
 
 # shellcheck disable=SC2155
 function grt() {
-  usage="""\t$(c B)g$(c)it $(c M)r$(c)ename $(c R)t$(c)ag - rename tag with original committer and date
-  \nSYNOPSIS$(c sY)
-  \t\$ grt [p|-p|push|--push] <SOURCE_TAG> <NEW_TAG> $(c)
-  \nEXAMPLE$(c G)
-  \t\$ grt docker.v2.0           docker.x
-  \t\$ grt docker.v2.0           refs/tags/docker.x
-  \t\$ grt refs/tags/docker.v2.0 docker.x
-  \t\$ grt refs/tags/docker.v2.0 refs/tags/docker.x $(c)
-  \nOPT
-  \t$(c B)p$(c), $(c B)-p$(c), $(c B)push$(c), $(c B)--push$(c) : push changes into remote repository
+  # shellcheck disable=SC2155
+  local USAGE="""
+  $(c B)g$(c)it $(c M)r$(c)ename $(c R)t$(c)ag - rename tag with original committer and date
+
+  SYNOPSIS
+    $(c sY)\$ grt [p|-p|push|--push] <SOURCE_TAG> <NEW_TAG> $(c)
+
+  EXAMPLE$(c G)
+    \$ grt docker.v2.0           docker.x
+    \$ grt docker.v2.0           refs/tags/docker.x
+    \$ grt refs/tags/docker.v2.0 docker.x
+    \$ grt refs/tags/docker.v2.0 refs/tags/docker.x $(c)
+
+  OPTION
+    $(c B)p$(c), $(c B)-p$(c), $(c B)push$(c), $(c B)--push$(c) : push changes into remote repository
   """
   if [ 2 -eq $# ]; then
     declare push="false"
@@ -202,7 +207,7 @@ function grt() {
     declare sourceTag="""$(echo "$2" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
     declare newTag="""$(echo "$3" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
   else
-    echo -e "${usage}"
+    echo -e "${USAGE}"
     return
   fi
   declare objectType="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(objecttype)")"""
