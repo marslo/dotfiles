@@ -42,7 +42,7 @@ function itit() {
   local setBadge='false'
   local clear='false'
   local title=''
-  local usage="Usage: itit [-c|--color] [-b|--badge] [title]"
+  local usage="USAGE: itit [-c|--color] [-b|--badge] [title]"
 
   while [[ $# -gt 0 ]]; do
     # export PROMPT_COMMAND='__bp_precmd_invoke_cmd'

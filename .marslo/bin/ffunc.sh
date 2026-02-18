@@ -4,12 +4,12 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-02-13 00:29:44
+#   LastChange : 2026-02-17 19:48:53
 #  Description : [f]zf [func]tion
 #=============================================================================
 
 # shellcheck disable=SC2155
-declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r HERE="$( cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
