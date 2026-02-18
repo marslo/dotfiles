@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck source=/dev/null disable=SC1090
+# shellcheck source=/dev/null disable=SC1090,SC2155
 
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
@@ -47,5 +47,10 @@ fi
 # to avoid exit code non-zero if path not exist
 if test -d "$HOME"/perl5; then eval "$(perl -I"$HOME"/perl5/lib/perl5 -Mlocal::lib="$HOME"/perl5)"; fi
 if test -f "$HOME"/_extract_func_completion; then eval "$(/bin/cat "$HOME/_extract_func_completion")"; fi
+
+# for gpg [SCA] key
+export GPG_TTY=$(tty)
+export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
+gpgconf --launch gpg-agent
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
