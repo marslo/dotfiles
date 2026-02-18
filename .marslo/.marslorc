@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2026-02-04 19:24:18
+# LastChange : 2026-02-17 20:13:45
 # =============================================================================
 
 # execute configuration only in the interactive shell
@@ -158,13 +158,13 @@ test -e /usr/share/terminfo/78/xterm-256color && export TERM='xterm-256color'
 test -f "${iRCHOME}/bin/help"    && source "${iRCHOME}/bin/help"
 test -f "${iRCHOME}/bin/history" && source "${iRCHOME}/bin/history"
 
-for script in "${iRCHOME}"/bin/{ifunc,ffunc,ig,irt,im,icolor}.sh; do
+for script in "${iRCHOME}"/bin/{ifunc,ffunc,ig,im,icolor}.sh; do
   test -f "${script}" && source "${script}";
 done
 isOSX && test -f "${iRCHOME}"/bin/ii.sh && source "${iRCHOME}"/bin/ii.sh
 
 # disable system info shows in vscode/cursor/docker-desktop terminal and nvim/vim terminal
-declare programs=('cursor' 'vscode' 'docker_desktop')
+declare programs=( 'cursor' 'vscode' 'docker_desktop' )
 # shellcheck disable=SC2155
 declare programsRE="^($(IFS='|'; printf '%s' "${programs[*]}"))$"
 if ! [[ -n "${NVIM:-}" || -n "${VIMRUNTIME:-}" || "${TERM_PROGRAM:-}" =~ ${programsRE} ]]; then
@@ -186,6 +186,6 @@ fi
 #               | |             __/ |
 #               |_|            |___/
 # --------------------------------------------------------------/
-if test -f "${iRCHOME}"/bin/fzf-git.sh; then source "${iRCHOME}"/bin/fzf-git.sh; fi
+test -f "${iRCHOME}"/bin/fzf-git.sh && source "${iRCHOME}"/bin/fzf-git.sh || :
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------
