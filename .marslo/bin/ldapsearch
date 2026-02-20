@@ -4,7 +4,7 @@
 #     FileName : ldapsearch
 #       Author : marslo
 #      Created : 2023-01-06 21:49:44
-#   LastChange : 2026-02-13 01:32:51
+#   LastChange : 2026-02-20 15:28:39
 #=============================================================================
 
 shopt -s extglob
@@ -60,16 +60,19 @@ buildAttr() {
 test -f "${SED}"        || { echo -e "$(c Rs)Error$(c 0Ri): $(c 0Gi)\`${SED}\` $(c 0Ri)not found.$(c)"; exit 1; }
 test -f "${LDAPSEARCH}" || { echo -e "$(c Rs)Error$(c 0Ri): $(c 0Gi)\`${LDAPSEARCH}\` $(c 0Ri)not found.$(c)"; exit 1; }
 
-declare -r account='<service.account>'
-declare -r ldasphost='ldaps://ldap.domain.com:636'
-declare -r basedn='dc=domain,dc=com'
-# shellcheck disable=SC2155
-declare -r password="*********"
+if [ $# -eq 0 ] || [ "$1" = "--help" ]|| [ "$1" = "help" ] || [ "$1" = '-h' ]; then
+  help
+fi
 
 declare userId=''
 declare -a attributes=()
 declare -a SED_OPT=( "${SED}" -r '/^(#.*)$/d;/^\s*$/d' )
 declare -a command=()
+declare -r account='<service.account>'
+declare -r ldasphost='ldaps://ldap.domain.com:636'
+declare -r basedn='dc=domain,dc=com'
+# shellcheck disable=SC2155
+declare -r password="*********"
 
 [[ $# -eq 0 ]] && help
 while test -n "$1"; do
