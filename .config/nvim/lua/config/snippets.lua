@@ -1,6 +1,6 @@
 local ls = require "luasnip"
-local fmt = require("luasnip.extras.fmt").fmt
-local rep = require("luasnip.extras").rep
+local fmt = require( "luasnip.extras.fmt" ).fmt
+local rep = require( "luasnip.extras" ).rep
 
 -- some shorthands...
 local snip = ls.snippet
