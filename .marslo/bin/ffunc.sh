@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-02-17 19:48:53
+#   LastChange : 2026-02-20 13:05:16
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -155,8 +155,15 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
     [extra]='*.pem *.p12 *.png *.jpg *.jpeg *.gif *.svg *.zip *.tar *.gz *.bz2 *.xz *.7z *.rar'
   )
 
-  local -a rcPaths=( "${HOME}"/.marslo "${HOME}"/.idlerc "${HOME}"/.ssh "${HOME}"/.jfrog "${HOME}"/.pip "${HOME}"/.config/nvim "${HOME}"/.cht.sh "${HOME}"/.git-templates )
-  local -a configPaths=( cheat github-copilot htop yamllint pip ncdu bat gh )
+  local -a rcPaths=() cfgRoots=()
+  function getValidDirs() {
+    local p
+    for p in "$@"; do [[ -d "${p}" ]] && printf '%s\0' "${p}"; done
+  }
+  local -a rcRawPaths=( "${HOME}"/.marslo "${HOME}"/.idlerc "${HOME}"/.ssh "${HOME}"/.jfrog "${HOME}"/.pip "${HOME}"/.config/nvim "${HOME}"/.cht.sh "${HOME}"/.git-templates )
+  local -a cfgNames=( cheat github-copilot htop yamllint pip ncdu bat gh )
+  mapfile -d '' -t rcPaths  < <(getValidDirs "${rcRawPaths[@]}")
+  mapfile -d '' -t cfgRoots < <(getValidDirs "${cfgNames[@]/#/$HOME/.config/}")
 
   local doExtraIgnore=false
   while [[ $# -gt 0 ]]; do
@@ -168,16 +175,8 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
 
   local -a fdopt=( --color=never --type f --hidden --follow --unrestricted --ignore-file "${HOME}/.fdignore" )
 
-  # GNU/BSD stat compatible
-  local -a statCmd=()
-  if stat --printf '%y|%n\n' /dev/null >/dev/null 2>&1; then
-    statCmd=( stat --printf '%y | %n\n' )
-  else
-    statCmd=( stat -f '%Sm | %N' -t '%Y-%m-%d %H:%M:%S' )
-  fi
-
   # to build up exclude args safely ( --exclude a --exclude b ... )
-  buildExcludes() {
+  function buildExcludes() {
     local key="$1"
     local -a items=()
     read -r -a items <<< "${ignoreList[${key}]}"
@@ -187,19 +186,19 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
       printf '%s\0' --exclude "${it}"
     done
   }
-
   # excludes array ( to replace the eval )
   local -a exRc=() exCfg=() exExtra=()
   mapfile -d '' -t exRc   < <(buildExcludes rc)
   mapfile -d '' -t exCfg  < <(buildExcludes config)
   ${doExtraIgnore} && mapfile -d '' -t exExtra < <(buildExcludes extra)
 
-  # to setup ~/.config roots
-  local -a cfgRoots=()
-  local c
-  for c in "${configPaths[@]}"; do
-    [[ -d "${HOME}/.config/${c}" ]] && cfgRoots+=( "${HOME}/.config/${c}" )
-  done
+  # GNU/BSD stat compatible
+  local -a statCmd=()
+  if stat --printf '%y|%n\n' /dev/null >/dev/null 2>&1; then
+    statCmd=( stat --printf '%y | %n\n' )
+  else
+    statCmd=( stat -f '%Sm | %N' -t '%Y-%m-%d %H:%M:%S' )
+  fi
 
   {
     # top-level rc-like files under $HOME
