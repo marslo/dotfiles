@@ -4,12 +4,12 @@
 #     FileName : rgba2hex
 #       Author : marslo
 #      Created : 2025-04-02 22:02:37
-#   LastChange : 2026-02-12 23:33:38
+#   LastChange : 2026-02-24 03:53:50
 #=============================================================================
 
 set -euo pipefail
 
-declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
