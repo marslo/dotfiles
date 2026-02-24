@@ -4,7 +4,7 @@
 #     FileName : ssh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-05-27 20:12:14
-#   LastChange : 2026-02-24 02:19:15
+#   LastChange : 2026-02-24 04:02:31
 #        Usage : /path/to/ssh -- --help
 #=============================================================================
 
@@ -18,7 +18,7 @@ declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # shellcheck disable=SC2015
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
-function showHelp() { echo -e "${USAGE}"; }
+function showHelp() { echo -e "${USAGE}"; exit 0; }
 function die() { echo -e "$(c Ri)ERROR$(c) $(c Wdi): $*. exit ...$(c)" >&2; exit 1; }
 
 # shellcheck disable=SC2155
@@ -28,14 +28,15 @@ declare -r USAGE="""
 SSH Wrapper with fzf Support
 
 USAGE
-  $(c Cs)\$ ${ME}                  $(c 0Mi)Launch fzf to select from SSH config (username@host)$(c)
-  $(c Cs)\$ ${ME} $(c 0Wdi)[$(c 0Gi)ssh args...$(c 0Wdi)]    $(c 0Mi)Forward arguments to the native SSH command$(c)
-  $(c Cs)\$ ${ME} -- $(c 0Wdi)[$(c 0Gi)wrapper options...$(c 0Wdi)]$(c)
+  $(c Ys)\$ ${ME}                  $(c 0Mi)Launch fzf to select from SSH config (username@host)$(c)
+  $(c Ys)\$ ${ME} $(c 0Wdi)[$(c 0Gi)SSH ARGS$(c 0Wdi)]       $(c 0Mi)Forward arguments to the native SSH command$(c)
+  $(c Ys)\$ ${ME} -- $(c 0Wdi)[$(c 0Gi)WRAPPER OPTIONS$(c 0Wdi)]$(c)
 
 WRAPPER OPTIONS $(c Wdi)(used only after --)$(c)
   $(c G)--help$(c), $(c G)-h$(c)           Show this help message
   $(c G)--alias$(c)              Show only Host aliases (without resolving Hostname)
   $(c G)--fzf$(c)                Force interactive host selection via fzf
+  $(c G)--no-fzf$(c)             Disable fzf and pass all args to ssh (default if any ssh args are given)
 
 DESCRIPTION
   This wrapper enhances ssh usability by integrating with fzf.
@@ -44,24 +45,33 @@ DESCRIPTION
   • Use $(c Yi)'--'$(c) to separate wrapper options from ssh options
 
 EXAMPLES
-  $(c Ys)\$ ${ME}$(c)
-    $(c Wdi)↪ Shows interactive fzf selector using Host/User from SSH config$(c)
+  $(c Wdi)# shows interactive fzf selector using Host/User from SSH config$(c)
+  $(c Wdi)↪ $(c 0Y)\$ ${ME}$(c)
 
-  $(c Ys)\$ ${ME} $(c 0Mi)user@example.com$(c)
-    $(c Wdi)↪ Works exactly like regular SSH$(c)
+  $(c Wdi)# works exactly like regular SSH$(c)
+  $(c Wdi)↪ $(c 0Y)\$ ${ME} $(c 0Mi)user@example.com$(c)
 
-  $(c Ys)\$ ${ME} $(c 0Gi)-- --help$(c)
-    $(c Wdi)↪ Shows this help message$(c)
+  $(c Wdi)# shows this help message$(c)
+  $(c Wdi)↪ $(c 0Y)\$ ${ME} $(c 0Gi)-- --help$(c)
 
-  $(c Ys)\$ ${ME} $(c 0Gi)-- --alias$(c)
-    $(c Wdi)↪ Shows alias list (without resolving Hostname)$(c)
+  $(c Wdi)# shows alias list (without resolving Hostname)$(c)
+  $(c Wdi)↪ $(c 0Y)\$ ${ME} $(c 0Gi)-- --alias$(c)
 """
 
 declare USE_FZF=false
 declare ONLY_ALIAS=false
 declare -a SSH_CONFIG_FILES=()
-[[ -f "$HOME/.ssh/config"   ]] && SSH_CONFIG_FILES+=("$HOME"/.ssh/config)
-[[ -d "$HOME/.ssh/config.d" ]] && SSH_CONFIG_FILES+=("$HOME"/.ssh/config.d/*)
+test -f "$HOME/.ssh/config"   && SSH_CONFIG_FILES+=( "$HOME"/.ssh/config )
+# test -d "$HOME/.ssh/config.d" && SSH_CONFIG_FILES+=( "$HOME"/.ssh/config.d/!(:LspInfogerrit|github|tm|tst) )
+test -d "$HOME/.ssh/config.d" && {
+  for f in "$HOME/.ssh/config.d/"*; do
+    test -f "$f" || continue
+    case "${f##*/}" in
+      gerrit|github|tm|tst ) continue                   ;;
+                         * ) SSH_CONFIG_FILES+=( "$f" ) ;;
+    esac
+  done
+}
 
 [[ "${#SSH_CONFIG_FILES[@]}" -eq 0 ]] && die "no ssh config files found ..."
 
@@ -70,23 +80,22 @@ declare -a args=()         # ssh args
 
 for arg in "$@"; do
   case "${arg}" in
-    --          ) shift; wArgs=("$@" ) ; break ;;  # everything after -- is wrapper args
-    --fzf       ) USE_FZF=true       ;;
-    --alias     ) ONLY_ALIAS=true    ;;
+    --          ) shift; wArgs=("$@") ; break ;;  # everything after -- is wrapper args
     -h | --help ) if [[ "$#" -eq 1 || "$1" == "$arg" ]]; then
                     exec /usr/bin/ssh --help
-                  fi
-                  args+=("$arg") ;;
-    *           ) args+=("$arg") ;;
+                  fi;
+                  args+=("$arg")      ;;
+    *           ) args+=("$arg")      ;;
   esac
 done
 
 # handle wrapper-only commands like ssh -- --help
 for warg in "${wArgs[@]}"; do
   case "${warg}" in
-    -h | --help ) showHelp; exit 0 ;;
-    --fzf       ) USE_FZF=true       ;;
-    --alias     ) ONLY_ALIAS=true    ;;
+    -h | --help ) showHelp        ;;
+    --fzf       ) USE_FZF=true    ;;
+    --no-fzf    ) USE_FZF=false   ;;
+    --alias     ) ONLY_ALIAS=true ;;
   esac
 done
 
@@ -145,26 +154,36 @@ hostList=$(awk '
 # shellcheck disable=SC2016
 target=$(
   echo "${hostList}" |
-  awk -F':' '$2 !~ /sfw.*jenkins/ && $1 !~ /sms.*jenkins/ && $0 !~ /git@github\.com/ {
+  awk -F':' '$2 !~ /sfw.*jenkins/ && $1 !~ /sms.*jenkins/ && $0 !~ /git@github\.com/ && $0 !~ /sj1git1-.*\.cavium\.com/ {
     gsub(/^[ \t]+|[ \t]+$/, "", $1);
     gsub(/^[ \t]+|[ \t]+$/, "", $2);
     printf "%s:%s\n", $2, $1
   }' |
-  sort |
   column -t -s ':' -o ': ' |
+  awk '{
+    orig=$0;
+    match($0, /[0-9]+/);
+    num_str = substr($0, RSTART, RLENGTH);
+    prefix  = substr($0, 1, RSTART-1);
+    is_zero = (substr(num_str, 1, 1) == "0" ? "0" : "1");
+    printf "%s\t%s\t%010d\t%s\n", prefix, is_zero, num_str, orig
+  }' | \
+  sort -k1,1 -k2,2 -k3,3 | \
+  cut -f4 |
   fzf --ansi \
       --no-multi \
       --prompt='HOST 󱚥 ' \
-      --color=fg+:#979736,hl+:#979736 \
-      --preview-window=top:70% --height 35% --min-height 3+ \
+      --color=fg+:#979736,hl+:#979736,label:italic:#77A678 \
+      --preview-window=top:60% --height 35% --min-height 3+ \
       --delimiter='[[:space:]]+:[[:space:]]+' \
       --with-nth="$([[ "${ONLY_ALIAS}" == true ]] && echo 2 || echo 1,2)" \
+      --bind 'focus:transform-preview-label:echo " $(cut -d: -f2 <<< {} | xargs) "' \
       --preview '
         bash -cu "
           loginInfo=\$(cut -d : -f2 <<< \"\$1\" | xargs)
           ip=\${loginInfo#*@}
           user=\${loginInfo%@*}
-          echo -e \"\033[36m[HOST]\033[0m \033[3;35m\$user@\$ip\033[0m\n\"
+          # echo -e \"\033[36m[HOST]\033[0m \033[3;35m\$user@\$ip\033[0m\n\"
           if out=\$(/sbin/ping -c1 -o -W1 \"\$ip\" 2>&1); then
             echo \"\$out\"
           else

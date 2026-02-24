@@ -4,7 +4,7 @@
 #     FileName : rrun
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-09 16:43:02
-#   LastChange : 2026-02-13 00:32:17
+#   LastChange : 2026-02-24 02:53:28
 #=============================================================================
 
 set -euo pipefail
@@ -66,7 +66,7 @@ declare -a scriptArgs=()
 
 function showHelp() { echo -e "${USAGE}"; }
 function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
-function sq()   { local s="$1"; printf "'%s'" "${s//\'/\'\"\'\"\'}"; }
+function sq()  { local s="$1"; printf "'%s'" "${s//\'/\'\"\'\"\'}"; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -107,10 +107,7 @@ done
       if (n_alias > 0 && ip != "" && user != "") {
         for ( i = 1; i <= n_alias; i++ ) {
           key = user "@" ip " : " alias[i]
-          if ( !(key in printed) ) {
-            printf "%s%s%s : %s@%s\n", colorStart, alias[i], colorEnd, user, ip
-            printed[key] = 1
-          }
+          if ( !(key in printed) ) { printf "%s@%s : %s\n", user, ip, alias[i]; printed[key] = 1; }
         }
       }
       n_alias = 0
@@ -120,9 +117,11 @@ done
     }
 
     # -------- main --------
+    { sub(/\r$/, "") }
     /^[[:space:]]*#/ || NF == 0 { next }
+    { key = tolower($1) }
 
-    $1 == "Host" {
+    key == "host" {
       emit()
       for ( i = 2; i <= NF; i++ ) {
         if ( $i ~ /^#/ ) break
@@ -136,22 +135,30 @@ done
       next
     }
 
-    $1 == "User"     { user = $2; next }
-    $1 == "Hostname" { ip = $2; next }
+    key == "user"     { user = $2; next }
+    key == "hostname" { ip = $2; next }
 
     END { emit() }
   ' "${SSH_CONFIG}" |
-  column -t |
-  sort -k2 |
-  fzf --prompt='󱚥 ' \
+  awk -F':' '$2 !~ /sfw.*jenkins/ && $1 !~ /sms.*jenkins/ && $0 !~ /git@github\.com/ {
+    gsub(/^[ \t]+|[ \t]+$/, "", $1);
+    gsub(/^[ \t]+|[ \t]+$/, "", $2);
+    printf "%s:%s\n", $2, $1
+  }' |
+  sort |
+  column -t -s ':' -o ': ' |
+  fzf --ansi \
+      --no-multi \
+      --prompt='HOST 󱚥 ' \
+      --color=fg+:#979736,hl+:#979736 \
+      --preview-window=top:65% --height 35% --min-height 3+ \
       --delimiter='[[:space:]]+:[[:space:]]+' \
-      --preview-window=right:60% \
       --preview '
-        bash -ceu "
-          user_ip=\$(cut -d : -f2 <<< \"\$1\" | xargs)
-          ip=\${user_ip#*@}
-          user=\${user_ip%@*}
-          echo -e \"\033[36m>> HOST:\033[0m \033[3;35m\$user@\$ip\033[0m\n\"
+        bash -cu "
+          loginInfo=\$(cut -d : -f2 <<< \"\$1\" | xargs)
+          ip=\${loginInfo#*@}
+          user=\${loginInfo%@*}
+          echo -e \"\033[1;36m[HOST]\033[0m \033[3;35m\${user}@\${ip}\033[0m\n\"
           out=\$(/sbin/ping -c1 -o -W1 \"\$ip\" 2>&1)
           [ \$? -eq 0 ] && echo \"\$out\" || echo -e \"\033[31mUnreachable or DNS error\033[0m\"
         " _ {}
