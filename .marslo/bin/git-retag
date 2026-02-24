@@ -14,7 +14,7 @@ declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # shellcheck disable=SC2015
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
-function showHelp() { echo -e "${usage}"; exit 0; }
+function showHelp() { echo -e "${USAGE}"; exit 0; }
 function die() { echo -e "$(c R)ERROR$(c) : $*" >&2; exit 2; }
 function isRepo() { git rev-parse --git-dir >/dev/null 2>&1 || exitOnError 'not a git repo !'; }
 function getRevision() { sha=$(git rev-parse -q --verify "$1^{commit}"); echo "${sha}"; }
@@ -38,7 +38,7 @@ function grt() {
   echo -e "$(c Y)~~> re-tag$(c) $(c R)refname:${objectType}$(c) $(c Y): '${sourceTag}' to '${newTag}'$(c) ${moreInfo}"
   eval "${command}"
 
-  if [ 'true' = "${push}" ]; then
+  if "${push}"; then
     echo -e "$(c Y)~~> push ${newTag} and remove ${sourceTag}$(c) ${moreInfo}"
     pushCmd+="git push origin ':${sourceTag}'; "
     pushCmd+="git push origin 'tags/${newTag}'; "
@@ -48,40 +48,39 @@ function grt() {
   fi
 }
 
-usage="""
+declare -r USAGE="""
 NAME
-\tgit retag - re-tag with original committer and date to new revision
+  git retag - re-tag with original committer and date to new revision
 
 SYNOPSIS
-\t$(c sY)\$ git retag$(c) [ $(c Bi)<p|-p|push|--push>$(c) | $(c Bi)<REVISION>$(c) ] $(c M)<SOURCE_TAG>$(c) $(c Y)<NEW_TAG>$(c) $(c)
+  $(c sY)\$ git retag$(c) [ $(c Bi)<p|-p|push|--push>$(c) | $(c Bi)<REVISION>$(c) ] $(c M)<SOURCE_TAG>$(c) $(c Y)<NEW_TAG>$(c) $(c)
 
 EXAMPLE
+  $(c Wdi)# show help$(c)
+  $(c G)\$ git retag$(c)
 
-\t$(c Wdi)show help$(c)
-\t\t$(c G)\$ git retag$(c)
+  $(c Wdi)# re-tag docker.v2.0 to docker.x$(c)
+  $(c G)\$ git retag$(c)        $(c Mi)docker.v2.0$(c)           $(c Yi)docker.x$(c)
+  $(c G)\$ git retag$(c)        $(c Mi)docker.v2.0$(c)           $(c Yi)refs/tags/docker.x$(c)
+  $(c G)\$ git retag$(c)        $(c Mi)refs/tags/docker.v2.0$(c) $(c Yi)docker.x$(c)
+  $(c G)\$ git retag$(c)        $(c Mi)refs/tags/docker.v2.0$(c) $(c Yi)refs/tags/docker.x$(c)
 
-\t$(c Wdi)re-tag docker.v2.0 to docker.x$(c)
-\t\t$(c G)\$ git retag$(c)        $(c Mi)docker.v2.0$(c)           $(c Yi)docker.x$(c)
-\t\t$(c G)\$ git retag$(c)        $(c Mi)docker.v2.0$(c)           $(c Yi)refs/tags/docker.x$(c)
-\t\t$(c G)\$ git retag$(c)        $(c Mi)refs/tags/docker.v2.0$(c) $(c Yi)docker.x$(c)
-\t\t$(c G)\$ git retag$(c)        $(c Mi)refs/tags/docker.v2.0$(c) $(c Yi)refs/tags/docker.x$(c)
+  $(c Wdi)# re-tag docker.v2.0 to docker.x and push into remote repository$(c)
+  $(c G)\$ git retag$(c) $(c B)-p$(c)     $(c Mi)refs/tags/docker.v2.0$(c) $(c Yi)docker.x$(c)
+  $(c G)\$ git retag$(c) $(c B)--push$(c) $(c Mi)refs/tags/docker.v2.0$(c) $(c Yi)docker.x$(c)
 
-\t$(c Wdi)re-tag docker.v2.0 to docker.x and push into remote repository$(c)
-\t\t$(c G)\$ git retag$(c) $(c B)-p$(c)     $(c Mi)refs/tags/docker.v2.0$(c) $(c Yi)docker.x$(c)
-\t\t$(c G)\$ git retag$(c) $(c B)--push$(c) $(c Mi)refs/tags/docker.v2.0$(c) $(c Yi)docker.x$(c)
+  $(c Wdi)# move tag docker.v2.0 to docker.x on HEAD$(c)
+  $(c G)\$ git retag$(c)        $(c Mi)docker.v2.0$(c)           $(c Yi)docker.x$(c)            $(c Bi)HEAD$(c)
 
-\t$(c Wdi)move tag docker.v2.0 to docker.x on HEAD$(c)
-\t\t$(c G)\$ git retag$(c)        $(c Mi)docker.v2.0$(c)           $(c Yi)docker.x$(c)            $(c Bi)HEAD$(c)
-
-\t$(c Wdi)move tag docker.v2.0 to docker.x on HEAD and push to remote repository$(c)
-\t\t$(c G)\$ git retag$(c) $(c B)-p$(c)     $(c Mi)docker.v2.0$(c)           $(c Yi)docker.x$(c)            $(c Bi)HEAD$(c)
-\t\t$(c G)\$ git retag$(c) $(c B)--push$(c) $(c Mi)docker.v2.0$(c)           $(c Yi)refs/tags/docker.x$(c)  $(c Bi)HEAD$(c)
+  $(c Wdi)# move tag docker.v2.0 to docker.x on HEAD and push to remote repository$(c)
+  $(c G)\$ git retag$(c) $(c B)-p$(c)     $(c Mi)docker.v2.0$(c)           $(c Yi)docker.x$(c)            $(c Bi)HEAD$(c)
+  $(c G)\$ git retag$(c) $(c B)--push$(c) $(c Mi)docker.v2.0$(c)           $(c Yi)refs/tags/docker.x$(c)  $(c Bi)HEAD$(c)
 
 OPTIONS
-\t$(c Bi)p$(c), $(c Bi)-p$(c), $(c Bi)push$(c), $(c Bi)--push$(c) : push changes into remote repository
+  $(c Bi)p$(c), $(c Bi)-p$(c), $(c Bi)push$(c), $(c Bi)--push$(c) : push changes into remote repository
 """
 
-declare push='false'
+declare push=false
 declare sourceTag=''
 declare newTag=''
 declare sha=''
@@ -102,7 +101,7 @@ if [[ 2 -eq $# ]]; then
   newTag="""$(echo "$2" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
 elif [[ 3 -eq $# ]]; then
   if [[ "$1" = @(p|push|-p|--push) ]]; then
-    push='true'
+    push=true
     sourceTag="""$(echo "$2" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
     newTag="""$(echo "$3" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
   else
@@ -112,7 +111,7 @@ elif [[ 3 -eq $# ]]; then
   fi
 elif [[ 4 -eq $# ]]; then
   if [[ "$1" = @(p|push|-p|--push) ]]; then
-    push='true'
+    push=true
     sourceTag="""$(echo "$2" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
     newTag="""$(echo "$3" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
     sha="$3"
