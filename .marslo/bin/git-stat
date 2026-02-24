@@ -120,9 +120,9 @@ function commitsCount() {
   fi
 
   echo -e "${allCount} ${userCount}" |
-           awk '{ aCount=$1; uCount=$2; countRate=$2*100/$1; } END \
-                { printf( "\tcommit submitted : %7.4f%% ( %d/%d ) \n" , countRate, uCount, aCount ) }' |
-           padRight
+  awk '{ aCount=$1; uCount=$2; countRate=$2*100/$1; } END \
+       { printf( "\tcommit submitted : %7.4f%% ( %d/%d ) \n" , countRate, uCount, aCount ) }' |
+  padRight
 }
 
 # main

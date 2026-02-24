@@ -4,7 +4,7 @@
 #     FileName : ssh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-05-27 20:12:14
-#   LastChange : 2026-02-12 23:32:49
+#   LastChange : 2026-02-24 02:19:15
 #        Usage : /path/to/ssh -- --help
 #=============================================================================
 
@@ -94,11 +94,12 @@ if [[ "${USE_FZF}" != 'true' ]] && [[ "${#args[@]}" -gt 0 ]]; then
   exec /usr/bin/ssh "${args[@]}"
 fi
 
-hosts_list=$(awk '
+hostList=$(awk '
     BEGIN {
       colorStart = "\033[37;2;3m"
       colorEnd   = "\033[0m"
     }
+
     # -------- helpers --------
     function trimDomain(s) { sub(/\.marvell\.com$/, "", s); return s }
     function isIPV4(s) { return (s ~ /^(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])){3}$/) }
@@ -106,11 +107,7 @@ hosts_list=$(awk '
       if (n_alias > 0 && ip != "" && user != "") {
         for ( i = 1; i <= n_alias; i++ ) {
           key = user "@" ip " : " alias[i]
-          if ( !(key in printed) ) {
-            # printf "%s%s%s : %s@%s\n", colorStart, alias[i], colorEnd, user, ip
-            printf "%s@%s : %s\n", user, ip, alias[i]
-            printed[key] = 1
-          }
+          if ( !(key in printed) ) { printf "%s@%s : %s\n", user, ip, alias[i]; printed[key] = 1; }
         }
       }
       n_alias = 0
@@ -118,10 +115,13 @@ hosts_list=$(awk '
       delete seenAlias
       ip = user = ""
     }
-    # -------- main --------
-    /^[[:space:]]*#/ || NF == 0 { next }
 
-    $1 == "Host" {
+    # -------- main --------
+    { sub(/\r$/, "") }
+    /^[[:space:]]*#/ || NF == 0 { next }
+    { key = tolower($1) }
+
+    key == "host" {
       emit()
       for ( i = 2; i <= NF; i++ ) {
         if ( $i ~ /^#/ ) break
@@ -134,40 +134,44 @@ hosts_list=$(awk '
       }
       next
     }
-    $1 == "User"     { user = $2; next }
-    $1 == "Hostname" { ip = $2; next }
+
+    key == "user"     { user = $2; next }
+    key == "hostname" { ip = $2; next }
+
     END { emit() }
   ' "${SSH_CONFIG_FILES[@]}"
 )
 
 # shellcheck disable=SC2016
 target=$(
-  echo "${hosts_list}" |
-  awk -F':' '
-    $2 !~ /sfw.*jenkins/ && $1 !~ /sms.*jenkins/ {
-      printf "%s:%s\n", $2, $1
-    }
-  ' |
+  echo "${hostList}" |
+  awk -F':' '$2 !~ /sfw.*jenkins/ && $1 !~ /sms.*jenkins/ && $0 !~ /git@github\.com/ {
+    gsub(/^[ \t]+|[ \t]+$/, "", $1);
+    gsub(/^[ \t]+|[ \t]+$/, "", $2);
+    printf "%s:%s\n", $2, $1
+  }' |
   sort |
   column -t -s ':' -o ': ' |
-  fzf \
-  --ansi \
-  --no-multi \
-  --prompt='󱚥 ' \
-  --color=fg+:#979736,hl+:#979736 \
-  --preview-window=right:60% \
-  --delimiter='[[:space:]]+:[[:space:]]+' \
-  --with-nth="$([[ "${ONLY_ALIAS}" == true ]] && echo 2 || echo 1,2)" \
-  --preview '
-    bash -ceu "
-      user_ip=\$(cut -d : -f2 <<< \"\$1\" | xargs)
-      ip=\${user_ip#*@}
-      user=\${user_ip%@*}
-      echo -e \"\033[36m[HOST]\033[0m \033[3;35m\$user@\$ip\033[0m\n\"
-      out=\$(/sbin/ping -c1 -o -W1 \"\$ip\" 2>&1)
-      [ \$? -eq 0 ] && echo \"\$out\" || echo -e \"\033[31mUnreachable or DNS error\033[0m\"
-    " _ {}
-  '
+  fzf --ansi \
+      --no-multi \
+      --prompt='HOST 󱚥 ' \
+      --color=fg+:#979736,hl+:#979736 \
+      --preview-window=top:70% --height 35% --min-height 3+ \
+      --delimiter='[[:space:]]+:[[:space:]]+' \
+      --with-nth="$([[ "${ONLY_ALIAS}" == true ]] && echo 2 || echo 1,2)" \
+      --preview '
+        bash -cu "
+          loginInfo=\$(cut -d : -f2 <<< \"\$1\" | xargs)
+          ip=\${loginInfo#*@}
+          user=\${loginInfo%@*}
+          echo -e \"\033[36m[HOST]\033[0m \033[3;35m\$user@\$ip\033[0m\n\"
+          if out=\$(/sbin/ping -c1 -o -W1 \"\$ip\" 2>&1); then
+            echo \"\$out\"
+          else
+            echo -e \"\033[3;31mUnreachable or DNS error\033[0m\"
+          fi
+        " _ {}
+      '
 )
 
 [[ -z "${target}" ]] && die 'no target selected ...'
