@@ -1,5 +1,4 @@
 # bash completion V2 for gh                                   -*- shell-script -*-
-# generated via `$ gh completion -s bash`
 
 __gh_debug()
 {
@@ -417,3 +416,11 @@ __start_gh()
     __gh_get_completion_results
     __gh_process_completion_results
 }
+
+if [[ $(type -t compopt) = "builtin" ]]; then
+    complete -o default -F __start_gh gh
+else
+    complete -o default -o nospace -F __start_gh gh
+fi
+
+# ex: ts=4 sw=4 et filetype=sh

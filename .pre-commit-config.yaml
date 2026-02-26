@@ -55,5 +55,4 @@ repos:
     hooks:
       - id: typos
         name: Typos
-        args: ["--write-changes"]
-        exclude: ^(.*/vimrc.d/snips/.*|.*/vimrc.d/shortcuts|.*/.gpg/.*)$
+        args: ['--write-changes', '--force-exclude']
