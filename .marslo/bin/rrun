@@ -4,7 +4,7 @@
 #     FileName : rrun
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-09 16:43:02
-#   LastChange : 2026-02-24 02:53:28
+#   LastChange : 2026-02-24 04:10:04
 #=============================================================================
 
 set -euo pipefail
@@ -145,20 +145,30 @@ done
     gsub(/^[ \t]+|[ \t]+$/, "", $2);
     printf "%s:%s\n", $2, $1
   }' |
-  sort |
   column -t -s ':' -o ': ' |
+  awk '{
+    orig=$0;
+    match($0, /[0-9]+/);
+    num_str = substr($0, RSTART, RLENGTH);
+    prefix  = substr($0, 1, RSTART-1);
+    is_zero = (substr(num_str, 1, 1) == "0" ? "0" : "1");
+    printf "%s\t%s\t%010d\t%s\n", prefix, is_zero, num_str, orig
+  }' | \
+  sort -k1,1 -k2,2 -k3,3 | \
+  cut -f4 |
   fzf --ansi \
       --no-multi \
       --prompt='HOST 󱚥 ' \
-      --color=fg+:#979736,hl+:#979736 \
+      --color=fg+:#979736,hl+:#979736,label:italic:#77A678 \
       --preview-window=top:65% --height 35% --min-height 3+ \
       --delimiter='[[:space:]]+:[[:space:]]+' \
+      --bind 'focus:transform-preview-label:echo " $(cut -d: -f2 <<< {} | xargs) "' \
       --preview '
         bash -cu "
           loginInfo=\$(cut -d : -f2 <<< \"\$1\" | xargs)
           ip=\${loginInfo#*@}
           user=\${loginInfo%@*}
-          echo -e \"\033[1;36m[HOST]\033[0m \033[3;35m\${user}@\${ip}\033[0m\n\"
+          # echo -e \"\033[1;36m[HOST]\033[0m \033[3;35m\${user}@\${ip}\033[0m\n\"
           out=\$(/sbin/ping -c1 -o -W1 \"\$ip\" 2>&1)
           [ \$? -eq 0 ] && echo \"\$out\" || echo -e \"\033[31mUnreachable or DNS error\033[0m\"
         " _ {}
