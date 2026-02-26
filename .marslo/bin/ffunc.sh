@@ -113,6 +113,27 @@ function copy() {                          # smart copy
   fi
 }
 
+# smart open   : using `fzf` to list files and open the selected file with default application
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# shellcheck disable=SC2317
+function open() {                          # smart open
+  [[ "Darwin" != "$(uname -s)" ]] && echo -e "$(c Rs)ERROR: 'open' function currently only support macOS :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)" && return;
+
+  eval "$( _load_fd_context  )"
+  eval "$( _load_fzf_context )"
+
+  if [[ 0 -eq $# ]]; then
+    local selected=$( fd . "${fdopt[@]}" | fzf --exit-0 "${fzfopt[@]}" )
+    [[ -n "${selected}" ]] && echo "${selected}" | tr '\n' '\0' | xargs -0 command open
+  elif [[ 1 -eq $# ]] && [[ -d "$1" ]]; then
+    local target=$1;
+    fd . "${target}" "${fdopt[@]}" | fzf --bind="enter:become(command open {+})" "${fzfopt[@]}";
+  else
+    command open "${@}"
+  fi
+}
+
 # smart cat    : using bat by default for cat content, respect bat options
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
