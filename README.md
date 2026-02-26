@@ -42,7 +42,7 @@ Life is short, make it easier!
 
 <br>
 
-![ffunc.sh](https://github.com/marslo/dotfiles/raw/assets/screenshots/ffunc.sh.gif)
+![ffunc.sh](https://github.com/marslo/dotfiles/blob/assets/screenshots/ffunc.sh.new.gif)
 
 ![LS_COLORS](https://github.com/marslo/dotfiles/raw/assets/screenshots/LS_COLORS-2.png)
 
