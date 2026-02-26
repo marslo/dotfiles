@@ -2,7 +2,7 @@
 #     FileName : gitalias
 #       Author : marslo
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2026-02-10 18:00:12
+#   LastChange : 2026-02-26 14:49:19
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -44,7 +44,7 @@
   https-lunset = "!git config --local --unset-all url.\"https://github.com/\".insteadOf"
 
   #-----------------------#
-  # pretty show
+  # pretty show           #
   #-----------------------#
   # {{{
   # -p       : show patchset ( detail contents )
@@ -54,19 +54,18 @@
   changes     = log -M --follow --stat --
   ls          = log --stat --pretty=short --graph
   ### [p]retty [l]og(s)
-  pl          = !git -c log.decorate=short --no-pager log --color --graph --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) %C(#A557A5)[%G?]%C(reset)'" --abbrev-commit --date=relative --max-count=3
-  pls         = !git -c log.decorate=full log --color --graph --decorate --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset) %C(#A557A5)[%G?]%C(reset)'" --abbrev-commit --date=relative
+  pl          = !git -c log.decorate=short --no-pager log --color --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) %C(italic #6971a3)[%G?]%C(reset)'"
+  pls         = !git -c log.decorate=full log  --decorate --color --graph --abbrev-commit --date=relative --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset) %C(italic #6971a3)[%G?]%C(reset)'"
   ### [p]revious branch [p]retty [l]og
-  ppl         = !git --no-pager log --color --graph --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) %C(#A557A5)[%G?]%C(reset)'" --abbrev-commit --date=relative --max-count=3 @{-1}
+  ppl         = !git --no-pager log --color --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) %C(italic #6971a3)[%G?]%C(reset)'" @{-1}
   ### [f]ull [p]retty [l]log
-  fpl         = log --graph --abbrev-commit --decorate --format=format:"'%C(#83a598)%H%C(reset) - %C(cyan)%aD%C(reset) %C(green)(%ar)%C(reset)%C(auto)%d%C(reset)%n'""'          %C(italic white)%s%C(reset) %C(dim white)- %an%C(reset) %C(#A557A5)[%G?]%C(reset)'"
+  fpl         = log --graph --abbrev-commit --decorate --format=format:"'%C(#83a598)%H%C(reset) - %C(cyan)%aD%C(reset) %C(green)(%ar)%C(reset)%C(auto)%d%C(reset)%n'""'          %C(italic white)%s%C(reset) %C(dim white)- %an%C(reset) %C(italic #6971a3)[%G?]%C(reset)'"
   fl          = log -p --graph --color --graph
-  who-renamed = "!bash -c \"git log -M --summary | grep -E '^\\s*rename.*{.*=>.*}'\""
   dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format="'%C(6)%h%C(reset) %C(yellow)(%ad)%C(reset) %s %C(blue)<%an>%C(reset)'"
-  revlog      = log --max-count=3 --color --graph --notes=linrev --pretty=tformat:'%C(bold red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset) %N' --abbrev-commit --date=relative
+  revlog      = log --max-count=3 --color --graph --abbrev-commit --date=relative --notes=linrev --pretty=tformat:"'%C(bold red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset) %N'"
   ### showing all branches and their relationships
   clog        = log --color --graph --all --decorate --simplify-by-decoration --oneline
-  tree        = log --color --graph --all --decorate --abbrev-commit --pretty=oneline --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)'
+  tree        = log --color --graph --all --decorate --abbrev-commit --pretty=oneline --format=format:"'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)'"
   ### [r]emote [log]
   rlog        = "!bash -c 'while read branch; do \n\
                               git fetch --all --force; \n\
@@ -78,6 +77,7 @@
                               git pls refs/remotes/origin/${branch}; \n\
                             done < <(git rev-parse --abbrev-ref HEAD); \n\
                            '"
+  who-renamed = "!bash -c \"git log -M --summary | grep -E '^\\s*rename.*{.*=>.*}'\""
   # @deprecated
   pshow       = show -s --pretty='tformat:%C(red)%h%C(reset) %C(green)(%s)%C(reset)'
   ### [p]retty [t]ag(s)
@@ -125,7 +125,7 @@
   # }}}
 
   #-----------------------#
-  # branch
+  # branch                #
   #-----------------------#
   # {{{
   br          = branch --sort=-committerdate
@@ -149,7 +149,7 @@
   # }}}
 
   #-----------------------#
-  # commit && push
+  # commit && push        #
   #-----------------------#
   # {{{
   ci          = commit -s -m
@@ -246,7 +246,7 @@
   # }}}
 
   #-----------------------#
-  # Change-Id
+  # Change-Id             #
   #-----------------------#
   # {{{
   ### [c]hange-[i][d]
@@ -311,7 +311,7 @@
   # }}}
 
   #-----------------------#
-  # conflict
+  # conflict              #
   #-----------------------#
   # {{{
   ### [c]onflict [f]ile
@@ -329,26 +329,34 @@
   # }}}
 
   #-----------------------#
-  # submodule
+  # submodule             #
   #-----------------------#
   # {{{
   ### [s]ubmodel [u]pdate
+  sro         = "!f() { \
+                        if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \
+                          git submodule foreach --recursive git clean -dffx; \
+                          git submodule foreach --recursive git reset --hard; \
+                          git submodule update -f --init --recursive; \
+                        fi; \
+                      }; f;\
+                "
   su          = "!bash -c 'git submodule sync --recursive && git submodule update -f --init --recursive'"
   sub         = submodule
-  subpull     = !git pull && git submodule sync --recursive && git submodule update --init --recursive
+  subpull     = !git pull --rebase && git submodule sync --recursive && git submodule update --init --recursive
   subupdate   = submodule update --remote --merge
   subst       = submodule foreach \"git status\"
   # }}}
 
   #-----------------------#
-  # revision
+  # revision              #
   #-----------------------#
   # {{{
   # retag       = !bash -c 'source $HOME/.marslo/bin/ig.sh && grt "$*"'
   # }}}
 
   #-----------------------#
-  # revision
+  # revision              #
   #-----------------------#
   # {{{
   show-rev        = "!f(){ git rev-list --count $1; }; f"
@@ -384,7 +392,7 @@
   # }}}
 
   #-----------------------#
-  # utility
+  # utility               #
   #-----------------------#
   # {{{
   in          = info --no-config
@@ -513,7 +521,7 @@
                           remote=$(git for-each-ref --format='%(upstream:remotename)' \"refs/heads/${branch}\"); \
                           extra=''; \
                         fi; \
-                        printf \"\\033[1;3;33m~~> ${branch}\\033[0m ${extra}\n\"; \
+                        printf \"\\033[1;3;33m~~> %s\\033[0m%s\n\" "${branch}" " ${extra}"; \
                         if [ 'meta/config' = \"${branch}\" ]; then \
                           git fetch ${remote} --force refs/meta/config:refs/remotes/${remote}/meta/config; \
                         else \
@@ -526,7 +534,7 @@
                           git submodule foreach --recursive git reset --hard; \
                           git submodule update -f --init --recursive; \
                         fi; \
-                      }; f \
+                      }; f;\
                 "
 
   ### [r]eset to [o]riginal and re[b]ase
@@ -551,7 +559,7 @@
   # }}}
 
   #-----------------------#
-  # diff
+  # diff                  #
   #-----------------------#
   # {{{
   ### [d]iff with [r]emote branch - requires difftastic tool installed
@@ -580,7 +588,7 @@
   # }}}
 
   #-----------------------#
-  # others
+  # others                #
   #-----------------------#
   # {{{
   prepo       = "!bash -c \"git config credential.helper store; git config user.name marslo; git config user.email marslo.jiao@gmail.com; git config alias.ro 'pull --rebase'\""
@@ -619,7 +627,7 @@
   # }}}
 
   #-----------------------#
-  # show-alais
+  # show-alais            #
   #-----------------------#
   # {{{
   # https://stackoverflow.com/q/53841043/2940319
