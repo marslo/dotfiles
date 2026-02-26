@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2025-11-15 00:04:43
+#  LastChange : 2026-02-25 15:57:52
 #  Description : ifunctions
 # =============================================================================
 
@@ -77,7 +77,7 @@ function udfs {
 
 function mdiff() {
   echo -e " [${1##*/}]\\t\\t\\t\\t\\t\\t\\t[${2##*/}]"
-  diff -y --suppress-common-lines "$1" "$2"
+  diff --side-by-side --suppress-common-lines "$1" "$2"
 }
 
 function ibtoc() {
@@ -156,13 +156,14 @@ function mg() {
     $(c Cs)\$ mg $(c 0Bi)iC 3 $(c 0Yi)'hello' $(c 0Mi)~/.marslo$(c)
   """
 
-  keyword=''
-  path='.'
-  debug=1
-  grepOpt='--color=always -n -H'
-  gitOptAdditional='-E'
-  name=''
-  param=$( tr '[:upper:]' '[:lower:]' <<< "$1" )
+  local keyword=''
+  local path='.'
+  local debug=1
+  local grepOpt='--color=always -n -H'
+  local gitOptAdditional='-E'
+  local name=''
+  # shellcheck disable=SC2155
+  local param=$( tr '[:upper:]' '[:lower:]' <<< "$1" )
 
   contains 'ifmwabce' "${param}"
   # shellcheck disable=SC2034
@@ -209,12 +210,12 @@ function mg() {
 
     # or using + instead of ; details: https://unix.stackexchange.com/a/43743/29178
     # shellcheck disable=SC2027,SC2125
-    cmd=" find '${path}'"
-    cmd+=" -type f"
-    cmd+=" ${name}"
-    cmd+=" -not -path '*.git/*'"
-    cmd+=" -not -path '*node_modules/*'"
-    cmd+=" -exec ${GREP} ${grepOpt} '${keyword}' {} \;"
+    local -a cmd=( find "${path}" )
+    cmd+=( -type f )
+    cmd+=( "${name}" )
+    cmd+=( -not -path '*.git/*' )
+    cmd+=( -not -path '*node_modules/*' )
+    cmd+=( -exec "${GREP}" "${grepOpt}" "${keyword}" {} \; )
 
     # find "${path}" \
          # -type f \
@@ -224,20 +225,19 @@ function mg() {
          # -exec ${GREP} ${grepOpt} "${keyword}" {} \; ||
 
     [[ 0 -eq debug ]] &&
-        echo -e """
-          $(c G)DEBUG INFO:$(c)
-                 $(c Y)\$1$(c) : $(c C)'${1}'$(c)
-                 $(c Y)\$2$(c) : $(c C)'${2:-}'$(c)
-                 $(c Y)\$3$(c) : $(c C)'${3:-}'$(c)
-                 $(c Y)\$4$(c) : $(c C)'${4:-}'$(c)
-            $(c Y)keyword$(c) : $(c C)'${keyword}'$(c)
-               $(c Y)path$(c) : $(c C)'${path:-}'$(c)
-            $(c Y)grepOpt$(c) : $(c C)'${grepOpt}'$(c)
-                $(c Y)cmd$(c) : $(c C)\$${cmd}$(c)
-         """
+    echo -e """
+      $(c G)DEBUG INFO:$(c)
+             $(c Y)\$1$(c) : $(c C)'${1}'$(c)
+             $(c Y)\$2$(c) : $(c C)'${2:-}'$(c)
+             $(c Y)\$3$(c) : $(c C)'${3:-}'$(c)
+             $(c Y)\$4$(c) : $(c C)'${4:-}'$(c)
+         $(c Y)keyword$(c) : $(c C)'${keyword}'$(c)
+            $(c Y)path$(c) : $(c C)'${path:-}'$(c)
+         $(c Y)grepOpt$(c) : $(c C)'${grepOpt}'$(c)
+             $(c Y)cmd$(c) : $(c C)\$${cmd[*]}$(c)
+    """
 
-    eval "${cmd}" ||
-         echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
+    "${cmd[@]}" || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd[*]}$(c) """
 
   elif [ 0 -ne $# ]; then
     echo -e "${usage}"
@@ -373,9 +373,9 @@ function ms() {
 
   if [ -n "${sw}" ] && [ -n "${tw}" ]; then
     # shellcheck disable=SC2125,SC2027
-    cmd="""find "${path}" -type f -not -path "*git/*" -exec sed ${opt} \"s:${sw}:${tw}:g\" -i {} \;"""
-    eval "${cmd}" ||
-         echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd}$(c) """
+    local -a cmd=( find "${path}" -type f -not -path "*git/*" -exec sed "${opt}" "s:${sw}:${tw}:g" -i {} \; )
+    "${cmd[@]}" || echo -e """\n$(c Y)ERROR ON COMMAND:$(c)\n\t$(c R)$ ${cmd[*]}$(c) """
+
   else
     echo -e "${usage}"
   fi
@@ -430,14 +430,15 @@ function tcmd() {
   declare tc='/mnt/c/iMarslo/myprograms/totalcmd/TOTALCMD64.EXE'
   declare cygpath='/mnt/c/iMarslo/myprograms/Git/usr/bin/cygpath.exe'
   declare currentPath="$(realpath "$PWD" | sed -r 's/^\/mnt(.+)$/\1/')"
-  declare cmd="${tc} '$(${cygpath} -w "${currentPath}")'"
+  declare -a cmd=( "${tc}" "$(${cygpath} -w "${currentPath}")" )
   echo -e "$(c Wd)>>$(c) $(c Gis)${currentPath}$(c) $(c Wdi)will be opened in totalcmd ..$(c)"
-  eval "${cmd}"
+  "${cmd[@]}"
 }
 
 # inspired in https://github.com/sharkdp/bat/issues/2916#issuecomment-2061788871
 function showTODO() {
-  local option='--style="grid,changes,header"'
+  local -a option=( --style 'numbers,changes,snip,grid,header' --theme Nord )
+  local -a cmd=()
   local isNL=true
   # shellcheck disable=SC2155
   local usage="$(c Cs)showTODO$(c) - show all TODO comments in the codebase
@@ -446,8 +447,8 @@ function showTODO() {
     \nOPTIONS
       • $(c G)-nl$(c), $(c G)--no-ln$(c)                 : do not show line numbers
       • $(c G)-p$(c), $(c G)--plain$(c)                  : plain output without any decorations
-      • $(c G)-s$(c), $(c G)--style $(c 0Mi)<STYLE_OPTIONS>$(c)  : specify style options for bat $(c Wi)(default: $(c 0Mi)'grid,changes,header'$(c 0Wi))$(c)
-      • $(c G)-*$(c)                            : other options passed to bat command)
+      • $(c G)-s$(c), $(c G)--style $(c 0Mi)<STYLE_OPTIONS>$(c)  : specify style options for bat $(c Wi)(default: $(c 0Mi)'numbers,changes,snip,grid,header'$(c 0Wi))$(c)
+      • $(c G)-*$(c)                           : other options passed to bat command)
       • $(c G)-h$(c), $(c G)--help$(c)                   : show this help message
     \nEXAMPLES
       $(c Cs)\$ showTODO $(c 0Gi)-nl --style $(c 0Mi)'plain'$(c)
@@ -456,10 +457,10 @@ function showTODO() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -nl | --no-ln ) isNL=false         ; shift    ;;
-       -p | --plain ) option+=" $1"      ; shift    ;;
-       -s | --style ) option+=" $1"      ; shift    ;;
-        -h | --help ) echo -e "${usage}" ; return 0 ;;
-                 -* ) option+=" $1 $2"   ; shift 2  ;;
+      -p  | --plain ) option+=( "$1" )   ; shift    ;;
+      -s  | --style ) option+=( "$1" )   ; shift    ;;
+      -h  | --help  ) echo -e "${usage}" ; return 0 ;;
+      -*            ) option+=( "$@" )   ; shift 2  ;;
     esac
   done
 
@@ -472,11 +473,11 @@ function showTODO() {
        lang="$(sed -r 's/^.+\.(.+)$/\1/' <<< "${_file}")";
        if ! bat --list-languages | command grep -iE -q "[,:]${lang}|${lang},"; then
          # check shebang and reset to empty if shebang not found
-         lang=$(sed -rn 's/^#!.*[/\ ](\w+)$/\1/p' < <(head -n1 "${_file}"));
+         lang=$( sed -rn 's/^#!.*[/\ ](\w+)$/\1/p' < <(head -n1 "${_file}") );
        fi
-       "${isNL}" && cmd="command nl \"${_file}\"" || cmd="command cat \"${_file}\""
-       sed -ne '/TODO:/,/^\s*$/p' < <(eval "${cmd}") |
-           eval "bat -l ${lang:-groovy} ${option} --file-name=\"${_file}\"" ;
+       "${isNL}" && cmd=( command nl "${_file}" ) || cmd=( command cat "${_file}" )
+       local bcmd=( bat -l "${lang:-groovy}" --file-name="${_file}" )
+       sed -ne '/TODO:/,/^\s*$/p' < <("${cmd[@]}") | "${bcmd[@]}" "${option[@]}"
      done
 }
 
@@ -497,12 +498,11 @@ function fdclean() {
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -p | --path    ) path="${2}"    ; shift 2   ;;
-      -k | --pattern ) pattern="${2}" ; shift 2   ;;
-      -d | --debug   ) verbose=true   ; shift     ;;
-      -v | --verbose ) verbose=true   ; shift     ;;
-      --dryrun       ) dryrun=true    ; shift     ;;
-      *              ) echo "invalid option $1" >&2 ; return 1 ;;
+      -p | --path                   ) path="${2}"    ; shift 2   ;;
+      -k | --pattern                ) pattern="${2}" ; shift 2   ;;
+      -d | -v | --verbose | --debug ) verbose=true   ; shift     ;;
+      --dryrun                      ) dryrun=true    ; shift     ;;
+      *                             ) echo "invalid option $1" >&2 ; return 1 ;;
     esac
   done
 
@@ -520,8 +520,7 @@ function fdclean() {
 function clean() {
   local path="${PWD}"
   local action=''
-  local verbose='false'
-  local -a opt=()
+  local -a option=()
   # shellcheck disable=SC2155
   local usage="""$(c Cs)clean$(c) - clean dump files in path
   \nSYNOPSIS
@@ -539,24 +538,21 @@ function clean() {
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -p | --path    ) path="${2}"       ; shift 2  ;;
-      -a | --all     ) path="$HOME"      ; shift    ;;
-      -v | --verbose ) verbose='true'    ; shift    ;;
-      --dryrun       ) opt+=('--dryrun') ; shift    ;;
-      --dot          ) action='dot'      ; shift    ;;
-      --ds           ) action='ds'       ; shift    ;;
-      --lg           ) action='lg'       ; shift    ;;
-      -h | --help    ) echo -e "${usage}"           ;  return 0 ;;
-      *              ) echo "invalid option $1. try \`-h\`" >&2 ;  return 1 ;;
+      -p | --path         ) path="${2}"           ; shift 2  ;;
+      -a | --all          ) path="$HOME"          ; shift    ;;
+      --dot | --ds | --lg ) action="${1#--}"      ; shift    ;;
+      --dryrun            ) option+=('--dryrun')  ; shift    ;;
+      -v | --verbose      ) option+=('--verbose') ; shift    ;;
+      -h | --help         ) echo -e "${usage}"    ; return 0 ;;
+      *                   ) echo "invalid option $1. try \`-h\`" >&2 ;  return 1 ;;
     esac
   done
 
-  [[ 'true' = "${verbose}" ]] && opt+=('--verbose')
   case "${action}" in
-    'dot' ) eval "fdclean --path '${path}' --pattern '._*' ${opt[*]}"         ;;
-    'ds'  ) eval "fdclean --path '${path}' --pattern '.DS_*' ${opt[*]}"       ;;
-    'lg'  ) eval "fdclean --path '${path}' --pattern 'logback.log' ${opt[*]}" ;;
-    ''    ) echo -e "$(c Ri)ERROR:$(c) action is empty."                       ;;
+    'dot' ) eval "fdclean --path '${path}' --pattern '._*' ${option[*]}"         ;;
+    'ds'  ) eval "fdclean --path '${path}' --pattern '.DS_*' ${option[*]}"       ;;
+    'lg'  ) eval "fdclean --path '${path}' --pattern 'logback.log' ${option[*]}" ;;
+    ''    ) echo -e "$(c Ri)ERROR:$(c) action is empty."                         ;;
   esac
 }
 
@@ -566,7 +562,8 @@ function md2html() {
   local output=''
   local pHome="$HOME/.marslo/pandoc"
   local tDepth='4'
-  local verbose='false'
+  local verbose=false
+  local -a cmd=()
   # shellcheck disable=SC2155
   local usage="""$(c Cs)md2html$(c) - convert markdown to html
   \nSYNOPSIS
@@ -598,7 +595,7 @@ function md2html() {
       -i | --input             ) mdfile="${2}"      ; shift 2  ;;
       -o | --output            ) output="${2}"      ; shift 2  ;;
       --toc-depth              ) tDepth="${2}"      ; shift 2  ;;
-      -v | --debug | --verbose ) verbose='true'     ; shift    ;;
+      -v | --debug | --verbose ) verbose=true     ; shift    ;;
       -h | --help              ) echo -e "${usage}" ; return 0 ;;
       *                        ) if [[ $1 != -* ]] && [[ -z "${mdfile}" ]]; then
                                    mdfile="$1"
@@ -631,17 +628,17 @@ function md2html() {
     pTitle=''
   fi
 
-  cmd="pandoc -f gfm -t html5 --embed-resources --standalone"
-  cmd+=" --lua-filter=${pHome}/alert.lua"
-  cmd+=" ${pTitle} --metadata date=\"$(date +%Y-%m-%d)\""
-  cmd+=" --toc --toc-depth=${tDepth}"
-  cmd+=" --css ${pHome}/github.css --css ${pHome}/alert.css --css ${pHome}/header-footer.css"
-  cmd+=" ${pHeader}"
-  cmd+=" --pdf-engine=weasyprint"
-  cmd+=" ${mdfile} -o ${output}"
+  cmd+=( pandoc -f gfm -t html5 --embed-resources --standalone )
+  cmd+=( --lua-filter="${pHome}"/alert.lua )
+  cmd+=( "${pTitle}" --metadata date="$(date +%Y-%m-%d)" )
+  cmd+=( --toc --toc-depth="${tDepth}" )
+  cmd+=( --css "${pHome}"/github.css --css "${pHome}"/alert.css --css "${pHome}"/header-footer.css )
+  cmd+=( "${pHeader}" )
+  cmd+=( --pdf-engine=weasyprint )
+  cmd+=( "${mdfile}" -o "${output}" )
 
-  [[ 'true' = "${verbose}" ]] && echo -e "$(c Wid)>> [DEBUG]:$(c)\n\t$(c Yi)${cmd}$(c)"
-  eval "${cmd}"
+  "${verbose}" && echo -e "$(c Wid)>> [DEBUG]:$(c)\n\t$(c Yi)${cmd[*]}$(c)"
+  "${cmd[@]}"
 
   # revert header.html
   # sed -i "s/\(--title: \"\)[^\"]*/\1Title Here/" ${pHome}/header.html
@@ -649,12 +646,12 @@ function md2html() {
   sed "${sedArgs[@]}" "${pHome}/header.html"
 }
 
-# [new] [p]ass[w]or[d]
-function newpwd() {
+# [new] [p]ass[w]ord
+function newpw() {
   local level=1
   local char=32
   local pattern=''
-  local clipboard=false
+  local copy=false
   local verbose=false
   local show=true
   # shellcheck disable=SC2155
@@ -670,22 +667,21 @@ function newpwd() {
   usage+="\n  $(c G)--no-show$(c)             do not show the generated password in the terminal"
   usage+="\n  $(c G)-v$(c), $(c G)--verbose$(c)         show verbose output $(c 0Wdi)( default: $(c 0Mi)false$(c 0Wdi) )$(c)"
   usage+="\n  $(c G)-h$(c), $(c G)--help$(c)            show this help message"
-  [[ "$(uname)" == "Darwin" ]] && clipboard=true
+  [[ "$(uname)" == "Darwin" ]] && copy=true
 
   function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; }
 
   while [[ $# -gt 0 ]]; do
     case $1 in
-      -c | --char    ) char="$2"          ; shift 2  ;;
-      -l | --level   ) level="$2"         ; shift 2  ;;
-      --copy         ) clipboard=true     ; shift    ;;
-      --no-copy      ) clipboard=false    ; shift    ;;
-      --show         ) show=true          ; shift    ;;
-      --no-show      ) show=false         ; shift    ;;
-      -v | --verbose ) verbose=true       ; shift    ;;
-      -h | --help    ) echo -e "${usage}" ; return   ;;
-      -*             ) die "$(c i)unknown option: $(c 0M)'$1'$(c 0i). try$(c) $(c 0Gi)\`\$ ${ME} -- --help\`$(c)"; return 1 ;;
-      *              ) break                         ;;
+      -c | --char      ) char="$2"          ; shift 2  ;;
+      -l | --level     ) level="$2"         ; shift 2  ;;
+      -v | --verbose   ) verbose=true       ; shift    ;;
+      -h | --help      ) echo -e "${usage}" ; return   ;;
+      # --[no-]copy, --[no-]show
+      --no-*           ) key="${1#--no-}"   ; declare "${key//-/_}=false" ; shift ;;
+      --*              ) key="${1#--}"      ; declare "${key//-/_}=true"  ; shift ;;
+      -*               ) die "$(c i)unknown option: $(c 0M)'$1'$(c 0i). try$(c) $(c 0Gi)\`\$ ${ME} -- --help\`$(c)"; return 1 ;;
+      *                ) break                         ;;
     esac
   done
 
@@ -695,23 +691,25 @@ function newpwd() {
     3) pattern='A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~' ;;
   esac
 
-  cmd="head /dev/urandom | tr -dc '${pattern}' | head -c '${char}' && echo"
-  password=$(eval "${cmd}")
+  # password=$( head /dev/urandom | tr -dc "${pattern}" | head -c "${char}" && echo )
+  pwcmd="head /dev/urandom | tr -dc '${pattern}' | head -c ${char} && echo"
+  password=$( eval "${pwcmd}" )
 
   echo -e "$(c Wdi)>> $(c 0Ys)${char} $(c 0Wdi)length password is generating $(c 0Wdi)with pattern $(c 0Msi)'${pattern}' $(c 0Wdi)..$(c)"
-  "${verbose}" && echo -e "$(c Wdi)>> command: $(c 0Yi)\`${cmd}\` $(c 0Wdi)..$(c)"
+  "${verbose}" && echo -e "$(c Wdi)>> command: $(c 0Yi)\`${pwcmd}\` $(c 0Wdi)..$(c)"
 
-  "${clipboard}" && {
+  local -a cpcmd=()
+  "${copy}" && {
     if command -v xclip &> /dev/null; then
-      echo "${password}" | xclip -selection clipboard
-      echo -e "$(c Wdi).. password copied to clipboard!$(c)"
+      cpcmd=( xclip -selection clipboard )
     elif command -v pbcopy &> /dev/null; then
-      echo -n "${password}" | pbcopy
-      echo -e "$(c Wdi).. password copied to clipboard!$(c)"
+      cpcmd=( pbcopy )
     else
       echo -e "$(c Ri)no clipboard utility found. password not copied.$(c)"
       show=true
     fi
+    echo "${password}" | "${cpcmd[@]}"
+    echo -e "$(c Wdi).. password copied to clipboard!$(c)"
   }
 
   "${show}" && {
@@ -733,7 +731,7 @@ function fdiff() {
 
 # setme - set or remove user as/from admin
 # usage : setme [-a, -s, --set, --add]
-#               [-r, --remote]
+#               [-r, --remove]
 #               [-c, --check]
 #               [-u, --user <username>]
 function setme() {
@@ -744,14 +742,14 @@ function setme() {
 
   local USER=''
   local SETUP=false
-  local REMOTE=false
+  local REMOVE=false
   local CHECK=true
   # shellcheck disable=SC2155
   local USAGE="USAGE
     $(c Cs)\$ setme $(c 0Gi)[ OPTIONS ]$(c)
   \nOPTIONS
     $(c G)-a$(c), $(c G)-s$(c), $(c G)--set$(c), $(c G)--add$(c)     : set the current user (or specified user) as admin
-    $(c G)-r$(c), $(c G)--remote$(c)             : remove the current user (or specified user) from admin
+    $(c G)-r$(c), $(c G)--remove$(c)             : remove the current user (or specified user) from admin
     $(c G)-c$(c), $(c G)--check$(c)              : check if the current user (or specified user) is admin (default)
     $(c G)-u$(c), $(c G)--user $(c 0Mi)<username>$(c)    : specify the username (default: current user)
     $(c G)-h$(c), $(c G)--help$(c)               : show this help message
@@ -760,7 +758,7 @@ function setme() {
     $(c Yi)\$ setme --set$(c)
 
     $(c Wdi)# remove the current user from admin$(c)
-    $(c Yi)\$ setme --remote --user $(c 0Mi)john$(c)
+    $(c Yi)\$ setme --remove --user $(c 0Mi)john$(c)
 
     $(c Wdi)# check if the user 'jane' is admin$(c)
     $(c Yi)\$ setme --check --user $(c 0Mi)jane$(c)
@@ -771,7 +769,7 @@ function setme() {
   while [[ $# -gt 0 ]]; do
     case $1 in
       -a | -s | --set | --add ) SETUP=true  ; shift   ;;
-      -r | --remote           ) REMOTE=true ; shift   ;;
+      -r | --remove           ) REMOVE=true ; shift   ;;
       -c | --check            ) CHECK=true  ; shift   ;;
       -u | --user             ) USER="$2"   ; shift 2 ;;
       -h | --help             ) echo -e "${USAGE}" ; return 0 ;;
@@ -788,7 +786,7 @@ function setme() {
     }
   fi
 
-  if "${REMOTE}"; then
+  if "${REMOVE}"; then
     isAdmin "${USER}" && {
       echo -e "$(c Wdi)>> removing admin user: $(c 0Mi)${USER}$(c 0Wdi) ...$(c)"
       sudo dscl . -delete /Groups/admin GroupMembership "${USER}"
