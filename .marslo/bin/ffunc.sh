@@ -4,12 +4,12 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-02-20 13:05:16
+#   LastChange : 2026-02-25 18:22:01
 #  Description : [f]zf [func]tion
 #=============================================================================
 
 # shellcheck disable=SC2155
-declare -r HERE="$( cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P )"
+declare HERE="$( cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
@@ -60,6 +60,7 @@ function _load_fzf_context() {
                     --preview "${previewCmd}"
                     --preview-window 'right,60%,nowrap,rounded,+15'
                     --bind 'ctrl-/:toggle-preview'
+                    --bind='ctrl-o:execute(bat {} > /dev/tty)'
                   )
   typeset -p fzfopt
 }
