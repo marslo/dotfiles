@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
-# shellcheck source=/dev/null
+# shellcheck source=/dev/null disable=SC2155
 #=============================================================================
 #     FileName : ssh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-05-27 20:12:14
-#   LastChange : 2026-02-24 04:02:31
+#   LastChange : 2026-02-25 17:34:18
 #        Usage : /path/to/ssh -- --help
 #=============================================================================
 
 set -euo pipefail
 
-# shellcheck disable=SC2155
 declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
@@ -18,14 +17,24 @@ declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # shellcheck disable=SC2015
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
+declare USE_FZF=false
+declare ONLY_ALIAS=false
+
+# use [.] instead of \.
+declare -a BLACKLIST=( 'sfw.*jenkins' 'sms.*jenkins' 'git@github[.]com' 'sj1git1-.*[.]cavium[.]com' )
+printf -v BLACKLIST_REGEX "%s|" "${BLACKLIST[@]}"
+BLACKLIST_REGEX="${BLACKLIST_REGEX%|}"
+
+declare -a DOMAINS=( 'marvell[.]com' 'abc[.]com' )
+printf -v TRIM_DOMAINS "%s|" "${DOMAINS[@]}"
+TRIM_DOMAINS="${TRIM_DOMAINS%|}"
+TRIM_REGEX="[.](${TRIM_DOMAINS})$"
+
 function showHelp() { echo -e "${USAGE}"; exit 0; }
 function die() { echo -e "$(c Ri)ERROR$(c) $(c Wdi): $*. exit ...$(c)" >&2; exit 1; }
 
-# shellcheck disable=SC2155
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /g')"
-# shellcheck disable=SC2155
-declare -r USAGE="""
-SSH Wrapper with fzf Support
+declare -r USAGE="SSH Wrapper with fzf Support
 
 USAGE
   $(c Ys)\$ ${ME}                  $(c 0Mi)Launch fzf to select from SSH config (username@host)$(c)
@@ -56,13 +65,11 @@ EXAMPLES
 
   $(c Wdi)# shows alias list (without resolving Hostname)$(c)
   $(c Wdi)↪ $(c 0Y)\$ ${ME} $(c 0Gi)-- --alias$(c)
-"""
+"
 
-declare USE_FZF=false
-declare ONLY_ALIAS=false
 declare -a SSH_CONFIG_FILES=()
 test -f "$HOME/.ssh/config"   && SSH_CONFIG_FILES+=( "$HOME"/.ssh/config )
-# test -d "$HOME/.ssh/config.d" && SSH_CONFIG_FILES+=( "$HOME"/.ssh/config.d/!(:LspInfogerrit|github|tm|tst) )
+# test -d "$HOME/.ssh/config.d" && SSH_CONFIG_FILES+=( "$HOME/.ssh/config.d/"!(gerrit|github|tm|tst) )
 test -d "$HOME/.ssh/config.d" && {
   for f in "$HOME/.ssh/config.d/"*; do
     test -f "$f" || continue
@@ -72,122 +79,97 @@ test -d "$HOME/.ssh/config.d" && {
     esac
   done
 }
-
 [[ "${#SSH_CONFIG_FILES[@]}" -eq 0 ]] && die "no ssh config files found ..."
 
-declare -a wArgs=()         # wrapper args
-declare -a args=()         # ssh args
-
-for arg in "$@"; do
-  case "${arg}" in
-    --          ) shift; wArgs=("$@") ; break ;;  # everything after -- is wrapper args
-    -h | --help ) if [[ "$#" -eq 1 || "$1" == "$arg" ]]; then
-                    exec /usr/bin/ssh --help
-                  fi;
-                  args+=("$arg")      ;;
-    *           ) args+=("$arg")      ;;
+declare -a args=()          # native ssh args
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --          ) shift;
+                  for warg in "$@"; do
+                    case "${warg}" in
+                      -h      | --help     ) showHelp ;;
+                      --fzf   | --no-fzf   ) [[ "${warg}" == --no-* ]] && USE_FZF=false || USE_FZF=true ;;
+                      --alias | --no-alias ) [[ "${warg}" == --no-* ]] && ONLY_ALIAS=false || ONLY_ALIAS=true ;;
+                      *                    ) die "unknown wrapper option: ${warg}" ;;
+                    esac
+                  done; break ;;
+    -h | --help ) args+=("$1"); shift ;;
+    *           ) args+=("$@"); break ;;
   esac
 done
+{ ! "${USE_FZF}" && [[ "${#args[@]}" -gt 0 ]]; } && exec /usr/bin/ssh "${args[@]}"
 
-# handle wrapper-only commands like ssh -- --help
-for warg in "${wArgs[@]}"; do
-  case "${warg}" in
-    -h | --help ) showHelp        ;;
-    --fzf       ) USE_FZF=true    ;;
-    --no-fzf    ) USE_FZF=false   ;;
-    --alias     ) ONLY_ALIAS=true ;;
-  esac
-done
+declare hosts=''
+hosts=$(awk -v bl_regex="${BLACKLIST_REGEX}" -v trim_regex="${TRIM_REGEX}" '
+  function trimDomain(s) { if (trim_regex != "") sub(trim_regex, "", s); return s }
+  function isIPV4(s) { return (s ~ /^(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])){3}$/) }
 
-if [[ "${USE_FZF}" != 'true' ]] && [[ "${#args[@]}" -gt 0 ]]; then
-  exec /usr/bin/ssh "${args[@]}"
-fi
-
-hostList=$(awk '
-    BEGIN {
-      colorStart = "\033[37;2;3m"
-      colorEnd   = "\033[0m"
-    }
-
-    # -------- helpers --------
-    function trimDomain(s) { sub(/\.marvell\.com$/, "", s); return s }
-    function isIPV4(s) { return (s ~ /^(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])){3}$/) }
-    function emit( i, key ) {
-      if (n_alias > 0 && ip != "" && user != "") {
-        for ( i = 1; i <= n_alias; i++ ) {
-          key = user "@" ip " : " alias[i]
-          if ( !(key in printed) ) { printf "%s@%s : %s\n", user, ip, alias[i]; printed[key] = 1; }
+  function emit( i, full_user_ip, check_str ) {
+    if ( n_alias > 0 && ip != "" && user != "" ) {
+      for ( i = 1; i <= n_alias; i++ ) {
+        full_user_ip = user "@" ip
+        check_str = alias[i] ":" full_user_ip
+        if ( bl_regex != "" && check_str ~ bl_regex ) continue
+        if ( !(check_str in printed) ) {
+          printf "%s:%s\n", alias[i], full_user_ip
+          printed[check_str] = 1
         }
       }
-      n_alias = 0
-      delete alias
-      delete seenAlias
-      ip = user = ""
     }
+    n_alias = 0; delete alias; delete seenAlias; ip = user = ""
+  }
 
-    # -------- main --------
-    { sub(/\r$/, "") }
-    /^[[:space:]]*#/ || NF == 0 { next }
-    { key = tolower($1) }
-
-    key == "host" {
-      emit()
-      for ( i = 2; i <= NF; i++ ) {
-        if ( $i ~ /^#/ ) break
-        a = trimDomain($i)
-        if ( isIPV4(a) ) continue
-        if ( !(a in seenAlias) ) {
-          alias[++n_alias] = a
-          seenAlias[a] = 1
-        }
-      }
-      next
+  { sub(/\r$/, "") }
+  /^[[:space:]]*#/ || NF == 0 { next }
+  { key = tolower($1) }
+  key == "host" {
+    emit()
+    for ( i = 2; i <= NF; i++ ) {
+      if ( $i ~ /^#/ ) break
+      a = trimDomain($i)
+      if ( isIPV4(a) ) continue
+      if ( !(a in seenAlias) ) { alias[++n_alias] = a; seenAlias[a] = 1 }
     }
-
-    key == "user"     { user = $2; next }
-    key == "hostname" { ip = $2; next }
-
-    END { emit() }
-  ' "${SSH_CONFIG_FILES[@]}"
-)
+    next
+  }
+  key == "user"     { user = $2; next }
+  key == "hostname" { ip = $2; next }
+  END { emit() }
+' "${SSH_CONFIG_FILES[@]}")
 
 # shellcheck disable=SC2016
 target=$(
-  echo "${hostList}" |
-  awk -F':' '$2 !~ /sfw.*jenkins/ && $1 !~ /sms.*jenkins/ && $0 !~ /git@github\.com/ && $0 !~ /sj1git1-.*\.cavium\.com/ {
-    gsub(/^[ \t]+|[ \t]+$/, "", $1);
-    gsub(/^[ \t]+|[ \t]+$/, "", $2);
-    printf "%s:%s\n", $2, $1
-  }' |
-  column -t -s ':' -o ': ' |
-  awk '{
-    orig=$0;
-    match($0, /[0-9]+/);
-    num_str = substr($0, RSTART, RLENGTH);
-    prefix  = substr($0, 1, RSTART-1);
-    is_zero = (substr(num_str, 1, 1) == "0" ? "0" : "1");
+  echo "${hosts}" |
+  awk -F':' '{
+    orig = $0; alias = $1;
+    match(alias, /[0-9]+/)
+    num_str = substr(alias, RSTART, RLENGTH)
+    prefix  = substr(alias, 1, RSTART-1)
+    is_zero = (substr(num_str, 1, 1) == "0" ? "0" : "1")
     printf "%s\t%s\t%010d\t%s\n", prefix, is_zero, num_str, orig
   }' | \
-  sort -k1,1 -k2,2 -k3,3 | \
-  cut -f4 |
+  sort -k1,1 -k2,2 -k3,3 | cut -f4 | \
+  column -t -s ':' -o ' : ' | \
   fzf --ansi \
       --no-multi \
-      --prompt='HOST 󱚥 ' \
+      --prompt='HOSTNAME 󱚥 ' \
       --color=fg+:#979736,hl+:#979736,label:italic:#77A678 \
       --preview-window=top:60% --height 35% --min-height 3+ \
       --delimiter='[[:space:]]+:[[:space:]]+' \
       --with-nth="$([[ "${ONLY_ALIAS}" == true ]] && echo 2 || echo 1,2)" \
-      --bind 'focus:transform-preview-label:echo " $(cut -d: -f2 <<< {} | xargs) "' \
+      --bind 'focus:transform-preview-label:echo " [$(cut -d: -f2 <<< {} | xargs)] "' \
+      --bind 'ctrl-Y:execute-silent:echo "$(cut -d: -f2 <<< {} | xargs | pbcopy)"' \
       --preview '
         bash -cu "
           loginInfo=\$(cut -d : -f2 <<< \"\$1\" | xargs)
           ip=\${loginInfo#*@}
           user=\${loginInfo%@*}
-          # echo -e \"\033[36m[HOST]\033[0m \033[3;35m\$user@\$ip\033[0m\n\"
           if out=\$(/sbin/ping -c1 -o -W1 \"\$ip\" 2>&1); then
+            echo -e \"\033[1;32m[PINGABLE]\033[0m \033[3;35m\$ ping \${ip}\033[0m\n\"
             echo \"\$out\"
           else
-            echo -e \"\033[3;31mUnreachable or DNS error\033[0m\"
+            echo -e \"\033[1;31m[UNREACHABLE]\033[0m \033[3;35m\$ ping \${ip}\033[0m\n\"
+            echo -e \"\033[3;37m\$out\033[0m\"
           fi
         " _ {}
       '
