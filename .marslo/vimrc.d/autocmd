@@ -20,11 +20,17 @@ function! SafeRetab()
   if expand('%:e') =~# '^\(ltsv\|config\|diffs\)$' | return | endif
 
   let l:supported_fts = [ 'sh', 'python', 'groovy', 'lua', 'javascript', 'yaml' ]
-  if index( l:supported_fts, &filetype ) != -1
+  let l:is_supported = index( l:supported_fts, &filetype ) != -1
+  let l:should_retab = 0
+
+  if l:is_supported
     setlocal expandtab
+    if &expandtab && &modifiable && !&readonly | let l:should_retab = 1 | endif
+  else
+    if &modifiable && !&readonly | let l:should_retab = 1 |endif
   endif
 
-  if &expandtab && &modifiable && !&readonly
+  if l:should_retab
     if search( '\t', 'nw' ) > 0
       silent! keepjumps retab!
       silent! redraw
