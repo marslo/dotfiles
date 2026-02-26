@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-02-05 20:43:19
+"    LastChange : 2026-02-26 13:22:03
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -16,6 +16,23 @@
 "  \__,_|\__,_|\__\___/ \___|_| |_| |_|\__,_|
 "
 " **************************************************************/
+function! SafeRetab()
+  if expand('%:e') =~# '^\(ltsv\|config\|diffs\)$' | return | endif
+
+  let l:supported_fts = [ 'sh', 'python', 'groovy', 'lua', 'javascript', 'yaml' ]
+  if index( l:supported_fts, &filetype ) != -1
+    setlocal expandtab
+  endif
+
+  if &expandtab && &modifiable && !&readonly
+    if search( '\t', 'nw' ) > 0
+      silent! keepjumps retab!
+      silent! redraw
+      echohl WarningMsg | echo 'Retab executed! (Tabs converted to spaces)' | echohl None
+    endif
+  endif
+endfunction
+
 if has( 'autocmd' )
 
   " assumes set ignorecase smartcase
@@ -84,10 +101,9 @@ if has( 'autocmd' )
     autocmd!
     autocmd Syntax       bash                set filetype=sh
     autocmd FileType     sh,bash,shell
-            \ set tabstop=2 softtabstop=2 shiftwidth=2 expandtab |
-            \ silent! keepjumps retab!                                        " automatic retab when open it
-    autocmd BufWritePre  *.sh                                                 " automatic retab when save
-            \ if &modifiable && !&readonly | silent! keepjumps retab! | endif
+            \ setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab |
+            \ call SafeRetab()
+    autocmd BufWritePre  *.sh call SafeRetab()
     autocmd BufWritePost *.sh                                                 " automatic redraw for shellcheck
             \ if has('syntax') && exists('g:loaded_shellcheck') | silent! redraw! | endif
     " autocmd BufWritePost *.sh  silent !chmod +x %
@@ -107,11 +123,10 @@ if has( 'autocmd' )
   augroup END
 
   augroup Python
-    autocmd BufNewFile,BufRead python
-            \| setlocal noexpandtab
-            \| silent retab!
-            \| setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4 autoindent
-            \| setlocal fileformat=unix
+    autocmd BufNewFile,BufRead *.py
+            \ setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4 autoindent |
+            \ setlocal fileformat=unix |
+            \ call SafeRetab()
     autocmd FileType python syntax keyword pythonDecorator print self
     autocmd FileType python set isk-=.
     autocmd Syntax   python setlocal foldmethod=indent
@@ -197,7 +212,9 @@ if has( 'autocmd' )
     autocmd BufEnter           *                               if &diff | let g:blamer_enabled=0 | endif            " ╮ disable git blame in diff mode
     " autocmd BufEnter         *                               if ! empty(&key) | let g:blamer_enabled=0 | endif    " ╯ and encrypt mode
     autocmd BufWritePre        *                               %s/\s\+$//e | %s/\r$//e   " automatic remove trailing space
-    autocmd BufWritePre        *\(.ltsv\|.config\|.diffs\)\@<! silent! retab!            " automatic retab: https://vim.fandom.com/wiki/Remove_unwanted_spaces
+    " automatic retab: https://vim.fandom.com/wiki/Remove_unwanted_spaces
+    autocmd BufWritePre        *\(.ltsv\|.config\|.diffs\|.sh\|.py\)\@<!
+            \ call SafeRetab()
     autocmd BufRead,BufNewFile *.ltsv                          set filetype=ltsv syntax=groovy noexpandtab
     autocmd BufRead,BufNewFile *.t                             set filetype=perl
     autocmd QuickFixCmdPost    *grep*                          cwindow
