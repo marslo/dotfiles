@@ -1,4 +1,8 @@
-[submodule ".marslo/.completion/ansible-completion"]
-	path = .marslo/.completion/ansible-completion
-	url = https://github.com/marslo/ansible-completion.git
+[submodule ".marslo/bash_completion.d/ansible-completion"]
+	path = .marslo/bash_completion.d/ansible-completion
+	url = ../ansible-completion.git
+	branch = master
+[submodule ".config/bat/syntaxes/sublime-purescript-syntax"]
+	path = .config/bat/syntaxes/sublime-purescript-syntax
+	url = ../../tellnobody1/sublime-purescript-syntax.git
 	branch = master
