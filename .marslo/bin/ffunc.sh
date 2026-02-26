@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-02-25 18:22:01
+#   LastChange : 2026-02-26 14:09:41
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -160,7 +160,7 @@ function cat() {                           # smart cat
   if [[ 0 -eq $# ]]; then
     local selected=$( fd . "${fdopt[@]}" | fzf --exit-0 "${fzfopt[@]}" )
     # using IFS to handle file name with space
-    [[ -n "$selected" ]] && echo "${selected}" | xargs -d '\n' "${CAT[@]}"
+    [[ -n "${selected}" ]] && echo "${selected}" | xargs -d '\n' "${CAT[@]}"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
     local target=$1;
     fd . "${target}" "${fdopt[@]}" | fzf --bind="enter:become(${CAT[*]} {+})" "${fzfopt[@]}";
@@ -172,7 +172,7 @@ function cat() {                           # smart cat
 function fdInRC() {                        # [f]in[d] [in] [rc] files
   local -A ignoreList=(
     [base]='.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf'
-    [rc]='ss/ log*/ .completion/ bin/bash-completion/ .archive/ *.png *.pem *.p12 *.pub *.lst'
+    [rc]='ss/ log*/ ansible-completion/ .archive/ *.png *.pem *.p12 *.pub *.lst'
     [config]='*.bak *backup'
     [extra]='*.pem *.p12 *.png *.jpg *.jpeg *.gif *.svg *.zip *.tar *.gz *.bz2 *.xz *.7z *.rar'
   )

@@ -4,7 +4,7 @@
 #     FileName : git-mcx
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2025-05-07 16:34:06
+#   LastChange : 2026-02-26 14:30:36
 #        Usage : git-mcx [OPTION]             # call getCommitMessage to set commit message
 #                git-mcx [OPTION] [message]   # using `[message]` as commit message
 #=============================================================================
@@ -114,17 +114,19 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   exit 128
 }
 
+# requires bat cache --build
 function msgPreview() {
-  echo -e "\n--------------- $(c Wdi)git message preview$(c) ---------------"
-  printf  "%s\n" "${1}" | command bat --plain --language=COMMIT_EDITMSG --style=plain
-  echo -e '---------------------------------------------------'
+  echo -e "\n$(c Wdi)--------------- git message preview ---------------$(c)"
+  printf  "%s\n" "${1}" | command bat --plain --language COMMIT_EDITMSG --theme gruvbox-dark-marslo
+  printf  "%s\n" "${1}" | pbcopy && printf "$(c Cdi)%b$(c)\n" "(the commit message has been copied to clipboard)"
+  echo -e "$(c Wdi)---------------------------------------------------$(c)"
 }
 
 function changeDiff() {
   echo -e "\n---------------- $(c Wdi)git diff (staged)$(c) ----------------"
   printf "\n%b\n" "$(c Bi)git diff :$(c)"
   git diff --cached --color || printf "%b\n" "$(c Wdi)(no staged changes)$(c)"
-  echo -e '---------------------------------------------------'
+  echo -e "$(c Wdi)---------------------------------------------------$(c)"
 }
 
 function commitlintCheck() {
