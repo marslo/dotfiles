@@ -1,0 +1,25 @@
+%YAML 1.2
+---
+name: Conventional Commits
+file_extensions:
+  - COMMIT_EDITMSG
+  - MERGE_MSG
+scope: text.git.commit.conventional
+contexts:
+  main:
+    # 匹配 Conventional Commits 规范的第一行
+    - match: '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\(([^()]+)\))?(!)?(:)(.*)$'
+      captures:
+        1: keyword.control         # 提交类型 (如 feat, fix) - 紫色/蓝色
+        2: entity.name.type        # 作用域 (如 scope) - 黄色/青色
+        3: invalid.deprecated     # 破坏性更新 (!) - 这里更改了 Scope 以强制它变红
+        4: punctuation.separator   # 冒号 (:)
+        5: string.unquoted         # 提交描述 - 绿色
+
+    # 匹配 Git 默认的注释行
+    - match: '^#.*$'
+      scope: comment.line.number-sign
+
+    # 兼容 `git commit -v` 附带的 diff 代码块
+    - match: '(?=^diff --git )'
+      push: scope:source.diff
