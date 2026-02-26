@@ -1,4 +1,4 @@
-_poetry_ce3d8f6ee09c6025_complete()
+_poetry_0f2b6689c79512e8_complete()
 {
     local cur script coms opts com
     COMPREPLY=()
@@ -216,5 +216,5 @@ _poetry_ce3d8f6ee09c6025_complete()
     fi
 }
 
-complete -o default -F _poetry_ce3d8f6ee09c6025_complete poetry
-complete -o default -F _poetry_ce3d8f6ee09c6025_complete /Users/marslo/.marslo/.completion/poetry
+complete -o default -F _poetry_0f2b6689c79512e8_complete poetry
+complete -o default -F _poetry_0f2b6689c79512e8_complete /Users/marslo/.marslo/bash_completion.d/poetry

@@ -1,5 +1,3 @@
-# @copyright: https://github.com/microsoft/vscode/blob/main/resources/completions/bash/code
-
 _code()
 {
   local cur prev words cword split
