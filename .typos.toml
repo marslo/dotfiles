@@ -6,11 +6,15 @@ ignore-vcs = true
 ignore-global = true
 ignore-parent = true
 extend-exclude = [
-  "*.color",
   "*color",
   "**/*.color",
   "**/.signingmanager/**",
-  "**/*.current"
+  "**/*.current",
+  "cht.sh.txt",
+  # from pre-commit hook
+  "**/vimrc.d/snips/**",
+  "**/vimrc.d/shortcuts",
+  "**/.gpg/**"
 ]
 
 [default]
@@ -42,7 +46,6 @@ sav = 'sav'
 Wew = 'Wew'
 STARTIN = 'STARTIN'
 siduction = 'siduction'
-Siduction = 'Siduction'
 iz = 'iz'
 windo = 'windo'
 ue = 'ue'
