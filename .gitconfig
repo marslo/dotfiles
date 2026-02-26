@@ -113,7 +113,7 @@
   path              = ~/.marslo/gitconfig.d/credential
   path              = ~/.marslo/gitconfig.d/gitalias
   path              = ~/.marslo/gitconfig.d/gitcolors
-  path              = ~/.marslo/gitconfig.d/account
+  # path              = ~/.marslo/gitconfig.d/account
   ## ------ git ssh-set / https-set to enable or disable ------ ##
   # path              = ~/.marslo/gitconfig.d/credential.ssh
   # path              = ~/.marslo/gitconfig.d/credential.https
