@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2026-02-12 14:51:40
+#   LastChange : 2026-02-27 23:15:05
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -29,6 +29,7 @@ test -f "${COMPLETION_DIR}"/complete_alias          && source "${COMPLETION_DIR}
 test -f "${COMPLETION_DIR}"/npm-groovy-lint.sh      && source "${COMPLETION_DIR}"/npm-groovy-lint.sh
 # for git alias completion - should load after source git-completion.sh ( after .imac/.ilinux )
 test -f "${COMPLETION_DIR}"/gitalias.sh             && source "${COMPLETION_DIR}"/gitalias.sh
+test -f "${COMPLETION_DIR}"/gh.arsenal.sh           && source "${COMPLETION_DIR}"/gh.arsenal.sh
 
 type -P commitlint >/dev/null                       && source "${COMPLETION_DIR}/commitlint.sh"
 type -P pre-commit >/dev/null                       && source "${COMPLETION_DIR}/pre-commit.sh"
@@ -42,6 +43,7 @@ type -P poetry     >/dev/null                       && source "${COMPLETION_DIR}
 type -P code       >/dev/null                       && source "${COMPLETION_DIR}/code.sh"
 type -P fossa      >/dev/null                       && source "${COMPLETION_DIR}/fossa.sh"
 type -P typos      >/dev/null                       && source "${COMPLETION_DIR}/typos.sh"
+type -P scc        >/dev/null                       && source "${COMPLETION_DIR}/scc.sh"
 # test -d "${NPM_COMPLETION}"                       && source "${NPM_COMPLETION}/npm-completion.sh"
 # via `vault -autocomplete-install`
 type -P vault      >/dev/null                       && complete -C "$(type -P vault)" vault
@@ -62,7 +64,7 @@ fi
 if test -f "$HOME"/.fzf.bash; then
   source "$HOME"/.fzf.bash
 else
-  type -P fzf >/dev/null                            && eval "$(command fzf --bash)"
+  type -P fzf >/dev/null                            && source "${COMPLETION_DIR}/fzf.sh"
   test -f "${FZF_HOME}/shell/key-bindings.bash"     && source "${FZF_HOME}/shell/key-bindings.bash"
 fi
 type -t _fzf_opts_completion >/dev/null 2>&1        && complete -F _fzf_opts_completion -o bashdefault -o default vim vimdiff penv imgview fman
