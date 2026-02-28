@@ -4,7 +4,7 @@
 #     FileName : gh-new
 #       Author : marslo
 #      Created : 2026-01-23 11:52:14
-#   LastChange : 2026-01-28 22:44:59
+#   LastChange : 2026-02-27 19:11:29
 #=============================================================================
 
 set -euo pipefail
@@ -102,7 +102,7 @@ function prCmd() {
                } |
                awk 'NF && $0!~/^(HEAD|origin)$/ && !seen[$0]++' |
                grep -v --color=never -E "^(${current})$" |
-               fzf +m --ansi --prompt=' ' -0 \
+               fzf --no-multi --ansi --prompt='BASE BRANCH:  ' -0 \
                    --height 50% --min-height 10+ \
                    --style full --no-input-border \
                    --preview "${gpreview} -s" \
@@ -114,6 +114,9 @@ function prCmd() {
 
   test -z "${base:-}" && { show error 'no branch selected, aborting PR creation'; exit 1; }
   ! "${DRYRUN}" && show info "drafting PR : \`$(c 0Yi)${current}$(c 0Wdi)\` -> \`$(c 0Yi)${base}$(c 0Wdi)\`"
+
+  local label=''
+  test -z "$(gh label list --search "auto-merge")" && label='auto-merge'
 
   # TODO: using AI to generate better body
   local title=$(git log -1 --pretty=%s)
@@ -127,6 +130,7 @@ function prCmd() {
               --title "${title}"
               --body "${body}"
          )
+  test -n "${label}" && arrRef+=( --label "${label}" )
 }
 
 function checkTools() {
@@ -160,8 +164,6 @@ function openPR() {
 }
 
 function main() {
-  local -a cmd=()
-
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -o | --open    ) SHOULD_OPEN=true         ; shift        ;;
