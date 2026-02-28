@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2026-02-28 02:00:18
+#  LastChange : 2026-02-28 02:09:53
 #  Description : ifunctions
 # =============================================================================
 
@@ -658,7 +658,7 @@ function newpw() {
   local -r ME='newpw'
   # shellcheck disable=SC2155
   local usage="NAME"
-  usage+="\n  $(c Cs)${ME}$(c) - generate $(c Csi)new$(c) $(c Csi)p$(c)ass$(c Csi)w$(c)or$(c Csi)d$(c)"
+  usage+="\n  $(c Cs)${ME}$(c) - generate $(c Csi)new$(c) $(c Csi)p$(c)ass$(c Csi)w$(c)ord"
   usage+='\n\nUSAGE'
   usage+="\n  $(c Ys)\$ ${ME}$(c) $(c 0Wdi)[ $(c 0Gi)options $(c 0Wdi)]$(c)"
   usage+='\n\nOPTIONS'
@@ -672,6 +672,10 @@ function newpw() {
   usage+="\n  $(c G)--no-show$(c)             do not show the generated password in the terminal"
   usage+="\n  $(c G)-v$(c), $(c G)--verbose$(c)         show verbose output $(c 0Wdi)( default: $(c 0Mi)false$(c 0Wdi) )$(c)"
   usage+="\n  $(c G)-h$(c), $(c G)--help$(c)            show this help message"
+  usage+="\n\nEXAMPLE"
+  usage+="\n  $(c Ys)\$ ${ME}$(c) $(c 0Gi)-c $(c 0Mi)16 $(c 0Gi)-l $(c 0Mi)2 $(c 0Gi)--copy$(c)   $(c 0Wdi)# generate a password with 16 characters and level 2 complexity and copy$(c)"
+  usage+="\n  $(c Ys)\$ ${ME}$(c) $(c 0Gi)-c$(c 0Mi)32 $(c 0Gi)-l$(c 0Mi)3$(c)            $(c 0Wdi)# generate a password with 32 characters and level 3 complexity$(c)"
+
   [[ "$(uname)" == "Darwin" ]] && copy=true
 
   function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; }
@@ -718,9 +722,7 @@ function newpw() {
     echo -e "$(c Wdi).. password copied to clipboard!$(c)"
   }
 
-  "${show}" && {
-    echo -e "$(c Wdi).. $(c 0Gi)generated password: $(c 0M)${password}$(c)"
-  }
+  "${show}" && echo -e "$(c Wdi).. $(c 0Gi)generated password: $(c 0M)${password}$(c)"
 }
 
 # fdiff - diff two files with diff-so-fancy
