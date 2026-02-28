@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2026-02-25 15:57:52
+#  LastChange : 2026-02-28 02:00:18
 #  Description : ifunctions
 # =============================================================================
 
@@ -651,16 +651,21 @@ function newpw() {
   local level=1
   local char=32
   local pattern=''
+  local pwcmd=''
   local copy=false
   local verbose=false
   local show=true
+  local -r ME='newpw'
   # shellcheck disable=SC2155
-  local usage="$(c Cs)newpwd$(c) - generate $(c Csi)new$(c) $(c Csi)p$(c)ass$(c Csi)w$(c)or$(c Csi)d$(c)"
+  local usage="NAME"
+  usage+="\n  $(c Cs)${ME}$(c) - generate $(c Csi)new$(c) $(c Csi)p$(c)ass$(c Csi)w$(c)or$(c Csi)d$(c)"
   usage+='\n\nUSAGE'
-  usage+="\n  $(c Ys)\$ newpwd$(c) $(c 0Wdi)[ $(c 0Gi)options $(c 0Wdi)]$(c)"
+  usage+="\n  $(c Ys)\$ ${ME}$(c) $(c 0Wdi)[ $(c 0Gi)options $(c 0Wdi)]$(c)"
   usage+='\n\nOPTIONS'
-  usage+="\n  $(c G)-c$(c), $(c G)--char$(c)  $(c Mi)<number>$(c)  number of characters in the password $(c 0Wdi)( default: $(c 0Mi)${char}$(c 0Wdi) )$(c)"
-  usage+="\n  $(c G)-l$(c), $(c G)--level$(c) $(c Mi)<number>$(c)  password complexity level $(c 0Wdi)( $(c 0Mi)1$(c 0Wdi)-$(c 0Mi)3$(c 0Wdi), default: $(c 0Mi)${level}$(c 0Wdi) )$(c)"
+  usage+="\n  $(c G)-c$(c), $(c G)--char$(c) $(c Mi)<number>$(c)   number of characters in the password $(c 0Wdi)( default: $(c 0Mi)${char}$(c 0Wdi) )$(c)"
+  usage+="\n  $(c G)-c$(c 0Mi)<number>$(c)            number of characters in the password $(c 0Wdi)( default: $(c 0Mi)${char}$(c 0Wdi) )$(c)"
+  usage+="\n  $(c G)-l$(c), $(c G)--level$(c) $(c Mi)<1|2|3>$(c)   password complexity level $(c 0Wdi)( $(c 0Mi)1$(c 0Wdi)-$(c 0Mi)3$(c 0Wdi), default: $(c 0Mi)${level}$(c 0Wdi) )$(c)"
+  usage+="\n  $(c G)-l$(c 0Mi)<1|2|3>$(c)             password complexity level $(c 0Wdi)( $(c 0Mi)1$(c 0Wdi)-$(c 0Mi)3$(c 0Wdi), default: $(c 0Mi)${level}$(c 0Wdi) )$(c)"
   usage+="\n  $(c G)--copy$(c)                copy the generated password to clipboard $(c 0Wdi)( default: $(c 0Mi)true$(c 0Wdi) in macOS, $(c 0Mi)false $(c 0Wdi)in Linux )$(c)"
   usage+="\n  $(c G)--no-copy$(c)             do not copy the generated password to clipboard"
   usage+="\n  $(c G)--show$(c)                show the generated password in the terminal $(c 0Wdi)( default: $(c 0Mi)true$(c 0Wdi) )$(c)"
@@ -673,14 +678,16 @@ function newpw() {
 
   while [[ $# -gt 0 ]]; do
     case $1 in
-      -c | --char      ) char="$2"          ; shift 2  ;;
-      -l | --level     ) level="$2"         ; shift 2  ;;
-      -v | --verbose   ) verbose=true       ; shift    ;;
-      -h | --help      ) echo -e "${usage}" ; return   ;;
+      -c | --char      ) char="$2"          ; shift 2 ;;
+      -c[0-9]*         ) char="${1#-c}"     ; shift   ;;
+      -l | --level     ) level="$2"         ; shift 2 ;;
+      -l[1-3]          ) level="${1#-l}"    ; shift   ;;
+      -v | --verbose   ) verbose=true       ; shift   ;;
+      -h | --help      ) echo -e "${usage}" ; return  ;;
       # --[no-]copy, --[no-]show
       --no-*           ) key="${1#--no-}"   ; declare "${key//-/_}=false" ; shift ;;
       --*              ) key="${1#--}"      ; declare "${key//-/_}=true"  ; shift ;;
-      -*               ) die "$(c i)unknown option: $(c 0M)'$1'$(c 0i). try$(c) $(c 0Gi)\`\$ ${ME} -- --help\`$(c)"; return 1 ;;
+      -*               ) die "$(c i)unknown option: $(c 0M)'$1'$(c 0i). try$(c) $(c 0Gi)\`\$ ${ME} --help\`$(c)"; return 1 ;;
       *                ) break                         ;;
     esac
   done
@@ -691,8 +698,7 @@ function newpw() {
     3) pattern='A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~' ;;
   esac
 
-  # password=$( head /dev/urandom | tr -dc "${pattern}" | head -c "${char}" && echo )
-  pwcmd="head /dev/urandom | tr -dc '${pattern}' | head -c ${char} && echo"
+  pwcmd="LC_ALL=C head /dev/urandom | LC_ALL=C tr -dc $(printf %q "${pattern}") | head -c ${char}"
   password=$( eval "${pwcmd}" )
 
   echo -e "$(c Wdi)>> $(c 0Ys)${char} $(c 0Wdi)length password is generating $(c 0Wdi)with pattern $(c 0Msi)'${pattern}' $(c 0Wdi)..$(c)"
