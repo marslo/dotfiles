@@ -4,7 +4,7 @@
 #     FileName : gitalias.sh
 #       Author : marslo
 #      Created : 2025-12-11 21:28:56
-#   LastChange : 2026-02-28 01:18:06
+#   LastChange : 2026-02-28 03:04:26
 #=============================================================================
 
 function _git_rob() {
@@ -66,37 +66,35 @@ function _git_ca() {
   _git_mcx
 }
 
-_git_reflog_custom() {
-  if [[ "${COMP_WORDS[COMP_CWORD]}" == --* ]]; then
-    COMPREPLY=( $(compgen -W "--no-abbrev --no-walk --expire= --all" -- "${COMP_WORDS[COMP_CWORD]}") )
-    return 0
-  fi
-  _git_reflog 2>/dev/null
-}
+# for git reflog - must load after _git_reflog loaded
+__git_log_common_options="${__git_log_common_options} --no-abbrev --no-walk --do-walk --walk-reflogs --expire= --expire-unreachable= --all --rewrite --updateref --stale-fix --dry-run --verbose --single-worktree"
 
 _git_rev_list() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
 
   local opts="
       --abbrev --abbrev-commit --all --alternate-refs --author=
-      --basic-regexp --bisect --bisect-all --bisect-vars --boundary
-      --branches= --cherry --cherry-mark --cherry-pick --children
-      --count --date= --date-order --dense --disk-usage --do-walk
-      --exclude= --exclude-first-parent-only --exclude-hidden=
+      --committer= --basic-regexp --bisect --bisect-all --bisect-vars
+      --boundary --branches= --cherry --cherry-mark --cherry-pick
+      --children --count --date= --date-order --dense --disk-usage
+      --do-walk --exclude= --exclude-first-parent-only --exclude-hidden=
       --exclude-promisor-objects --extended-regexp --filter=
       --filter-print-omitted --first-parent --fixed-strings --format=
       --glob= --grep= --grep-reflog= --header --ignore-missing
       --in-commit-order --invert-grep --left-only --left-right
-      --max-age= --max-count= --max-parents= --merge --min-age=
+      --max-age= --max-count= --max-parents= --merge --merges --min-age=
       --min-parents= --missing= --no-abbrev --no-abbrev-commit
       --no-commit-header --no-max-parents --no-min-parents
       --no-object-names --no-walk --not --objects --objects-edge
       --objects-edge-aggressive --parents --perl-regexp --pretty=
       --quiet --reflog --regexp-ignore-case --remotes= --reverse
-      --right-only --show-linear-break --show-pulls
+      --right-only --show-linear-break --show-pulls --after=
       --simplify-by-decoration --simplify-merges --since= --since-as-filter=
       --skip= --sparse --tags= --topo-order --unpacked --until=
-      --use-bitmap-index
+      --before= --use-bitmap-index --remove-empty --progress=
+      --full-history --ancestry-path --author-date-order --indexed-objects
+      --object-names --oneline --expand-tabs= --expand-tabs --no-expand-tabs
+      --show-signature --relative-date --timestamp --graph
   "
 
   if [[ "$cur" == -* ]]; then
@@ -111,7 +109,6 @@ _git_rev_list() {
   fi
 }
 
-complete -F _git_reflog_custom git-reflog 2>/dev/null
 complete -F _git_mcx git-mcx
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
