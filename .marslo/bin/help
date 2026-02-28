@@ -3,7 +3,7 @@
 #     FileName : help
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-10-08 06:57:15
-#   LastChange : 2025-04-24 18:04:13
+#   LastChange : 2026-02-27 23:45:26
 #        Usage : 1. source <path/to/help>; or eval "$(cat <path/to/help>)"
 #                2. help <command> [<args>]
 #=============================================================================
@@ -47,6 +47,12 @@ function help() {
   output=$( eval "$* --help" 2>&1 )
 
   if [[ "$(head -1 <<< "${output}")" =~ "' is aliased to '" ]]; then
+    # handling single-line aliases : 'ro' is aliased to 'pull --rebase'
+    first_line=$(head -1 <<< "${output}")
+    if [[ "${first_line}" =~ ^\'.*\'\ is\ aliased\ to\ \'.*\'[[:space:]]*$ ]]; then
+      output="${first_line}"
+    fi
+
     # combine all lines into one line
     output=$( paste -sd '' <<< "${output}" )
 
