@@ -4,7 +4,7 @@
 #     FileName : gh-ops
 #       Author : marslo
 #      Created : 2026-01-21 20:38:07
-#   LastChange : 2026-02-12 22:10:04
+#   LastChange : 2026-02-27 21:37:36
 #  Inspired by : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/
 #=============================================================================
 
@@ -17,30 +17,31 @@ declare -r JQ_FILE="${HERE}/gh.d/gh-ops-preview.jq"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
-if [[ -f "${HERE}/bash-colors.sh" ]]; then
-  source "${HERE}/bash-colors.sh"
-else
-  c() { :; }
-fi
+# shellcheck disable=SC2015
+[[ -f "${HERE}/bash-colors.sh" ]] && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
 declare -r USAGE="""
 NAME
   $(c Cs)${ME}$(c) - interactively GitHub PR using fzf
 
 USAGE
-  $(c Ys)\$ ${ME}$(c) $(c Wdi)[$(c)$(c Gis)OPTIONS$(c)$(c Wdi)]$(c)
+  $(c Ys)\$ ${ME}$(c) $(c Wd)[$(c)$(c Gs)OPTIONS$(c)$(c Wd)]$(c)
 
 OPTIONS
-  $(c G)-c$(c), $(c G)--checkout$(c)       checkout the selected pull request ( $(c Cis)*default$(c) )
-  $(c G)-C$(c), $(c G)--close$(c)          close the selected pull request
-  $(c G)-o$(c), $(c G)--open$(c)           open the selected pull request in the web browser
-  $(c G)-a$(c), $(c G)--auto$(c)           automatically open the PR in the web browser after selection
-  $(c G)-s$(c), $(c G)--squash$(c)         squash merge the selected pull request and delete the branch
-  $(c G)-r$(c), $(c G)--rebase$(c)         rebase merge the selected pull request and delete
-  $(c G)-V$(c), $(c G)--verbose$(c)        show verbose output
-  $(c G)--dryrun$(c)             show the command to be executed, but do not run it
-  $(c G)-h$(c), $(c G)--help$(c)           show this help message
-  $(c C)--$(c) $(c 0Wdi)[$(c 0Mi)GH_OPTIONS$(c 0Wdi)]$(c)      pass all following arguments to the underlying '$(c 0i)gh pr checkout/close$(c)' command
+  $(c G)-c$(c), $(c G)--checkout$(c)            checkout the selected pull request ( $(c Cis)*default$(c) )
+  $(c G)-C$(c), $(c G)--close$(c)               close the selected pull request
+  $(c G)-o$(c), $(c G)--open$(c)                open the selected pull request in the web browser
+  $(c G)-A$(c), $(c G)--auto-open$(c)           automatically open the PR in the web browser after selection
+  $(c G)-s$(c), $(c G)--squash$(c)              squash merge the selected pull request and delete the branch
+  $(c G)-r$(c), $(c G)--rebase$(c)              rebase merge the selected pull request and delete
+  $(c G)-l$(c), $(c G)--label$(c) $(c 0Mi)LABEL$(c)         add label(s) to the selected pull request $(c 0i)(default:  using fzf to select)$(c)
+  $(c G)-S$(c), $(c G)--state$(c) $(c 0Mi)STATE$(c)         filter PR by state $(c 0i)(e.g. $(c 0Ci)open$(c 0i), $(c 0Ci)closed$(c 0i), $(c 0Ci)all$(c 0i), $(c 0Ci)merged$(c 0i))$(c)
+  $(c G)-B$(c), $(c G)--base$(c) $(c 0Mi)BRANCH_NAME$(c)    filter PR by base branch
+  $(c G)-R$(c), $(c G)--repo$(c) $(c 0Mi)OWNER/REPO$(c)     filter PR by repository $(c 0i)(e.g. $(c 0Ci)OWNER/REPO$(c 0i))$(c)
+  $(c G)-V$(c), $(c G)--verbose$(c)             show verbose output
+  $(c G)--dryrun$(c)                  show the command to be executed, but do not run it
+  $(c G)-h$(c), $(c G)--help$(c)                show this help message
+  $(c C)--$(c) $(c 0Mi)GH_OPTIONS$(c)             pass all following arguments to gh CLI $(c 0i)(e.g. $(c 0Ci)--auto$(c 0i), $(c 0Ci)--delete-branch$(c)$(c 0i), etc.)$(c)
 
 EXAMPLES
   $(c Wdi)# interactively select a pull request and checkout the corresponding branch$(c)
@@ -51,6 +52,10 @@ EXAMPLES
 
   $(c Wdi)# close the PR and delete the branch$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--close $(c 0Ci)-- $(c 0Mi)--delete-branch$(c)
+
+  $(c Wdi)# add label(s) to the closed PR$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--label $(c 0Mi)bug,help $(c 0Gi)--state $(c 0Mi)closed$(c)$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--label $(c 0Mi)bug $(c 0Gi)--label $(c 0Mi)help $(c 0Gi)--state $(c 0Mi)closed$(c)$(c)
 
 TIPS
   while in the fzf selection menu:
@@ -63,6 +68,8 @@ declare OPTION='checkout'
 declare DRYRUN=false
 declare VERBOSE=false
 declare -a GH_OPTS=()
+declare -a CLI_OPTS=()
+declare -a CLI_CMD=( gh )
 declare SHOULD_OPEN=false
 declare AUTO_OPEN=false
 
@@ -139,8 +146,8 @@ function getId() {
   local TEMPLATE='"'
   TEMPLATE+='#\(.number) - \(.title)'
   TEMPLATE+='\t'
-  TEMPLATE+="$(jc Cs)Author:$(jc) \(.user.login)\n"
-  TEMPLATE+="$(jc Ys)Created:$(jc) \(.created_at) $(jc Ms)•$(jc) $(jc Ys)Updated:$(jc) \(.updated_at)\n\n"
+  TEMPLATE+="$(jc Cs)Author:$(jc) \(.author.login)\n"
+  TEMPLATE+="$(jc Ys)Created:$(jc) \(.createdAt) $(jc Ms)•$(jc) $(jc Ys)Updated:$(jc) \(.updatedAt)\n\n"
   TEMPLATE+='\(.title)'
   TEMPLATE+='\( .title as $t | (.body // "") | if startswith($t) then .[($t | length):] else . end | sub("^\\s+"; "") | if . == "" then "" else "\n\n" + . end )'
   TEMPLATE+='"'
@@ -190,15 +197,18 @@ function getId() {
   BIND_TOGGLE_CMD+='fi'
 
   local PR_ID=''
+  CLI_CMD+=( pr list --json 'number,title,author,createdAt,updatedAt,body' )
+  CLI_CMD+=( "${CLI_OPTS[@]}" )
   PR_ID=$(
-    gh api 'repos/:owner/:repo/pulls?per_page=50' |
-    jq ".[] | ${TEMPLATE}" |
+    "${CLI_CMD[@]}" | jq ".[] | ${TEMPLATE}" |
     sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/' -e 's/\\u001b/\\033/g' |
     tee "${CACHE_FILE}" |
-    fzf --ansi \
+    fzf +m --ansi \
         --with-nth=1 \
         --delimiter='\t' \
+        --color='query:bold:italic:magenta,prompt:italic' \
         --preview-window=top:65%:wrap \
+        --prompt=' PR: ' --info='inline-right:  ' \
         --preview='content=$(sed -n "$(( {n}+1 ))p" "'${CACHE_FILE}'" | cut -f2-); printf "%b\n" "${content}"' \
         --preview-label=$'\033[1;35m[ Local ]\033[0m' \
         --bind "result:transform-list-label:${BIND_RESULT_CMD}" \
@@ -213,42 +223,60 @@ function getId() {
   test -n "${PR_ID}" && echo "${PR_ID}" || return 1
 }
 
+function getLabel() {
+  local label=$( gh label list --json name --jq '.[].name' | fzf --ansi --prompt='󰩀  ' -0 )
+  test -n "${label}" && echo "${label}" | paste -sd "," -
+}
+
 function main() {
+  local -a LABELS=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -c | --checkout ) OPTION='checkout'         ; shift     ;;
-      -C | --close    ) OPTION='close'            ; shift     ;;
-      -s | --squash   ) OPTION='squash'           ; shift     ;;
-      -r | --rebase   ) OPTION='rebase'           ; shift     ;;
-      -o | --open     ) SHOULD_OPEN=true          ; shift     ;;
-      -a | --auto     ) AUTO_OPEN=true            ; shift     ;;
-      -V | --verbose  ) VERBOSE=true              ; shift     ;;
-      --dryrun        ) DRYRUN=true               ; shift     ;;
-      --              ) shift ; GH_OPTS+=( "$@" ) ; break     ;;
-      -h | --help     ) showHelp                              ;;
-      *               ) show error "unknown argument: \`$1\`" ;;
+      -c | --checkout  ) OPTION='checkout'                ; shift     ;;
+      -C | --close     ) OPTION='close'                   ; shift     ;;
+      -s | --squash    ) OPTION='squash'                  ; shift     ;;
+      -r | --rebase    ) OPTION='rebase'                  ; shift     ;;
+      -l | --label     ) OPTION='label'                   ;
+                         if [[ -n "${2:-}" && "${2}" != -* ]]; then
+                           LABELS+=("${2}"); shift;
+                         fi                               ; shift     ;;
+      -o | --open      ) SHOULD_OPEN=true                 ; shift     ;;
+      -A | --auto-open ) SHOULD_OPEN=true; AUTO_OPEN=true ; shift     ;;
+      -V | --verbose   ) VERBOSE=true                     ; shift     ;;
+      --dryrun         ) DRYRUN=true                      ; shift     ;;
+      -S | --state     ) CLI_OPTS+=( "--state" "$2" )     ; shift 2   ;;
+      -B | --base      ) CLI_OPTS+=( "--base" "$2" )      ; shift 2   ;;
+      -R | --repo      ) CLI_OPTS+=( "--repo" "$2" )      ; shift 2   ;;
+      --               ) shift ; GH_OPTS+=( "$@" )        ; break     ;;
+      -h | --help      ) showHelp                                     ;;
+      *                ) show error "unknown argument: \`$1\`"        ;;
     esac
   done
 
   checkTools
 
+  local -a LABEL=''
+  [[ "${#LABELS[@]}" -gt 0 ]] && LABEL="$( joinBy ',' "${LABELS[@]}" )"
+
   # shellcheck disable=SC2155
   local PR_ID="$( getId )"
+  test -z "${PR_ID}" && exit 0
   local cmd=( gh pr )
   case "${OPTION}" in
-    checkout | close ) cmd+=( "${OPTION}" "${PR_ID}"    )         ;;
-    squash           ) cmd+=( merge "${PR_ID}" --squash )         ;;
-    rebase           ) cmd+=( merge "${PR_ID}" --rebase )         ;;
-    *                ) show error "unknown option: \`${OPTION}\`" ;;
+    checkout | close ) cmd+=( "${OPTION}" "${PR_ID}"    )          ;;
+    squash           ) cmd+=( merge "${PR_ID}" --squash )          ;;
+    rebase           ) cmd+=( merge "${PR_ID}" --rebase )          ;;
+    label            ) test -n "${LABEL}" || LABEL="$( getLabel )" ;
+                       test -n "${LABEL}" && cmd+=( edit "${PR_ID}" --add-label "${LABEL}" ) ;;
+    *                ) show error "unknown option: \`${OPTION}\`"  ;;
   esac
 
-  test -z "${PR_ID}" && exit 0
-  "${SHOULD_OPEN}" && { openPR "${PR_ID}"; exit 0; }
+  [[ -z "${OPTION}" && "${SHOULD_OPEN}" ]] && { openPR "${PR_ID}"; exit 0; }
 
-  ( "${DRYRUN}" || "${VERBOSE}" ) && {
+  { "${DRYRUN}" || "${VERBOSE}"; } && {
     local msg="command to be executed: \`$(c 0Cdi)\$ ${cmd[*]}${GH_OPTS[*]:+ ${GH_OPTS[*]}}$(c 0Wdi)\` ...$(c)"
     # shellcheck disable=SC2015
-    "${VERBOSE}" && show verbose "${msg}" || { show dryrun "${msg}"; exit 0; }
+    "${DRYRUN}" && { show dryrun "${msg}"; exit 0; } || show verbose "${msg}"
   }
 
   printf "$(c Ci)~~> %s$(c) $(c 0Mis)#%s$(c)%b $(c Ci)..$(c)\n" \
@@ -256,6 +284,8 @@ function main() {
          "${PR_ID}" \
          "${GH_OPTS[*]:+ with gh OPTS $(c 0Mis)${GH_OPTS[*]}$(c)}" >&2
   "${cmd[@]}" "${GH_OPTS[@]}"
+
+  [[ -n "${OPTION}" && "${SHOULD_OPEN}" ]] && { openPR "${PR_ID}"; exit 0; }
 }
 
 main "$@"

@@ -24,14 +24,14 @@ aliases:
     # co: pr checkout
     co: '!$HOME/.marslo/bin/gh-ops --checkout'
     cl: '!$HOME/.marslo/bin/gh-ops --close'
-    # merge-clean: '!gh pr merge "$1" --squash --delete-branch'
-    squash-clean: '!$HOME/.marslo/bin/gh-ops --squash -- --delete-branch'
-    rebase-clean: '!$HOME/.marslo/bin/gh-ops --rebase -- --delete-branch'
+    squash-clean: '!sh -c "$HOME/.marslo/bin/gh-ops --squash -- --delete-branch \"\$@\"" --'
+    rebase-clean: '!sh -c "$HOME/.marslo/bin/gh-ops --rebase -- --delete-branch \"\$@\"" --'
     # propen: pr view --web
+    pr-new: '!$HOME/.marslo/bin/gh-new --open'
     pro: '!$HOME/.marslo/bin/gh-new --open --auto'
     pr-open: '!$HOME/.marslo/bin/gh-ops --open'
-    pr-new: '!$HOME/.marslo/bin/gh-new --open'
     pr-close: '!$HOME/.marslo/bin/gh-ops --close'
+    pr-label: '!$HOME/.marslo/bin/gh-ops --label'
 # The path to a unix socket through which send HTTP connections. If blank, HTTP traffic will be handled by net/http.DefaultTransport.
 http_unix_socket:
 # What web browser gh should use when opening URLs. If blank, will refer to environment.
