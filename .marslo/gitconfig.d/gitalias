@@ -14,7 +14,7 @@
   aa           = add --all
   sts          = status
   rb           = rebase
-  co           = checkout --force --recurse-submodules
+  co           = checkout --recurse-submodules
   cl           = clean -dffx
   cn           = clone --recurse-submodules --tags
   cp           = cherry-pick
@@ -117,7 +117,7 @@
                         git for-each-ref \
                             --sort=-committerdate \
                             ${refs:='refs/heads'} \
-                            --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:red)%(objectname:short)%(color:reset) - %(contents:subject) - %(authorname) %(color:green)(%(committerdate:relative))%(color:reset)' \
+                            --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:cyan)%(objectname:short)%(color:reset) - %(color:dim white)%(contents:subject)%(color:reset) - %(color:italic blue)<%(authorname)>%(color:reset) %(color:green)(%(committerdate:relative))%(color:reset)' \
                             --color=always \
                             --count=${count:=5}; \
                     }; f \
