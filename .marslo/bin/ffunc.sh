@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-02-26 14:09:41
+#   LastChange : 2026-03-02 17:07:10
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -503,26 +503,28 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
 #     - using `-v` to force using `vim` instead of `nvim` even if nvim installed
 #   - if `vim` commands without parameters, then call fzf and using vim to open selected file
 #   - if `vim` commands with parameters
-#       - if single parameters and parameters is directlry, then call fzf in target directory and using vim to open selected file
+#       - if single parameters and parameters is directory, then call fzf in target directory and using vim to open selected file
 #       - otherwise call regular vim to open file(s)
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vim`
 # shellcheck disable=SC2155
 function vim() {                           # magic vim - fzf list in most recent modified order
   local -a voption=()
-  local target
   local orgv=false                         # force using vim instead of nvim
 
   local -a fdopt=( --type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore" )
+  test -d "${1:-}" && [[ "$1" == "." || "$1" == ./* ]] && fdopt+=( --strip-cwd-prefix )
+
   local -a ignores=(
     '*.pem' '*.p12'
-    '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg'
+    '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg' '*.ico' '*.pdf' '*.mp4' '*.mp3'
     '*.zip' '*.tar' '*.gz' '*.bz2' '*.xz' '*.7z' '*.rar'
+    '*.o' '*.a' '*.so' '*.ko' '*.bin' '*.exe' '*.dll' '*.dylib'
+    '*.pyc' '*.pyd' '*.pyo' '*.node' '*.class' '*.jar' '*.db' '*.sqlite' '*.sqlite3'
     'Music' '.target_book' '_book' 'OneDrive*'
   )
-  while read -r pattern; do
-    fdopt+=(--exclude "${pattern}")
-  done <<< "$(printf '%s\n' "${ignores[@]}")"
-  [[ "$(pwd)" = "$HOME" ]] && fdopt+=( --max-depth 3 )
+  for pattern in "${ignores[@]}"; do fdopt+=( --exclude "${pattern}" ); done
+
+  { test "$HOME" = "$(pwd)" || [[ "$HOME" = $(realpath ${1:-}) ]]; } && fdopt+=( --max-depth 3 )
   isWSL || fdopt+=( --exec-batch ls -t )
 
   eval "$( _load_fzf_context )"
@@ -559,12 +561,11 @@ function vim() {                           # magic vim - fzf list in most recent
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description : list 10 most recently used files via fzf, and open by regular vim
 function v() {                             # v - open files in ~/.vim_mru_files
-  local files
-  files=$( grep --color=none -v '^#' ~/.vim_mru_files |
+  local file=$( rg --no-line-number -v '^#' ~/.vim_mru_files |
            while read -r line; do [ -f "${line/\~/$HOME}" ] && echo "${line}"; done |
            fzf-tmux -d -m -q "$*" -1
          ) &&
-  vim ${files//\~/$HOME}
+  vim ${file//\~/$HOME}
 }
 
 # vimr         : open files by [vim] in whole [r]epository

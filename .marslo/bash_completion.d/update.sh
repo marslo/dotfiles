@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck source=/dev/null
 #=============================================================================
-#     FileName : build.sh
+#     FileName : update.sh
 #       Author : marslo
 #      Created : 2025-11-14 19:43:32
-#   LastChange : 2026-02-26 13:41:53
+#   LastChange : 2026-03-02 17:09:48
 #=============================================================================
 
 set -euo pipefail
@@ -27,6 +27,8 @@ type -P pip     >/dev/null && command pip completion --bash             > pip.sh
 info "pip"
 type -P poetry  >/dev/null && command poetry completions bash           > poetry.sh
 info "poetry"
+type -P fzf     >/dev/null && command fzf --bash                        > fzf.sh
+info "fzf"
 curl -fsSL https://github.com/microsoft/vscode/raw/main/resources/completions/bash/code | sed 's/@@APPNAME@@/code/g' > code.sh
 info "code"
 
