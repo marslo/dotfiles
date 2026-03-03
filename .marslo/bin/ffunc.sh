@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-03-02 17:07:10
+#   LastChange : 2026-03-02 18:07:47
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -120,14 +120,40 @@ function copy() {                          # smart copy
 function open() {                          # smart open
   [[ "Darwin" != "$(uname -s)" ]] && echo -e "$(c Rs)ERROR: 'open' function currently only support macOS :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)" && return;
 
+  local ORG_OPEN=false
+  local USAGE='USAGE'
+  USAGE+="\n  $(c Cs)\$ open $(c 0G)[options] $(c 0Mi)[file|dir ...]$(c)"
+  USAGE+="\n\nOPTIONS"
+  USAGE+="\n  $(c G)-d$(c), $(c G)--no-fzf$(c)    open directory directly without fzf selection"
+  USAGE+="\n  $(c C)-- $(c 0G)-h$(c), $(c 0G)--help$(c)   show this help message"
+  USAGE+="\n\nEXAMPLES"
+  USAGE+="\n  $(c Y)\$ open$(c)                       $(c 0Wdi)# list files via fzf and open the selected file$(c)"
+  USAGE+="\n  $(c Y)\$ open $(c 0Mi)/path/to/dir$(c)          $(c 0Wdi)# list files in directory via fzf and open the selected file$(c)"
+  USAGE+="\n  $(c Y)\$ open $(c 0Gi)--no-fzf $(c 0Mi)/path/to/dir$(c) $(c 0Wdi)# open the directory directly without fzf selection$(c)"
+
   eval "$( _load_fd_context  )"
   eval "$( _load_fzf_context )"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -d | --no-fzf ) ORG_OPEN=true     ; shift  ;;
+      --            ) shift;
+                      for arg in "$@"; do
+                        case "${arg}" in
+                          -h | --help ) echo -e "${USAGE}"; return ;;
+                        esac
+                      done; break   ;;
+      -*            ) command open "$1" ; return ;;
+      *             ) break                      ;;
+    esac
+  done
 
   if [[ 0 -eq $# ]]; then
     local selected=$( fd . "${fdopt[@]}" | fzf --exit-0 "${fzfopt[@]}" )
     [[ -n "${selected}" ]] && echo "${selected}" | tr '\n' '\0' | xargs -0 command open
-  elif [[ 1 -eq $# ]] && [[ -d "$1" ]]; then
+  elif [[ -d "${1:-}" ]]; then
     local target=$1;
+    "${ORG_OPEN}" && command open "${target}" && return;
     fd . "${target}" "${fdopt[@]}" | fzf --bind="enter:become(command open {+})" "${fzfopt[@]}";
   else
     command open "${@}"
@@ -524,7 +550,7 @@ function vim() {                           # magic vim - fzf list in most recent
   )
   for pattern in "${ignores[@]}"; do fdopt+=( --exclude "${pattern}" ); done
 
-  { test "$HOME" = "$(pwd)" || [[ "$HOME" = $(realpath ${1:-}) ]]; } && fdopt+=( --max-depth 3 )
+  { test "$HOME" = "$(pwd)" || [[ -d "${1:-}" && "$HOME" = $(realpath ${1:-}) ]]; } && fdopt+=( --max-depth 3 )
   isWSL || fdopt+=( --exec-batch ls -t )
 
   eval "$( _load_fzf_context )"
