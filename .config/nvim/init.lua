@@ -3,40 +3,56 @@
      FileName : init.lua
        Author : marslo.jiao@gmail.com
       Created : 2024-01-11 01:33:04
-   LastChange : 2025-11-10 15:39:30
+   LastChange : 2026-03-02 19:43:11
 =============================================================================
 --]]
 
-vim.cmd( 'set runtimepath^=~/.vim runtimepath+=~/.vim/after' )
-vim.cmd( 'let &packpath = &runtimepath' )
+vim.opt.runtimepath:prepend("~/.vim")
+vim.opt.runtimepath:append("~/.vim/after")
+vim.opt.packpath = vim.opt.runtimepath:get()
 vim.cmd( 'source ~/.vimrc' )
+vim.opt.undodir = vim.fn.expand( '~/.vim/undo' )
 
--- Highlight on yank
+-- highlight on yank
+local yank_group = vim.api.nvim_create_augroup('HighlightYank', { clear = true })
 vim.api.nvim_create_autocmd('TextYankPost', {
+  group = yank_group,
   pattern = '*',
   callback = function()
-    vim.highlight.on_yank({ higroup = 'Search', on_visual = true })
+    vim.highlight.on_yank({ higroup = 'Search', on_visual = true, timeout = 200 })
   end,
 })
 
-vim.opt.undodir = vim.fn.expand( '~/.vim/undo' )
-
 -- devicons
-pcall( require, 'config/devicons' )
+pcall( require, 'config.devicons' )
 
 -- fzf-lua
-pcall( require, 'config/fzf' )
+pcall( require, 'config.fzf' )
 
 -- treesitter
-pcall( require, 'config/nvim-treesitter' )
-
--- copilot.lua + CopilotChat + LuaSnip integration
-pcall( require, 'config/copilot' )
+local ok_ts, err_ts = pcall( require, 'config.nvim-treesitter' )
+if not ok_ts then
+  vim.notify( err_ts, vim.log.levels.WARN )
+end
 
 -- nvim-cmp
-pcall( require, 'config/cmp' )
+pcall( require, 'config.cmp' )
 
--- tiktoken_core -- lua/tiktoken_core.[dylib|so|dll]
-pcall( require, 'tiktoken_core' )
+-- copilot.lua + CopilotChat + LuaSnip integration
+pcall( require, 'config.copilot' )
+
+-- asynchronous/lazy loading
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    -- tiktoken_core -- lua/tiktoken_core.[dylib|so|dll] - for CopilotChat
+    pcall( require, 'tiktoken_core' )
+  end
+})
+
+-- rainbow-delimiters
+-- local ok_rb, _ = pcall( require, 'config.rainbow' )
+-- if not ok_rb then
+--   vim.notify( 'rainbow-delimiters config not found', vim.log.levels.WARN )
+-- end
 
 -- vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=lua:
