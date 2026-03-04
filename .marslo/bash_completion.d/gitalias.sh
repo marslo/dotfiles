@@ -4,7 +4,7 @@
 #     FileName : gitalias.sh
 #       Author : marslo
 #      Created : 2025-12-11 21:28:56
-#   LastChange : 2026-02-28 03:18:18
+#   LastChange : 2026-02-28 03:34:15
 #=============================================================================
 
 function _git_rob() {
@@ -63,6 +63,62 @@ _git_rev_list() {
   if declare -F __git_complete_refs >/dev/null; then
     __git_complete_refs
     return 0
+  fi
+}
+
+function _git_var() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+
+  if [[ "$cur" == -* ]]; then
+      COMPREPLY=( $(compgen -W "-l" -- "$cur") )
+      return 0
+  fi
+
+  local vars="
+      GIT_COMMITTER_IDENT
+      GIT_AUTHOR_IDENT
+      GIT_EDITOR
+      GIT_SEQUENCE_EDITOR
+      GIT_PAGER
+      GIT_DEFAULT_BRANCH
+      GIT_SHELL_PATH
+      GIT_ATTR_SYSTEM
+      GIT_ATTR_GLOBAL
+      GIT_CONFIG_SYSTEM
+      GIT_CONFIG_GLOBAL
+  "
+  COMPREPLY=( $(compgen -W "$vars" -- "$cur") )
+  return 0
+}
+
+function _git_rev_parse() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+
+  if [[ "$cur" == -* ]]; then
+    local opts="
+        --parseopt --sq --sq-quote --keep-dashdash --stop-at-non-option
+        --short --short= --verify --quiet --stuck-long --no-revs
+        --not --branches --tags --remotes --all --revs-only
+        --since= --after= --until= --before= --prefix
+        --default --abbrev-ref --abbrev-ref= --symbolic --symbolic-full-name
+        --git-dir --git-common-dir --git-path --shared-index-path
+        --show-toplevel --show-superproject-working-tree
+        --show-prefix --show-cdup --show-toplevel --output-object-format=
+        --is-inside-git-dir --is-inside-work-tree --is-bare-repository --is-shallow-repository
+        --resolve-git-dir --absolute-git-dir
+        --flags --no-flags --objects --no-objects --branches= --tags= --remotes=
+        --exclude= --glob= --local-env-vars --path-format=
+    "
+    COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
+
+    if [[ "$cur" == *=* ]]; then
+        compopt -o nospace 2>/dev/null
+    fi
+    return 0
+  fi
+
+  if declare -F __git_complete_refs >/dev/null; then
+    __git_complete_refs
   fi
 }
 
@@ -237,6 +293,10 @@ function _git_fd() {
   fi
 }
 
-complete -F _git_mcx git-mcx
+complete -o bashdefault -o default -F _git_stat git-stat 2>/dev/null || complete -o default -F _git_stat git-stat
+complete -o bashdefault -o default -F _git_gerrit_stat git-gerrit-stat
+complete -o bashdefault -o default -F _git_changed git-changed
+complete -o bashdefault -o default -F _git_fd git-fd
+complete -o bashdefault -o default -F _git_mcx git-mcx
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
