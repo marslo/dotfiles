@@ -4,7 +4,7 @@
 #     FileName : cht.download.sh
 #       Author : marslo
 #      Created : 2026-03-04 00:46:18
-#   LastChange : 2026-03-04 11:12:10
+#   LastChange : 2026-03-04 11:15:57
 #=============================================================================
 
 set -euo pipefail
@@ -30,10 +30,10 @@ declare -r USAGE="USAGE:
 OPTIONS:
   $(c G)--update$(c)             only download missing or updated cheat sheets $(c 0Ci)(default)$(c)
   $(c G)--full-download$(c)      force full download of all cheat sheets
-  $(c G)--sub-list$(c)           also check sub-lists under directories $(c 0Mi)(e.g. https://cht.sh/awk/:list)$(c) for new cheat sheets
+  $(c G)--sub-list$(c)           also check and download sub-lists $(c 0Ci)(e.g. $(c 0Mi)cht.sh/awk/:list$(c 0Ci))$(c)
   $(c G)--dryrun$(c)             show what would be downloaded without actually downloading
   $(c G)-s$(c), $(c G)--silent$(c)         suppress all output except errors
-  $(c G)-v$(c), $(c G)-vv$(c)              show debug information. multiple -v options increase verbosity $(c 0Ci)(max: $(c 0Mi)2$(c 0Ci), default: $(c 0Mi)1$(c 0Ci))$(c)
+  $(c G)-v$(c), $(c G)-vv$(c)              show debug information. multiple $(c 0Gsi)-v$(c) options increase verbosity $(c 0Ci)(max: $(c 0Mi)2$(c 0Ci), default: $(c 0Mi)1$(c 0Ci))$(c)
   $(c G)-h$(c), $(c G)--help$(c)           show this help message and exit
 "
 
