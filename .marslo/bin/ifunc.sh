@@ -58,19 +58,24 @@ function ipshow() {
 # **************************************************************/
 
 # inspired from http://www.earthinfo.org/linux-disk-usage-sorted-by-size-and-human-readable/
-function udfs {
+function udfs() {
   v='*'
   # shellcheck disable=SC2124
-  [ 1 -le $# ] && v="$@"
-  du -sk ${v} | sort -nr | while read -r size fname; do
-    for unit in k M G T P E Z Y; do
-      if [ "$size" -lt 1024 ]; then
-        echo -e "${size}${unit}\\t${fname}";
-        break;
-      fi;
-      size=$((size/1024));
-    done;
-  done
+  [ $# -ge 1 ] && v="$@"
+  du -sk ${v} | sort -nr | awk '
+  BEGIN { split("k M G T P E Z Y", units, " ") }
+  {
+    size = $1
+    sub(/^[0-9]+[ \t]+/, "")
+    fname = $0
+
+    i = 1
+    while (size >= 1024 && i < 8) {
+      size /= 1024.0
+      i++
+    }
+    printf "%.2f%s\t%s\n", size, units[i], fname
+  }'
 }
 
 function mdiff() {

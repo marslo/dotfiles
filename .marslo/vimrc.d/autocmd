@@ -262,6 +262,7 @@ if has( 'autocmd' )
     autocmd FileType           help                            setlocal nofoldenable
     autocmd Syntax             c,cpp,xml,html,xhtml            normal zM
     " autocmd VimLeave         *                               silent :%bd                                          " :windo bd
+    " autocmd BufReadPre,BufNewFile * if expand('%:p:h') =~# 'job/code/devops' | let b:coc_enabled = 0 | endif
   augroup END
 
   " vim-matchup
