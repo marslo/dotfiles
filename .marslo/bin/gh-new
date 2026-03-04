@@ -4,7 +4,7 @@
 #     FileName : gh-new
 #       Author : marslo
 #      Created : 2026-01-23 11:52:14
-#   LastChange : 2026-02-27 19:11:29
+#   LastChange : 2026-03-03 15:18:05
 #=============================================================================
 
 set -euo pipefail
@@ -130,7 +130,7 @@ function prCmd() {
               --title "${title}"
               --body "${body}"
          )
-  test -n "${label}" && arrRef+=( --label "${label}" )
+  if test -n "${label}"; then arrRef+=( --label "${label}" ); fi
 }
 
 function checkTools() {

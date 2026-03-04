@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-03-02 23:48:07
+"    LastChange : 2026-03-03 15:06:28
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -149,8 +149,8 @@ if has( 'autocmd' )
 
     " https://vim.fandom.com/wiki/Syntax_folding_for_Java
     autocmd FileType   java                  setlocal foldmarker=/**,**/ foldmethod=marker foldcolumn=1
-    if did_filetype()                      | finish      | endif
-    if getline(1) =~# '^#!.*[/\\]groovy\>' | setf groovy | endif              " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
+    if did_filetype()                      | finish             | endif
+    if getline(1) =~# '^#!.*[/\\]groovy\>' | setfiletype groovy | endif       " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
   augroup END
 
   augroup Python
@@ -243,7 +243,7 @@ if has( 'autocmd' )
             \|   doautocmd FileType
             \| endif
     " autocmd BufRead,BufNewFile *                               if !did_filetype() && &ft ==# '' | set syntax=Jenkinsfile | endif
-    autocmd BufRead,BufNewFile *                               if empty(&filetype) | setfiletype Jenkinsfile | endif
+    autocmd BufRead,BufNewFile *                               if empty( &filetype ) | setfiletype Jenkinsfile | endif
     " autocmd BufWinEnter      *                               silent! loadview                                     " autocmd BufWinLeave * silent! mkview
     autocmd BufReadPost        *                               silent! loadview
     autocmd Syntax             *                               syn match ExtraWhitespace /\s\+$\| \+\ze\t/
@@ -262,6 +262,21 @@ if has( 'autocmd' )
     autocmd FileType           help                            setlocal nofoldenable
     autocmd Syntax             c,cpp,xml,html,xhtml            normal zM
     " autocmd VimLeave         *                               silent :%bd                                          " :windo bd
+  augroup END
+
+  " vim-matchup
+  augroup MatchupTripleQuotes
+    autocmd!
+    autocmd FileType  python,groovy,Jenkinsfile
+          \ if exists('b:match_words') |
+          \   if b:match_words !~# '""":"""' |
+          \     let b:match_words .= ',""":""",' . "'''" . ':' . "'''" |
+          \   endif |
+          \ else |
+          \   let b:match_words = '""":""",' . "'''" . ':' . "'''" |
+          \ endif
+    autocmd FileType markdown nnoremap <silent><buffer> [% :call search('^```', 'bW')<CR>
+    autocmd FileType markdown nnoremap <silent><buffer> ]% :call search('^```', 'W')<CR>
   augroup END
 
   augroup LAST_OVERRIDE

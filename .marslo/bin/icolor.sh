@@ -3,7 +3,7 @@
 #     FileName : icolor.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-05-01 23:54:35
-#   LastChange : 2026-02-17 20:12:59
+#   LastChange : 2026-03-03 16:38:35
 #=============================================================================
 
 # ***************************************************************
@@ -18,6 +18,18 @@
 #     $ echo "[[ -f \"/path/to/color-utils.sh\" ]] && source \"/path/to/color-utils.sh\" >> ~/.bashrc"
 #     ```
 # ***************************************************************
+
+# https://unix.stackexchange.com/a/269085/29178
+function color()    { for c; do printf '\e[48;5;%dm %03d ' "$c" "$c"; done; printf '\e[0m \n'; }
+function hex2ansi() {
+  hex=${1#"#"}
+  r=$(printf '0x%0.2s' "$hex"        )
+  g=$(printf '0x%0.2s' "${hex#??}"   )
+  b=$(printf '0x%0.2s' "${hex#????}" )
+  printf '%03d' "$(( (r<75?0:(r-35)/40)*6*6 +
+                     (g<75?0:(g-35)/40)*6   +
+                     (b<75?0:(b-35)/40)     + 16 ))"
+}
 
 # @author : Anthony Bourdain
 # @credit : https://stackoverflow.com/a/55073732/2940319
@@ -273,5 +285,20 @@ function showLSColors() {
     echo
   )
 }
+
+# @Deprecated
+# function ansicolors () {
+#   for attr in 0 1 2 3 4 5 6 7; do
+#     echo "------------------------------------------------"
+#     printf "ESC[%s;Foreground;Background - \n" $attr
+#     for fore in 30 31 32 33 34 35 36 37; do
+#         for back in 40 41 42 43 44 45 46 47; do
+#             printf '\033[%s;%s;%sm %02s;%02s\033[0m' $attr $fore $back $fore $back
+#         done
+#     printf '\n'
+#     done
+#     printf '\033[0m'
+#   done
+# }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

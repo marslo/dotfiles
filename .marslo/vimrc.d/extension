@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-03-02 23:52:24
+"    LastChange : 2026-03-03 16:43:41
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -38,7 +38,7 @@ Plug 'dbeniamine/cheat.sh-vim'
 Plug 'simnalamburt/vim-mundo', { 'on': 'MundoToggle' }
 Plug 'preservim/tagbar'
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
-Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
+Plug 'tiagofumo/vim-nerdtree-syntax-highlight', { 'on':  'NERDTreeToggle' }
 Plug 'marslo/vim-devicons', { 'branch': 'sandbox/marslo' }
 Plug 'marslo/authorinfo'
 Plug 'LunarWatcher/auto-pairs', { 'branch': 'develop' }
@@ -69,16 +69,13 @@ Plug 'sainnhe/gruvbox-material'                                     " │
 Plug 'luisiacc/gruvbox-baby', { 'branch': 'main' }                  " ├ theme
 Plug 'sainnhe/everforest'                                           " │
 Plug 'marslo/marslo.vim'                                            " ╯ t_Co=16
-  " Plug 'vim-scripts/vim-gradle'                                   " ╮ groovy
-  " Plug 'modille/groovy.vim'                                       " ├ /usr/local/vim/share/vim/vim90/syntax/groovy.vim
-  Plug 'sheerun/vim-polyglot'                                       " ╯ yaml.ansible
+Plug 'sheerun/vim-polyglot'                                         " highlight
 Plug 'luochen1990/rainbow'
 Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }           " color show
-Plug 'amadeus/vim-css', { 'for': ['css', 'scss', 'less', 'stylus'] }
+Plug 'amadeus/vim-css'
 Plug 'stephpy/vim-yaml', { 'for': ['yaml', 'yaml.ansible'] }        " ╮ yaml
 Plug 'pedrohdz/vim-yaml-folds', { 'for': ['yaml', 'yaml.ansible'] } " ╯
 Plug 'dense-analysis/ale'
-" Plug 'marslo/Jenkinsfile-vim-syntax'                              " Jenkinsfile
 Plug 'ekalinin/Dockerfile.vim', { 'for': 'dockerfile' }             " dockerfile
 Plug 'rizzatti/dash.vim'
 Plug 'parkr/vim-jekyll'                                             " github page
@@ -174,10 +171,14 @@ let g:mundo_prefer_python3 = 1
 let g:mundo_width          = 26
 
 " andymass/vim-matchup
-let g:matchup_matchparen_offscreen = { 'method': 'popup' }
+let g:matchup_matchparen_offscreen     = { 'method': 'popup' }
+let g:matchup_delim_stopline           = 4000
+let g:matchup_matchparen_timeout       = 500
+let g:matchup_matchparen_hi_background = 0
 
 " luochen1990/rainbow
-" for i in '75' '147' '108' '196' '208' '66' '106' '172' '115' '129'; do echo -e "\e[38;05;${i}m${i}"; done | column -c 250 -s ' '; echo -e "\e[m"
+" $ for i in '75' '147' '108' '196' '208' '66' '106' '172' '115' '129'; do echo -e "\e[38;05;${i}m${i}"; done | column -c 250 -s ' '; echo -e "\e[m"
+"IsNvim $ color '75' '176' '108' '167' '208' '66' '106' '172' '115' '142'
 let g:rainbow_active    = 1
 let g:rainbow_operators = 1
 let g:rainbow_conf      = {
