@@ -1,14 +1,27 @@
 #!/usr/bin/env bash
 # shellcheck source=/dev/null disable=SC2155
+#=============================================================================
+#     FileName : cht.download.sh
+#       Author : marslo
+#      Created : 2026-03-04 00:46:18
+#   LastChange : 2026-03-04 11:12:10
+#=============================================================================
 
 set -euo pipefail
 
-function showUsage() { echo -e "${USAGE}"; exit 0; }
+trap 'echo -e "\n$(c 0Rs)[ERROR] $(c 0Wdi)Interrupted by user (Ctrl+C). Exiting...$(c)" >&2; exit 130' INT
+
+declare -r CS_CACHE_DIR="${CS_CACHE_DIR:-$HOME/.config/cht.sh}"
+declare FULL_DOWNLOAD=false
+declare SUB_LIST=false
+declare VERBOSE=1
+
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
 test -f "${HOME}/.marslo/bin/bash-colors.sh" && source "${HOME}/.marslo/bin/bash-colors.sh" || { c() { :; }; }
+function showUsage() { echo -e "${USAGE}"; exit 0; }
 
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
 declare -r USAGE="USAGE:
@@ -17,6 +30,7 @@ declare -r USAGE="USAGE:
 OPTIONS:
   $(c G)--update$(c)             only download missing or updated cheat sheets $(c 0Ci)(default)$(c)
   $(c G)--full-download$(c)      force full download of all cheat sheets
+  $(c G)--sub-list$(c)           also check sub-lists under directories $(c 0Mi)(e.g. https://cht.sh/awk/:list)$(c) for new cheat sheets
   $(c G)--dryrun$(c)             show what would be downloaded without actually downloading
   $(c G)-s$(c), $(c G)--silent$(c)         suppress all output except errors
   $(c G)-v$(c), $(c G)-vv$(c)              show debug information. multiple -v options increase verbosity $(c 0Ci)(max: $(c 0Mi)2$(c 0Ci), default: $(c 0Mi)1$(c 0Ci))$(c)
@@ -24,12 +38,46 @@ OPTIONS:
 "
 
 function getRemoteList() {
-  echo -e "$(c Wdi)>> get remote list from $(c 0Ci)https://cht.sh/:list $(c 0Wdi)...$(c)" >&2
+  local raw files dirs allFiles subList expanded _c
+
+  "${SUB_LIST}" && _c="$(c 0Wdi)and $(c 0Ci)https://cht.sh/<DIR>:list " || _c=""
+  echo -e "$(c Wdi)>> get remote list from $(c 0Ci)https://cht.sh/:list ${_c}$(c 0Wdi)...$(c)" >&2
+
+  raw=$(curl -fsSL -g "https://cht.sh/:list" | awk 'NF && !/ / && !/^rfc\//')
+  files=$(echo "${raw}" | grep -v '/$' || true)
+  dirs=$(echo "${raw}" | grep '/$' || true)
+  allFiles="${files}"
+
+  if ! "${SUB_LIST}"; then
+    echo -e "$(c Wdi)>> skipping sub-list check, only top-level cheat sheets will be downloaded$(c)" >&2
+    echo -e "${allFiles}" | sort -u
+    return
+  fi
+
+  if [[ -z "${dirs}" ]]; then
+    echo -e "$(c Wdi)>> no sub-list found, only top-level cheat sheets will be downloaded$(c)" >&2
+    echo -e "${allFiles}" | sort -u
+    return
+  fi
+
+  trap 'exit 130' SIGINT SIGTERM; while read -r dir; do
+    [[ -z "${dir}" ]] && continue
+
+    [[ "${VERBOSE}" -ge 2 ]] && echo -e "$(c 0Wdi)== checking sub list: $(c 0Mi)'cht.sh/${dir}:list'$(c 0Wdi) ...$(c)" >&2
+    subList=$(curl -fsSL -g "https://cht.sh/${dir}:list" 2>/dev/null | awk 'NF && !/ /')
+
+    if [[ -n "${subList}" ]]; then
+      expanded=$(echo "${subList}" | awk -v prefix="${dir}" '{print prefix $0}')
+      allFiles="${allFiles}\n${expanded}"
+    fi
+
+    sleep 0.01
+  done <<< "${dirs}"
+
   # 1. NF: filter out empty lines
   # 2. !/\/$/: filter out directory entries (ending with '/')
-  # 3. !/ /: filter out entries containing spaces (invalid cheat sheet names)
   # 4. !/^rfc\//: filter out entries starting with 'rfc/' (not actual cheat sheets)
-  curl -fsSL -g "https://cht.sh/:list" | awk 'NF && !/\/$/ && !/ / && !/^rfc\//' | sort
+  echo -e "${allFiles}" | awk 'NF && !/\/$/ && !/^rfc\//' | sort -u
 }
 
 function getLocalList() {
@@ -51,7 +99,7 @@ function getList() {
   fi
 }
 
-function main() {
+function download() {
   local missing=$(getList)
 
   [[ -z "${missing}" ]] && {
@@ -63,8 +111,10 @@ function main() {
   local _type=$( "${FULL_DOWNLOAD}" && echo 'full' || echo 'incremental' )
   [[ "${VERBOSE}" -ge 1 ]] && echo -e "$(c 0Wdi)>> found $(c 0Ysi)${counts} $(c 0Wdi)missing or new cheat sheets, starting ${_type} download ...$(c)" >&2
 
-  while read -r query; do
+  trap 'exit 130' SIGINT SIGTERM; while read -r query; do
     [[ -z "${query}" ]] && continue
+
+    local file fullPath url equery
 
     file="${query}"
     [[ "${query}" == */* ]] || file="_${query}"
@@ -94,21 +144,17 @@ function main() {
     fi
 
     sleep 0.02
-
   done <<< "${missing}"
 
-  echo -e "$(c Gs)DONE !$(c)"
+  echo -e "$(c Ys)DONE !$(c)"
 }
-
-declare FULL_DOWNLOAD=false
-declare VERBOSE=1
-declare -r CS_CACHE_DIR="${CS_CACHE_DIR:-$HOME/.config/cht.sh}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h | --help     ) showUsage                   ;;
     --full-download ) FULL_DOWNLOAD=true  ; shift ;;
     --update        ) FULL_DOWNLOAD=false ; shift ;;
+    --sub-list      ) SUB_LIST=true       ; shift ;;
     -s | --silent   ) VERBOSE=0           ; shift ;;
     -v              ) VERBOSE=1           ; shift ;;
     -vv             ) VERBOSE=2           ; shift ;;
@@ -117,6 +163,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-main "$@"
+download "$@"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
