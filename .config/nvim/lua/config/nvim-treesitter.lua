@@ -20,7 +20,10 @@ ts_configs.setup({
     'ini', 'java', 'jq', 'json','lua', 'markdown', 'python', 'powershell',
     'query', 'ssh_config', 'vim', 'vimdoc', 'xml', 'yaml'
   },
-  sync_install  = true,
+
+  -- set `false` to disable automatic installation for performance issue
+  -- upgrade via `:TSUpdate` or `:TSInstall <lang>`
+  sync_install  = false,
   auto_install  = true,
   ignore_install = { 'javascript' },
 
@@ -31,8 +34,23 @@ ts_configs.setup({
 
   highlight = {
     enable = true,
-    disable = { 'markdown', 'groovy' },
-    additional_vim_regex_highlighting = true,
+    -- disable for large file ( > 200KB )
+    disable = function(lang, buf)
+      local ok_stat, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+      if ok_stat and stats and stats.size > 200 * 1024 then   -- 200KB threshold
+        return true
+      end
+
+      if lang == 'markdown' or lang == 'groovy' then
+        return true
+      end
+
+      return false
+    end,
+
+    -- set `false` for performance issue
+    -- additional_vim_regex_highlighting = false,
+    additional_vim_regex_highlighting = { 'groovy', 'Jenkinsfile' },
 
     ['punctuation.bracket'] = '',
     ['constructor']         = '',
@@ -53,14 +71,23 @@ ts_configs.setup({
     extended_mode = true,   -- also highlight non-bracket delimiters like html tags, boolean or table: lang -> boolean
     max_file_lines = nil,   -- do not enable for files with more than n lines, int
   },
+
+  -- better performance for vim-matchup
+  matchup = {
+    enable = true,
+    enable_quotes = true,
+    disable_virtual_text = true,
+  }
 })
+
+-- vim.treesitter.language.register( 'groovy', 'Jenkinsfile' )
 
 -- ========= OPTIONAL =========
 -- 1) automatically disable highlighting for large files ( to maintain consistency with copilot large file strategy )
 -- ts_configs.setup({
 --   highlight = {
 --     enable = true,
---     disable = function)(lang, buf)
+--     disable = function(lang, buf)
 --       local ok_stat, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
 --       if ok_stat and stats and stats.size > 200 * 1024 then   -- 200KB threshold
 --         return true

@@ -2,9 +2,10 @@
 
 to automatic downloading and patching [SchemaStore.org](https://schemastore.org) JSON schemas for offline use in Neovim + coc.nvim or other YAML-aware editors.
 
-to fix the issue in yamllint warning:
-
+> to fix the issue in yamllint warning:
+> ```bash
 > Problems loading reference 'https://json.schemastore.org/pre-commit-hooks. json#/definitions/stages': Unable to load schema from 'https://json. schemastore.org/pre-commit-hooks.json': <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN""http://www.w3.org/TR/html4/strict.dtd"> <HTML><HEAD><TITLE>Service Unavailable</TITLE> <META HTTP-EQUIV="Content-Type" Content="text/html; charset=us-ascii"></HEAD> <BODY><h2>Service Unavailable</h2> <hr><p>HTTP Error 503. The service is unavailable.</p> </BODY></HTML> . (YAML 768)
+> ```
 
 ### features
 

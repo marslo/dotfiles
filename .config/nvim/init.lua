@@ -30,10 +30,15 @@ pcall( require, 'config.devicons' )
 pcall( require, 'config.fzf' )
 
 -- treesitter
-local ok_ts, err_ts = pcall( require, 'config.nvim-treesitter' )
-if not ok_ts then
-  vim.notify( err_ts, vim.log.levels.WARN )
-end
+vim.api.nvim_create_autocmd({"BufReadPost", "BufNewFile"}, {
+  group = vim.api.nvim_create_augroup("LazyLoadTreesitter", { clear = true }),
+  callback = function()
+    local ok_ts, err_ts = pcall( require, 'config.nvim-treesitter' )
+    if not ok_ts then
+      vim.notify( err_ts, vim.log.levels.WARN )
+    end
+  end,
+})
 
 -- nvim-cmp
 pcall( require, 'config.cmp' )

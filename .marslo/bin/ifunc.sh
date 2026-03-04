@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2026-02-28 02:09:53
+#  LastChange : 2026-03-03 17:11:48
 #  Description : ifunctions
 # =============================================================================
 
@@ -25,8 +25,6 @@ function getperm() { find "$1" -printf '%m\t%u\t%g\t%p\n'; }
 function rdiff()   { rsync -rv --size-only --dry-run "$1" "$2"; }
 function rget()    { route -nv get "$@"; }
 function forget()  { history -d $(( $(history | tail -n 1 | ${GREP} -oP '^ \d+') - 1 )); }
-# https://unix.stackexchange.com/a/269085/29178
-function color()   { for c; do printf '\e[48;5;%dm %03d ' "$c" "$c"; done; printf '\e[0m \n'; }
 function trim()    { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
 # shellcheck disable=SC2015
 function kx()      { [ "$1" ] && kubectl config use-context "$1" || kubectl config current-context; }
@@ -756,20 +754,20 @@ function setme() {
   local USAGE="USAGE
     $(c Cs)\$ setme $(c 0Gi)[ OPTIONS ]$(c)
   \nOPTIONS
-    $(c G)-a$(c), $(c G)-s$(c), $(c G)--set$(c), $(c G)--add$(c)     : set the current user (or specified user) as admin
-    $(c G)-r$(c), $(c G)--remove$(c)             : remove the current user (or specified user) from admin
-    $(c G)-c$(c), $(c G)--check$(c)              : check if the current user (or specified user) is admin (default)
-    $(c G)-u$(c), $(c G)--user $(c 0Mi)<username>$(c)    : specify the username (default: current user)
+    $(c G)-a$(c), $(c G)-s$(c), $(c G)--set$(c), $(c G)--add$(c)     : set the account as admin
+    $(c G)-r$(c), $(c G)--remove$(c)             : remove the account from admin
+    $(c G)-c$(c), $(c G)--check$(c)              : check if the account is admin $(c 0i)(default)$(c)
+    $(c G)-u$(c), $(c G)--user $(c 0Mi)<username>$(c)    : specify the username $(c 0i)(default: current user)$(c)
     $(c G)-h$(c), $(c G)--help$(c)               : show this help message
   \nEXAMPLE
     $(c Wdi)# set the current user as admin$(c)
-    $(c Yi)\$ setme --set$(c)
+    $(c Y)\$ setme $(c 0Gi)--set$(c)
 
     $(c Wdi)# remove the current user from admin$(c)
-    $(c Yi)\$ setme --remove --user $(c 0Mi)john$(c)
+    $(c Y)\$ setme $(c 0Gi)--remove --user $(c 0Mi)john$(c)
 
     $(c Wdi)# check if the user 'jane' is admin$(c)
-    $(c Yi)\$ setme --check --user $(c 0Mi)jane$(c)
+    $(c Y)\$ setme $(c 0Gi)--check --user $(c 0Mi)jane$(c)
   "
 
   function isAdmin() { dscl . -read /Groups/admin GroupMembership | grep -qw "${1:-$(whoami)}"; }
