@@ -4,11 +4,11 @@
 #     FileName : git-st
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-02-01 03:39:19
-#   LastChange : 2026-02-12 17:28:59
+#   LastChange : 2026-03-03 17:34:53
 #   references : https://stackoverflow.com/q/77919418/2940319
 #=============================================================================
 
-declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
+declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ' )"
 declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
@@ -19,9 +19,8 @@ test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :
 declare gdiff=''
 declare branch=''
 declare rlog=false
-
 declare emptyRepo=false
-if ! git rev-parse --abbrev-ref HEAD >/dev/null 2>&1; then emptyRepo=true;  fi
+git rev-parse --abbrev-ref HEAD >/dev/null 2>&1 || emptyRepo=true
 
 function showLog() {
   branch="${1:-$(git rev-parse --abbrev-ref HEAD)}"
@@ -60,10 +59,11 @@ if "${emptyRepo}"; then
   exit 0
 else
   # COLUMNS='128'
-  gdiff=$(COLUMNS="$(tput cols)" git --no-pager diff --stat --relative | head -n-1)
-  awk 'FNR==NR { k=$1; $1=""; map[k]=$0; next } { print $0 map[$2] }' \
-      <(echo -e "${gdiff}") <(git status -sb)
-      # | column -t -s '|' -o '|' | sed -e '1 s/|$//'
+  gdiff=$(COLUMNS="$(tput cols)" git --no-pager -C "$(git rev-parse --show-toplevel)" diff --stat --relative | head -n-1)
+  awk '
+    FNR==NR { match($0, /[ \t]*\|.*/); map[$1] = substr($0, RSTART); next; }
+    { print $0 map[$2] }
+  ' <(echo -e "${gdiff}") <(git -C "$(git rev-parse --show-toplevel)" status -sb)
 fi
 
 if [[ -z "${gdiff}" ]]; then
