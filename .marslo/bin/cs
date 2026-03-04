@@ -4,6 +4,7 @@
 # The MIT License <https://opensource.org/license/mit>
 #
 # Credits: https://github.com/melopilosyan/confNest/blob/main/bin/cs
+# Enhancements: https://github.com/marslo/dotfiles/blob/main/.marslo/bin/cs by @marslo
 
 # Exit immediately if a command exits with a non-zero status code
 set -eo pipefail
@@ -77,15 +78,30 @@ _download_cheat_sheet() {
 
 _fuzzy_find_from_the_list() {
   read -r -d '' ps <<-BASH
-f=$topic{}; [[ \$f == */* ]] || f="_\$f"
-[[ -f \$f ]] && cat "\$f" || echo "Press Enter to download"
+    f=$topic{}; [[ \$f == */* ]] || f="_\$f"
+    [[ -f \$f ]] && cat "\$f" || echo "Press Enter to download"
 BASH
+
+  read -r -d '' xo <<'EOF'
+    item=$(echo "{}" | tr -d "'")
+    target="${topic}${item}"
+    [[ "$target" == */* ]] || target="_$target"
+    # echo "Debug: item=[$item] target=[$target]" > /dev/tty
+    if [[ -f "$target" ]]; then
+      bat --color=always --theme='gruvbox-dark-marslo' "$target" | less -R > /dev/tty
+    else
+      printf "\n\e[31mError: File [%s] not found\e[0m\n" "$target" > /dev/tty
+      read -p "Press Enter to continue..." > /dev/tty
+    fi
+EOF
 
   find "${topic:-./}" -maxdepth 1 -type f -printf "%T@ %f\n" |
     sort -k1 -rg | sed -e 's/^.*[_ ]//' |
     awk '/:list/ {next} !seen[$1]++' - "$cache_file" |
     fzf --height 80% --reverse --print-query --prompt "> $topic" \
-        --preview "$ps" --preview-window 75% --info right |
+        --preview "$ps" --preview-window 75% --info right \
+        --bind 'ctrl-/:toggle-preview' \
+        --bind "ctrl-o:execute($xo)" |
     tail -1
 
   return 0
