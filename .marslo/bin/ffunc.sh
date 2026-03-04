@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-03-02 18:07:47
+#   LastChange : 2026-03-04 11:43:15
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -54,22 +54,47 @@ function _load_fzf_context() {
   local -a CAT=( "$(type -P cat)" )
   type -P bat >/dev/null && CAT=( "$(type -P bat)" --theme='Nord' --color=always --line-range :500 )
   local previewCmd="if file -bL --mime-encoding {} | grep -iq 'binary' && ! iconv -f utf-8 -t utf-8 {} >/dev/null 2>&1; then file -bL {}; else ${CAT[*]} {}; fi"
+  local offset='case {} in
+    *jenkinsfile/* | *vars/* ) echo "change-preview-window(right,60%,nowrap,rounded,+15)" ;;
+    *                        ) echo "change-preview-window(right,60%,nowrap,rounded,+0)"  ;;
+  esac'
   local -a fzfopt=( --exit-0
                     --height 50%
                     --multi --cycle
                     --preview "${previewCmd}"
-                    --preview-window 'right,60%,nowrap,rounded,+15'
+                    --preview-window 'right,60%,nowrap,rounded,+0'
                     --bind 'ctrl-/:toggle-preview'
-                    --bind='ctrl-o:execute(bat {} > /dev/tty)'
+                    --bind 'ctrl-o:execute(bat {} > /dev/tty)'
+                    --bind "focus:transform: ${offset}"
                   )
   typeset -p fzfopt
 }
 
-# usage: eval "$( _load_fd_context )"
+# usage: eval "$( _load_fd_context "$@" [ -r ignores ] )"
 #        fd . "${fdopt[@]}" | ...
 function _load_fd_context() {
+  local -a ignores=()
+  local -a args=()
   local -a fdopt=( --type f --hidden --follow --exclude .git --exclude node_modules )
-  [[ "$(pwd)" = "$HOME" ]] && fdopt+=( --max-depth 3 )
+
+  while test -n "$1"; do
+    case "$1" in
+      -r | --ignore ) shift;
+                      if [[ -n "${1:-}" ]]; then
+                        local -n _ref="$1"; shift ;
+                        fdopt+=( --ignore-file "$HOME/.fdignore" )
+                        for pattern in "${_ref[@]}"; do
+                          fdopt+=( --exclude "$pattern" )
+                        done ;
+                      fi    ;;
+      *             ) args+=( "$1" ); shift ;;
+    esac
+  done
+
+  set -- "${args[@]}"
+  [[ 0 -eq "$#" || ( -d "${1:-}" && ( "." == "$1" || "$1" == ./* ) ) ]] && fdopt+=( --strip-cwd-prefix )
+  [[ "${HOME}" == "$PWD" || ( -d "${1:-}" && "${HOME}" == "$(realpath "${1:-}")" ) ]] && fdopt+=( --max-depth 3 )
+
   isWSL || fdopt+=( --exec-batch ls -t )
   typeset -p fdopt
 }
@@ -95,16 +120,17 @@ function _load_fd_context() {
 function copy() {                          # smart copy
   [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)" && return;
 
-  eval "$( _load_fd_context  )"
-  eval "$( _load_fzf_context )"
+  eval "$( _load_fd_context "$@" )"
+  eval "$( _load_fzf_context     )"
 
   if [[ 0 -eq $# ]]; then
     file=$( fd . "${fdopt[@]}" | fzf "${fzfopt[@]}" ) &&
          "${COPY}" < "${file}" &&
          printf "$(c Wd)>>$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${file}"
   elif [[ 1 -eq $# ]] && [[ -d "$1" ]]; then
-    local target=$1;
-    file=$( fd . "${target}" "${fdopt[@]}" | fzf "${fzfopt[@]}" ) &&
+    local -a target=()
+    [[ '.' = "${1}" ]] && target=("${1}") || target=('.' "${1}")
+    file=$( fd "${target[@]}" "${fdopt[@]}" | fzf "${fzfopt[@]}" ) &&
          "${COPY}" < "${file}" &&
          printf "$(c Wd)>>$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${file}"
   else
@@ -131,9 +157,6 @@ function open() {                          # smart open
   USAGE+="\n  $(c Y)\$ open $(c 0Mi)/path/to/dir$(c)          $(c 0Wdi)# list files in directory via fzf and open the selected file$(c)"
   USAGE+="\n  $(c Y)\$ open $(c 0Gi)--no-fzf $(c 0Mi)/path/to/dir$(c) $(c 0Wdi)# open the directory directly without fzf selection$(c)"
 
-  eval "$( _load_fd_context  )"
-  eval "$( _load_fzf_context )"
-
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -d | --no-fzf ) ORG_OPEN=true     ; shift  ;;
@@ -148,13 +171,18 @@ function open() {                          # smart open
     esac
   done
 
+  "${ORG_OPEN:-false}" && { command open "$@"; return; }
+
+  eval "$( _load_fd_context "$@" )"
+  eval "$( _load_fzf_context     )"
+
   if [[ 0 -eq $# ]]; then
     local selected=$( fd . "${fdopt[@]}" | fzf --exit-0 "${fzfopt[@]}" )
     [[ -n "${selected}" ]] && echo "${selected}" | tr '\n' '\0' | xargs -0 command open
   elif [[ -d "${1:-}" ]]; then
-    local target=$1;
-    "${ORG_OPEN}" && command open "${target}" && return;
-    fd . "${target}" "${fdopt[@]}" | fzf --bind="enter:become(command open {+})" "${fzfopt[@]}";
+    local -a target=()
+    [[ '.' = "${1}" ]] && target=("${1}") || target=('.' "${1}")
+    fd "${target[@]}" "${fdopt[@]}" | fzf --bind="enter:become(command open {+})" "${fzfopt[@]}";
   else
     command open "${@}"
   fi
@@ -179,8 +207,8 @@ function cat() {                           # smart cat
   # force use cat
   [[ '-c' = "$1" ]] && { $(type -P cat) "${@:2}"; return; }
 
-  eval "$( _load_fd_context  )"
-  eval "$( _load_fzf_context )"
+  eval "$( _load_fd_context "$@" )"
+  eval "$( _load_fzf_context     )"
 
   # reading from fd + fzf
   if [[ 0 -eq $# ]]; then
@@ -188,8 +216,9 @@ function cat() {                           # smart cat
     # using IFS to handle file name with space
     [[ -n "${selected}" ]] && echo "${selected}" | xargs -d '\n' "${CAT[@]}"
   elif [[ 1 -eq $# ]] && [[ -d $1 ]]; then
-    local target=$1;
-    fd . "${target}" "${fdopt[@]}" | fzf --bind="enter:become(${CAT[*]} {+})" "${fzfopt[@]}";
+    local -a target=()
+    [[ '.' = "${1}" ]] && target=("${1}") || target=('.' "${1}")
+    fd "${target[@]}" "${fdopt[@]}" | fzf --bind="enter:become(${CAT[*]} {+})" "${fzfopt[@]}";
   else
     "${CAT[@]}" "${@:1:$#-1}" "${@: -1}"
   fi
@@ -534,12 +563,8 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vim`
 # shellcheck disable=SC2155
 function vim() {                           # magic vim - fzf list in most recent modified order
-  local -a voption=()
   local orgv=false                         # force using vim instead of nvim
-
-  local -a fdopt=( --type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore" )
-  test -d "${1:-}" && [[ "$1" == "." || "$1" == ./* ]] && fdopt+=( --strip-cwd-prefix )
-
+  local -a voption=()
   local -a ignores=(
     '*.pem' '*.p12'
     '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg' '*.ico' '*.pdf' '*.mp4' '*.mp3'
@@ -548,12 +573,6 @@ function vim() {                           # magic vim - fzf list in most recent
     '*.pyc' '*.pyd' '*.pyo' '*.node' '*.class' '*.jar' '*.db' '*.sqlite' '*.sqlite3'
     'Music' '.target_book' '_book' 'OneDrive*'
   )
-  for pattern in "${ignores[@]}"; do fdopt+=( --exclude "${pattern}" ); done
-
-  { test "$HOME" = "$(pwd)" || [[ -d "${1:-}" && "$HOME" = $(realpath ${1:-}) ]]; } && fdopt+=( --max-depth 3 )
-  isWSL || fdopt+=( --exec-batch ls -t )
-
-  eval "$( _load_fzf_context )"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -568,6 +587,9 @@ function vim() {                           # magic vim - fzf list in most recent
                   * ) break                            ;;
     esac
   done
+
+  eval "$( _load_fd_context "$@" -r ignores )"
+  eval "$( _load_fzf_context )"
 
   local VIM="$(type -P vim)"
   ! "${orgv}" && command -v nvim >/dev/null && VIM="$(type -P nvim)"
@@ -659,7 +681,7 @@ function vimrc() {                         # vimrc - fzf list all rc files in da
     esac
   done
 
-  eval "$( _load_fzf_context  )"
+  eval "$( _load_fzf_context )"
 
   "${orgv}" || command -v nvim >/dev/null && VIM="$(type -P nvim)"
   fdInRC -x | sed -rn 's/^[^|]* \| (.+)$/\1/p' \
