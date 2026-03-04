@@ -1,6 +1,7 @@
 {
   //  "suppress the python not valid/found issue when open nvim",
   "snippets.ultisnips.pythonPrompt": false,
+  "snippets.userSnippetsDirectory": "~/.marslo/vimrc.d/snips",
   "codeLens.enable": true,
   "groovy.enable": true,
   //: "$ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk",
@@ -17,6 +18,21 @@
   "java.referencesCodeLens.enabled": true,
   "java.implementationsCodeLens.enabled": true,
   "java.signatureHelp.enabled": true,
+
+  // java & gradle compatibility
+  "java.import.gradle.enabled": true,
+  "java.import.gradle.home": "/opt/homebrew/opt/gradle",
+  "java.import.gradle.wrapper.enabled": false,
+  "java.imports.gradle.wrapper.checksums": [
+    {
+      "sha256": "af4ff7fffa2c25ebe61221050cc27f5482b14960f3b049f9abe5cadbf0b08085",
+      "allowed": true
+    }
+  ],
+  "java.compile.nullAnalysis.mode": "automatic",
+  // "java.project.importHint": false,
+  // "java.autobuild.enabled": false,
+
   "diagnostic.displayByAle": false,
   "diagnostic.errorSign": "✘",
   "diagnostic.infoSign": "ϊ",
@@ -31,27 +47,24 @@
     "sh": "shellcheck",
     "groovy": "npm-groovy-lint"
   },
+
   "yaml.schemas": {
     "file:///Users/marslo/.marslo/schemas/pre-commit-config.json": ".pre-commit-config.yaml"
   },
+
   "suggest.maxCompleteItemCount": 16,
   "suggest.enablePreselect": true,
+
   "html-css-support.styleSheets": [
       "https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css",
       "/style.css",
       "style.css"
   ],
   "html-css-support.enabledLanguages": [ "html", "markdown" ],
-  "snippets.userSnippetsDirectory": "~/.marslo/vimrc.d/snips",
-  "coc.preferences.currentFunctionSymbolAutoUpdate": true,
+
   "extensions.updateCheck": "daily",
   "git.enableGutters": true,
-  "java.imports.gradle.wrapper.checksums": [
-    {
-      "sha256": "af4ff7fffa2c25ebe61221050cc27f5482b14960f3b049f9abe5cadbf0b08085",
-      "allowed": true
-    }
-  ],
+
   "python.formatting.provider": "black",
   "python.linting.pylintEnabled": true,
   "python.linting.enabled": true,
@@ -60,10 +73,13 @@
   "pyright.inlayHints.functionReturnTypes" : true,
   "pyright.inlayHints.variableTypes": false,
   "pyright.inlayHints.parameterTypes": false,
+
+  "coc.preferences.currentFunctionSymbolAutoUpdate": true,
   "coc.source.file.ignoreHidden": false,
   "coc.source.around.priority": 85,
   "coc.source.file.priority": 80,
   "coc.source.buffer.priority": 70,
   "coc.source.word.priority": 1,
-  "coc.source.dictionary.priority": 1
+  "coc.source.dictionary.priority": 1,
+  // "workspace.ignoredFolders": [ "**/.git/**" ]
 }
