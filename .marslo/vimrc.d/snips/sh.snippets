@@ -70,6 +70,15 @@ case ${1:word} in
 esac
 endsnippet
 
+snippet whilecase "setup bash paramters and case statement"
+while [[ $# -gt 0 ]]; do
+  case "\$1" in
+    ${1:-h | --help} ) $0;;
+    * ) echo "ERROR: unknown option '\$1'"; exit 1;;
+  esac
+done
+endsnippet
+
 snippet printf
 printf("${1:%s}\n"${1/([^%]|%%)*(%.)?.*/(?2:, :\);)/}$2${1/([^%]|%%)*(%.)?.*/(?2:\);)/}
 endsnippet
