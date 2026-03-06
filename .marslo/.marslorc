@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2026-02-17 20:13:45
+# LastChange : 2026-03-06 01:47:39
 # =============================================================================
 
 # execute configuration only in the interactive shell
@@ -112,6 +112,12 @@ shopt -s cmdhist
 shopt -s histappend
 shopt -s globstar
 shopt -s autocd
+# for scp path completion - ignore case-sensitive and glob pattern
+# -- $var == "yes" -> $var == "YES" + $var == "yes" --
+# shopt -s nocasematch
+# -- rm *.txt -> rm *.TXT + *.txt --
+shopt -s nocaseglob
+# another options
 # shopt -s extdebug -- fcf
 # shopt -s nullglob -- completion source
 
