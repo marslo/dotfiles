@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+#=============================================================================
+#     FileName : extractor
+#       Author : marslo
+#      Created : 2025-04-15 14:50:03
+#   LastChange : 2026-03-06 00:54:47
+#        Usage : $ extractor <file> <function_name>
+#=============================================================================
+
+set -euo pipefail
+
+declare -r USAGE="NAME:
+  extractor - Extracts a function definition from a file
+
+USAGE:
+  extractor </path/to/file/> <function_name>
+
+EXAMPLE:
+  \$ extractor ~/.marslo/bin/ffunc.sh vim
+"
+
+function extractor() {
+  local file="$1"
+  local name="$2"
+  awk -v fname="${name}" '
+    match($0, "^(function[[:space:]]+)?(" fname ")\\(\\)[[:space:]]*\\{") {
+      found=1; brace=0
+    }
+    found {
+      print
+      brace += gsub(/\{/, "{")
+      brace -= gsub(/\}/, "}")
+      if (brace == 0) exit
+    }
+  ' "${file}"
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h | --help ) echo -e "${USAGE}"; exit 0                ;;
+    *           ) echo "ERROR: unknown option '$1'"; exit 1 ;;
+  esac
+done
+
+extractor "$@"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
