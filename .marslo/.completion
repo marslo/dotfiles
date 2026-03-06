@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2026-02-27 23:15:05
+#   LastChange : 2026-03-06 00:55:44
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -44,6 +44,7 @@ type -P code       >/dev/null                       && source "${COMPLETION_DIR}
 type -P fossa      >/dev/null                       && source "${COMPLETION_DIR}/fossa.sh"
 type -P typos      >/dev/null                       && source "${COMPLETION_DIR}/typos.sh"
 type -P scc        >/dev/null                       && source "${COMPLETION_DIR}/scc.sh"
+type -P extractor  >/dev/null                       && source "${COMPLETION_DIR}/extractor.sh"
 # test -d "${NPM_COMPLETION}"                       && source "${NPM_COMPLETION}/npm-completion.sh"
 # via `vault -autocomplete-install`
 type -P vault      >/dev/null                       && complete -C "$(type -P vault)" vault

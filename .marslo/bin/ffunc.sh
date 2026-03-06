@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-03-04 11:43:15
+#   LastChange : 2026-03-05 22:55:56
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -73,7 +73,6 @@ function _load_fzf_context() {
 # usage: eval "$( _load_fd_context "$@" [ -r ignores ] )"
 #        fd . "${fdopt[@]}" | ...
 function _load_fd_context() {
-  local -a ignores=()
   local -a args=()
   local -a fdopt=( --type f --hidden --follow --exclude .git --exclude node_modules )
 
@@ -200,7 +199,7 @@ function open() {                          # smart open
 # shellcheck disable=SC2046,SC2155
 function cat() {                           # smart cat
   local -a CAT=( "$(type -P cat)" )
-  command -v bat >/dev/null && CAT=( "$(type -P bat)" --theme='gruvbox-dark' --color=always )
+  command -v bat >/dev/null && CAT=( "$(type -P bat)" --theme='Nord' --color=always )
 
   # reading from pipe == [[ -p /dev/stdin ]]
   [[ ! -t 0      ]] && { "${CAT[@]}" "$@"; return; }
@@ -567,7 +566,7 @@ function vim() {                           # magic vim - fzf list in most recent
   local -a voption=()
   local -a ignores=(
     '*.pem' '*.p12'
-    '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg' '*.ico' '*.pdf' '*.mp4' '*.mp3'
+    '*.png' '*.webp' '*.jpg' '*.jpeg' '*.gif' '*.svg' '*.ico' '*.pdf' '*.mp4' '*.mp3'
     '*.zip' '*.tar' '*.gz' '*.bz2' '*.xz' '*.7z' '*.rar'
     '*.o' '*.a' '*.so' '*.ko' '*.bin' '*.exe' '*.dll' '*.dylib'
     '*.pyc' '*.pyd' '*.pyo' '*.node' '*.class' '*.jar' '*.db' '*.sqlite' '*.sqlite3'
@@ -594,7 +593,7 @@ function vim() {                           # magic vim - fzf list in most recent
   local VIM="$(type -P vim)"
   ! "${orgv}" && command -v nvim >/dev/null && VIM="$(type -P nvim)"
 
-  if [[ 0 -eq "$#" ]] && [[ 0 -eq "${#voption}" ]]; then
+  if [[ 0 -eq "$#" ]] && [[ 0 -eq "${#voption[@]}" ]]; then
     fd . "${fdopt[@]}" | fzf "${fzfopt[@]}" --bind="enter:become(${VIM} {+})"
   elif [[ 1 -eq "$#" ]] && [[ -d "${1}" ]]; then
     [[ '.' = "${1}" ]] && finalTarget=("${1}") || finalTarget=('.' "${1}")

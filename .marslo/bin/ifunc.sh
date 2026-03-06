@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2026-03-03 17:11:48
+#  LastChange : 2026-03-06 00:58:04
 #  Description : ifunctions
 # =============================================================================
 
@@ -809,6 +809,54 @@ function setme() {
       && echo -e "$(c Wdi)>> $(c 0Mi)${USER}$(c 0Wdi) is an $(c 0Ci)admin $(c 0Wdi)user$(c)" \
       || echo -e "$(c Wdi)>> $(c 0Mi)${USER}$(c 0Wdi) is a $(c 0Bi)standard $(c 0Wdi)user$(c)"
   fi
+}
+
+# @credit: https://stackoverflow.com/a/59040037/2940319
+function unicode2utf8() {
+  local x="$1"               # ok if '0x2620'
+  x=${x/\\u/0x}              # '\u2620' -> '0x2620'
+  x=${x/U+/0x}; x=${x/u+/0x} # 'U-2620' -> '0x2620'
+  x=$((x)) # from hex to decimal
+  local y=$x n=0
+  [ $x -ge 0 ] || return 1
+  while [ $y -gt 0 ]; do y=$((y>>1)); n=$((n+1)); done
+  if [ $n -le 7 ]; then       # 7
+    y=$x
+  elif [ $n -le 11 ]; then    # 5+6
+    y=" $(( ((x>> 6)&0x1F)+0xC0 )) \
+        $(( (x&0x3F)+0x80 ))"
+  elif [ $n -le 16 ]; then    # 4+6+6
+    y=" $(( ((x>>12)&0x0F)+0xE0 )) \
+        $(( ((x>> 6)&0x3F)+0x80 )) \
+        $(( (x&0x3F)+0x80 ))"
+  else                        # 3+6+6+6
+    y=" $(( ((x>>18)&0x07)+0xF0 )) \
+        $(( ((x>>12)&0x3F)+0x80 )) \
+        $(( ((x>> 6)&0x3F)+0x80 )) \
+        $(( (x&0x3F)+0x80 ))"
+  fi
+  printf -v y '\\x%x' $y
+  echo -n -e $y
+}
+
+# credit: https://github.com/nemausus/dotfiles/blob/master/bashrc#L113
+function extract() {
+  case $1 in
+    *.tar.bz2 ) tar xjf  "$1" ;;
+    *.tar.gz  ) tar xzf  "$1" ;;
+    *.tar.xz  ) tar Jxvf "$1" ;;
+    *.tar.Z   ) tar xzf  "$1" ;;
+    *.tar     ) tar xf   "$1" ;;
+    *.taz     ) tar xzf  "$1" ;;
+    *.tb2     ) tar xjf  "$1" ;;
+    *.tbz     ) tar xjf  "$1" ;;
+    *.tbz2    ) tar xjf  "$1" ;;
+    *.tgz     ) tar xzf  "$1" ;;
+    *.txz     ) tar Jxvf "$1" ;;
+    *.zip     ) unzip    "$1" ;;
+    *.gz      ) gunzip   "$1" ;;
+    *         ) echo     "'$1' cannot be extracted" ;;
+  esac
 }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
