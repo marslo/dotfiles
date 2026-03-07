@@ -114,7 +114,7 @@ shopt -s globstar
 shopt -s autocd
 # == for scp path completion - ignore case-sensitive and glob pattern ==
 # -- $var == "yes" -> $var == "YES" + $var == "yes" --
-# shopt -s nocasematch
+shopt -s nocasematch
 # -- rm *.txt -> rm *.TXT + *.txt --
 shopt -s nocaseglob
 # == another options ==

@@ -1,0 +1,55 @@
+%YAML 1.2
+---
+name: glogsmart
+file_extensions: [gitlogsmart]
+scope: text.git.log.smart
+
+contexts:
+  main:
+    # commit line
+    - match: '^(commit)\s+([0-9a-f]{7,40})'
+      captures:
+        1: keyword.other.git
+        2: constant.numeric.hex.git
+
+    # merge line
+    - match: '^(Merge:)\s+(.*)'
+      captures:
+        1: keyword.other.git
+        2: constant.numeric.hex.git
+
+    # raw only - tree & parent lines (no colon, just the hash)
+    - match: '^(tree|parent)\s+([0-9a-f]{40})'
+      captures:
+        1: entity.name.tag.git
+        2: constant.numeric.hex.git
+
+    # raw only: author|committer <name> <email> <timestamp> <timezone>
+    - match: '^(author|committer)\s+(.*?)\s+(<[^>]+>)\s+(\d+)\s+([+-]\d{4})'
+      captures:
+        1: keyword.control.git
+        2: string.unquoted.name.git
+        3: variable.parameter.email.git
+        4: constant.numeric.time.git
+        5: constant.numeric.tz.git
+
+    # fuller only: Author:, Commit:, Tagger:
+    - match: '^(Author|Commit|Tagger):\s+(.*?)\s+(<[^>]+>)'
+      captures:
+        1: keyword.control.git
+        2: string.unquoted.name.git
+        3: variable.parameter.email.git
+
+    # fuller only: AuthorDate:, CommitDate:
+    - match: '^(AuthorDate|CommitDate|Date):\s+(.*)'
+      captures:
+        1: keyword.control.git
+        2: constant.numeric.date.git
+
+    # compatible with diff output when -s is not used: if we encounter diff output, delegate to diff syntax highlighting
+    - match: '^(?=diff --git|--- |\+\+\+ )'
+      push: scope:source.diff
+      with_prototype:
+        # if encounter a new commit header while in diff mode, pop back to main syntax
+        - match: '(?=^(commit|tree|parent|Author|Commit|author|committer))'
+          pop: true

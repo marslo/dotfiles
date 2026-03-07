@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2207
+#=============================================================================
+#     FileName : ansi
+#       Author : marslo
+#      Created : 2026-03-06 22:21:45
+#   LastChange : 2026-03-06 22:27:41
+#  Description : bash completion for `ansi` command - `$ curl -sL git.io/ansi -o /bin/ansi`
+#=============================================================================
+
+_ansi_completions() {
+  local cur prev flag val opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+  if [[ "$cur" == *=* ]]; then
+    flag="${cur%%=*}"
+    val="${cur#*=}"
+
+    case "${flag}" in
+      --erase-display|--ed)
+          # 0=below, 1=above, 2=all, 3=saved
+          COMPREPLY=( $(compgen -W "0 1 2 3" -- "${val}") )
+          ;;
+      --erase-line|--el)
+          # 0=right, 1=left, 2=all
+          COMPREPLY=( $(compgen -W "0 1 2" -- "${val}") )
+          ;;
+      --font)
+          # NUM must be from 0 through 9
+          COMPREPLY=( $(compgen -W "0 1 2 3 4 5 6 7 8 9" -- "${val}") )
+          ;;
+      # add more cases here as needed
+      *) ;;
+    esac
+    return 0
+  fi
+
+  # --flag
+  if [[ "${cur}" == -* ]] ; then
+    opts="--insert-chars= --insert-char= --ich= --erase-display= --ed= \
+        --erase-line= --el= --insert-lines= --insert-line= --il= \
+        --delete-lines= --delete-line= --dl= --delete-chars= \
+        --delete-char= --dch= --scroll-up= --su= --scroll-down= --sd= \
+        --erase-chars= --erase-char= --ech= --repeat= --rep= --up= \
+        --cuu= --down= --cud= --forward= --cuf= --backward= --cub= \
+        --next-line= --cnl= --previous-line= --prev-line= --cpl= \
+        --column= --cha= --position= --cup= --tab-forward= \
+        --tab-backward= --column-relative= --hpr= --line= --vpa= \
+        --line-relative= --vpr= --save-cursor --restore-cursor \
+        --hide-cursor --show-cursor --bold --faint --normal --italic \
+        --fraktur --plain --underline --double-underline --no-underline \
+        --blink --rapid-blink --no-blink --inverse --no-inverse \
+        --invisible --visible --strike --no-strike --frame --encircle \
+        --no-border --overline --no-overline --ideogram-right \
+        --ideogram-right-double --ideogram-left --ideogram-left-double \
+        --ideogram-stress --reset-ideogram --font= --black --red --green \
+        --yellow --blue --magenta --cyan --white --black-intense \
+        --red-intense --green-intense --yellow-intense --blue-intense \
+        --magenta-intense --cyan-intense --white-intense --color= --rgb= \
+        --bg-black --bg-red --bg-green --bg-yellow --bg-blue \
+        --bg-magenta --bg-cyan --bg-white --bg-black-intense \
+        --bg-red-intense --bg-green-intense --bg-yellow-intense \
+        --bg-blue-intense --bg-magenta-intense --bg-cyan-intense \
+        --bg-white-intense --bg-color= --bg-rgb= --reset-attrib \
+        --reset-foreground --reset-background --reset-color --reset-font \
+        --report-position --report-window-state \
+        --report-window-position --report-window-pixels \
+        --report-window-chars --report-screen-chars --report-icon \
+        --report-title --color-table --color-codes --icon= --title= \
+        --no-restore -n --no-newline --bell --reset"
+
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+
+    # cancel automatic space addition, if the only completion ends with "="
+    if [[ ${#COMPREPLY[@]} -eq 1 && ${COMPREPLY[0]} == *= ]]; then
+      compopt -o nospace
+    else
+      compopt +o nospace
+    fi
+
+    return 0
+  fi
+}
+
+complete -F _ansi_completions ansi
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

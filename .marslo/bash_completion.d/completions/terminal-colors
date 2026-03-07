@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2207
+#=============================================================================
+#     FileName : terminal-colors
+#       Author : marslo
+#      Created : 2026-03-06 22:24:08
+#   LastChange : 2026-03-06 22:26:10
+#  Description : `python3 -m pip install terminal-colors`
+#=============================================================================
+
+_terminal_colors_completions() {
+  local cur prev opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+  # short parameters that require spaces to separate numerical values ( -r N, -e N)
+  case "${prev}" in
+    -r|-e) return 0 ;;
+  esac
+
+  # long parameters that require an '=' followed by a numerical value ( --256to88=N, --88to256=N)
+  if [[ "$cur" == *=* ]]; then
+    local flag="${cur%%=*}"
+    case "${flag}" in
+      --256to88|--88to256) return 0 ;;
+    esac
+    return 0
+  fi
+
+  # handle regular flag completions
+  if [[ "${cur}" == -* ]] ; then
+    # long parameters with '=' suffix for numerical values, short parameters without
+    opts="-b --block -c --cube-slice -f --foreground -l --rgb \
+          -n --numbers -o --ansicodes -p --padding -t --test \
+          -v --vertical -x --hex -z --horizontal --version -h --help \
+          -r --256to88= -e --88to256="
+
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+
+  # cancel automatic space addition, if the only completion ends with "="
+  if [[ ${#COMPREPLY[@]} -eq 1 && ${COMPREPLY[0]} == *= ]]; then
+    compopt -o nospace
+  else
+    compopt +o nospace
+  fi
+
+  return 0
+  fi
+}
+
+complete -F _terminal_colors_completions terminal-colors
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
