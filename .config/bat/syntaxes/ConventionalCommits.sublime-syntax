@@ -7,19 +7,33 @@ file_extensions:
 scope: text.git.commit.conventional
 contexts:
   main:
-    # 匹配 Conventional Commits 规范的第一行
+    # conventional commits: first line (header)
     - match: '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\(([^()]+)\))?(!)?(:)(.*)$'
       captures:
-        1: keyword.control         # 提交类型 (如 feat, fix) - 紫色/蓝色
-        2: entity.name.type        # 作用域 (如 scope) - 黄色/青色
-        3: invalid.deprecated     # 破坏性更新 (!) - 这里更改了 Scope 以强制它变红
-        4: punctuation.separator   # 冒号 (:)
-        5: string.unquoted         # 提交描述 - 绿色
+        1: keyword.control         # submit type
+        2: entity.name.type        # scope
+        3: invalid.deprecated      # breaking change indicator
+        4: punctuation.separator   # colon (:)
+        5: string.unquoted         # description
 
-    # 匹配 Git 默认的注释行
+    # 2. items in the body (e.g., - item / * item)
+    - match: '^[ \t]*([-*+])[ \t]+(.*)$'
+      captures:
+        1: punctuation.definition.list.begin  # list sign
+        2: markup.list.unnumbered             # list item content
+
+    # 3. git trailers (e.g., signed-off-by)
+    - match: '^([A-Za-z-]+(?:-by)?)(:)[ \t]+(.*?)[ \t]+(<[^>]+>)$'
+      captures:
+        1: keyword.other.git             # keyword (i.e.: Signed-off-by)
+        2: punctuation.separator         # colon (:)
+        3: string.unquoted.name          # name
+        4: variable.parameter.email      # email
+
+    # 4. git default comment lines (starting with #)
     - match: '^#.*$'
       scope: comment.line.number-sign
 
-    # 兼容 `git commit -v` 附带的 diff 代码块
+    # 5. start of a diff block (e.g., from `git commit -v`)
     - match: '(?=^diff --git )'
       push: scope:source.diff
