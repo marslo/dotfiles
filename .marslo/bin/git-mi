@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
-# shellcheck source=/dev/null
+# shellcheck source=/dev/null disable=SC2155
+#=============================================================================
+#     FileName : git-mi
+#       Author : marslo
+#      Created : 2023-01-12 20:36:04
+#   LastChange : 2026-03-07 01:22:19
+#=============================================================================
 
-# shellcheck disable=SC2155
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /g')"
 declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
@@ -9,41 +15,53 @@ declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # shellcheck disable=SC2015
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
-function die() { echo -e "$(c R)ERROR$(c) : $*" >&2; exit 2; }
-function exitOnError() { if [ $? -ne 0 ]; then echo -e "$(c R)ERROR$(c) : $*" >&2; exit 1; fi; }
-function showHelp() { echo -e "${usage}"; exit 0; }
+function die() { echo -e "$(c Rs)ERROR$(c) : $*" >&2; exit 2; }
+function exitOnError() { if [ $? -ne 0 ]; then echo -e "$(c Rs)ERROR$(c) : $*" >&2; exit 1; fi; }
+function showHelp() { echo -e "${USAGE}"; exit 0; }
 function needsArg() { if [ -z "$OPTARG" ]; then die "No arg for --$OPT option"; fi ; }
 function isRepo() { git rev-parse --git-dir >/dev/null 2>&1 || exitOnError 'not a git repo !'; }
 
-command=''
-usage="""
-\t$(c R)git-mi$(c) - $(c R)m$(c)odify $(c R)i$(c)nformation: to modify git revision format of author/authorEmail/authorDates/committer/commitEmail/commitDate
-\nSYNOPSIS:
-\n\t$(c sY)\$ git mi [ -v | --verbose | --debug ] [ -h | --help ]
-\t\t [ -a | --author <author> ]
-\t\t [ -e | --ae | --authorEmail <email@domain> ]
-\t\t [ -d | --ad | --authorDate <date> ]
-\t\t [ -c | --committer <committer> ]
-\t\t [ -E | --ce | --commitEmail <email@domain> ]
-\t\t [ -D | --cd | --commitDate <date> ]$(c)
-\nEXAMPLE:
-\n\tshow help
-\t\t$(c G)\$ git mi $(c)| $(c G)\$ git mi -h$(c) | $(c G)\$ git mi --help$(c)
-\n\tget verbose
-\t\t$(c G)\$ git mi -v$(c) | $(c G)\$ git mi --verbose$(c) | $(c G)\$ git mi --debug$(c)
-\n\tto reset author
-\t\t$(c G)\$ git mi -a <username>$(c) | $(c G)\$ git mi --author=<username>$(c)
-\t\t\t\t\t\t\t  + the long parameters MUST use '$(c R)=$(c)' to identify opt and args
-\n\tto reset author, authorEmail, authorDate, committer, commitEmail and commitDate
-\t\t$(c G)\$ git mi --author=<username>   --authorEmail=<username@domain> --authorDate=<date> \\
-\t\t\t --committer=<username> --commitEmail=<username@domain> --commitDate=<date>$(c)
-\t\tOR :
-\t\t$(c G)\$ git mi -a <username> -e <username@domain> -d <date> \\
-\t\t\t -c <username> -E <username@domain> -D <date>$(c)
-\t\tOR short opt mixed with long opt :
-\t\t$(c G)\$ git mi -a <username> -e <username@domain> -d <date> \\
-\t\t\t --committer=<username> --commitEmail=<username@domain> --commitDate=<date>$(c)
-"""
+declare -a ENV_VARS=()
+declare -r USAGE="NAME
+  $(c Ys)${ME}$(c) - $(c Ys)m$(c)odify $(c Ys)i$(c)nformation: to modify git revision format of author/authorEmail/authorDates/committer/commitEmail/commitDate
+
+SYNOPSIS
+  $(c Ys)\$ ${ME} $(c G)[OPTIONS]$(c)
+
+OPTIONS
+  $(c G)-r$(c), $(c G)--revision $(c 0Mi)<revision>$(c)               specify the revision to be modified $(c 0Wi)(default: $(c 0Mi)HEAD$(c 0Wi))$(c)
+  $(c G)-a$(c), $(c G)--author $(c 0Mi)<author>$(c)                   set author name $(c 0Wi)<$(c 0Ci)%an$(c 0Wi)>$(c)
+  $(c G)-e$(c), $(c G)--ae$(c), $(c G)--authorEmail $(c 0Mi)<email@domain>$(c)  set author email $(c 0Wi)<$(c 0Ci)%ae$(c 0Wi)>$(c)
+  $(c G)-d$(c), $(c G)--ad$(c), $(c G)--authorDate $(c 0Mi)<date>$(c)           set author date $(c 0Wi)<$(c 0Ci)%ad$(c 0Wdi)> $(c 0Wdi)(e.g.: 'Fri May 21 19:00:00 +0800 2021')$(c)
+  $(c G)-c$(c), $(c G)--committer $(c 0Mi)<commiter>$(c)              set committer name $(c 0Wi)<$(c 0Ci)%cn$(c 0Wi)>$(c)
+  $(c G)-E$(c), $(c G)--ce$(c), $(c G)--commitEmail $(c 0Mi)<email@domain>$(c)  set committer email $(c 0Wi)<$(c 0Ci)%ce$(c 0Wi)>$(c)
+  $(c G)-D$(c), $(c G)--cd$(c), $(c G)--commitDate $(c 0Mi)<date>$(c)           set committer date $(c Wi)<$(c 0Ci)%cd$(c 0Wi)>$(c) $(c 0Wdi)(e.g.: 'Fri May 21 19:00:00 +0800 2021')$(c)
+  $(c G)-v$(c), $(c G)--verbose$(c), $(c G)--debug$(c)                  show the command to be executed ( verbose mode )
+  $(c G)-h$(c)                                      show this help message and exit
+
+EXAMPLE
+  $(c Wdi)# show verbose$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)-v$(c 0Wd) | $(c 0Y)\$ ${ME} $(c 0Gi)--verbose$(c) | $(c 0Y)\$ ${ME} $(c 0Gi)--debug$(c)
+  $( c Wdi)# to reset author$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)-a $(c 0Mi)<username>$(c 0Wd) | $(c 0Y)\$ ${ME} $(c 0Gi)--author$(c 0Cs)=$(c 0Mi)<username>$(c)
+                                            $(c 0Wi)+ the long parameters MUST use $(c 0Cs)'='$(c 0Wi) to identify opt and args$(c)
+  $(c Wdi)# to reset author, authorEmail, authorDate, committer, commitEmail and commitDate$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)-a $(c 0Mi)<username> $(c 0Gi)-e $(c 0Mi)<username@domain> $(c 0Gi)-d $(c 0Mi)<date> $(c 0Wdi)\\
+           $(c 0Gi)--committer$(c 0Cs)=$(c 0Mi)<username> $(c 0Gi)--commitEmail$(c 0Cs)=$(c 0Mi)<username@domain> $(c 0Gi)--commitDate$(c 0Cs)=$(c 0Mi)<date>$(c)
+
+  $(c Wdi)# to reset author, authorEmail, committer, commitEmail to particular $(c 0Mi)revision$(c 0Wdi) in current branch$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)-a $(c 0Mi)<username> $(c 0Gi)-e $(c 0Mi)<username@domain> $(c 0Wdi)\\
+           $(c 0Gi)--committer$(c 0Cs)=$(c 0Mi)<username> $(c 0Gi)--commitEmail$(c 0Cs)=$(c 0Mi)<username@domain> $(c) $(c 0Wdi)\\
+           $(c 0Gi)--revision$(c 0Cs)=$(c 0Mi)<revision>$(c 0Wi)/$(c 0Mi)<refname>$(c)
+"
+declare VERBOSE=false
+declare revision='HEAD'
+declare author=''
+declare authorEmail=''
+declare authorDate=''
+declare committer=''
+declare commitEmail=''
+declare commitDate=''
 
 # credit belongs to https://stackoverflow.com/a/28466267/519360
 # shellcheck disable=SC2295
@@ -54,8 +72,8 @@ while getopts hvr:a:e:d:c:E:D:-: OPT; do
     OPTARG="${OPTARG#=}"
   fi
   case "$OPT" in
-    h | help             ) help=true                       ;;
-    v | verbose | debug  ) verbose=true                    ;;
+    h | help             ) showHelp                        ;;
+    v | verbose | debug  ) VERBOSE=true                    ;;
     r | revision         ) needsArg; revision="$OPTARG"    ;;
     a | author           ) needsArg; author="$OPTARG"      ;;
     e | ae | authorEmail ) needsArg; authorEmail="$OPTARG" ;;
@@ -70,31 +88,49 @@ done
 [[ $OPTIND -eq 1 ]] && showHelp
 shift $((OPTIND-1))
 
-if [[ 'true' = "${verbose}" ]]; then
-  echo """
-    revision    : '${revision}'
-    author      : '${author}'
-    authorEmail : '${authorEmail}'
-    authorDate  : '${authorDate}'
-    committer   : '${committer}'
-    commitEmail : '${commitEmail}'
-    commitDate  : '${commitDate}'
-  """
-fi
+git merge-base --is-ancestor "${revision}" HEAD 2>/dev/null || die "revision '${revision}' is not exists in current branch !"
+declare COMMIT="$( git rev-parse "${revision}^{commit}" )"
 
-[[ 'true' = "${help}" ]] && showHelp
+declare _author="$(git show -s --format=%an "${COMMIT}")"
+declare _authorEmail="$(git show -s --format=%ae "${COMMIT}")"
+declare _authorDate="$(git show -s --format=%ad "${COMMIT}")"
+declare _committer="$(git show -s --format=%cn "${COMMIT}")"
+declare _commitEmail="$(git show -s --format=%ce "${COMMIT}")"
+declare _commitDate="$(git show -s --format=%cd "${COMMIT}")"
 
 # https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables
-[[ -n "${author}"      ]] && command="GIT_AUTHOR_NAME='${author}' "
-[[ -n "${authorEmail}" ]] && command+="GIT_AUTHOR_EMAIL='${authorEmail}' "
-[[ -n "${authorDate}"  ]] && command+="GIT_AUTHOR_DATE='${authorDate}' "
-[[ -n "${committer}"   ]] && command+="GIT_COMMITTER_NAME='${committer}' "
-[[ -n "${commitEmail}" ]] && command+="GIT_COMMITTER_EMAIL='${commitEmail}' "
-[[ -n "${commitDate}"  ]] && command+="GIT_COMMITTER_DATE='${commitDate}' "
+ENV_VARS+=( GIT_AUTHOR_NAME="${author:-${_author}}"               )
+ENV_VARS+=( GIT_AUTHOR_EMAIL="${authorEmail:-${_authorEmail}}"    )
+ENV_VARS+=( GIT_AUTHOR_DATE="${authorDate:-${_authorDate}}"       )
+ENV_VARS+=( GIT_COMMITTER_NAME="${committer:-${_committer}}"      )
+ENV_VARS+=( GIT_COMMITTER_EMAIL="${commitEmail:-${_commitEmail}}" )
+ENV_VARS+=( GIT_COMMITTER_DATE="${commitDate:-${_commitDate}}"    )
+declare ENV_STR=''
+printf -v ENV_STR "%s' " "${ENV_VARS[@]/=/=\'}"
+ENV_STR="${ENV_STR% }"
 
-command+="git commit --quiet --amend --allow-empty --no-edit --reset-author"
-[[ 'true' = "${verbose}" ]] && echo "${command}"
+if "${VERBOSE}"; then
+  echo -e "$(c Wd)  == [DEBUG] OPTIONS ==$(c)"
+  echo -e "$(c Wdi)  revision    : '$(c 0Ci)${revision}$(c 0Wdi)' ('$(c 0Bi)${COMMIT}$(c 0Wdi)')$(c)"
+  echo -e "$(c Wdi)  author      : '$(c 0Ci)${author:-}$(c 0Wdi)' ('$(c 0Bi)${_author}$(c 0Wdi)')$(c)"
+  echo -e "$(c Wdi)  authorEmail : '$(c 0Ci)${authorEmail:-}$(c 0Wdi)' ('$(c 0Bi)${_authorEmail}$(c 0Wdi)')$(c)"
+  echo -e "$(c Wdi)  authorDate  : '$(c 0Ci)${authorDate:-}$(c 0Wdi)' ('$(c 0Bi)${_authorDate}$(c 0Wdi)')$(c)"
+  echo -e "$(c Wdi)  committer   : '$(c 0Ci)${committer:-}$(c 0Wdi)' ('$(c 0Bi)${_committer}$(c 0Wdi)')$(c)"
+  echo -e "$(c Wdi)  commitEmail : '$(c 0Ci)${commitEmail:-}$(c 0Wdi)' ('$(c 0Bi)${_commitEmail}$(c 0Wdi)')$(c)"
+  echo -e "$(c Wdi)  commitDate  : '$(c 0Ci)${commitDate:-}$(c 0Wdi)' ('$(c 0Bi)${_commitDate}$(c 0Wdi)')$(c)"
+fi
 
-eval "${command}"
+declare -a COMMAND=()
+COMMAND=( git commit --quiet --amend --allow-empty --no-edit --reset-author )
+declare CMD_STR=""
+for c in "${COMMAND[@]}"; do [[ ${c} == *" "* ]] && CMD_STR+="\"${c}\" " || CMD_STR+="${c} "; done
+
+"${VERBOSE}" && printf "$(c Wdi)  command     : $(c 0Ci)\$ %s %s$(c)\n" "${ENV_STR}" "${CMD_STR}"
+
+# rebase in interactive
+GIT_SEQUENCE_EDITOR='sed -i.bak -e "1s/^pick/edit/"' git rebase --quiet --interactive "${COMMIT}~1" >/dev/null 2>&1
+rm -f .git/rebase-merge/git-rebase-todo.bak 2>/dev/null
+env "${ENV_VARS[@]}" "${COMMAND[@]}"
+GIT_EDITOR=true git rebase --continue >/dev/null 2>&1
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

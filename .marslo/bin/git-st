@@ -4,7 +4,7 @@
 #     FileName : git-st
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-02-01 03:39:19
-#   LastChange : 2026-03-03 17:34:53
+#   LastChange : 2026-03-07 02:40:18
 #   references : https://stackoverflow.com/q/77919418/2940319
 #=============================================================================
 
@@ -59,7 +59,7 @@ if "${emptyRepo}"; then
   exit 0
 else
   # COLUMNS='128'
-  gdiff=$(COLUMNS="$(tput cols)" git --no-pager -C "$(git rev-parse --show-toplevel)" diff --stat --relative | head -n-1)
+  gdiff=$(COLUMNS="$(( $(tput cols)-2 ))" git --no-pager -C "$(git rev-parse --show-toplevel)" diff --stat --relative | head -n-1)
   awk '
     FNR==NR { match($0, /[ \t]*\|.*/); map[$1] = substr($0, RSTART); next; }
     { print $0 map[$2] }

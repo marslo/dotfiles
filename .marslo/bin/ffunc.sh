@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-03-05 22:55:56
+#   LastChange : 2026-03-07 02:16:17
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -236,7 +236,7 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
     local p
     for p in "$@"; do [[ -d "${p}" ]] && printf '%s\0' "${p}"; done
   }
-  local -a rcRawPaths=( "${HOME}"/.marslo "${HOME}"/.idlerc "${HOME}"/.ssh "${HOME}"/.jfrog "${HOME}"/.pip "${HOME}"/.config/nvim "${HOME}"/.cht.sh "${HOME}"/.git-templates )
+  local -a rcRawPaths=( "${HOME}"/.marslo "${HOME}"/.idlerc "${HOME}"/.ssh "${HOME}"/.jfrog "${HOME}"/.pip "${HOME}"/.config/nvim "${HOME}"/.cht.sh "${HOME}"/.git-templates "${HOME}"/.config/bat/syntaxes )
   local -a cfgNames=( cheat github-copilot htop yamllint pip ncdu bat gh )
   mapfile -d '' -t rcPaths  < <(getValidDirs "${rcRawPaths[@]}")
   mapfile -d '' -t cfgRoots < <(getValidDirs "${cfgNames[@]/#/$HOME/.config/}")
@@ -291,25 +291,19 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
 
 # usage: fzfInPath <path> [<fzf-opts> ...] [stripcwd: <true|false>]
 function fzfInPath() {                     # return file name via fzf in particular folder
-  local path="${1}"
-  local last="${*: -1}"
+  local path="${1:-.}"
+  [[ $# -ge 1 ]] && shift                  # pop path from args ($@)
 
   local -a fzfopt=( --cycle --multi --header "filter in ${1} :" )
-  if [[ $# -ge 2 ]]; then
-    if [[ 'true' = "${last}" || 'false' = "${last}" ]]; then
-      fzfopt+=( "${@:2:$#-2}" )
-      stripcwd=${last}
-    else
-      fzfopt+=( "${@:2}" )
-    fi
-  fi
+  [[ $# -ge 1 ]] && fzfopt+=( "$@" )
 
   local -a fdopt=( --type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore" )
-  [[ 'true' = "${stripcwd:-}" ]] && fdopt+=( --strip-cwd-prefix )
+  [[ -d "${path}" && ( "${path}" == "." || "${path}" == ./* ) ]] && fdopt+=( --strip-cwd-prefix )
   isWSL || fdopt+=( --exec-batch ls -t )
 
-  [[ '.' = "${path}" ]] || path=". ${path}"
-  fd "${path}" "${fdopt[@]}" | fzf "${fzfopt[@]}"
+  local -a target=()
+  [[ '.' = "${path}" ]] && target=("${path}") || target=('.' "${path}")
+  fd "${target[@]}" "${fdopt[@]}" | fzf "${fzfopt[@]}"
 }
 
 # runrc        : filter rc files from "${rcPaths}" and source the selected item(s)

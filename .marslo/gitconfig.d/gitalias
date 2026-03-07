@@ -59,7 +59,7 @@
   ### [p]revious branch [p]retty [l]og
   ppl         = !git --no-pager log --color --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) %C(italic #6971a3)[%G?]%C(reset)'" @{-1}
   ### [f]ull [p]retty [l]log
-  fpl         = log --graph --abbrev-commit --decorate --format=format:"'%C(#83a598)%H%C(reset) - %C(cyan)%aD%C(reset) %C(green)(%ar)%C(reset)%C(auto)%d%C(reset)%n'""'          %C(italic white)%s%C(reset) %C(dim white)- %an%C(reset) %C(italic #6971a3)[%G?]%C(reset)'"
+  fpl         = log --graph --abbrev-commit --decorate --date=relative --format=tformat:"'%C(#83a598)%H%C(reset) - %C(cyan)(%aD)%C(reset) %C(green)(%cr)%C(reset)%C(auto)%d%C(reset)%n'""'          %C(italic white)%s%C(reset) %C(dim white)- %an <%ae>%C(reset) %C(italic #6971a3)[%G?]%C(reset)'"
   fl          = log -p --graph --color --graph
   dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format="'%C(6)%h%C(reset) %C(yellow)(%ad)%C(reset) %s %C(blue)<%an>%C(reset)'"
   revlog      = log --max-count=3 --color --graph --abbrev-commit --date=relative --notes=linrev --pretty=tformat:"'%C(bold red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset) %N'"
