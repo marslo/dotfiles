@@ -1,16 +1,19 @@
 %YAML 1.2
 ---
-name: glogsmart
-file_extensions: [gitlogsmart]
-scope: text.git.log.smart
+name: Git Show
+file_extensions: [gitshow]
+scope: text.git.show
+
+# usage: $ bat cache --build && git config --global pager.show "bat -l 'Git Show' --plain --theme OneHalfDark"
 
 contexts:
   main:
-    # commit line
-    - match: '^(commit)\s+([0-9a-f]{7,40})'
+    # 1. commit information
+    - match: '^(commit)\s+([0-9a-f]{7,40})(?:\s+\(([^)]+)\))?'
       captures:
         1: keyword.other.git
         2: constant.numeric.hex.git
+        3: entity.name.tag.git
 
     # merge line
     - match: '^(Merge:)\s+(.*)'
@@ -46,7 +49,30 @@ contexts:
         1: keyword.control.git
         2: constant.numeric.date.git
 
-    # compatible with diff output when -s is not used: if we encounter diff output, delegate to diff syntax highlighting
+    # 2. conventional commits
+    - match: '^[ \t]*(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\(([^()]+)\))?(!)?(:)(.*)$'
+      captures:
+        1: keyword.control          # type
+        2: entity.name.type         # scope
+        3: invalid.deprecated       # breaking (!)
+        4: punctuation.separator    # colon (:)
+        5: string.unquoted          # description
+
+    # 3. message body: lines starting with whitespace followed by a bullet (for lists) or just text
+    - match: '^[ \t]*([-*+])[ \t]+(.*)$'
+      captures:
+        1: punctuation.definition.list.begin
+        2: markup.list.unnumbered
+
+    # 4. git trailer lines
+    - match: '^[ \t]*([A-Za-z-]+(?:-by)?)(:)[ \t]+(.*?)[ \t]+(<[^>]+>)$'
+      captures:
+        1: keyword.other.git             # keyword (i.e.: Signed-off-by)
+        2: punctuation.separator         # colon (:)
+        3: string.unquoted.name          # name
+        4: variable.parameter.email      # email
+
+    # 5. compatible with diff output when -s is not used: if we encounter diff output, delegate to diff syntax highlighting
     - match: '^(?=diff --git|--- |\+\+\+ )'
       push: scope:source.diff
       with_prototype:
