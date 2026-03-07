@@ -43,8 +43,9 @@
   branch            = less -FRXK
   diff              = diff-highlight | less
   log               = diff-highlight | less -FRXK
+  # decolorize | bat - to bypass the gitcolors settings
   # requires `bat cache --build` to load the syntax highlighting for `glogsmart`
-  show              = command bat --language glogsmart --plain --theme OneHalfDark
+  show              = "sed 's/\\x1b\\[[0-9;]*m//g' | bat --language 'git show' --plain --theme 'Catppuccin Mocha'"
 [gui]
   fontdiff          = -family Consolas -size 11 -weight normal -slant roman -underline 0 -overstrike 0
 [pretty]
