@@ -12,8 +12,7 @@
   follow            = true
   # default is `default`, which is `EEE MMM dd HH:mm:ss yyyy Z`
   date              = format:%Y-%m-%d %H:%M:%S %z %A
-# [remote "origin"]
-#   fetch           = +refs/heads/*:refs/remotes/origin/*
+  showSignature     = false
 [diff]
   rename            = copy
   submodule         = log
@@ -35,7 +34,7 @@
   ignorecase        = false
   excludesfile      = ~/.gitignore_global
   eol               = lf
-  safecrlf          = warn
+  safecrlf          = false
   attributesfile    = ~/.gitattributes
   fileMode          = true
   sshCommand        = ssh -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa
@@ -44,7 +43,8 @@
   branch            = less -FRXK
   diff              = diff-highlight | less
   log               = diff-highlight | less -FRXK
-  show              = diff-highlight | less -FRXK
+  # requires `bat cache --build` to load the syntax highlighting for `glogsmart`
+  show              = command bat --language glogsmart --plain --theme OneHalfDark
 [gui]
   fontdiff          = -family Consolas -size 11 -weight normal -slant roman -underline 0 -overstrike 0
 [pretty]
@@ -113,6 +113,7 @@
   path              = ~/.marslo/gitconfig.d/credential
   path              = ~/.marslo/gitconfig.d/gitalias
   path              = ~/.marslo/gitconfig.d/gitcolors
+  # disable due to pre-commit hook will fail if the account info is missing
   # path              = ~/.marslo/gitconfig.d/account
   ## ------ git ssh-set / https-set to enable or disable ------ ##
   # path              = ~/.marslo/gitconfig.d/credential.ssh
