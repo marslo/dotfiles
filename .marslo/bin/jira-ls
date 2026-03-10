@@ -1,29 +1,113 @@
 #!/usr/bin/env bash
+# shellcheck source=/dev/null
 #=============================================================================
 #     FileName : jira-ls
 #       Author : marslo
 #      Created : 2026-01-21 20:57:09
-#   LastChange : 2026-01-29 18:22:25
+#   LastChange : 2026-03-09 23:56:27
 #=============================================================================
 
 set -euo pipefail
 
-declare STATUS="status in (New, \"To Do\", \"In Progress\")"
+# shellcheck disable=SC2155
+declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
+# shellcheck disable=SC2155
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
+
+declare _PROJECT='IPBUSW'
+declare UPDATE_LIMIT=''
+declare ASSIGNEE=''
+declare REPORTER=''
+declare -a KEYS=()
+declare -a CURRENT_STATUS=()
+declare -A JQL_MAP=(
+  ['new']='status in (New)'
+  ['in-progress']='status in ("In Progress")'
+  ['todo']='status in ("To Do")'
+  ['open']='status in (New, "To Do", "In Progress")'
+  ['closed']='status = Closed OR resolution in (Done, Fixed)'
+)
+
+# shellcheck disable=SC2155
+declare -r USAGE="NAME
+  $(c Ys)${ME}$(c) - List JIRA issues assigned to the current user.
+
+SYNOPSIS
+  $(c Ys)\$ ${ME} $(c 0G)[OPTIONS]$(c)
+
+OPTIONS
+  $(c G)-p$(c), $(c G)--project $(c 0Mi)PROJECT_KEY$(c)  specify the JIRA project key $(c 0i)(default: $(c 0Mi)'IPBUSW'$(c 0i))$(c)
+  $(c G)--assignee$(c) $(c 0Mi)USER_ID$(c)          filter issues assigned to the specified user $(c 0i)(default: $(c 0Mi)currentUser()$(c 0i))$(c)
+  $(c G)--reporter$(c) $(c 0Mi)USER_ID$(c)          filter issues reported by the specified user $(c 0i)(default: $(c 0Mi)currentUser()$(c 0i))$(c)
+
+  $(c G)--new$(c)                      list issues with $(c Bi)status $(c 0Ci)'New'$(c)
+  $(c G)--in-progress$(c)              list issues with $(c Bi)status $(c 0Ci)'In Progress'$(c)
+  $(c G)--todo$(c)                     list issues with $(c Bi)status $(c 0Ci)'To Do'$(c)
+  $(c G)--open$(c)                     list issues with $(c Bi)status $(c 0i) in ($(c 0Ci)'New'$(c 0i),$(c 0Ci)'To Do'$(c 0i),$(c 0Ci)'In Progress'$(c 0i))$(c)
+  $(c G)--closed$(c)                   list issues with $(c Bi)status $(c 0Ci)'Closed'$(c 0i) or $(c Bi)resolution $(c 0i)in ($(c 0Ci)'Done'$(c 0i),$(c 0Ci)'Fixed'$(c 0i))$(c)
+                             filter in $(c 0Mi)4 weeks$(c) by default
+  $(c G)-u$(c), $(c G)--update $(c 0Mi)FILTER$(c)        filter issues updated within the specified time frame $(c 0i)(e.g., $(c 0Mi)'-4w'$(c 0i) for 4 weeks)$(c)
+  $(c G)-h$(c), $(c G)--help$(c)                 show this help message and exit
+"
+
 function passToken() { pass show "${1}" | head -n1; }
+function showUsage() { echo -e "${USAGE}"; exit 0;  }
+function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --new         ) STATUS="status in (New)"                             ; shift  ;;
-    --in-progress ) STATUS="status in (\"In Progress\")"                 ; shift  ;;
-    --todo        ) STATUS="status in (\"To Do\")"                       ; shift  ;;
-    --open        ) STATUS="status in (New, \"To Do\", \"In Progress\")" ; shift  ;;
-    *             ) echo "Unknown argument: $1" >&2                      ; exit 1 ;;
+    -h | --help             ) showUsage                   ;;
+    -p | --project          ) PROJECT="$2"; shift 2       ;;
+    -u | --update           ) UPDATE_LIMIT="$2"; shift 2  ;;
+    --assignee | --reporter ) PARAM="${1#--}"; PARAM="${PARAM^^}";
+                              if [[ -n "$2" && "$2" != -* ]]; then
+                                printf -v "${PARAM}" "%s" "$2"; shift 2;
+                              else
+                                printf -v "${PARAM}" "%s" "currentUser()"; shift 1;
+                              fi                          ;;
+    --*                     ) KEY="${1#--}"
+                              if [[ -n "${JQL_MAP[$KEY]}" ]]; then
+                                KEYS+=( "$KEY" ); shift ;
+                              else
+                                die "Unknown option '$1'"
+                              fi                          ;;
+    *                       ) die "Unknown argument '$1'" ;;
   esac
 done
 
-declare JIRA_API_TOKEN="${JIRA_API_TOKEN:-$(passToken marvell/marslo/jira)}"
+{ test -z "${ASSIGNEE:-}" && test -z "${REPORTER:-}"; } && ASSIGNEE='currentUser()'
 
-query="project=IPBUSW AND ${STATUS} AND assignee=currentUser()"
+# setup -4w for closed issues by default
+for key in "${KEYS[@]}"; do
+  jql="${JQL_MAP[$key]}"
+  if [[ "$key" == "closed" ]] && [[ -z "${UPDATE_LIMIT:-}" ]]; then
+    jql="(${jql}) AND updated >= '-4w'"
+  fi
+  CURRENT_STATUS+=( "(${jql})" )
+done
+
+declare _STATUS="status in (New, \"To Do\", \"In Progress\")"
+# get final status part
+declare STATUS=''
+if [[ ${#CURRENT_STATUS[@]} -gt 0 ]]; then
+  STATUS=$(IFS='|'; set -- "${CURRENT_STATUS[@]}"; echo "$*")
+  STATUS="${STATUS//|/ OR }"
+  STATUS="($STATUS)"
+fi
+
+declare query="project=${PROJECT:-${_PROJECT}}"
+query+=" AND (${STATUS:-${_STATUS}})"
+test -n "${ASSIGNEE}" && query+=" AND assignee=${ASSIGNEE}"
+test -n "${REPORTER}" && query+=" AND reporter=${REPORTER}"
+[[ -n "${UPDATE_LIMIT:-}" ]] && query+=" AND updated >= '${UPDATE_LIMIT}'"
+
+declare JIRA_API_TOKEN="${JIRA_API_TOKEN:-$(passToken marvell/marslo/jira)}"
+declare json=''
 json="$( curl -u "marslo:${JIRA_API_TOKEN}" \
               --data-urlencode "jql=${query}" \
               --get \
@@ -32,28 +116,42 @@ json="$( curl -u "marslo:${JIRA_API_TOKEN}" \
               'https://essjira.marvell.com/rest/api/2/search'
       )"
 
-declare GET_ID="echo {1} | awk -F. '{printf \"%s\", \$1}'"
-declare FORMAT_CONTENT="echo {1} | sed 's/\. /: /' | tr -d '\n'"
+if echo "${json}" | jq -e 'has("errorMessages")' >/dev/null 2>&1; then
+  die "JIRA API Error: $(echo "${json}" | jq -r '.errorMessages[]')"
+fi
 
+if ! echo "${json}" | jq -e '.issues | length > 0' > /dev/null; then
+  echo -e "\033[0;3;35m>> No issues found ...\033[0m" >&2
+  exit 0
+fi
+
+declare INAME="Marslo Jiao"
 declare TEMPLATE='"'
 TEMPLATE+='\(.key). \(.fields.summary)'
 TEMPLATE+='\t'
-TEMPLATE+='Reporter: \(.fields.reporter.displayName)\n'
-TEMPLATE+='Created: \(.fields.created)\n'
-TEMPLATE+='Updated: \(.fields.updated)\n\n'
+TEMPLATE+='Status: '
+TEMPLATE+='\(if .fields.status.name | test("Done|Fixed|Closed") then "\\033[1;35m" '
+TEMPLATE+='elif .fields.status.name == "To Do" then "\\033[1;90m" '
+TEMPLATE+='elif .fields.status.name == "In Progress" then "\\033[1;32m" '
+TEMPLATE+='else "\\033[1;36m" end)'
+TEMPLATE+='\(.fields.status.name)\\033[0m\n'
+TEMPLATE+='Reporter: \(if (.fields.reporter.displayName // "Unknown") != "'"${INAME}"'" then "\\033[0;3m" + (.fields.reporter.displayName // "Unknown") + "\\033[0m" else "\\033[3;36m" + (.fields.reporter.displayName // "Unknown") + "\\033[0m" end) • '
+TEMPLATE+='Assignee: \(if (.fields.assignee.displayName // "Unassigned") != "'"${INAME}"'" then "\\033[0;3m" + (.fields.assignee.displayName // "Unassigned") + "\\033[0m" else "\\033[3;36m" + (.fields.assignee.displayName // "Unassigned") + "\\033[0m" end)\n'
+TEMPLATE+='Created: \(.fields.created) • Updated: \(.fields.updated)\n\n'
 TEMPLATE+='\(.fields.description)'
 TEMPLATE+='"'
 
+declare GET_ID="echo {1} | awk -F. '{printf \"%s\", \$1}'"
+declare FORMAT_CONTENT="echo {1} | sed 's/\. /: /' | tr -d '\n'"
 echo "${json}" | jq ".issues[] | ${TEMPLATE}" |
-sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/' |
-fzf --with-nth=1 \
+sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/g' -e 's/\\\\033/\\033/g' |
+fzf --with-nth=1 --ansi \
     --delimiter='\t' \
-    --preview='echo {2}' \
+    --preview='printf "%b" {2}' \
     --preview-window=top:70%:wrap \
     --bind "ctrl-y:execute-silent(${GET_ID} | pbcopy)" \
     --bind "ctrl-Y:execute-silent(${FORMAT_CONTENT} | pbcopy)" \
-    --bind "ctrl-o:execute(${GET_ID} | xargs -I {} open https://essjira.marvell.com/browse/{})" \
-    --preview-window=top:wrap |
+    --bind "ctrl-o:execute(${GET_ID} | xargs -I {} open https://essjira.marvell.com/browse/{})" |
 cut -f1 |
 sed -e 's/\. /: /'
 

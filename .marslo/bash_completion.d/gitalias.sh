@@ -4,7 +4,7 @@
 #     FileName : gitalias.sh
 #       Author : marslo
 #      Created : 2025-12-11 21:28:56
-#   LastChange : 2026-02-28 03:34:15
+#   LastChange : 2026-03-09 14:36:17
 #=============================================================================
 
 function _git_rob() {
@@ -224,7 +224,7 @@ function _git_gerrit_stat() {
   fi
 }
 
-_git_changed() {
+function _git_changed() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
 
   local i=1

@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-01-27 14:16:41
+"    LastChange : 2026-03-09 19:44:02
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -73,36 +73,34 @@ endif
 "    block        : 1 -> blinking block        |  2 -> solid block
 "    underscore   : 3 -> blinking underscore   |  4 -> solid underscore
 "    vertical bar : 5 -> blinking vertical bar |  6 -> solid vertical bar
-if $TERM_PROGRAM =~? 'iTerm'
-  let &t_SI = "\<Esc>]50;CursorShape=4\x7"                          " INSERT MODE  : solid underscore
-  let &t_SR = "\<Esc>]50;CursorShape=2\x7"                          " REPLACE MODE : solid block
-  let &t_EI = "\<Esc>]50;CursorShape=3\x7"                          " NORMAL MODE  : blinking underscore
-else
-  let &t_SI .= "\e[4 q"                                             " SI = INSERT mode
-  let &t_SR .= "\e[4 q"                                             " SR = REPLACE mode
-  let &t_EI .= "\e[3 q"                                             " EI = NORMAL mode (ELSE)
+" using settings ONLY if non-iTerm terminal, guicursor will override these settings in iTerm
+if $TERM_PROGRAM !~? 'iTerm'
+  let &t_SI .= "\e[4 q"                                             " SI = INSERT mode : solid underscore
+  let &t_SR .= "\e[4 q"                                             " SR = REPLACE mode : solid underscore
+  let &t_EI .= "\e[1 q"                                             " EI = NORMAL mode (ELSE) : blinking block
 endif
+let &t_RS   .= &t_EI                                                " Reset : reset cursor to normal mode
 
 " setup cursor shape to block in diff mode
 " https://vim.fandom.com/wiki/Change_cursor_shape_in_different_modes
 function! CursorShapeInDiffMode()
   if &diff
     if $TERM_PROGRAM =~? 'iTerm'
-      let &t_SI = "\<Esc>]50;CursorShape=1\x7"
-      let &t_SR = "\<Esc>]50;CursorShape=2\x7"
-      let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+      let &t_SI = "\<Esc>]50;CursorShape=1\x7"                      " Insert:  blinking block
+      let &t_SR = "\<Esc>]50;CursorShape=2\x7"                      " Replace: solid block
+      let &t_EI = "\<Esc>]50;CursorShape=0\x7"                      " Normal: default (blinking block)
     else
-      let &t_SI = "\e[1 q"
-      let &t_SR = "\e[2 q"
-      let &t_EI = "\e[2 q"
+      let &t_SI = "\e[1 q"                                          " Insert:  blinking block
+      let &t_SR = "\e[2 q"                                          " Replace: solid block
+      let &t_EI = "\e[2 q"                                          " Normal:  solid block
     endif
 
     " set termguicolors
     if IsNvim()
-      set guicursor=n-v-i:block-Cursor/lCursor,c-ci:hor10-iCursor-blinkon0
+      set guicursor=a:block-Cursor,n-v-i:block-Cursor/lCursor,c-ci:hor10-iCursor-blinkon0
     endif
   endif
 endfunction
-autocmd BufRead,BufEnter,BufNewFile * :call CursorShapeInDiffMode()
+autocmd! BufRead,BufEnter,BufNewFile * :call CursorShapeInDiffMode()
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
