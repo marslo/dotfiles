@@ -7,7 +7,8 @@
 " =============================================================================
 
 " color table
-" #4682b4 - 24 - steelblue
+" #4682b4 - 024 - steelblue
+" #1b9aed - 033
 
 " vim
 highlight! Grey             ctermfg=241    guifg=#616161
@@ -17,7 +18,8 @@ highlight! SpellBad         term=underline cterm=underline ctermbg=NONE    guibg
 
 " - vim cursor color depends on terminal color
 " - nvim curcor color depends on `set termguicolors`
-highlight! Cursor           term=bold      cterm=reverse   ctermfg=255     ctermbg=24  gui=underline  guifg=white  guibg=steelblue  guisp=steelblue
+" highlight! Cursor           term=bold      cterm=reverse   ctermfg=255     ctermbg=24  gui=reverse  guifg=white   guibg=steelblue  guisp=steelblue
+highlight! Cursor             term=bold      cterm=NONE      ctermfg=239     ctermbg=24  gui=NONE     guifg=#4e4e4e guibg=steelblue
 highlight! link TermCursor  Cursor
 highlight! link iCursor     Cursor
 highlight! CursorColumn     ctermbg=236 guibg=#32302f
