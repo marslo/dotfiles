@@ -77,6 +77,9 @@ set list
 set listchars=tab:\→\ ,trail:·,extends:»,precedes:«,nbsp:·
 set cursorline                                                      " highlight the current line
 set cursorcolumn
+" a: [a]ll; i: [i]nsert; r: [r]eplace; o: [o]perator-pending; t: [t]erminal;
+" v: [v]isual; ve: [v]isual [e]xclusive; sm: [s]how[m]atch (insert mode)
+" c: [c]ommand; ci: [c]ommand-[l]ine; cr: [r]eplace-[c]ommand; cr: [r]eplace-[c]ommand-line;
 set guicursor=a:hor10-Cursor-blinkon0
 set guicursor+=i-r-c-ci-cr-o:hor10-iCursor-blinkon0
 set guicursor+=n:hor10-Cursor-blinkwait700-blinkon400-blinkoff250

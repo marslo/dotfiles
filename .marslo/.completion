@@ -24,6 +24,7 @@ declare ANSIBLE_COMPLETION_PATH="${COMPLETION_DIR}/ansible-completion"          
 # declare NPM_COMPLETION="$HOME/.npm/lib/node_modules/npm-completion"             # for npm-completion https://github.com/Jephuff/npm-bash-completion
 
 test -f "${RT_COMPLETION}"                          && source "${RT_COMPLETION}"
+test -f "${COMPLETION_DIR}"/imarslo.sh              && source "${COMPLETION_DIR}"/imarslo.sh
 test -f "${COMPLETION_DIR}"/cht.sh/cht.sh           && source "${COMPLETION_DIR}"/cht.sh/cht.sh
 test -f "${COMPLETION_DIR}"/complete_alias          && source "${COMPLETION_DIR}"/complete_alias
 test -f "${COMPLETION_DIR}"/npm-groovy-lint.sh      && source "${COMPLETION_DIR}"/npm-groovy-lint.sh
