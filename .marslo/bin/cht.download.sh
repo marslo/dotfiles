@@ -135,12 +135,11 @@ function download() {
     if ! curl -g -f --create-dirs --silent --show-error --output "${fullPath}" "${url}"; then
       printf "$(c 0Rs)[FAILED] $(c 0Wdi)unable to download $(c 0Ci)'%s' $(c 0Wdi)from $(c 0Mi)'%s'$(c)\n" "${query}" "${url}" >&2
 
-      if grep --color=never --quiet --line-regexp "Unknown topic." "${fullPath}"; then
+      if test -f "${fullPath}" && test -f "${fullPath""}" grep --color=never --quiet --line-regexp "Unknown topic." "${fullPath}"; then
         >&2 cat "${fullPath}"
-        rm -f "${fullPath}"; exit 1;
       fi
 
-      rm -f "${fullPath}" || true
+      { test -f "${fullPath}" && rm -f "${fullPath}"; } || true
     fi
 
     sleep 0.02
