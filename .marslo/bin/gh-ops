@@ -4,7 +4,7 @@
 #     FileName : gh-ops
 #       Author : marslo
 #      Created : 2026-01-21 20:38:07
-#   LastChange : 2026-02-27 21:37:36
+#   LastChange : 2026-03-10 21:09:32
 #  Inspired by : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/
 #=============================================================================
 
@@ -35,6 +35,7 @@ OPTIONS
   $(c G)-s$(c), $(c G)--squash$(c)              squash merge the selected pull request and delete the branch
   $(c G)-r$(c), $(c G)--rebase$(c)              rebase merge the selected pull request and delete
   $(c G)-l$(c), $(c G)--label$(c) $(c 0Mi)LABEL$(c)         add label(s) to the selected pull request $(c 0i)(default:  using fzf to select)$(c)
+  $(c G)-L$(c), $(c G)--remove-label$(c) $(c 0Mi)LABEL$(c)  remove label(s) from the selected pull request $(c 0i)(default:  using fzf to select)$(c)
   $(c G)-S$(c), $(c G)--state$(c) $(c 0Mi)STATE$(c)         filter PR by state $(c 0i)(e.g. $(c 0Ci)open$(c 0i), $(c 0Ci)closed$(c 0i), $(c 0Ci)all$(c 0i), $(c 0Ci)merged$(c 0i))$(c)
   $(c G)-B$(c), $(c G)--base$(c) $(c 0Mi)BRANCH_NAME$(c)    filter PR by base branch
   $(c G)-R$(c), $(c G)--repo$(c) $(c 0Mi)OWNER/REPO$(c)     filter PR by repository $(c 0i)(e.g. $(c 0Ci)OWNER/REPO$(c 0i))$(c)
@@ -64,7 +65,7 @@ TIPS
     • press $(c 0Bsi)ctrl-/$(c) to toggle between local and remote preview (requires the preview script to be present)
 """
 
-declare OPTION='checkout'
+declare OPTION=''
 declare DRYRUN=false
 declare VERBOSE=false
 declare -a GH_OPTS=()
@@ -149,7 +150,7 @@ function getId() {
   TEMPLATE+="$(jc Cs)Author:$(jc) \(.author.login)\n"
   TEMPLATE+="$(jc Ys)Created:$(jc) \(.createdAt) $(jc Ms)•$(jc) $(jc Ys)Updated:$(jc) \(.updatedAt)\n\n"
   TEMPLATE+='\(.title)'
-  TEMPLATE+='\( .title as $t | (.body // "") | if startswith($t) then .[($t | length):] else . end | sub("^\\s+"; "") | if . == "" then "" else "\n\n" + . end )'
+  TEMPLATE+='\( .title as $t | (.body // "") | if startswith($t) then .[($t | length):] else . end | gsub("(?s)[ \t]*<!--.*?-->[ \t]*\n?"; "") | sub("^\\s+"; "") | if . == "" then "" else "\n\n" + . end )'
   TEMPLATE+='"'
 
   local EXTRACT_ID_CMD='sed -n "$(( {n}+1 ))p" "'${CACHE_FILE}'" | sed -En "s/^#([0-9]+).*/\1/p"'
@@ -157,7 +158,7 @@ function getId() {
   local REMOTE_CMD=''
   REMOTE_CMD+='change-preview('
   REMOTE_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
-  REMOTE_CMD+='if [ -n "${id}" ]; then gh pr view "${id}" --json mergeable,reviewDecision,reviewRequests,reviews,body --jq "$JQ_FILTER" 2>/dev/null; else echo "Loading..."; fi'
+  REMOTE_CMD+='if [ -n "${id}" ]; then gh pr view "${id}" --json mergeable,reviewDecision,reviewRequests,reviews,body,labels,state --jq "$JQ_FILTER" 2>/dev/null; else echo "Loading Remote ..."; fi'
   REMOTE_CMD+=')+'
   REMOTE_CMD+='transform-preview-label('
   REMOTE_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
@@ -224,32 +225,53 @@ function getId() {
 }
 
 function getLabel() {
-  local label=$( gh label list --json name --jq '.[].name' | fzf --ansi --prompt='󰩀  ' -0 )
-  test -n "${label}" && echo "${label}" | paste -sd "," -
+  local nowLabels
+  nowLabels="$( gh pr view "${PR_ID}" --json labels --jq '.labels[].name' )"
+
+  case "$1" in
+    --add-label    ) local allLabels
+                     allLabels="$( gh label list --json name --jq '.[].name' )"
+                     comm -23 <( sort <<< "${allLabels}" ) <( sort <<< "${nowLabels}" ) \
+                       | fzf --ansi --prompt='󰩀 add > ' -0 -m | paste -sd "," - ;;
+    --remove-label ) if [[ -z "${nowLabels:-}" ]]; then
+                       show error "no labels on PR #${PR_ID}"
+                       return 1
+                     fi
+                     sort <<< "${nowLabels}" \
+                       | fzf --ansi --prompt='󰩀 remove > ' -0 -m | paste -sd "," - ;;
+  esac
 }
 
 function main() {
   local -a LABELS=()
+  local -A MAPPING=(
+    ['-c']='checkout'  ['-C']='close'
+    ['-s']='squash'    ['-r']='rebase'
+    ['-l']='add-label' ['-L']='remove-label'
+    ['-S']='state'     ['-B']='base'    ['-R']='repo'
+  )
+
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -c | --checkout  ) OPTION='checkout'                ; shift     ;;
-      -C | --close     ) OPTION='close'                   ; shift     ;;
-      -s | --squash    ) OPTION='squash'                  ; shift     ;;
-      -r | --rebase    ) OPTION='rebase'                  ; shift     ;;
-      -l | --label     ) OPTION='label'                   ;
-                         if [[ -n "${2:-}" && "${2}" != -* ]]; then
-                           LABELS+=("${2}"); shift;
-                         fi                               ; shift     ;;
-      -o | --open      ) SHOULD_OPEN=true                 ; shift     ;;
-      -A | --auto-open ) SHOULD_OPEN=true; AUTO_OPEN=true ; shift     ;;
-      -V | --verbose   ) VERBOSE=true                     ; shift     ;;
-      --dryrun         ) DRYRUN=true                      ; shift     ;;
-      -S | --state     ) CLI_OPTS+=( "--state" "$2" )     ; shift 2   ;;
-      -B | --base      ) CLI_OPTS+=( "--base" "$2" )      ; shift 2   ;;
-      -R | --repo      ) CLI_OPTS+=( "--repo" "$2" )      ; shift 2   ;;
-      --               ) shift ; GH_OPTS+=( "$@" )        ; break     ;;
-      -h | --help      ) showHelp                                     ;;
-      *                ) show error "unknown argument: \`$1\`"        ;;
+      -l | --add-label  | \
+      -L | --remove-label ) OPTION="${MAPPING[$1]:-${1#--}}" ;
+                            if [[ -n "${2:-}" && "${2}" != -* ]]; then
+                              LABELS+=("${2}"); shift;
+                            fi                               ; shift ;;
+      -c | --checkout   | \
+      -C | --close      | \
+      -s | --squash     | \
+      -r | --rebase       ) OPTION="${MAPPING[$1]:-${1#--}}" ; shift ;;
+      -o | --open         ) SHOULD_OPEN=true                 ; shift ;;
+      -A | --auto-open    ) SHOULD_OPEN=true; AUTO_OPEN=true ; shift ;;
+      -V | --verbose      ) VERBOSE=true                     ; shift ;;
+      --dryrun            ) DRYRUN=true                      ; shift ;;
+      -S | --state      | \
+      -B | --base       | \
+      -R | --repo         ) CLI_OPTS+=( "--${MAPPING[$1]:-${1#--}}" "$2" ); shift 2 ;;
+      --                  ) shift ; GH_OPTS+=( "$@" )        ; break ;;
+      -h | --help         ) showHelp                                 ;;
+      *                   ) show error "unknown argument: \`$1\`"    ;;
     esac
   done
 
@@ -262,13 +284,13 @@ function main() {
   local PR_ID="$( getId )"
   test -z "${PR_ID}" && exit 0
   local cmd=( gh pr )
-  case "${OPTION}" in
-    checkout | close ) cmd+=( "${OPTION}" "${PR_ID}"    )          ;;
-    squash           ) cmd+=( merge "${PR_ID}" --squash )          ;;
-    rebase           ) cmd+=( merge "${PR_ID}" --rebase )          ;;
-    label            ) test -n "${LABEL}" || LABEL="$( getLabel )" ;
-                       test -n "${LABEL}" && cmd+=( edit "${PR_ID}" --add-label "${LABEL}" ) ;;
-    *                ) show error "unknown option: \`${OPTION}\`"  ;;
+  case "${OPTION:-}" in
+    checkout | close         ) cmd+=( "${OPTION}" "${PR_ID}"    )          ;;
+    squash                   ) cmd+=( merge "${PR_ID}" --squash )          ;;
+    rebase                   ) cmd+=( merge "${PR_ID}" --rebase )          ;;
+    add-label | remove-label ) test -n "${LABEL}" || LABEL="$( getLabel "--${OPTION}")"
+                               test -n "${LABEL}" && cmd+=( edit "${PR_ID}" "--${OPTION}" "${LABEL}" ) ;;
+    *                        ) test -n "${OPTION:-}" && show error "unknown option: \`${OPTION}\`"  ;;
   esac
 
   [[ -z "${OPTION}" && "${SHOULD_OPEN}" ]] && { openPR "${PR_ID}"; exit 0; }
@@ -279,10 +301,14 @@ function main() {
     "${DRYRUN}" && { show dryrun "${msg}"; exit 0; } || show verbose "${msg}"
   }
 
-  printf "$(c Ci)~~> %s$(c) $(c 0Mis)#%s$(c)%b $(c Ci)..$(c)\n" \
+  local _extra=''; [[ "${OPTION}" == 'add-label' ]] && _extra='to' || _extra='from'
+  # shellcheck disable=SC2016
+  printf "$(c Ci)~~> %s$(c)%b $(c 0Mis)#%s$(c)%b $(c Ci)..$(c)\n" \
          "${OPTION}" \
+         "${LABEL:+ $(c 0Mis)'${LABEL}'} $(c 0Ci)${_extra}" \
          "${PR_ID}" \
-         "${GH_OPTS[*]:+ with gh OPTS $(c 0Mis)${GH_OPTS[*]}$(c)}" >&2
+         "${GH_OPTS[*]:+ $(c 0i)with gh OPTS $(c 0Mis)${GH_OPTS[*]}$(c)}" >&2
+
   "${cmd[@]}" "${GH_OPTS[@]}"
 
   [[ -n "${OPTION}" && "${SHOULD_OPEN}" ]] && { openPR "${PR_ID}"; exit 0; }
