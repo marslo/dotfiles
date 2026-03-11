@@ -4,7 +4,7 @@
 #     FileName : jira-ls
 #       Author : marslo
 #      Created : 2026-01-21 20:57:09
-#   LastChange : 2026-03-09 23:56:27
+#   LastChange : 2026-03-10 00:42:17
 #=============================================================================
 
 set -euo pipefail
@@ -42,17 +42,24 @@ SYNOPSIS
 
 OPTIONS
   $(c G)-p$(c), $(c G)--project $(c 0Mi)PROJECT_KEY$(c)  specify the JIRA project key $(c 0i)(default: $(c 0Mi)'IPBUSW'$(c 0i))$(c)
-  $(c G)--assignee$(c) $(c 0Mi)USER_ID$(c)          filter issues assigned to the specified user $(c 0i)(default: $(c 0Mi)currentUser()$(c 0i))$(c)
-  $(c G)--reporter$(c) $(c 0Mi)USER_ID$(c)          filter issues reported by the specified user $(c 0i)(default: $(c 0Mi)currentUser()$(c 0i))$(c)
+  $(c G)--assignee$(c) $(c 0Mi)USER_ID$(c)          filter issues assigned to the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
+  $(c G)--reporter$(c) $(c 0Mi)USER_ID$(c)          filter issues reported by the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
 
-  $(c G)--new$(c)                      list issues with $(c Bi)status $(c 0Ci)'New'$(c)
-  $(c G)--in-progress$(c)              list issues with $(c Bi)status $(c 0Ci)'In Progress'$(c)
-  $(c G)--todo$(c)                     list issues with $(c Bi)status $(c 0Ci)'To Do'$(c)
-  $(c G)--open$(c)                     list issues with $(c Bi)status $(c 0i) in ($(c 0Ci)'New'$(c 0i),$(c 0Ci)'To Do'$(c 0i),$(c 0Ci)'In Progress'$(c 0i))$(c)
-  $(c G)--closed$(c)                   list issues with $(c Bi)status $(c 0Ci)'Closed'$(c 0i) or $(c Bi)resolution $(c 0i)in ($(c 0Ci)'Done'$(c 0i),$(c 0Ci)'Fixed'$(c 0i))$(c)
+  $(c B)--open$(c)                     list issues with $(c Bi)status $(c 0i)in ($(c 0Ci)'New'$(c 0i),$(c 0Ci)'To Do'$(c 0i),$(c 0Ci)'In Progress'$(c 0i))$(c) $(c 0i)(default)$(c)
+  $(c B)--new$(c)                      list issues with $(c Bi)status $(c 0Ci)'New'$(c)
+  $(c B)--in-progress$(c)              list issues with $(c Bi)status $(c 0Ci)'In Progress'$(c)
+  $(c B)--todo$(c)                     list issues with $(c Bi)status $(c 0Ci)'To Do'$(c)
+  $(c B)--closed$(c)                   list issues with $(c Bi)status $(c 0Ci)'Closed'$(c 0i) or $(c Bi)resolution $(c 0i)in ($(c 0Ci)'Done'$(c 0i),$(c 0Ci)'Fixed'$(c 0i))$(c)
                              filter in $(c 0Mi)4 weeks$(c) by default
   $(c G)-u$(c), $(c G)--update $(c 0Mi)FILTER$(c)        filter issues updated within the specified time frame $(c 0i)(e.g., $(c 0Mi)'-4w'$(c 0i) for 4 weeks)$(c)
   $(c G)-h$(c), $(c G)--help$(c)                 show this help message and exit
+
+EXAMPLE
+  $(c Wdi)# list 2 weeks in-progress jira ticket in project 'PROJID' for \`currentUser()\`$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)--project $(c 0Mi)PROJID $(c 0Bi)--in-progress $(c 0Gi)--assignee -u $(c 0Mi)'-2w'$(c)
+
+  $(c Wdi)# list closed and todo tickets in default project for user 'alice' after '2026-03-01 14:30'$(c)
+  $(c Y)\$ ${ME} $(c 0Bi)--todo --closed $(c 0Gi)--assignee $(c 0Mi)alice $(c 0Gi)--update $(c 0Mi)'2026-03-01 14:30'$(c)
 "
 
 function passToken() { pass show "${1}" | head -n1; }
