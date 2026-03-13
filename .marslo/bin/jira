@@ -4,7 +4,7 @@
 #     FileName : jira
 #       Author : marslo
 #      Created : 2026-03-09 16:23:03
-#   LastChange : 2026-03-09 16:38:09
+#   LastChange : 2026-03-12 17:06:47
 #=============================================================================
 
 set -euo pipefail
@@ -27,11 +27,11 @@ USAGE
   $(c 0Ys)\$ ${ME}$(c) $(c 0Cs)<subcommand> $(c 0Gs)[options]$(c)
 
 SUBCOMMANDS
-ls          List jira issues
-stat        Show statistics
+  $(c C)ls$(c)          List jira issues
+  $(c C)stat$(c)        Show statistics
 
 OPTIONS
--h, --help  Show this help message and exit
+  $(c G)-h$(c), $(c G)--help$(c)  Show this help message and exit
 
 Run '${ME} help <command>' or '${ME} <command> --help' for details.
 "
@@ -41,16 +41,16 @@ function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" 
 
 # shellcheck disable=SC2015
 if [[ "$1" == "help" ]]; then
-  [[ -n "${2:-}" ]] && set -- "$2" "--help" || showUsage
+  [[ -n "${2:-}" ]] && set -- "${2}" "--help" || showUsage
 fi
 
 declare SUBCOMMAND="$1"; shift;
 case "${SUBCOMMAND}" in
-  ls | --ls | stat | --stat ) SCRIPT_PATH="${HERE}/jira-${SUBCOMMAND}"
+  ls | --ls | stat | --stat ) COMMAND="${SUBCOMMAND#--}"; SCRIPT_PATH="${HERE}/jira-${COMMAND}"
                               if [[ -f "${SCRIPT_PATH}" ]]; then
                                 exec bash "${SCRIPT_PATH}" "$@"
                               else
-                                die "Subcommand script 'jira-${SUBCOMMAND}' not found at ${HERE}"
+                                die "Subcommand script 'jira-${COMMAND}' not found at ${HERE}"
                               fi ;;
   -h | --help | ''          ) showUsage                                ;;
   -*                        ) die "unknown option '${SUBCOMMAND}'"     ;;

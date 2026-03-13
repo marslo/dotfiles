@@ -4,7 +4,7 @@
 #     FileName : jira-ls
 #       Author : marslo
 #      Created : 2026-01-21 20:57:09
-#   LastChange : 2026-03-10 00:42:17
+#   LastChange : 2026-03-12 15:12:15
 #=============================================================================
 
 set -euo pipefail
@@ -27,9 +27,9 @@ declare -a KEYS=()
 declare -a CURRENT_STATUS=()
 declare -A JQL_MAP=(
   ['new']='status in (New)'
-  ['in-progress']='status in ("In Progress")'
+  ['in-progress']='status in (Active, "In Progress")'
   ['todo']='status in ("To Do")'
-  ['open']='status in (New, "To Do", "In Progress")'
+  ['open']='status in (New, Active, "To Do", "In Progress")'
   ['closed']='status = Closed OR resolution in (Done, Fixed)'
 )
 
@@ -45,8 +45,8 @@ OPTIONS
   $(c G)--assignee$(c) $(c 0Mi)USER_ID$(c)          filter issues assigned to the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
   $(c G)--reporter$(c) $(c 0Mi)USER_ID$(c)          filter issues reported by the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
 
-  $(c B)--open$(c)                     list issues with $(c Bi)status $(c 0i)in ($(c 0Ci)'New'$(c 0i),$(c 0Ci)'To Do'$(c 0i),$(c 0Ci)'In Progress'$(c 0i))$(c) $(c 0i)(default)$(c)
-  $(c B)--new$(c)                      list issues with $(c Bi)status $(c 0Ci)'New'$(c)
+  $(c B)--open$(c)                     list issues with $(c Bi)status $(c 0i)in ($(c 0Ci)'New'$(c 0i),$(c 0Ci)'Active'$(c 0i),$(c 0Ci)'To Do'$(c 0i),$(c 0Ci)'In Progress'$(c 0i))$(c) $(c 0i)(default)$(c)
+  $(c B)--new$(c)                      list issues with $(c Bi)status $(c 0Ci)'New'$(c) or $(c 0Ci)'Active'$(c)
   $(c B)--in-progress$(c)              list issues with $(c Bi)status $(c 0Ci)'In Progress'$(c)
   $(c B)--todo$(c)                     list issues with $(c Bi)status $(c 0Ci)'To Do'$(c)
   $(c B)--closed$(c)                   list issues with $(c Bi)status $(c 0Ci)'Closed'$(c 0i) or $(c Bi)resolution $(c 0i)in ($(c 0Ci)'Done'$(c 0i),$(c 0Ci)'Fixed'$(c 0i))$(c)
@@ -78,8 +78,8 @@ while [[ $# -gt 0 ]]; do
                                 printf -v "${PARAM}" "%s" "currentUser()"; shift 1;
                               fi                          ;;
     --*                     ) KEY="${1#--}"
-                              if [[ -n "${JQL_MAP[$KEY]}" ]]; then
-                                KEYS+=( "$KEY" ); shift ;
+                              if [[ -n "${JQL_MAP[${KEY}]}" ]]; then
+                                KEYS+=( "${KEY}" ); shift ;
                               else
                                 die "Unknown option '$1'"
                               fi                          ;;
@@ -88,6 +88,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 { test -z "${ASSIGNEE:-}" && test -z "${REPORTER:-}"; } && ASSIGNEE='currentUser()'
+test 0 -eq "${#KEYS[@]}"  && KEYS=('open')
 
 # setup -4w for closed issues by default
 for key in "${KEYS[@]}"; do
@@ -98,7 +99,6 @@ for key in "${KEYS[@]}"; do
   CURRENT_STATUS+=( "(${jql})" )
 done
 
-declare _STATUS="status in (New, \"To Do\", \"In Progress\")"
 # get final status part
 declare STATUS=''
 if [[ ${#CURRENT_STATUS[@]} -gt 0 ]]; then

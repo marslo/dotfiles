@@ -4,7 +4,7 @@
 #     FileName : imarslo.sh
 #       Author : marslo
 #      Created : 2026-03-09 14:28:06
-#   LastChange : 2026-03-10 00:29:29
+#   LastChange : 2026-03-12 18:13:26
 #=============================================================================
 
 _compgen_nocase() {
@@ -139,10 +139,33 @@ function _jira_completions() {
 function _jira_stat_completions() { _jira_stat_logic; }
 function _jira_ls_completions() { _jira_ls_logic; }
 
+function _gdoc_completion() {
+  local cur prev opts re_projects sms_projects
+
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  opts="--re --sms -l --local -v --verbose -h --help"
+
+  re_projects="release-engineering"
+  sms_projects="common util wukong vega exerciser nevox zao lion alpine"
+
+  case "${prev}" in
+      --re  ) COMPREPLY=( $(compgen -W "${re_projects}" -- "${cur}")  ); return 0 ;;
+      --sms ) COMPREPLY=( $(compgen -W "${sms_projects}" -- "${cur}") ); return 0 ;;
+      *     ) ;;
+  esac
+
+  if [[ "${cur}" == -* ]] ; then
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+    return 0
+  fi
+}
+
 complete -F _jira_completions      jira
 complete -F _jira_stat_completions jira-stat
 complete -F _jira_ls_completions   jira-ls
 complete -F _hex2rgba_completion   hex2rgba
 complete -F _rgba2hex_completion   rgba2hex
+complete -F _gdoc_completion       gdoc
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
