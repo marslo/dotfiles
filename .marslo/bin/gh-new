@@ -4,7 +4,7 @@
 #     FileName : gh-new
 #       Author : marslo
 #      Created : 2026-01-23 11:52:14
-#   LastChange : 2026-03-03 15:18:05
+#   LastChange : 2026-03-13 00:59:53
 #=============================================================================
 
 set -euo pipefail
@@ -102,7 +102,7 @@ function prCmd() {
                } |
                awk 'NF && $0!~/^(HEAD|origin)$/ && !seen[$0]++' |
                grep -v --color=never -E "^(${current})$" |
-               fzf --no-multi --ansi --prompt='BASE BRANCH:  ' -0 \
+               fzf --no-multi --ansi --prompt='base branch:  ' -0 \
                    --height 50% --min-height 10+ \
                    --style full --no-input-border \
                    --preview "${gpreview} -s" \
