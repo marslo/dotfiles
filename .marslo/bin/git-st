@@ -4,7 +4,7 @@
 #     FileName : git-st
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-02-01 03:39:19
-#   LastChange : 2026-03-07 02:40:18
+#   LastChange : 2026-03-12 10:16:33
 #   references : https://stackoverflow.com/q/77919418/2940319
 #=============================================================================
 
@@ -68,7 +68,7 @@ fi
 
 if [[ -z "${gdiff}" ]]; then
   showLog "$(git rev-parse --abbrev-ref HEAD)"
-  "${rlog}" && showLog remotes/origin/"${branch}"
+  "${rlog}" && showLog remotes/origin/"${branch}" || true
 fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
