@@ -64,13 +64,19 @@ contexts:
         1: punctuation.definition.list.begin
         2: markup.list.unnumbered
 
-    # 4. git trailer lines
+    # 4. git trailer lines (Signed-off-by, Change-Id, Reviewed-on, etc.)
     - match: '^[ \t]*([A-Za-z-]+(?:-by)?)(:)[ \t]+(.*?)[ \t]+(<[^>]+>)$'
       captures:
         1: keyword.other.git             # keyword (i.e.: Signed-off-by)
         2: punctuation.separator         # colon (:)
         3: string.unquoted.name          # name
         4: variable.parameter.email      # email
+
+    - match: '^[ \t]*([A-Za-z-]+(?:-Id|-on))(:)[ \t]+(.*)$'
+      captures:
+        1: keyword.other.git             # keyword (i.e.: Change-Id, Reviewed-on)
+        2: punctuation.separator         # colon (:)
+        3: string.unquoted                # value (hash, url, etc.)
 
     # 5. compatible with diff output when -s is not used: if we encounter diff output, delegate to diff syntax highlighting
     - match: '^(?=diff --git|--- |\+\+\+ )'
