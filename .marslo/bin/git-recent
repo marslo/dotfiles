@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null
+#=============================================================================
+#     FileName : git-recent
+#       Author : marslo
+#      Created : 2021-01-26 18:02:32
+#   LastChange : 2026-03-13 22:18:23
+#=============================================================================
+
+set -euo pipefail
+
+# shellcheck source=/dev/null disable=SC2155
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /g')"
+# shellcheck disable=SC2155
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
+
+# shellcheck disable=SC2155
+declare -r USAGE="NAME
+  sort local/remote branch via committerdate (DESC)
+
+USAGE
+  $(c Ys)\$ ${ME} $(c 0G)[OPTIONS] $(c 0C)[<count>]$(c)
+
+OPTIONS
+  $(c G)remotes$(c), $(c G)remote$(c)  list remote branches instead of local branches $(c 0i)('refs/remotes/origin')$(c)
+  $(c G)tags$(c), $(c G)tag$(c)        list tags instead of branches $(c 0i)('refs/tags')$(c)
+  $(c C)<count>$(c)          number of entries to show $(c 0i)(default: $(c 0Ci)-5$(c 0i))$(c)
+  $(c G)-h$(c)               show this help message and exit
+
+EXAMPLE
+  $(c Wdi)# list recent 3 local branches$(c)
+  $(c Y)\$ ${ME} $(c 0Ci)-3$(c)
+
+  $(c Wdi)# list recent 10 remote branches$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)remotes $(c 0Ci)-10$(c)
+"
+
+declare refs=''
+declare count=''
+
+[[ 2 -lt $# ]] && { echo -e "${USAGE}" >&2; exit 1; }
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    remote | remotes ) refs='refs/remotes/origin' ; shift  ;;
+    tag | tags       ) refs='refs/tags'           ; shift  ;;
+    -[0-9]* | [0-9]* ) count="$1"                 ; shift  ;;
+    -h               ) echo -e "${USAGE}" >&2     ; exit 0 ;;
+    *                ) echo "unrecognized argument '$1'" >&2; exit 1 ;;
+  esac
+done
+
+test -n count && count=${count//-/} || count=5;
+
+# git for-each-ref --sort=-committerdate ${refs} --format='%(HEAD)%(color:yellow)%(refname:short)|%(color:bold green)%(committerdate:relative)|%(color:blue)%(subject)|%(color:magenta)%(authorname)%(color:reset)' --color=always | column -ts'|'; \
+declare format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:cyan)%(objectname:short)%(color:reset) - %(color:dim white)%(contents:subject)%(color:reset) - %(color:italic blue)<%(authorname)>%(color:reset) %(color:green)(%(committerdate:relative))%(color:reset)'
+declare -a cmd=( git for-each-ref --sort=-committerdate "${refs:=refs/heads}" --format="${format}" --color=always --count="${count}" )
+
+"${cmd[@]}"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

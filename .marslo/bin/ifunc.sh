@@ -268,7 +268,7 @@ function ffs() {
   done
 
   local path=${1:-~/.marslo}
-  local num=${2:-$num}
+  num=${2:-$num}
   num=${num//-/}
   local depth=${3:-}
   depth=${depth//-/}
