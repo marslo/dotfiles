@@ -4,7 +4,7 @@
 #     FileName : git-fd
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-10 19:59:15
-#   LastChange : 2026-02-12 23:41:02
+#   LastChange : 2026-03-13 23:38:51
 #=============================================================================
 
 set -euo pipefail
@@ -20,6 +20,7 @@ test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :
 
 declare EXT=''
 declare AUTHOR=''
+declare BRANCH=''
 declare FILE_PATTERN=''
 declare GREP_PATTERN=''
 declare MESSAGE_PATTERN=''
@@ -32,8 +33,7 @@ declare BLOB=''
 # shellcheck disable=SC2155
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
 # shellcheck disable=SC2155
-declare -r USAGE="""
-NAME
+declare -r USAGE="NAME
   $(c Ysi)${ME}$(c) - $(c Ysi)f$(c)in$(c Ysi)d$(c) files in git repository
 
 USAGE
@@ -42,18 +42,21 @@ USAGE
 OPTIONS
   $(c Gi)--fzf$(c 0Yi)*$(c), $(c Gi)--no-fzf$(c)        disable fzf preview, default is $(c Wi)enabled$(c)
 
-  $(c Gi)-u$(c), $(c Gi)--author $(c 0Wi)[<email>]$(c)  override author $(c Wi)(without value default is: \`$(c 0Bi)git config user.email$(c 0Wi)\`)$(c)
-  $(c Gi)-e$(c), $(c Gi)--ext $(c 0Wi)<ext>$(c)         filter file extension $(c Wi)(e.g.: sh, py)$(c).
-  $(c Gi)-f$(c), $(c Gi)--file $(c 0Wi)<pattern>$(c)    fuzzy match filenames $(c Wi)(including path, case-insensitive)$(c)
-  $(c Gi)-g$(c), $(c Gi)--grep $(c 0Wi)<pattern>$(c)    search file contents and return matching files
-  $(c Gi)-k$(c), $(c Gi)--keyword $(c 0Wi)<pattern>$(c) search commit diffs $(c Wi)(patch content)$(c) for matching pattern $(c Wi)(\`$(c 0Bi)-G$(c 0Wi)\`)$(c)
-  $(c Gi)-m$(c), $(c Gi)--message $(c 0Wi)<pattern>$(c) search commit messages $(c Wi)(case-insensitive)$(c)
+  $(c Gi)-u$(c), $(c Gi)--author $(c 0Mi)[<email>]$(c)  filter by author $(c Wi)(default: \`$(c 0Bi)git config user.email$(c 0Wi)\`)$(c)
+  $(c Gi)-b$(c), $(c Gi)--branch $(c 0Mi)<spec>$(c)     search in branch $(c Wi)(\`all\`, \`*\` for all branches)$(c)
+                          $(c Wi)support glob: $(c 0Wdi)e.g.: \`sandbox/marslo/*\`;$(c 0Wi) or exact name $(c 0Wdi)e.g.: \`main\`$(c)
+  $(c Gi)-e$(c), $(c Gi)--ext $(c 0Mi)<ext>$(c)         filter file extension $(c Wi)(e.g.: sh, py)$(c).
+  $(c Gi)-f$(c), $(c Gi)--file $(c 0Mi)<pattern>$(c)    fuzzy match filenames $(c Wi)(including path, case-insensitive; glob e.g. \`vars/*.groovy\`)$(c)
+  $(c Gi)-g$(c), $(c Gi)--grep $(c 0Mi)<pattern>$(c)    search $(c Wi)current$(c) file contents $(c Wi)(git grep)$(c); find commits touching those files
+  $(c Gi)-k$(c), $(c Gi)--keyword $(c 0Mi)<pattern>$(c) search commit diffs $(c Wi)(patch content)$(c) for matching pattern $(c Wi)(\`$(c 0Bi)-G$(c 0Wi)\`)$(c)
+                          $(c Wi)global search: $(c 0Wdi)includes existing, modified, deleted, renamed files$(c)
+  $(c Gi)-m$(c), $(c Gi)--message $(c 0Mi)<pattern>$(c) search commit messages $(c Wi)(case-insensitive)$(c)
 
   $(c Gi)--delete$(c), $(c Gi)--no-delete$(c)   include/exclude deleted files
   $(c Gi)--add$(c), $(c Gi)--no-add$(c)         include/exclude added files
   $(c Gi)--modify$(c), $(c Gi)--no-modify$(c)   include/exclude modified files
   $(c Gi)--rename$(c), $(c Gi)--no-rename$(c)   include/exclude renamed files
-  $(c Gi)--blob $(c 0Wi)<hash>$(c)           find commits containing the specified blob object hash
+  $(c Gi)--blob $(c 0Mi)<hash>$(c)           find commits containing the specified blob object hash
 
   $(c Gi)-v$(c), $(c Gi)--verbose$(c)           show verbose output
   $(c Gi)-h$(c), $(c Gi)--help$(c)              show this help message
@@ -69,7 +72,10 @@ EXAMPLES
   $(c Ys)\$ ${ME} $(c 0Gi)--author $(c 0Mi)user@example.com $(c 0Gi)--file $(c 0Mi)config$(c)
 
   $(c Wdi)# filter files that added/removed $(c 0Bi)'TODO'$(c 0Wdi) anywhere in the code$(c)
-  $(c Ys)\$ ${ME} $(c 0Gi)--grep $(c 0Mi)'TODO'$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--grep $(c 0Mi)'TODO'$(c) $(c 0Gi)--file $(c 0Mi)'vars/*.groovy'$(c)
+
+  $(c Wdi)# global diff search $(c Wi)(includes deleted/renamed files)$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--keyword $(c 0Mi)'git recent'$(c)
 
   $(c Wdi)# find commits with $(c 0Bi)'refactor' $(c 0Wdi)in the message involving $(c 0Bi)*.py $(c 0Wdi)files$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--message $(c 0Mi)'refactor' $(c 0Gi)--ext $(c 0Mi)py$(c)
@@ -77,9 +83,16 @@ EXAMPLES
   $(c Wdi)# find files where file path/name contains $(c 0Bi)'log' $(c 0Wdi)and content contains $(c 0Bi)'init'$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)-f $(c 0Mi)log $(c 0Gi)-g $(c 0Mi)'init'$(c)
 
+  $(c Wdi)# search in all branches$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--branch $(c 0Mi)all $(c 0Gi)--grep $(c 0Mi)TODO$(c)
+
+  $(c Wdi)# search in branches matching $(c 0Bi)sandbox/marslo/*$(c)$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)-b $(c 0Mi)'sandbox/marslo/*' $(c 0Gi)--file $(c 0Mi)config$(c)
+
 NOTES
   • The effective file list will be passed to $(c Ci)fzf$(c) for selection and preview
-"""
+  • $(c Gi)--branch$(c) searches refs directly $(c Wi)(no checkout required; branch must exist locally or have been fetched)$(c)
+"
 
 function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
 function showHelp() { echo -e "${USAGE}"; exit 0; }
@@ -153,6 +166,25 @@ function checkArg() {
   fi
 }
 
+# Internal: show single commit in fileStatus format (used by fzf Enter)
+function showSingleCommit() {
+  local rev="${1:?}"
+  local fmt=$'\033[3;38;5;241m--COMMIT--\033[0m \033[0;35m%h\033[0m • \033[0;36m%s\033[0m \033[3;34m<%aN>\033[0m \033[3;38;5;241m(%ad)\033[0m'
+  git log -1 --name-status --pretty=format:"${fmt}" --date=format:'%Y-%m-%d %H:%M' "${rev}" | fileStatus
+}
+
+# Resolve BRANCH spec to array of refs. Sets BRANCH_REFS (global).
+# all|* -> refs/heads/* refs/remotes/*; else -> glob refs/heads/<spec> refs/remotes/origin/<spec>
+function getBranchRefs() {
+  BRANCH_REFS=()
+  [[ -z "${BRANCH}" ]] && return 0
+  if [[ "${BRANCH}" == "all" || "${BRANCH}" == "*" ]]; then
+    mapfile -t BRANCH_REFS < <(git for-each-ref --format='%(refname:short)' refs/heads refs/remotes 2>/dev/null)
+  else
+    mapfile -t BRANCH_REFS < <(git for-each-ref --format='%(refname:short)' "refs/heads/${BRANCH}" "refs/remotes/origin/${BRANCH}" 2>/dev/null)
+  fi
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -u | --author  ) if [[ $# -gt 1 && "$2" != -* ]]; then
@@ -161,6 +193,7 @@ while [[ $# -gt 0 ]]; do
                        AUTHOR="$(git config user.email 2>/dev/null)"; shift 1
                      fi
                      ;;
+    -b | --branch  ) checkArg "$1" BRANCH "$#" "$2"          ; shift 2 ;;
     -e | --ext     ) checkArg "$1" EXT "$#" "$2"             ; shift 2 ;;
     -f | --file    ) checkArg "$1" FILE_PATTERN "$#" "$2"    ; shift 2 ;;
     -g | --grep    ) checkArg "$1" GREP_PATTERN "$#" "$2"    ; shift 2 ;;
@@ -188,6 +221,7 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   echo "fatal: not a git repository (or any of the parent directories): .git" >&2;
   exit 128
 }
+[[ -z "${AUTHOR}" ]] && AUTHOR="$(git config user.email 2>/dev/null)"
 "${VERBOSE}" && [[ -z "${AUTHOR}" ]] && echo -e "$(c Wdi)WARNING: no author specified ...$(c)"
 
 # or: git log --all --find-object="${hash}" --pretty=format:"%H %an %cd %s"
@@ -210,7 +244,19 @@ fi
 
 test -n "${AUTHOR}"          && logCmd+=(--author="${AUTHOR}")
 test -n "${KEYWORD}"         && logCmd+=(-G"${KEYWORD}")
+test -n "${GREP_PATTERN}"    && logCmd+=(-G"${GREP_PATTERN}")
 test -n "${MESSAGE_PATTERN}" && logCmd+=(--grep="${MESSAGE_PATTERN}" --regexp-ignore-case)
+if [[ -n "${BRANCH}" ]]; then
+  if [[ "${BRANCH}" == "all" || "${BRANCH}" == "*" ]]; then
+    logCmd+=(--all)
+  elif [[ "${BRANCH}" =~ [\?\*\[] ]]; then
+    # glob pattern: use --branches (e.g. sandbox/marslo/*)
+    logCmd+=(--branches="${BRANCH}")
+  else
+    # simple branch name (e.g. main): use as direct ref (--branches=main would match main/* not main)
+    logCmd+=("${BRANCH}")
+  fi
+fi
 
 declare DIFF_FILTER="${DIFF_FILTER_INCLUDE}${DIFF_FILTER_EXCLUDE}"
 test -n "${DIFF_FILTER}"     && logCmd+=(--diff-filter="${DIFF_FILTER}")
@@ -221,9 +267,16 @@ declare -a filteredFiles=()
 declare grepFiltered=false
 declare nameFiltered=false
 
+getBranchRefs
+
 # -g, --grep
 if [[ -n "${GREP_PATTERN}" ]]; then
-  mapfile -t initialFiles < <( git grep -Il --color=never "${GREP_PATTERN}" )
+  if [[ ${#BRANCH_REFS[@]} -gt 0 ]]; then
+    # git grep with multiple refs outputs "ref:path"; strip ref prefix and dedupe
+    mapfile -t initialFiles < <( git grep -Il --color=never "${GREP_PATTERN}" "${BRANCH_REFS[@]}" | sed 's/^[^:]*://' | sort -u )
+  else
+    mapfile -t initialFiles < <( git grep -Il --color=never "${GREP_PATTERN}" )
+  fi
   grepFiltered=true
   if [[ ${#initialFiles[@]} -eq 0 ]]; then
     echo "No files found matching content grep pattern: ${GREP_PATTERN}"
@@ -232,7 +285,11 @@ if [[ -n "${GREP_PATTERN}" ]]; then
   matchesFiles=("${initialFiles[@]}")
 else
   if [[ -z "${FILE_PATTERN}" ]]; then
-    mapfile -t initialFiles < <( git ls-files )
+    if [[ ${#BRANCH_REFS[@]} -gt 0 ]]; then
+      mapfile -t initialFiles < <( for ref in "${BRANCH_REFS[@]}"; do git ls-tree -r --name-only "$ref"; done | sort -u )
+    else
+      mapfile -t initialFiles < <( git ls-files )
+    fi
     matchesFiles=( "${initialFiles[@]}" )
   fi
 fi
@@ -241,7 +298,15 @@ fi
 declare -a pathSpecs=()
 if [[ -n "${FILE_PATTERN}" ]]; then
   if [[ "${grepFiltered}" == true || -z "${FILE_PATTERN}" ]]; then
-    mapfile -t filteredFiles < <( printf '%s\n' "${matchesFiles[@]}" | grep -i --color=never "${FILE_PATTERN}" )
+    if [[ "${FILE_PATTERN}" =~ [\*\?] ]]; then
+      # glob pattern (e.g. vars/*.groovy): use bash [[ == ]] matching (set -f to avoid pathname expansion)
+      filteredFiles=()
+      for f in "${matchesFiles[@]}"; do
+        ( set -f; [[ "$f" == ${FILE_PATTERN} ]] ) && filteredFiles+=( "$f" )
+      done
+    else
+      mapfile -t filteredFiles < <( printf '%s\n' "${matchesFiles[@]}" | grep -i --color=never "${FILE_PATTERN}" )
+    fi
     matchesFiles=("${filteredFiles[@]}")
     nameFiltered=true
     if "${VERBOSE}"; then
@@ -259,6 +324,9 @@ if [[ -n "${EXT}" ]]; then
   if [[ ${#pathSpecs[@]} -gt 0 ]]; then
     declare baseSpec="${pathSpecs[0]}"
     pathSpecs=( "${baseSpec}*.${EXT_NO_DOT}" )
+  elif [[ -n "${KEYWORD}" ]]; then
+    # --keyword: use glob pathSpecs so diff search includes deleted/renamed files
+    pathSpecs+=( "*.${EXT_NO_DOT}" )
   else
     mapfile -t filteredFiles < <( printf '%s\n' "${matchesFiles[@]}" | grep -Ei --color=never "\.${EXT_NO_DOT}$" )
     matchesFiles=( "${filteredFiles[@]}" )
@@ -270,7 +338,10 @@ if [[ -n "${EXT}" ]]; then
 fi
 
 # shellcheck disable=SC2015
-if [[ "${grepFiltered}" = true ]]; then
+if [[ -n "${KEYWORD}" ]]; then
+  # --keyword: diff search (-G) covers all history; use pathSpecs only, never matchesFiles
+  [[ ${#pathSpecs[@]} -gt 0 ]] && logCmd+=( -- "${pathSpecs[@]}" )
+elif [[ "${grepFiltered}" = true ]]; then
   [[ ${#matchesFiles[@]} -gt 0 ]] && logCmd+=( -- "${matchesFiles[@]}" ) || {
     "${VERBOSE}" && echo "no files matched the combined file filters.";
     exit 0
@@ -309,33 +380,38 @@ function getOutput() {
 
 declare gdetail="bash -c '
   rev={1};
-  git show -s \"\${rev}\"
-  echo -e \"\n\033[1;34m--- CHANGED FILES ---\033[0m\"
-  stat=\$(git --no-pager diff --stat --relative \"\${rev}^\" \"\${rev}\")
-  echo \"\${stat}\" | head -n -1 | sed \"s/^/  • /g\"
-  echo -e \"\033[2m\$(echo \"\${stat}\" | tail -n1)\033[0m\"
-  echo -e \"\n\033[1;34m-------- DIFF -------\033[0m\"
-  git diff --color=always \"\${rev}^\" \"\${rev}\"
+  { git show -s --color=never \"\${rev}\" | bat --language \"git show\" --plain --theme \"Catppuccin Mocha\" --color=always;
+    echo -e \"\n\033[1;34m--- CHANGED FILES ---\033[0m\";
+    stat=\$(git --no-pager diff --stat --relative \"\${rev}^\" \"\${rev}\");
+    echo \"\${stat}\" | head -n -1 | sed \"s/^/  • /g\";
+    echo -e \"\033[2m\$(echo \"\${stat}\" | tail -n1)\033[0m\";
+    echo -e \"\n\033[1;34m-------- DIFF -------\033[0m\";
+    git diff --color=always \"\${rev}^\" \"\${rev}\"; }
 ' | less -R"
-
-declare files=''
-files=$(
-  fzf --read0 < <(getOutput) \
+declare gdiffbat="git show {1} --format= --patch 2>/dev/null | bat --plain --theme gruvbox-dark-marslo --language diff --paging=always"
+declare -a files=()
+mapfile -d '' files < <(
+  fzf --read0 --print0 < <(getOutput) \
     --ansi --multi --layout=reverse --gap \
-    --height=50% \
+    --height=60% \
     --pointer='▌' \
     --with-nth=2.. --delimiter=' ' \
+    --prompt=' ' --info='inline-right:  ' \
     --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
     --color='gutter:0,bg+:-1,fg:dim,fg+:regular,hl+:#a66584:regular:italic,hl:italic' \
-    --preview="git show -s {1} | bat --language=Git\ Commit --style=plain --paging=never --theme=Nord" \
-    --header 'CTRL-F to view diff; CTRL-/ to change the preview window' \
-    --bind "ctrl-f:execute(${gdetail})" \
-    --bind 'ctrl-/:change-preview-window:up,60%|right,60%'
+    --preview="git show -s --color=never {1} | bat --language 'git show' --plain --paging=never --theme 'Catppuccin Mocha' --color=always" \
+    --header 'ENTER: show log; CTRL-/: diff in bat; CTRL-F: full diff in less' \
+    --bind "ctrl-f:execute(${gdiffbat})" \
+    --bind "ctrl-/:execute(${gdetail})"
 )
 
-if [[ -n "${files}" ]]; then
-  command -v nvim >/dev/null && VIM=("$(type -P nvim)") || VIM=("$(type -P vim)")
-  "${VIM[@]}" "$(awk '{print $NF}' <<< "${files}" | xargs)"
+if [[ ${#files[@]} -gt 0 ]]; then
+  declare -A seen_commits=()
+  for block in "${files[@]}"; do
+    [[ -z "$block" ]] && continue
+    commit="${block%% *}"
+    [[ -n "$commit" && -z "${seen_commits[$commit]:-}" ]] && { showSingleCommit "$commit"; seen_commits[$commit]=1; }
+  done
 fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
