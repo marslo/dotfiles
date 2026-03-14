@@ -4,29 +4,19 @@
 #     FileName : gitalias.sh
 #       Author : marslo
 #      Created : 2025-12-11 21:28:56
-#   LastChange : 2026-03-09 14:36:17
+#   LastChange : 2026-03-13 20:57:20
 #=============================================================================
 
-function _git_rob() {
-  _git_checkout
-}
-
-function _git_bb() {
-  _git_checkout
-}
-
-function _git_pl() {
-  _git_checkout
-}
-
-function _git_del() {
-  _git_checkout
-}
+function _git_rob() { _git_checkout; }
+function _git_bb()  { _git_checkout; }
+function _git_pl()  { _git_checkout; }
+function _git_pls() { _git_checkout; }
+function _git_del() { _git_checkout; }
 
 # for git reflog - must load after _git_reflog loaded
 __git_log_common_options="${__git_log_common_options} --no-abbrev --no-walk --do-walk --walk-reflogs --expire= --expire-unreachable= --all --rewrite --updateref --stale-fix --dry-run --verbose --single-worktree"
 
-_git_rev_list() {
+function _git_rev_list() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
 
   local opts="

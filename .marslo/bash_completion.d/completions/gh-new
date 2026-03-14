@@ -4,7 +4,7 @@
 #     FileName : gh-new
 #       Author : marslo
 #      Created : 2026-02-27 23:04:41
-#   LastChange : 2026-03-10 21:29:52
+#   LastChange : 2026-03-13 21:33:45
 #=============================================================================
 
 function _gh_new() {
@@ -12,7 +12,7 @@ function _gh_new() {
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
 
-  opts="-o --open -V --verbose -a --auto -D --dryrun -h --help"
+  opts="-o --open -l --label -V --verbose -a --auto -D --dryrun -h --help"
 
   for (( i=1; i < COMP_CWORD; i++ )); do
     if [[ "${COMP_WORDS[i]}" == "--" ]]; then return 0; fi

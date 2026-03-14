@@ -2,9 +2,9 @@
 # shellcheck disable=SC1078,SC1079,SC2086,SC2155
 # =============================================================================
 #    FileName : ig.sh
-#      Author : marslo.jiao@gmail.com
+#      Author : marslo
 #     Created : 2012
-#  LastChange : 2024-05-01 15:38:16
+#  LastChange : 2026-03-14 00:17:31
 #        Desc : for git
 # =============================================================================
 
@@ -141,9 +141,10 @@ function gfall() {
 }
 
 # shellcheck disable=SC2035
-function mybr() {
-  local myBranch=$1
+function showbr() {
+  local branch=$1
   local mainBranch="dev"
+  # prevent History Expansion - `!` expands the previous history
   set +H
   for i in $(${LS} -1d */); do
     pushd . > /dev/null
@@ -151,10 +152,10 @@ function mybr() {
     dirPath=${i%%/}
     if git rev-parse --git-dir > /dev/null 2>&1; then
       currentBr=$(git rev-parse --abbrev-ref HEAD)
-      if [ -z "${myBranch}" ]; then
+      if [ -z "${branch}" ]; then
         echo "${currentBr}" | ${GREP} -v -i "${mainBranch}" > /dev/null 2>&1 && echo -e "$(c B)${dirPath}\\t: ${currentBr}$(c)"
       else
-        if echo "${currentBr}" | ${GREP} -i "${myBranch}" > /dev/null 2>&1; then
+        if echo "${currentBr}" | ${GREP} -i "${branch}" > /dev/null 2>&1; then
           echo -e "$(c Y)** ${dirPath}\\t: ${currentBr}$(c)"
         elif [ ! "${currentBr}" = "${mainBranch}" ]; then
           echo -e "$(c B)${dirPath}\\t: NOT ${mainBranch} : ${currentBr} !!$(c)"
@@ -183,47 +184,49 @@ function gitclean() {
 # shellcheck disable=SC2155
 function grt() {
   # shellcheck disable=SC2155
-  local USAGE="""
+  local USAGE="NAME
   $(c B)g$(c)it $(c M)r$(c)ename $(c R)t$(c)ag - rename tag with original committer and date
 
   SYNOPSIS
-    $(c sY)\$ grt [p|-p|push|--push] <SOURCE_TAG> <NEW_TAG> $(c)
+    $(c sY)\$ grt [OPTIONS] <SOURCE_TAG> <NEW_TAG> $(c)
+
+  OPTIONS
+    $(c B)p$(c), $(c B)-p$(c), $(c B)push$(c), $(c B)--push$(c) : push changes into remote repository
 
   EXAMPLE$(c G)
     \$ grt docker.v2.0           docker.x
     \$ grt docker.v2.0           refs/tags/docker.x
     \$ grt refs/tags/docker.v2.0 docker.x
     \$ grt refs/tags/docker.v2.0 refs/tags/docker.x $(c)
+  "
 
-  OPTION
-    $(c B)p$(c), $(c B)-p$(c), $(c B)push$(c), $(c B)--push$(c) : push changes into remote repository
-  """
   if [ 2 -eq $# ]; then
-    declare push="false"
-    declare sourceTag="""$(echo "$1" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
-    declare newTag="""$(echo "$2" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
+    local push="false"
+    local sourceTag="""$( echo "$1" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:" )"""
+    local newTag="""$( echo "$2" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:" )"""
   elif [ 3 -eq $# ] && { [ 'p' = "$1" ] || [ '-p' = "$1" ] || [ 'push' = "$1" ] || [ '--push' = "$1" ]; }; then
-    declare push="true"
-    declare sourceTag="""$(echo "$2" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
-    declare newTag="""$(echo "$3" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:")"""
+    local push="true"
+    local sourceTag="""$( echo "$2" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:" )"""
+    local newTag="""$( echo "$3" | sed -re "s:^(refs/)?(tags/)?(.*)$:\3:" )"""
   else
     echo -e "${USAGE}"
     return
   fi
-  declare objectType="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(objecttype)")"""
+  local -a cmd=( git for-each-ref "refs/tags/${sourceTag}" )
+  local objectType="""$( "${cmd[@]}" --format="%(objecttype)" )"""
   echo -e "$(c Y)~~> rename$(c) $(c R)${objectType}$(c) $(c Y): ${sourceTag} to ${newTag}$(c)"
   if [ 'tag' = "${objectType}" ]; then
-    declare objectName="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(*objectname)")"""
-    declare contents="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(contents)")"""
-    GIT_TAGGER_NAME="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(taggername)")"""   \
-    GIT_TAGGER_EMAIL="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(taggeremail)")""" \
-    GIT_TAGGER_DATE="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(taggerdate)")"""   \
+    local objectName="""$( "${cmd[@]}"    --format="%(*objectname)" )"""
+    local contents="""$( "${cmd[@]}"      --format="%(contents)" )"""
+    GIT_TAGGER_NAME="""$( "${cmd[@]}"     --format="%(taggername)" )"""     \
+    GIT_TAGGER_EMAIL="""$( "${cmd[@]}"    --format="%(taggeremail)" )"""    \
+    GIT_TAGGER_DATE="""$( "${cmd[@]}"     --format="%(taggerdate)" )"""     \
     git tag -a "${newTag}" "${objectName}" -m "${contents}"
   else
-    declare objectName="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(objectname)")"""
-    GIT_COMMITTER_NAME="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(committername)")"""   \
-    GIT_COMMITTER_EMAIL="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(committeremail)")""" \
-    GIT_COMMITTER_DATE="""$(git for-each-ref "refs/tags/${sourceTag}" --format="%(committerdate)")"""   \
+    local objectName="""$( "${cmd[@]}"    --format="%(objectname)" )"""
+    GIT_COMMITTER_NAME="""$( "${cmd[@]}"  --format="%(committername)" )"""  \
+    GIT_COMMITTER_EMAIL="""$( "${cmd[@]}" --format="%(committeremail)" )""" \
+    GIT_COMMITTER_DATE="""$( "${cmd[@]}"  --format="%(committerdate)" )"""  \
     git tag "${newTag}" "${objectName}"
   fi
   git tag -d "${sourceTag}"
@@ -234,8 +237,27 @@ function grt() {
   fi
 }
 
+# using git pb instead of
+function gbl() {
+  local num='-10'
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      "$(awk '{a=0}/-[0-9]+/{a=1}a' <<<$1)" ) num="$1"; shift ;;
+                                          * ) echo "unrecognized argument: $1" >&2; return ;;
+    esac
+  done
+
+  num=${num//-/}
+
+  git for-each-ref --color=always --sort=-committerdate --format='%(color:cyan)%(align:22,left)%(committerdate:relative)%(end)%(color:reset)  %(align:28,left)%(color:italic blue)<%(authorname)>%(color:reset)%(end) %(color:dim white)%(refname:short)%(color:reset)' refs/remotes/origin/ |
+      # ${GREP} -e ".$*" |
+      head -n ${num};
+}
+
 # for git diff
-# Inspired from http://stackoverflow.com/questions/8259851/using-git-diff-how-can-i-get-added-and-modified-lines-numbers
+# inspired from http://stackoverflow.com/questions/8259851/using-git-diff-how-can-i-get-added-and-modified-lines-numbers
+# usage: $ git ld
 function diff-lines() {
   local path=
   local line=
@@ -256,55 +278,41 @@ function diff-lines() {
   done
 }
 
-# to get git info
-# author: Duane Johnson
-# email: duane.johnson@gmail.com
-# date: 2008 Jun 12
-# license: MIT
-# Modified by Marslo
-# Email: marslo.vida@gmail.com
-# date: 2013-10-15 17:54:58
-
-# based on discussion at http://kerneltrap.org/mailarchive/git/2007/11/12/406496
-function gitinfo() {
-  pushd . >/dev/null
-
-  # Find base of git directory
-  while [ ! -d .git ] && [ ! "$(pwd)" = "/" ]; do cd ..; done
-
-  # Show various information about this git directory
-  if [ -d .git ]; then
-    echo "== Remote URL: "
-    git remote -v
-    echo
-
-    echo "== Remote Branches: "
-    git branch -r
-    echo
-
-    echo "== Local Branches:"
-    git branch
-    echo
-
-    echo "== Configuration (.git/config)"
-    cat .git/config
-    echo
-
-    echo "== Most Recent Commit"
-    git plog --max-count=3
-    echo
-
-    echo "Type 'git plog', 'git plogs' and 'git log' for more commits, or 'git show' for full commit details."
-  else
-    echo "Not a git repository."
-  fi
-  popd >/dev/null || return
+# to show git gpg status with color
+# - (G): #6971A3
+# - (E): #ffafff (219)
+# - (N): #FF9188
+# usage: $ git log ... --pretty=tformat:'GPG_STATUS_%G?' | git_color_gpg
+function git_color_gpg() {
+  perl -pe '
+    s/GPG_STATUS_G/\e[3;38;2;105;113;163m(G)\e[0m/g;
+    s/GPG_STATUS_E/\e[2;3;38;5;219m(E)\e[0m/g;
+    s/GPG_STATUS_N/\e[2;3;38;2;255;145;136m(N)\e[0m/g;
+    s/GPG_STATUS_(.)/\e[3;38;2;105;113;163m[$1]\e[0m/g
+  '
 }
 
-function gbl() {
-  git for-each-ref --sort=-committerdate --format='%(committerdate) %(authorname) %(refname)' refs/remotes/origin/ |
-      ${GREP} -e ".$*" |
-      head -n 10;
+# usage: $ git rank --since=2024-01-01 --until=2024-12-31
+function git_rank_calc() {
+  local me=$(git config user.name)
+
+  awk -v me="${me}" '
+    NF==1 {user=$0}
+    NF==3 && $1!~/-/ {add[user]+=$1; del[user]+=$2}
+    END {
+      for (u in add) {
+        total = add[u] + del[u]
+
+        if (tolower(u) == tolower(me) || tolower(u) == "marslo") {
+          display_name = "\x1b[1;36m" u " (ME)\x1b[0m"
+        } else {
+          display_name = u
+        }
+
+        printf "%08d\t\x1b[32m+%07d\x1b[0m\t\x1b[31m-%07d\x1b[0m\t%s\n", total, add[u], del[u], display_name
+      }
+    }
+  ' | sort -rn | cut -f2-
 }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

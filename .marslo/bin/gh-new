@@ -4,7 +4,7 @@
 #     FileName : gh-new
 #       Author : marslo
 #      Created : 2026-01-23 11:52:14
-#   LastChange : 2026-03-13 00:59:53
+#   LastChange : 2026-03-13 21:32:18
 #=============================================================================
 
 set -euo pipefail
@@ -27,6 +27,7 @@ USAGE
 
 OPTIONS
   $(c G)-o$(c), $(c G)--open$(c)           open the created PR in the web browser
+  $(c G)-l$(c), $(c G)--label$(c) $(c 0Mi)LABEL$(c)    add label to the created PR $(c 0i)( if label exists )$(c)
   $(c G)-V$(c), $(c G)--verbose$(c)        show verbose output
   $(c G)-a$(c), $(c G)--auto$(c)           automatically open the current PR if exists in current branch
   $(c G)-D$(c), $(c G)--dryrun$(c)         show the command to be executed, but do not run it
@@ -37,8 +38,8 @@ EXAMPLES
   $(c 0Wdi)# create a PR from the current branch to a selected base branch$(c)
   $(c Ys)\$ ${ME}$(c)
 
-  $(c 0Wdi)# create a PR and open it in the web browser$(c)
-  $(c Ys)\$ ${ME} $(c 0Gi)--open$(c)
+  $(c 0Wdi)# create a PR and label and open it in the web browser$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--open --label $(c 0Mi)'auto-merge'$(c)
 
   $(c 0Wdi)# open the web browser to create a pull request$(c)
   $(c Ys)\$ ${ME} $(c 0C)-- $(c 0Mi)--web$(c)
@@ -51,6 +52,7 @@ declare VERBOSE=false
 declare AUTO_OPEN=false
 declare -a GH_OPTS=()
 declare SHOULD_OPEN=false
+declare PR_LABEL=''
 
 function showHelp() { echo -e "${USAGE}"; exit 0; }
 function joinBy {
@@ -78,11 +80,22 @@ function show() {
 function isPushed() {
   local branch="${1:-}"
   test -z "${branch}" && show error 'branch name is required to push'
+  local note=''
 
   if ! git ls-remote --exit-code --heads origin "${branch}" >/dev/null 2>&1; then
-    show info "pushing branch \`$(c 0Yi)${branch}$(c 0Wdi)\` to remote ..." || :
-    git push -u origin "${branch}:refs/heads/${branch}" >/dev/null
+    note="branch does not exist"
+  else
+    local lhash rhash
+    git fetch origin "${branch}" >/dev/null 2>&1 || true
+    lhash="$(git rev-parse "refs/heads/${branch}" 2>/dev/null)" || lhash=''
+    rhash="$(git rev-parse "refs/remotes/origin/${branch}" 2>/dev/null)" || rhash=''
+    [[ "${lhash}" != "${rhash}" ]] && note='local differs from remote'
   fi
+
+  test -n "${note}" && {
+    show info "pushing branch \`$(c 0Yi)${branch}$(c 0Wdi)\` (${note}) ..."
+    git push -u origin "${branch}:refs/heads/${branch}" >/dev/null
+  } || :
 }
 
 function prCmd() {
@@ -134,7 +147,7 @@ function prCmd() {
 }
 
 function checkTools() {
-  local -a tools=("gh" "fzf")
+  local -a tools=( 'gh' 'fzf' )
   local -a missing=()
 
   for tool in "${tools[@]}"; do
@@ -148,7 +161,7 @@ function checkTools() {
 
 function openPR() {
   local prId="${1:-}"
-  local open="${2:-$SHOULD_OPEN}"
+  local open="${2:-${SHOULD_OPEN}}"
 
   if [[ 'true' = "${open}" ]]; then
     test -z "${prId}" && prId="$(gh pr view --json number -q .number 2>/dev/null)";
@@ -168,6 +181,7 @@ function main() {
     case "$1" in
       -o | --open    ) SHOULD_OPEN=true         ; shift        ;;
       -a | --auto    ) AUTO_OPEN=true           ; shift        ;;
+      -l | --label   ) PR_LABEL="${2}"          ; shift 2      ;;
       -V | --verbose ) VERBOSE=true             ; shift        ;;
       -D | --dryrun  ) DRYRUN=true              ; shift        ;;
       --             ) shift; GH_OPTS+=( "$@" ) ; break        ;;
@@ -194,7 +208,12 @@ function main() {
     "${VERBOSE}" && show verbose "${msg}" || { show dryrun "${msg}"; exit 0; }
   }
 
+  # new pr
   "${cmd[@]}" "${GH_OPTS[@]}"
+  # add label
+  if [[ -n "${PR_LABEL}" ]] && prId=$(gh pr view --json number -q .number 2>/dev/null); then
+    gh label view "${PR_LABEL}" &>/dev/null && gh pr edit "${prId}" --add-label "${PR_LABEL}"
+  fi
   "${DRYRUN}" || openPR
 }
 
