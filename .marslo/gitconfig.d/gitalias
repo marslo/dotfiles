@@ -2,7 +2,7 @@
 #     FileName : gitalias
 #       Author : marslo
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2026-02-26 14:49:19
+#   LastChange : 2026-03-13 23:57:13
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -51,21 +51,26 @@
   # -M       : show renames
   # --follow : all logs including before renamed
   # --stat   : show a summary of the total additions and removals for that commit
+  # usage    : $ git changes <path/to/file>
   changes     = log -M --follow --stat --
   ls          = log --stat --pretty=short --graph
   ### [p]retty [l]og(s)
-  pl          = !git -c log.decorate=short --no-pager log --color --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) %C(italic #6971a3)[%G?]%C(reset)'"
-  pls         = !git -c log.decorate=full log  --decorate --color --graph --abbrev-commit --date=relative --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset) %C(italic #6971a3)[%G?]%C(reset)'"
+  pl          = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git -c log.decorate=short --no-pager log --color=always --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:\"%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" \"$@\" | git_color_gpg' -"
+  pls         = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git -c log.decorate=full log --decorate --color=always --graph --abbrev-commit --date=relative --pretty=tformat:\"%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" \"$@\" | git_color_gpg | less -FRX' -"
   ### [p]revious branch [p]retty [l]og
-  ppl         = !git --no-pager log --color --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:"'%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr) %C(italic blue)<%an>%C(reset) %C(italic #6971a3)[%G?]%C(reset)'" @{-1}
+  ppl         = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git --no-pager log --color=always --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:\"%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" @{-1} \"$@\" | git_color_gpg' -"
   ### [f]ull [p]retty [l]log
-  fpl         = log --graph --abbrev-commit --decorate --date=relative --format=tformat:"'%C(#83a598)%H%C(reset) - %C(cyan)(%aD)%C(reset) %C(green)(%cr)%C(reset)%C(auto)%d%C(reset)%n'""'          %C(italic white)%s%C(reset) %C(dim white)- %an <%ae>%C(reset) %C(italic #6971a3)[%G?]%C(reset)'"
-  fl          = log -p --graph --color --graph
+  fpl         = "!bash -c '\
+                  source $HOME/.marslo/bin/ig.sh; \
+                  git --no-pager log --color=always --graph --abbrev-commit --date=relative --pretty=tformat:\"%C(#83a598)%H%C(reset) - %C(cyan)(%aD)%C(reset) %C(green)(%cr)%C(reset)%C(auto)%d%C(reset)%n          %C(italic white)%s%C(reset) %C(dim white)- %an <%ae>%C(reset) GPG_STATUS_%G?\" @{-1} \"$@\" | git_color_gpg | less -FRX; \
+                ' -"
+  fl          = log -p --graph --color
   dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format="'%C(6)%h%C(reset) %C(yellow)(%ad)%C(reset) %s %C(blue)<%an>%C(reset)'"
-  revlog      = log --max-count=3 --color --graph --abbrev-commit --date=relative --notes=linrev --pretty=tformat:"'%C(bold red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset) %N'"
+  # usage : git notes --ref=linrev add -m "<message>" <commit>
+  revlog      = log --max-count=3 --color --graph --abbrev-commit --date=relative --notes=linrev --pretty=tformat:"'%C(bold red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)%n'""'           %C(italic white)%N%C(reset)'"
   ### showing all branches and their relationships
   clog        = log --color --graph --all --decorate --simplify-by-decoration --oneline
-  tree        = log --color --graph --all --decorate --abbrev-commit --pretty=oneline --format=format:"'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)'"
+  tree        = log --color --graph --all --decorate --abbrev-commit --pretty=oneline --format=format:"'%C(bold blue)%h%C(reset) - %C(green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- <%an>%C(reset)%C(italic yellow)%d%C(reset)'"
   ### [r]emote [log]
   rlog        = "!bash -c 'while read branch; do \n\
                               git fetch --all --force; \n\
@@ -93,35 +98,6 @@
   ### [p]retty [b]ranch
   pb          = "!git for-each-ref refs/heads refs/remotes --sort=-committerdate --format='%(color:italic 203)%(objectname:short)%(color:reset) - %(color:221)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(color:reset) - %(align:left,26)%(color:cyan)<%(authorname)>%(color:reset)%(end) %(color:bold red)%(if)%(HEAD)%(then)* %(else)  %(end)%(color:reset)%(refname:short)' --color --count=10"
   pbs         = "!git for-each-ref refs/heads refs/remotes --sort=-committerdate --format='%(color:italic 203)%(objectname:short)%(color:reset) - %(color:221)%(committerdate:format:%Y-%m-%d %H:%M:%S)%(color:reset) - %(align:left,26)%(color:cyan)<%(authorname)>%(color:reset)%(end) %(color:bold red)%(if)%(HEAD)%(then)* %(else)  %(end)%(color:reset)%(refname:short)' --color"
-  # git for-each-ref --sort=-committerdate ${refs} --format='%(HEAD)%(color:yellow)%(refname:short)|%(color:bold green)%(committerdate:relative)|%(color:blue)%(subject)|%(color:magenta)%(authorname)%(color:reset)' --color=always | column -ts'|'; \
-  ### sort local/remote branch via committerdate (DESC). usage: $ git recent; $ git recent remotes 10
-  recent      = "!f() { \
-                        declare help=\"USAGE: git recent [remotes|tags] [count]\"; \
-                        declare refs; \
-                        declare count; \
-                        if [ 2 -lt $# ]; then \
-                          echo \"${help}\"; \
-                          exit 1; \
-                        else \
-                          if [ 'remotes' = \"$1\" ]; then \
-                            refs='refs/remotes/origin'; \
-                          elif [ 'tags' = \"$1\" ]; then \
-                            refs='refs/tags'; \
-                          elif [ 1 -eq $# ]; then \
-                            count=$1; \
-                          fi; \
-                          if [ 2 -eq $# ]; then \
-                            count=$2; \
-                          fi; \
-                        fi; \
-                        git for-each-ref \
-                            --sort=-committerdate \
-                            ${refs:='refs/heads'} \
-                            --format='%(HEAD) %(color:yellow)%(refname:short)%(color:reset) - %(color:cyan)%(objectname:short)%(color:reset) - %(color:dim white)%(contents:subject)%(color:reset) - %(color:italic blue)<%(authorname)>%(color:reset) %(color:green)(%(committerdate:relative))%(color:reset)' \
-                            --color=always \
-                            --count=${count:=5}; \
-                    }; f \
-                "
   # }}}
 
   #-----------------------#
