@@ -1,0 +1,173 @@
+# bash completion for gpg                                  -*- shell-script -*-
+
+# Usage: _gpg_compgen_keys <word_list>
+# Case-insensitive prefix match for key_id/account completion
+_gpg_compgen_keys() {
+    local list=$1 cur_lower
+    cur_lower=${cur,,}
+    COMPREPLY=()
+    local w
+    for w in $list; do
+        [[ ${w,,} == "${cur_lower}"* ]] && COMPREPLY+=("$w")
+    done
+}
+
+# Usage: _gpg_list_keys <gpg_cmd> [pub|sec]
+# Output: key ID, fingerprint, email (one per line)
+_gpg_list_keys() {
+    local gpg_cmd=$1
+    local key_type=${2:-pub}
+    if [[ $key_type == sec ]]; then
+        "$gpg_cmd" --list-secret-keys --with-colons 2>/dev/null |
+            command awk -F: '/^sec:/ { if ($5) print $5; getline; if ($10) print $10 }
+/^uid:/ { for (i=1;i<=NF;i++) if ($i~/<[^>]+>/) { u=$i; gsub(/^.*</,"",u); gsub(/>.*$/,"",u); if (u~/@/) { print u; break } } }'
+    else
+        "$gpg_cmd" --list-keys --with-colons 2>/dev/null |
+            command awk -F: '/^pub:/ { if ($5) print $5; getline; if ($10) print $10 }
+/^uid:/ { for (i=1;i<=NF;i++) if ($i~/<[^>]+>/) { u=$i; gsub(/^.*</,"",u); gsub(/>.*$/,"",u); if (u~/@/) { print u; break } } }'
+    fi
+}
+
+_comp_cmd_gpg()
+{
+    local cur prev words cword comp_args
+    _comp_initialize -- "$@" || return
+
+    local noargopts='!(-*|*[skKr]*)'
+    local import_opts='import-local-sigs keep-ownertrust repair-pks-subkey-bug import-show show-only import-export merge-only import-clean self-sigs-only ignore-attributes repair-keys bulk-import import-minimal restore import-restore'
+    local export_opts='export-local-sigs export-attributes export-sensitive-revkeys backup export-backup export-clean export-minimal keep-expired-subkeys export-revocs export-dane mode1003'
+    local debug_level='none basic advanced expert guru 1 2 3 4 5 6 7 8'
+
+    # complete option values when typing --option or --option=value
+    case $cur in
+        --keyid-format|--keyid-format=*)
+            COMPREPLY=($(compgen -W '--keyid-format=none --keyid-format=short --keyid-format=0xshort --keyid-format=long --keyid-format=0xlong' -- "$cur"))
+            return
+            ;;
+        --tofu-policy|--tofu-policy=*)
+            COMPREPLY=($(compgen -W '--tofu-policy=auto --tofu-policy=good --tofu-policy=unknown --tofu-policy=bad --tofu-policy=ask' -- "$cur"))
+            return
+            ;;
+        --tofu-default-policy|--tofu-default-policy=*)
+            COMPREPLY=($(compgen -W '--tofu-default-policy=auto --tofu-default-policy=good --tofu-default-policy=unknown --tofu-default-policy=bad --tofu-default-policy=ask' -- "$cur"))
+            return
+            ;;
+        --trust-model|--trust-model=*)
+            COMPREPLY=($(compgen -W '--trust-model=pgp --trust-model=classic --trust-model=tofu --trust-model=tofu+pgp --trust-model=direct --trust-model=always --trust-model=auto' -- "$cur"))
+            return
+            ;;
+        --gen-random|--gen-random=*)
+            COMPREPLY=($(compgen -W '--gen-random=0 --gen-random=1 --gen-random=2 --gen-random=16 --gen-random=30' -- "$cur"))
+            return
+            ;;
+        --import-options|--import-options=*)
+            COMPREPLY=($(compgen -W '--import-options=import-local-sigs --import-options=keep-ownertrust --import-options=repair-pks-subkey-bug --import-options=import-show --import-options=show-only --import-options=import-export --import-options=merge-only --import-options=import-clean --import-options=self-sigs-only --import-options=ignore-attributes --import-options=repair-keys --import-options=bulk-import --import-options=import-minimal --import-options=restore --import-options=import-restore' -- "$cur"))
+            return
+            ;;
+        --export-options|--export-options=*)
+            COMPREPLY=($(compgen -W '--export-options=export-local-sigs --export-options=export-attributes --export-options=export-sensitive-revkeys --export-options=backup --export-options=export-backup --export-options=export-clean --export-options=export-minimal --export-options=keep-expired-subkeys --export-options=export-revocs --export-options=export-dane --export-options=mode1003' -- "$cur"))
+            return
+            ;;
+        --debug-level|--debug-level=*)
+            COMPREPLY=($(compgen -W "--debug-level=none --debug-level=basic --debug-level=advanced --debug-level=expert --debug-level=guru --debug-level=1 --debug-level=2 --debug-level=3 --debug-level=4 --debug-level=5 --debug-level=6 --debug-level=7 --debug-level=8" -- "$cur"))
+            return
+            ;;
+    esac
+    # shellcheck disable=SC2254
+    case $prev in
+        --sign | --clear-sign | --clearsign | --decrypt-files | \
+            --load-extension | -${noargopts}s)
+            [[ $cur == -* ]] && { _comp_compgen_split -- "$("$1" --dump-options)"; return; }
+            _comp_compgen_filedir
+            return
+            ;;
+        --list-keys | --list-public-keys | --locate-keys | \
+            --locate-external-keys | --fingerprint | --delete-keys | \
+            --delete-secret-and-public-keys | --export | --refresh-keys | \
+            --search-keys | --sign-key | --lsign-key | \
+            --nrsign-key | --nrlsign-key | --try-secret-key | -${noargopts}k)
+            [[ $cur == -* ]] && { _comp_compgen_split -- "$("$1" --dump-options)"; return; }
+            # return key ID, fingerprint (primary via getline after pub/sub), and email from public keys (case-insensitive)
+            _gpg_compgen_keys "$(_gpg_list_keys "$1" pub)"
+            return
+            ;;
+        --edit-key)
+            [[ $cur == -* ]] && { _comp_compgen_split -- "$("$1" --dump-options)"; return; }
+            # return key ID, fingerprint, email + edit-key menu commands (case-insensitive)
+            local keys menu
+            keys=$(_gpg_list_keys "$1" pub)
+            menu='uid key sign lsign nrsign tsign trust delsig revsig adduid addkey addphoto delkey deluid expire passwd revkey revuid save quit fpr list pref toggle enable disable check'
+            _gpg_compgen_keys "$keys $menu"
+            return
+            ;;
+        uid|key|sign|lsign|nrsign|tsign|trust|delsig|revsig|adduid|addkey|addphoto|delkey|deluid|expire|passwd|revkey|revuid|save|quit|fpr|list|pref|toggle|enable|disable|check)
+            # after edit-key menu command: complete next subcommand (case-insensitive)
+            if [[ " ${words[*]} " == *" --edit-key "* ]]; then
+                _gpg_compgen_keys 'uid key sign lsign nrsign tsign trust delsig revsig adduid addkey addphoto delkey deluid expire passwd revkey revuid save quit fpr list pref toggle enable disable check'
+                return
+            fi
+            ;;
+        --list-secret-keys | --delete-secret-keys | --export-secret-keys | \
+            --export-secret-subkeys | -${noargopts}K)
+            [[ $cur == -* ]] && { _comp_compgen_split -- "$("$1" --dump-options)"; return; }
+            # return key ID, fingerprint (primary via getline after sec/ssb), and email from secret keys (case-insensitive)
+            _gpg_compgen_keys "$(_gpg_list_keys "$1" sec)"
+            return
+            ;;
+        --recipient | -${noargopts}r)
+            [[ $cur == -* ]] && { _comp_compgen_split -- "$("$1" --dump-options)"; return; }
+            local recipient_list
+            recipient_list=$(_gpg_list_keys "$1" pub)
+            if [[ -e ~/.gnupg/gpg.conf ]]; then
+                recipient_list="$recipient_list $(command sed -ne \
+                    's@^[ \t]*group[ \t][ \t]*\([^=]*\).*$@\1@p' \
+                    ~/.gnupg/gpg.conf)"
+            fi
+            _gpg_compgen_keys "$recipient_list"
+            return
+            ;;
+        --keyid-format)
+            _comp_compgen_split -- "none short 0xshort long 0xlong"
+            return
+            ;;
+        --tofu-policy | --tofu-default-policy)
+            _comp_compgen_split -- "auto good unknown bad ask"
+            return
+            ;;
+        --trust-model)
+            _comp_compgen_split -- "pgp classic tofu tofu+pgp direct always auto"
+            return
+            ;;
+        --gen-random)
+            _comp_compgen_split -- "0 1 2 16 30"
+            return
+            ;;
+        --import-options)
+            _comp_compgen_split -- "$import_opts"
+            return
+            ;;
+        --export-options)
+            _comp_compgen_split -- "$export_opts"
+            return
+            ;;
+        --debug-level)
+            _comp_compgen_split -- "$debug_level"
+            return
+            ;;
+        *)
+            # after key ID/email in edit-key context: complete menu (case-insensitive)
+            if [[ " ${words[*]} " == *" --edit-key "* ]]; then
+                local editkey_menu='uid key sign lsign nrsign tsign trust delsig revsig adduid addkey addphoto delkey deluid expire passwd revkey revuid save quit fpr list pref toggle enable disable check'
+                _gpg_compgen_keys "$editkey_menu"
+                return
+            fi
+            ;;
+    esac
+
+    if [[ $cur == -* ]]; then
+        _comp_compgen_split -- "$("$1" --dump-options)"
+    fi
+} &&
+    complete -F _comp_cmd_gpg -o default gpg
+
+# ex: filetype=sh
