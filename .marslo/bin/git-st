@@ -4,7 +4,7 @@
 #     FileName : git-st
 #       Author : marslo.jiao@gmail.com
 #      Created : 2024-02-01 03:39:19
-#   LastChange : 2026-03-14 00:16:30
+#   LastChange : 2026-03-17 15:55:55
 #   references : https://stackoverflow.com/q/77919418/2940319
 #=============================================================================
 
@@ -23,7 +23,7 @@ declare emptyRepo=false
 git rev-parse --abbrev-ref HEAD >/dev/null 2>&1 || emptyRepo=true
 
 function showLog() {
-  branch="${1:-$(git rev-parse --abbrev-ref HEAD)}"
+  branch="${1:-"$(git symbolic-ref -q HEAD)"}"
   local format='%C(#678963)%h%C(reset) -%C(italic yellow)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?'
   local -a cmd=( git --no-pager log
                      --color=always
@@ -67,8 +67,8 @@ else
 fi
 
 if [[ -z "${gdiff}" ]]; then
-  showLog "$(git rev-parse --abbrev-ref HEAD)"
-  "${rlog}" && showLog remotes/origin/"${branch}" || true
+  showLog "$(git symbolic-ref -q HEAD)"
+  "${rlog}" && showLog refs/remotes/origin/"$(git rev-parse --abbrev-ref HEAD)" || true
 fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
