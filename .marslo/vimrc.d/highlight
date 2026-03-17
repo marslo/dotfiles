@@ -132,6 +132,14 @@ if IsNvim()
   highlight! default link @comment.documentation  Comment
 endif
 
+" bash
+highlight BashFunction guifg=#ea6962 gui=italic ctermfg=167 cterm=italic
+if IsNvim()
+  highlight! link @keyword.function.bash    BashFunction
+  highlight! link @keyword.bash             BashFunction
+  highlight! link @keyword.conditional.bash BashFunction
+endif
+
 " syn groovyJDKMethods : flatten leftShift reverse collectEntries readLines toInteger eachFile compareTo push splitEachLine upto call eachLine eachLine withPrintWriter immutable withWriterAppend any step read newOutputStream times collect tokenize toList getIn invokeMethods putAt previous intersect findAll withReader writeLine withWriter readBytes subMap join println grep newInputStream getOut count eachWithIndex getAt find every getErr each eachByte getText newReader append dump newWriter inspect sort size write pop print asWritable inject withStream asList reverseEach newPrintWriter collectMany next waitForOrKill isCase
 " highlight! link groovyJDKMethods AquaItalic
 

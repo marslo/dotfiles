@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck source=/dev/null disable=SC2086
 #=============================================================================
-#     FileName : jira
+#     FileName : jira-stat
 #       Author : marslo
 #      Created : 2024-02-02 02:36:45
-#   LastChange : 2026-02-13 04:57:36
+#   LastChange : 2026-03-16 18:10:12
 #=============================================================================
 
 # shellcheck disable=SC2155
@@ -98,16 +98,16 @@ function jqlQuote() {
 [[ 0 = "$#" ]] && showHelp
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -p | --project   ) project="$2"     ; shift 2              ;;
-    -t | --type      ) issueType="$2"   ; shift 2              ;;
-    -m | --max       ) maxResults="$2"  ; shift 2              ;;
-    -c | --condition ) condition="$2"   ; shift 2              ;;
-    -a | --and       ) condition='AND'  ; shift                ;;
-    -o | --or        ) condition='OR'   ; shift                ;;
-    -i | --index     ) SHOW_INDEX=true  ; shift                ;;
-    -j | --jql       ) jql="$2"         ; shift 2              ;;
-    -v | --verbose   ) VERBOSE=1        ; shift                ;;
-    -vv              ) VERBOSE=2        ; shift                ;;
+    -p | --project   ) project="$2"             ; shift 2      ;;
+    -t | --type      ) issueType="$2"           ; shift 2      ;;
+    -m | --max       ) maxResults="$2"          ; shift 2      ;;
+    -c | --condition ) condition="$2"           ; shift 2      ;;
+    -a | --and       ) condition='AND'          ; shift        ;;
+    -o | --or        ) condition='OR'           ; shift        ;;
+    -i | --index     ) SHOW_INDEX=true          ; shift        ;;
+    -j | --jql       ) jql="$2"                 ; shift 2      ;;
+    --verbose        ) VERBOSE=1                ; shift        ;;
+    -v | -vv         ) VERBOSE=$(( ${#1} - 1 )) ; shift        ;;
     -h | --help      ) showHelp                                ;;
     *                ) echo "invalid option '$1'." >&2; exit 1 ;;
   esac

@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null
+#=============================================================================
+#     FileName : git-nb
+#       Author : marslo
+#      Created : 2026-03-16 15:45:59
+#   LastChange : 2026-03-17 15:19:07
+#  Description : create a [n]ew [b]ranch with the Jira ID
+#=============================================================================
+
+set -euo pipefail
+
+# shellcheck disable=SC2155
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /')"
+# shellcheck disable=SC2155
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
+
+function die()     { echo -e "$(c R)ERROR:$(c) $(c 0Wi)$*$(c)" >&2; exit 1; }
+function info()    { echo -e "$(c Wd)>> $(c 0Wdi)$1: $(c 0C)$2 $(c 0Wdi)...$(c)" >&2; }
+function isRepo()  { git rev-parse --git-dir >/dev/null 2>&1 || die 'not a git repo !'; }
+
+# add `-n` automatically base on local and remote branches
+function getName() {
+  local base="${1:?Usage: getName <branch>}"
+  local -a refs=( "refs/heads/${base}" "refs/heads/${base}-[0-9]*" )
+
+  local rrefs='' lrefs=''
+  rrefs=$(git ls-remote --heads origin "${refs[@]}" 2>/dev/null | awk -F'refs/heads/' '{print $2}')
+  lrefs=$(git for-each-ref --format='%(refname:short)' "${refs[@]}" 2>/dev/null)
+
+  local extraId=''
+  extraId=$(
+    { printf '%s\n' "${rrefs}" "${lrefs}"; } |
+    awk -v base="${base}" '
+      $0 == base { print 0; next }
+      index( $0, base"-" ) == 1 {
+        suffix = substr( $0, length(base) + 2 )
+        if ( suffix ~ /^[0-9]+$/ ) print suffix + 0
+      }
+    ' |
+    sort -nu
+  )
+
+  test -z "${extraId}" && { echo "${base}"; return 0; }
+
+  # local warning
+  local localOnly
+  localOnly=$(comm -23 \
+               <(grep -E "^${base}(-[0-9]+)?$" <<< "${lrefs}" | sort) \
+               <(grep -E "^${base}(-[0-9]+)?$" <<< "${rrefs}" | sort)
+             )
+
+  [[ -n "${localOnly}" ]] && {
+    echo -e "$(c Ys)Warning:$(c 0Wdi) the following local branches are ONLY in local:$(c)" >&2
+    while IFS= read -r line; do printf "$(c 0Wdi)• %s$(c)\n" "${line}" >&2; done <<< "${localOnly}"
+  }
+
+  # find the smallest available positive integer
+  local nextId=0
+  while grep -qx "${nextId}" <<< "${extraId}"; do (( nextId++ )); done
+  [[ "${nextId}" -eq 0 ]] && echo "${base}" || echo "${base}-${nextId}"
+}
+
+function main() {
+  local jira=''
+  jira=$(jira ls --project 'IPBUSW' --return 'full')
+
+  test -n "${jira}" || die "no JIRA issue found !"
+  [[ "${VERBOSE}" -ge 1 ]] && { info 'jira issue selected' "${jira}"; } || :
+  jiraId="${jira%%:*}"
+
+  branch="$(getName "sandbox/marslo/${jiraId}")"
+  [[ "${VERBOSE}" -ge 1 ]] && info 'creating branch' "${branch}" || :
+  local -a cmd=( git )
+  "${CHECKOUT}" && cmd+=( checkout -b ) || cmd+=( branch )
+  cmd+=( "${branch}" )
+
+  if "${INTERACTIVE}"; then
+    read -rp "$(printf "\001$(c 0Wdi)\002create new branch \001$(c 0Cs)%s$(c 0Wdi)\002 in local ? \001$(c 0i)\002[y/N]\001$(c)\002" "${branch}") " response
+    [[ "${response}" =~ ^([yY][eE][sS]|[yY])$ ]] && "${cmd[@]}"
+  else
+    "${cmd[@]}"
+  fi
+}
+
+# shellcheck disable=SC2155
+declare -r USAGE="NAME
+  $(c Ys)${ME}$(c) - create a $(c Ysi)n$(c)ew $(c Ysi)b$(c)ranch with the Jira ID
+
+SYNOPSIS
+  $(c Ys)\$ ${ME} $(c 0G)[OPTIONS]$(c)
+
+OPTIONS
+  $(c G)-c$(c), $(c G)--checkout$(c)          create and checkout the new branch $(c 0i)(default)$(c)
+  $(c G)-C$(c), $(c G)--no-checkout$(c)       only create the new branch without checkout
+  $(c G)-y$(c), $(c G)--yes$(c)               non-interactive mode, do not ask for confirmation $(c 0i)(default)$(c)
+  $(c G)-i$(c), $(c G)--interactive$(c)       interactive mode, ask for confirmation before creating the branch
+  $(c G)-v$(c), $(c G)-vv$(c)                 multiple $(c 0Gi)-v$(c) options increase verbosity $(c 0i)(max: $(c 0Yi)2$(c))$(c)
+  $(c G)-h$(c)                      show this help message and exit
+"
+
+declare VERBOSE=0
+declare CHECKOUT=true
+declare INTERACTIVE=true
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -c | --checkout    ) CHECKOUT=true            ; shift  ;;
+    -C | --no-checkout ) CHECKOUT=false           ; shift  ;;
+    -y | --yes         ) INTERACTIVE=false        ; shift  ;;
+    -i | --interactive ) INTERACTIVE=true         ; shift  ;;
+    -v | -vv           ) VERBOSE=$(( ${#1} - 1 )) ; shift  ;;
+    -h                 ) echo -e "${USAGE}" >&2   ; exit 0 ;;
+    *                  ) die "unknown option '$1'"         ;;
+  esac
+done
+
+isRepo
+main "$@"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

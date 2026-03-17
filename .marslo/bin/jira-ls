@@ -4,13 +4,13 @@
 #     FileName : jira-ls
 #       Author : marslo
 #      Created : 2026-01-21 20:57:09
-#   LastChange : 2026-03-12 15:12:15
+#   LastChange : 2026-03-16 17:27:18
 #=============================================================================
 
 set -euo pipefail
 
 # shellcheck disable=SC2155
-declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
+declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /' )"
 # shellcheck disable=SC2155
 declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
@@ -20,6 +20,7 @@ declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
 declare _PROJECT='IPBUSW'
+declare RETURN_TYPE='full'
 declare UPDATE_LIMIT=''
 declare ASSIGNEE=''
 declare REPORTER=''
@@ -42,8 +43,8 @@ SYNOPSIS
 
 OPTIONS
   $(c G)-p$(c), $(c G)--project $(c 0Mi)PROJECT_KEY$(c)  specify the JIRA project key $(c 0i)(default: $(c 0Mi)'IPBUSW'$(c 0i))$(c)
-  $(c G)--assignee$(c) $(c 0Mi)USER_ID$(c)          filter issues assigned to the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
-  $(c G)--reporter$(c) $(c 0Mi)USER_ID$(c)          filter issues reported by the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
+  $(c G)--assignee$(c) $(c 0Mi)USER_ID$(c)         filter issues assigned to the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
+  $(c G)--reporter$(c) $(c 0Mi)USER_ID$(c)         filter issues reported by the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
 
   $(c B)--open$(c)                     list issues with $(c Bi)status $(c 0i)in ($(c 0Ci)'New'$(c 0i),$(c 0Ci)'Active'$(c 0i),$(c 0Ci)'To Do'$(c 0i),$(c 0Ci)'In Progress'$(c 0i))$(c) $(c 0i)(default)$(c)
   $(c B)--new$(c)                      list issues with $(c Bi)status $(c 0Ci)'New'$(c) or $(c 0Ci)'Active'$(c)
@@ -52,6 +53,8 @@ OPTIONS
   $(c B)--closed$(c)                   list issues with $(c Bi)status $(c 0Ci)'Closed'$(c 0i) or $(c Bi)resolution $(c 0i)in ($(c 0Ci)'Done'$(c 0i),$(c 0Ci)'Fixed'$(c 0i))$(c)
                              filter in $(c 0Mi)4 weeks$(c) by default
   $(c G)-u$(c), $(c G)--update $(c 0Mi)FILTER$(c)        filter issues updated within the specified time frame $(c 0i)(e.g., $(c 0Mi)'-4w'$(c 0i) for 4 weeks)$(c)
+  $(c G)-r$(c), $(c G)--return $(c 0Mi)TYPE$(c)          specify the return format $(c 0i)(default: $(c 0Mi)full$(c 0i))$(c)
+                             $(c 0Mi)full$(c) for key and summary; $(c 0Mi)short$(c) for key only
   $(c G)-h$(c), $(c G)--help$(c)                 show this help message and exit
 
 EXAMPLE
@@ -64,13 +67,19 @@ EXAMPLE
 
 function passToken() { pass show "${1}" | head -n1; }
 function showUsage() { echo -e "${USAGE}"; exit 0;  }
-function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
+function die()  { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
+function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h | --help             ) showUsage                   ;;
-    -p | --project          ) PROJECT="$2"; shift 2       ;;
-    -u | --update           ) UPDATE_LIMIT="$2"; shift 2  ;;
+    -r | --return           ) case "${2:-}" in
+                                full | short ) RETURN_TYPE="$2" ;;
+                                *            ) die "'--return' must be 'full' or 'short', got '$2'" ;;
+                              esac
+                              shift 2                     ;;
+    -p | --project          ) PROJECT="$2"      ; shift 2 ;;
+    -u | --update           ) UPDATE_LIMIT="$2" ; shift 2 ;;
     --assignee | --reporter ) PARAM="${1#--}"; PARAM="${PARAM^^}";
                               if [[ -n "$2" && "$2" != -* ]]; then
                                 printf -v "${PARAM}" "%s" "$2"; shift 2;
@@ -150,20 +159,30 @@ TEMPLATE+='"'
 
 declare GET_ID="echo {1} | awk -F. '{printf \"%s\", \$1}'"
 declare FORMAT_CONTENT="echo {1} | sed 's/\. /: /' | tr -d '\n'"
-echo "${json}" | jq ".issues[] | ${TEMPLATE}" |
-sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/g' -e 's/\\\\033/\\033/g' |
-fzf --with-nth=1 --ansi \
-    --delimiter='\t' \
-    --preview='printf "%b" {2}' \
-    --preview-window=top:70%:wrap \
-    --bind "ctrl-y:execute-silent(${GET_ID} | pbcopy)" \
-    --bind "ctrl-Y:execute-silent(${FORMAT_CONTENT} | pbcopy)" \
-    --bind "ctrl-o:execute(${GET_ID} | xargs -I {} open https://essjira.marvell.com/browse/{})" |
-cut -f1 |
-sed -e 's/\. /: /'
+declare jira=''
+jira="$(
+  echo "${json}" | jq ".issues[] | ${TEMPLATE}" |
+  sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/g' -e 's/\\\\033/\\033/g' |
+  fzf --with-nth=1 --ansi \
+      --delimiter='\t' \
+      --preview='printf "%b" {2}' \
+      --preview-window=top:70%:wrap \
+      --bind "ctrl-y:execute-silent(${GET_ID} | pbcopy)" \
+      --bind "ctrl-Y:execute-silent(${FORMAT_CONTENT} | pbcopy)" \
+      --bind "ctrl-o:execute(${GET_ID} | xargs -I {} open https://essjira.marvell.com/browse/{})" |
+  cut -f1 |
+  sed -e 's/\. /: /' |
+  trim
+)"
 
-# to setup branch name
-# awk '{printf "%s/%s/%s", "sandbox", "marslo", $1}'
+# return
+case "${RETURN_TYPE}" in
+  short ) echo "${jira%%:*}" | trim ;;
+  full  ) echo "${jira}" | trim    ;;
+  *     ) die "Invalid return type '${RETURN_TYPE}'" ;;
+esac
+
+# awk -F':' '{printf "%s/%s/%s", "sandbox", "marslo", $1}'
 # sed -e 's/\. /\t/' -e 's/[^a-zA-Z0-9\t]/-/g' |
 # awk '{printf "%s/%s/%s", "issue", $1, tolower($2)}'
 

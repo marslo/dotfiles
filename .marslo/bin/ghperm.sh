@@ -17,8 +17,7 @@ declare GITHUB_TOKEN="${GITHUB_TOKEN:-${GITHUB_API_TOKEN}}"
 declare ORG=''
 declare SHOW_URL=false
 declare PERM=''
-declare VERBOSE=false
-declare VVERBOSE=false
+declare VERBOSE=0
 declare -a LINES=()
 
 # shellcheck disable=SC2155
@@ -43,16 +42,16 @@ function usage() {
   echo -e "  $(c G)-o$(c), $(c G)--org $(c 0Mi)<ORGANIZATION>$(c) list repositories for the specified organization"
   echo -e "  $(c G)-m$(c), $(c G)--mrvl$(c)               use personal PAT"
   echo -e "  $(c G)--srv $(c 0Mi)<ACCOUNT>$(c)          use service account PAT. Currently, acceptable values are:"
-  echo -e "                            - $(c Mi)srv-release1$(c)"
-  echo -e "                            - $(c Mi)sa-ip-sw-jenkins$(c)"
+  echo -e "                           $(c Mi)• srv-release1$(c)"
+  echo -e "                           $(c Mi)• sa-ip-sw-jenkins$(c)"
   echo -e "  $(c G)-u$(c), $(c G)--url$(c)                show repository URL instead of full name"
   echo -e "  $(c G)-p$(c), $(c G)--permission $(c 0Mi)<PERM>$(c)  filter by permission. acceptable values are:"
-  echo -e "                            - $(c Mi)admin$(c), $(c Mi)maintain$(c), $(c Mi)write$(c), $(c Mi)triage$(c), $(c Mi)read$(c)"
-  echo -e "  $(c G)-v$(c), $(c G)--verbose$(c)            enable verbose output"
+  echo -e "                           $(c Mi)• admin$(c), $(c Mi)maintain$(c), $(c Mi)write$(c), $(c Mi)triage$(c), $(c Mi)read$(c)"
+  echo -e "  $(c G)-v$(c), $(c G)-vv$(c)                  enable verbose output, multiple $(c 0Gi)-v$(c) options increase verbosity $(c 0i)(max: $(c 0Yi)2$(c))$(c)"
   echo -e "  $(c G)-h$(c), $(c G)--help$(c)               show this help message and exit"
   echo -e "\nEXAMPLE"
-  echo -e "  $(c 0Wdi)# list service account \`srv-release1\` has ADMIN perms in organization \`Marvell-GHE-Sandbox\`$(c)"
-  echo -e "  $(c Ys)\$ ${ME} $(c 0Gi)--srv $(c 0Mi)srv-release1 $(c 0Gi)-o $(c 0Mi)Marvell-GHE-Sandbox $(c 0Gi)-p $(c 0Mi)admin$(c)"
+  echo -e "  $(c 0Wdi)# list service account \`srv-release1\` has ADMIN perms in organization \`Marvell-Lab\`$(c)"
+  echo -e "  $(c Ys)\$ ${ME} $(c 0Gi)--srv $(c 0Mi)srv-release1 $(c 0Gi)-o $(c 0Mi)Marvell-Lab $(c 0Gi)-p $(c 0Mi)admin$(c)"
   exit 0
 }
 
@@ -73,8 +72,8 @@ while [[ $# -gt 0 ]]; do
                           *                                ) die "invalid permission '${2:-<empty>} in option \`-p, --permission\`. Must be one of: admin, maintain, write, triage, read" ;;
                         esac
                         shift 2 ;;
-    -v | --verbose    ) VERBOSE=true; shift ;;
-    -vv               ) VERBOSE=true; VVERBOSE=true; shift ;;
+    --verbose         ) VERBOSE=1; shift ;;
+    -v | -vv          ) VERBOSE=$(( ${#1} - 1 )) ; shift  ;;
     -h | --help       ) usage ;;
     *                 ) die "unknown option '$1'"
   esac
@@ -83,7 +82,7 @@ done
 [[ -z "${GITHUB_TOKEN:-}" ]] && die "GITHUB_TOKEN cannot be empty. Please set it in environment or use \`--mrvl\` or \`--srv\` option."
 [[ -n "${ORG:-}" ]] && url="${GITHUB_API_URL}/orgs/${ORG}/repos?per_page=100&type=all" \
                     || url="${GITHUB_API_URL}/user/repos?per_page=100&type=all"
-"${VERBOSE}" && printf "%b------------ DEBUG INFO -------------%b\n" "$(c Wdi)" "$(c)"
+[[ "${VERBOSE}" -ge 1 ]] && printf "%b------------ DEBUG INFO -------------%b\n" "$(c Wdi)" "$(c)"
 
 while [[ -n "${url}" ]]; do
 
@@ -91,8 +90,8 @@ while [[ -n "${url}" ]]; do
   rc=$?
   [[ "${rc}" -ne 0 ]] && { die "curl failed (rc=${rc}) url=${url}" "${rc}"; }
 
-  "${VERBOSE}"  && printf "%b[DEBUG]%b %bURL%b: %s%b\n" "$(c Wdi)" "$(c)" "$(c 0Mi)" "$(c 0Wdi)" "${url}" "$(c)"
-  "${VVERBOSE}" && printf "%b[DEBUG]%b %bCMD%b: %s%b\n" "$(c Wdi)" "$(c)" "$(c 0Mi)" "$(c 0Wdi)" "curl -sS -i -H \"Authorization: Bearer ${GITHUB_TOKEN}\" \"${url}\"" "$(c)"
+  [[ "${VERBOSE}" -eq 1 ]] && printf "%b[DEBUG]%b %bURL%b: %s%b\n" "$(c Wdi)" "$(c)" "$(c 0Mi)" "$(c 0Wdi)" "${url}" "$(c)"
+  [[ "${VERBOSE}" -eq 2 ]] && printf "%b[DEBUG]%b %bCMD%b: %s%b\n" "$(c Wdi)" "$(c)" "$(c 0Mi)" "$(c 0Wdi)" "curl -sS -i -H \"Authorization: Bearer ${GITHUB_TOKEN}\" \"${url}\"" "$(c)"
 
   statusLine="${resp%%$'\r'*}"
   httpCode="${statusLine#* }"
@@ -147,7 +146,7 @@ while [[ -n "${url}" ]]; do
   )
 done
 
-"${VERBOSE}" && printf "%b-------------------------------------%b\n\n" "$(c Wdi)" "$(c)";
+[[ "${VERBOSE}" -ge 1 ]] && printf "%b-------------------------------------%b\n\n" "$(c Wdi)" "$(c)";
 
 # -- output --
 printf '%s\n' "${LINES[@]}" \

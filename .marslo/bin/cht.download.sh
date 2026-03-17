@@ -150,14 +150,13 @@ function download() {
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -h | --help     ) showUsage                   ;;
-    --full-download ) FULL_DOWNLOAD=true  ; shift ;;
-    --update        ) FULL_DOWNLOAD=false ; shift ;;
-    --sub-list      ) SUB_LIST=true       ; shift ;;
-    -s | --silent   ) VERBOSE=0           ; shift ;;
-    -v              ) VERBOSE=1           ; shift ;;
-    -vv             ) VERBOSE=2           ; shift ;;
-    --dryrun        ) DRY_RUN=true        ; shift ;;
+    -h | --help     ) showUsage                        ;;
+    --full-download ) FULL_DOWNLOAD=true       ; shift ;;
+    --update        ) FULL_DOWNLOAD=false      ; shift ;;
+    --sub-list      ) SUB_LIST=true            ; shift ;;
+    -s | --silent   ) VERBOSE=0                ; shift ;;
+    -v | -vv        ) VERBOSE=$(( ${#1} - 1 )) ; shift ;;
+    --dryrun        ) DRY_RUN=true             ; shift ;;
     *               ) echo -e "$(c 0Rs)[ERROR] $(c 0Wdi)unknown option: $(c 0Ci)'%s'$(c)\n" "$1" >&2; exit 1 ;;
   esac
 done
