@@ -74,7 +74,7 @@ snippet whilecase "setup bash paramters and case statement"
 while [[ $# -gt 0 ]]; do
   case "\$1" in
     ${1:-h | --help} ) $0;;
-    * ) echo "ERROR: unknown option '\$1'"; exit 1;;
+    *           ) echo "ERROR: unknown option '\$1'"; exit 1;;
   esac
 done
 endsnippet

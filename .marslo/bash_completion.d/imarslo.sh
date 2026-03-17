@@ -79,7 +79,7 @@ function _rgba2hex_completion() {
 }
 
 _JIRA_STAT_OPTS="-p --project -t --type -c --condition -a --and -o --or -m --max -j --jql -i --index -h --help -v -vv --verbose"
-_JIRA_LS_OPTS="--new --in-progress --todo --open --closed --reporter --assignee -p --project -u --update -h --help"
+_JIRA_LS_OPTS="--new --in-progress --todo --open --closed --reporter --assignee -p --project -u --update -r --return -h --help"
 _JIRA_STAT_CONDITIONS="AND OR IN"
 
 function _jira_stat_logic() {
@@ -102,6 +102,7 @@ function _jira_ls_logic() {
 
   case "${prev}" in
     -p|--project ) _compgen_nocase "${cur}" "IPBUSW IPBD SPTA"; return 0 ;;
+    -r|--return  ) _compgen_nocase "${cur}" "full short"; return 0 ;;
     --assignee|--reporter ) _compgen_nocase "${cur}" "'currentUser()' unassigned"; return 0 ;;
   esac
 

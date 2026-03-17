@@ -6,7 +6,7 @@ shopt -s extglob
 # shellcheck disable=SC2155
 declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # shellcheck disable=SC2155
-declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /')"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
@@ -18,7 +18,7 @@ function exitOnError() { if [ $? -ne 0 ]; then echo -e "$(c R)ERROR$(c) : $*" >&
 function showHelp() { echo -e "${USAGE}"; exit 0; }
 function needsArg() { [[ -z "$OPTARG" ]] && die "no arg for --$OPT option"; }
 function isRepo() { git rev-parse --git-dir >/dev/null 2>&1 || exitOnError 'not a git repo !'; }
-function getRevision() { sha=$(git rev-parse -q --verify "$1^{commit}"); echo "${sha}"; }
+function getRevision() { git rev-parse -q --verify "$1^{commit}"; }
 function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
 
 function showParams() {
@@ -204,13 +204,13 @@ revision=$(getRevision "${sha}")
 [[ -z "${revision}" ]] && die "ref '${sha}' cannot be found in current repo."
 # shortRevision="${revision:0:10}"
 
-values=$(getInfo "${revision}")
-author=$(echo "${values}"       |  awk -F'|' '{print $1}' | trim)
-authorEmail=$(echo "${values}"  |  awk -F'|' '{print $2}' | trim)
-authorDate=$(echo "${values}"   |  awk -F'|' '{print $3}' | trim)
-committer=$(echo "${values}"    |  awk -F'|' '{print $4}' | trim)
-commitEmail=$(echo "${values}"  |  awk -F'|' '{print $5}' | trim)
-commitDate=$(echo "${values}"   |  awk -F'|' '{print $6}' | trim)
+values=$( getInfo "${revision}" )
+author=$( echo "${values}"      | awk -F'|' '{print $1}' | trim )
+authorEmail=$( echo "${values}" | awk -F'|' '{print $2}' | trim )
+authorDate=$( echo "${values}"  | awk -F'|' '{print $3}' | trim )
+committer=$( echo "${values}"   | awk -F'|' '{print $4}' | trim )
+commitEmail=$( echo "${values}" | awk -F'|' '{print $5}' | trim )
+commitDate=$( echo "${values}"  | awk -F'|' '{print $6}' | trim )
 
 doSetEnv "${author}" "${authorEmail}" "${authorDate}" "${committer}" "${commitEmail}" "${commitDate}"
 # shellcheck disable=SC2015

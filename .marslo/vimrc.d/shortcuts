@@ -58,6 +58,7 @@ vnoremap //           y/\V<C-R>=escape(@",'/\')<CR><CR>
 tnoremap <Esc>        <C-\><C-n>
 tnoremap <C-w>        <C-\><C-n><C-w>
 tnoremap <expr> <C-R> '<C-\><C-N>"'.nr2char(getchar()).'pi'
+nnoremap <Leader>i    :Inspect<CR>
 
 " dense-analysis/ale
 noremap  ]a           :ALENextWrap<CR>

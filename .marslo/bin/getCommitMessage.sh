@@ -4,7 +4,7 @@
 #     FileName : getCommitMessage.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2026-02-13 00:41:26
+#   LastChange : 2026-03-16 18:17:32
 #   references : https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit?tab=t.0
 #=============================================================================
 
@@ -72,15 +72,21 @@ function runInteractive() {
 # STX: `\002` - Start of Text
 # have `\001` and `\002` surrounding the colorized string to handle multiple lines input
 function getCommitMessage() {
-  declare jiraId=''
-  if [[ 'true' = "${MCX_ENABLE_JIRA:-false}" ]]; then
+  local jiraId=''
+  if "${MCX_ENABLE_JIRA:-false}"; then
     read -rep "$(printf "\001$(c Mi)\002%s\001$(c)\002" 'JIRA ID: ')" jiraId
   fi
 
   selected=$( printf "%b\n" "${types[@]}" |
-              fzf --prompt="commit type: " --height=10 --border --ansi --color=fg+:#979736,hl+:#979736
+              fzf --no-multi \
+                  --ansi \
+                  --color=fg+:#979736,hl+:#979736 \
+                  --border \
+                  --height=12 \
+                  --prompt='commit type >' \
+                  --info='inline-right: '
             )
-  [[ -n "${selected}" ]] || die 'no commit type selected'
+  test -n "${selected}" || exit 1
   type=$(echo "${selected}" | awk -F: '{print $1}')
 
   if [[ 'true' = "${MCX_ENABLE_SCOPE:-true}" ]]; then
@@ -92,14 +98,14 @@ function getCommitMessage() {
   fi
 
   read -rep "$(printf "\001$(c Mi)\002%s\001$(c)\002" 'commit message subject: ')" subject
-  [[ -z "${subject}" ]] && die 'no commit subject entered'
+  test -z "${subject}" && exit 1
 
   if [[ 'true' = "${MCX_ENABLE_BODY:-false}" ]]; then
     runInteractive body gum write --placeholder="commit body (optional)" || return 1
   fi
 
-  declare breaking=''
-  declare bfooter=''
+  local breaking=''
+  local bfooter=''
   if "${MCX_BREAKING_CHANGE:-false}"; then
     if gum confirm "Is this a BREAKING CHANGE?"; then
       runInteractive breaking gum write --placeholder="describe the BREAKING CHANGE" || return 1
