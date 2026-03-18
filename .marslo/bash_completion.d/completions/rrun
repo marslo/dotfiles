@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2207
+#=============================================================================
+#     FileName : rrun
+#       Author : marslo
+#      Created : 2026-03-17 22:15:43
+#   LastChange : 2026-03-17 22:47:57
+#=============================================================================
+
+function _rrun_get_ssh_hosts() {
+  local custom_config=""
+  local j f
+
+  for (( j=1; j < COMP_CWORD; j++ )); do
+    if [[ "${COMP_WORDS[j]}" == "--config" && $((j+1)) -lt ${COMP_CWORD} ]]; then
+      custom_config="${COMP_WORDS[j+1]}"
+      custom_config="${custom_config/#\~/$HOME}"
+      break
+    fi
+  done
+
+  local config_files=()
+  if [[ -n "$custom_config" && -f "$custom_config" ]]; then
+    config_files=("$custom_config")
+  else
+    # shellcheck disable=SC2155
+    local _nullglob=$(shopt -p nullglob)
+    shopt -s nullglob
+
+    config_files=(
+      ~/.ssh/config
+      ~/.ssh/config.d/*
+      /etc/ssh/ssh_config
+    )
+
+    eval "${_nullglob}"
+  fi
+
+  local valid_files=()
+  for f in "${config_files[@]}"; do
+    if [[ -f "$f" ]]; then valid_files+=("$f"); fi
+  done
+
+  if [[ ${#valid_files[@]} -gt 0 ]]; then
+    awk 'tolower($1) == "host" {for(i=2;i<=NF;i++) if($i !~ /[*?]/) print $i}' "${valid_files[@]}" 2>/dev/null
+  fi
+}
+
+function _rrun_complete_config() {
+  local current_word="$1"
+  local i
+
+  # shellcheck disable=SC2155
+  local _nullglob=$(shopt -p nullglob)
+  shopt -s nullglob
+  local configs=( ~/.ssh/config ~/.ssh/config.d/* )
+  eval "${_nullglob}"
+
+  local search_cur="${current_word/#\~/$HOME}"
+  COMPREPLY=( $(compgen -W "${configs[*]}" -- "${search_cur}") )
+
+  if [[ "${current_word}" == ~* ]]; then
+    for i in "${!COMPREPLY[@]}"; do
+      COMPREPLY[i]="${COMPREPLY[i]/#$HOME/\~}"
+    done
+  fi
+}
+
+function _rrun_completion() {
+  local cur prev opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+  opts="--ip --config -n --name -u --user -f --file -c --cmd -q --quiet -v --verbose -h --help --"
+
+  local i pass_through=false
+  for (( i=1; i < COMP_CWORD; i++ )); do
+    if [[ "${COMP_WORDS[i]}" == "--" ]]; then
+      pass_through=true
+      break
+    fi
+  done
+
+  if ${pass_through}; then
+    COMPREPLY=()
+    return 0
+  fi
+
+  case "${prev}" in
+    -f|--file ) COMPREPLY=(); return 0 ;;
+    --config  ) _rrun_complete_config "${cur}"; return 0 ;;
+    -c|--cmd  ) COMPREPLY=( $(compgen -c -- "${cur}") ); return 0 ;;
+    -u|--user ) COMPREPLY=( $(compgen -u -- "${cur}" | grep --color=never -v '^_') ); return 0 ;;
+    -n|--name ) COMPREPLY=( $(compgen -W "$(_rrun_get_ssh_hosts)" -- "${cur}") ); return 0 ;;
+    --ip      ) return 0 ;;
+  esac
+
+  if [[ "${cur}" == -* ]]; then
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+    return 0
+  fi
+}
+
+complete -F _rrun_completion -o default rrun
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
