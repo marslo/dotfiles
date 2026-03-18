@@ -4,7 +4,7 @@
 #     FileName : imarslo.sh
 #       Author : marslo
 #      Created : 2026-03-09 14:28:06
-#   LastChange : 2026-03-12 18:13:26
+#   LastChange : 2026-03-18 09:48:06
 #=============================================================================
 
 _compgen_nocase() {
@@ -33,15 +33,15 @@ function _hex2rgba_completion() {
 
   case "${prev}" in
     # alpha: 0.0 - 1.0
-    -a|--alpha      ) COMPREPLY=( $(compgen -W "0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0" -- "$cur") ); return 0 ;;
+    -a|--alpha      ) COMPREPLY=( $(compgen -W "0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0" -- "${cur}") ); return 0 ;;
     # background color suggestions: hex with #, rgb with commas
-    -b|--background ) COMPREPLY=( $(compgen -W "'#FFFFFF' '#000000' 255,255,255 0,0,0" -- "$cur") ); return 0 ;;
+    -b|--background ) COMPREPLY=( $(compgen -W "'#FFFFFF' '#000000' 255,255,255 0,0,0" -- "${cur}") ); return 0 ;;
     -h|--help       ) return 0 ;;
   esac
 
   # if starts with `-`, suggest options
-  if [[ "$cur" == -* ]]; then
-    COMPREPLY=( $(compgen -W "${opts}" -- "$cur") )
+  if [[ "${cur}" == -* ]]; then
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
     return 0
   fi
 }
@@ -56,24 +56,24 @@ function _rgba2hex_completion() {
 
   case "$prev" in
     -a|--alpha)
-        COMPREPLY=( $(compgen -W "0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0" -- "$cur") )
+        COMPREPLY=( $(compgen -W "0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0" -- "${cur}") )
         return 0
         ;;
     # rgba2hex background color default is 255,255,255
     -b|--background)
-        COMPREPLY=( $(compgen -W "255,255,255 0,0,0 #FFFFFF #000000 255" -- "$cur") )
+        COMPREPLY=( $(compgen -W "255,255,255 0,0,0 #FFFFFF #000000 255" -- "${cur}") )
         return 0
         ;;
   esac
 
   # complete options if current word starts with -
-  if [[ "$cur" == -* ]]; then
-    COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
+  if [[ "${cur}" == -* ]]; then
+    COMPREPLY=( $(compgen -W "$opts" -- "${cur}") )
     return 0
   fi
 
-  if [[ "$cur" == "r"* ]]; then
-    COMPREPLY=( $(compgen -W "rgba( rgb(" -- "$cur") )
+  if [[ "${cur}" == "r"* ]]; then
+    COMPREPLY=( $(compgen -W "rgba( rgb(" -- "${cur}") )
     return 0
   fi
 }
@@ -101,12 +101,18 @@ function _jira_ls_logic() {
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
   case "${prev}" in
-    -p|--project ) _compgen_nocase "${cur}" "IPBUSW IPBD SPTA"; return 0 ;;
-    -r|--return  ) _compgen_nocase "${cur}" "full short"; return 0 ;;
-    --assignee|--reporter ) _compgen_nocase "${cur}" "'currentUser()' unassigned"; return 0 ;;
+    -p|--project          ) _compgen_nocase "${cur}" "IPBUSW IPBD SPTA"; return 0 ;;
+    -r|--return           ) _compgen_nocase "${cur}" "full short"; return 0 ;;
+    --assignee|--reporter ) if [[ "${cur}" != -* ]]; then
+                              _compgen_nocase "${cur}" "'currentUser()' unassigned"; return 0
+                            fi ;;
   esac
 
-  COMPREPLY=( $(compgen -W "${_JIRA_LS_OPTS}" -- "${cur}") )
+  if [[ "${cur}" == -* ]]; then
+    COMPREPLY=( $(compgen -W "${_JIRA_LS_OPTS}" -- "${cur}") )
+  else
+    COMPREPLY=()
+  fi
 }
 
 function _jira_completions() {
@@ -138,7 +144,7 @@ function _jira_completions() {
 }
 
 function _jira_stat_completions() { _jira_stat_logic; }
-function _jira_ls_completions() { _jira_ls_logic; }
+function _jira_ls_completions()   { _jira_ls_logic; }
 
 function _gdoc_completion() {
   local cur prev opts re_projects sms_projects
