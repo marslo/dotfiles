@@ -579,9 +579,21 @@ _comp_xfunc_scp_compgen_remote_files()
         _escape_replacement='\\&'
     fi
 
+    # Re-escape _path for the remote shell: spaces (and other specials) must
+    # be backslash-escaped so the remote shell does not word-split on them, but
+    # a leading ~ must remain unquoted so remote tilde-expansion still works.
+    local _path_escaped
+    if [[ $_path == '~'/* ]]; then
+        _path_escaped='~'$(printf '%q' "${_path:1}")
+    elif [[ $_path == '~' ]]; then
+        _path_escaped='~/'
+    else
+        _path_escaped=$(printf '%q' "$_path")
+    fi
+
     local _files
     _files=$(ssh -o 'Batchmode yes' "$_userhost" \
-        "shopt -s nocaseglob; command ls -aF1dL \"$_path*\"" 2>/dev/null | \
+        "shopt -s nocaseglob; command ls -aF1dL ${_path_escaped}*" 2>/dev/null |
         _comp_cmd_scp__escape_path ${_dirs_only:+'-d'} -- \
             "$_escape_replacement")
     _comp_compgen -R split -l -- "$_files"
