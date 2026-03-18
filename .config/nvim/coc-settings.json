@@ -12,7 +12,9 @@
     "/opt/jenkins/latest/WEB-INF/lib/*",
     "/opt/jenkins/plugins/*/latest/WEB-INF/lib/*",
     "/opt/jenkins/plugins/credentials/latest/WEB-INF/lib/*",
-    "/opt/jenkins/plugins/badge/latest/WEB-INF/lib/*"
+    "/opt/jenkins/plugins/badge/latest/WEB-INF/lib/*",
+    "/opt/jenkins/plugins/git/latest/WEB-INF/lib/*",
+    "/opt/jenkins/plugins/pipeline-job/latest/WEB-INF/lib/*"
   ],
   "groovy.trace.server": "verbose",
   "java.referencesCodeLens.enabled": true,
