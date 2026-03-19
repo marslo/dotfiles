@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-03-03 16:52:20
+"    LastChange : 2026-03-19 15:50:49
 " =============================================================================
 
 " color table
@@ -16,16 +16,18 @@ highlight! link Ignore      Grey
 highlight! ExtraWhitespace  ctermfg=245    ctermbg=NONE    guifg=#928374   guibg=NONE
 highlight! SpellBad         term=underline cterm=underline ctermbg=NONE    guibg=NONE  guisp=NONE
 
+highlight! ColumnLimit      guibg=NONE     guifg=#4e4e4e   ctermfg=240
+
 " - vim cursor color depends on terminal color
 " - nvim curcor color depends on `set termguicolors`
-" highlight! Cursor           term=bold      cterm=reverse   ctermfg=255     ctermbg=24  gui=reverse  guifg=white   guibg=steelblue  guisp=steelblue
-highlight! Cursor             term=bold      cterm=NONE      ctermfg=239     ctermbg=24  gui=NONE     guifg=#4e4e4e guibg=steelblue
+" highlight! Cursor         term=bold      cterm=reverse   ctermfg=255     ctermbg=24  gui=reverse  guifg=white   guibg=steelblue  guisp=steelblue
+highlight! Cursor           term=bold      cterm=NONE      ctermfg=239     ctermbg=24  gui=NONE     guifg=#4e4e4e guibg=steelblue
 highlight! link TermCursor  Cursor
 highlight! link iCursor     Cursor
-highlight! CursorColumn     ctermbg=236 guibg=#32302f
-highlight! CursorLine       ctermbg=236 guibg=#32302f
-highlight! Folded           cterm=italic ctermfg=241 ctermbg=236 guifg=#616161 guibg=#32302f
-highlight! SpecialGrey      cterm=italic ctermfg=241 gui=italic  guifg=#616161
+highlight! CursorColumn     ctermbg=236    guibg=#32302f
+highlight! CursorLine       ctermbg=236    guibg=#32302f
+highlight! Folded           cterm=italic   ctermfg=241 ctermbg=236 guifg=#616161 guibg=#32302f
+highlight! SpecialGrey      cterm=italic   ctermfg=241 gui=italic  guifg=#616161
 highlight! link Comment     SpecialGrey
 
 " for coc virtual text
@@ -34,7 +36,7 @@ highlight! link VirtualTextInfo    SpecialGrey
 highlight! link VirtualTextError   SpecialGrey
 highlight! link VirtualTextHint    SpecialGrey
 highlight! link CocVirtualText     SpecialGrey
-highlight! CocVirtualText   cterm=italic ctermfg=12  gui=italic  guifg=#504945
+highlight! CocVirtualText   cterm=italic   ctermfg=12  gui=italic  guifg=#504945
 
 " coc
 highlight! link CocExplorerHelpHint SpecialGrey
