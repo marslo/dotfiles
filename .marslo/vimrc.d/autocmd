@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-03-03 15:06:28
+"    LastChange : 2026-03-19 15:57:57
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -169,20 +169,20 @@ if has( 'autocmd' )
 
   augroup Vimrc
     autocmd!
-    if index( ['vimrc.d'], split(expand('%:p:h'), '/')[-1] ) >= 0
+    if fnamemodify(expand('%:p:h'), ':t') ==# 'vimrc.d'
       autocmd! BufWritePost ~/.marslo/vimrc.d/* silent! source $MYVIMRC
+               \| execute 'silent redraw!'
                \| echohl WarningMsg
                \| echom expand('%:p') . " changed! " . $MYVIMRC . " sourced!"
                \| echohl None
-               \| execute 'silent redraw!'
     endif
 
-    if IsNvim() && '/'.join(split(expand('%:p'), '/')[0:3], '/') == stdpath('config')
-      autocmd! BufWritePost ~/.config/nvim/*    silent! source $MYVIMRC
+    if IsNvim() && !exists('g:vscode') && expand('%:p') =~# '^' . stdpath('config')
+      autocmd! BufWritePost ~/.config/nvim/*  silent! source $MYVIMRC
+               \| execute 'silent redraw!'
                \| echohl WarningMsg
                \| echom expand('%:p') . " changed! " . $MYVIMRC . " sourced!"
                \| echohl None
-               \| execute 'silent redraw!'
     endif
   augroup END
 
@@ -198,12 +198,9 @@ if has( 'autocmd' )
 
   augroup ColumnLimit
     autocmd!
-    set colorcolumn=80
-    highlight ColumnLimit    guibg=NONE    guifg=#4e4e4e    ctermfg=240
-    autocmd!
-    let columnLimit = 80
-    let pattern      = '\%<' . ( columnLimit+1 ) . 'v.\%>' . columnLimit . 'v'
-    let w:m1         = matchadd( 'ColumnLimit', pattern, -1 )
+    let s:columnLimit = 80
+    let s:pattern     = '\%<' . (s:columnLimit+1) . 'v.\%>' . s:columnLimit . 'v'
+    autocmd VimEnter,BufWinEnter,WinEnter * let w:m1 = matchadd( 'ColumnLimit', s:pattern, -1 )
   augroup END
 
   augroup TerminalFormat

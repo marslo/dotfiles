@@ -89,25 +89,26 @@ syn match UrlNoSpell '\w\+:\/\/[^[:space:]]\+' contains=@NoSpell
 function! GroovyKeywords() abort
   " remove potential interference from polyglot.
   silent! syn clear groovyDocComment
-  " uncolor
-  syntax keyword NoColor                 git
+  " nocolor
+  syntax keyword noColor                 git push
 
   " basic keywords
-  syntax keyword groovyJDKMethods        collectEntries collectMany eachWithIndex
-  syntax keyword groovyKeywords          Object Closure stage withEnv
-  syntax keyword JenkinsPluginsKeywords  writeCSV toString
+  syntax keyword groovyJDKMethods        collectEntries collectMany eachWithIndex toString first last tail trim
+  syntax keyword groovyKeywords          Object Closure stage
+  syntax keyword JenkinsPluginsKeywords  writeCSV withEnv
 
   " handling common map/list definitions
   syntax keyword groovyCustomTypes       Map List String Object
 
   let s:common_ctx  = ' containedin=ALLBUT,groovyComment,groovyLineComment,groovyBlockComment,groovyDocComment,groovyString,groovyGString'
   let s:op_patterns = [
-        \ '\(<=>\|==\~\|=\~\|->\)',
+        \ '\(<=>\|==\~\|=\~\|->\|?:\|\.\.<\)',
         \ '\(=\|==\|!=\|>=\|<=\|&&\|||\)',
         \ '\(++\|--\)',
         \ '\(<<<\|>>>\|<<\|>>\)',
         \ '\(+\|-\|%\|&\|\^\)=\=',
-        \ '/='
+        \ '/=',
+        \ '\s\zs?\ze\s\|\s\zs:\ze\s'
         \ ]
   for pat in s:op_patterns
     execute 'syntax match groovyOperator "' . pat . '"' . s:common_ctx
