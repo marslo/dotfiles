@@ -2,12 +2,12 @@
 # shellcheck disable=SC2139,SC2034,SC2154
 # =============================================================================
 #   FileName : imarslo
-#     Author : marslo.jiao@gmail.com
+#     Author : marslo
 #    Created : 2017-10-30 19:07:45
-# LastChange : 2026-01-08 00:49:06
+# LastChange : 2026-03-20 02:04:52
 # =============================================================================
 
-MYWORKSPACE="$HOME/iMarslo"
+MY_WORKSPACE="$HOME/iMarslo"
 
 alias irc="cd $HOME/.marslo"
 alias desk="cd $HOME/Desktop"
@@ -16,46 +16,51 @@ alias cdrs="cd $HOME/Desktop/re/scripts"
 alias cfg="cd ~/.config/"
 alias vimd="cd ~/.marslo/vimrc.d"
 
-alias mw="cd ${MYWORKSPACE}"
-alias jo="cd ${MYWORKSPACE}/job"
-alias dos="cd ${MYWORKSPACE}/job/devops"
-alias jc="cd ${MYWORKSPACE}/job/code"
-alias re="cd ${MYWORKSPACE}/job/code/re"
-alias onf="cd ${MYWORKSPACE}/job/code/tool-config"
+alias mw="cd ${MY_WORKSPACE}"
+alias jo="cd ${MY_WORKSPACE}/job"
+alias dos="cd ${MY_WORKSPACE}/job/devops"
 
-alias st="cd ${MYWORKSPACE}/study"
-if [[ -d "${MYWORKSPACE}/study" ]]; then
-  alias sg="cd ${MYWORKSPACE}/study/mystudy/groovy"
-  alias sp="cd ${MYWORKSPACE}/study/mystudy/python"
-  alias spc="cd ${MYWORKSPACE}/study/mystudy/python/leetcode"
-  alias sk="cd ${MYWORKSPACE}/study/mystudy/kubernetes"
-  alias cdjf="cd ${MYWORKSPACE}/study/mystudy/jenkinsfil"
-  alias cdku="cd ${MYWORKSPACE}/study/mystudy/kubernetes"
-
-  alias mco="cd ${MYWORKSPACE}/study/mycode"
-  alias scs="cd ${MYWORKSPACE}/study/mycode/scripts"
-  alias cdj="cd ${MYWORKSPACE}/study/mycode/devops"
-  alias cdba="cd ${MYWORKSPACE}/study/code/backups"
-  alias cdmac="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/mac"
-  alias msp="cd ${MYWORKSPACE}/study/code/backups/1.marslo_env/belloMarslo/"
+if test -d "${MY_WORKSPACE}/job/code"; then
+  alias jc="cd ${MY_WORKSPACE}/job/code"
+  alias re="cd ${MY_WORKSPACE}/job/code/re"
 fi
 
-alias to="cd ${MYWORKSPACE}/tools"
-alias dl="cd ${MYWORKSPACE}/tools/download"
-alias sf="cd ${MYWORKSPACE}/tools/software"
-alias gi="cd ${MYWORKSPACE}/tools/git/marslo"
-alias cddp="cd ${MYWORKSPACE}/tools/git/sandbox/deprecated"
-alias ib="cd ${MYWORKSPACE}/tools/git/marslo/ibook/docs"
-alias mi="cd ${MYWORKSPACE}/tools/git/marslo/myvim"
-alias dm="cd ${MYWORKSPACE}/tools/git/marslo/dotfiles"
-alias mt="cd ${MYWORKSPACE}/tools/git/marslo/mytools"
-alias mb="cd ${MYWORKSPACE}/tools/git/marslo/mbook/docs >/dev/null"
+if test -d "${MY_WORKSPACE}/study"; then
+  alias st="cd ${MY_WORKSPACE}/study"
+  alias sg="cd ${MY_WORKSPACE}/study/mystudy/groovy"
+  alias sp="cd ${MY_WORKSPACE}/study/mystudy/python"
+  alias spc="cd ${MY_WORKSPACE}/study/mystudy/python/leetcode"
+  alias sk="cd ${MY_WORKSPACE}/study/mystudy/kubernetes"
+  alias cdjf="cd ${MY_WORKSPACE}/study/mystudy/jenkinsfil"
+  alias cdku="cd ${MY_WORKSPACE}/study/mystudy/kubernetes"
+
+  alias mco="cd ${MY_WORKSPACE}/study/mycode"
+  alias scs="cd ${MY_WORKSPACE}/study/mycode/scripts"
+  alias cdj="cd ${MY_WORKSPACE}/study/mycode/devops"
+  alias cdba="cd ${MY_WORKSPACE}/study/code/backups"
+  alias cdmac="cd ${MY_WORKSPACE}/study/code/backups/1.marslo_env/mac"
+  alias msp="cd ${MY_WORKSPACE}/study/code/backups/1.marslo_env/belloMarslo/"
+fi
+
+if test -d "${MY_WORKSPACE}/tools"; then
+  alias to="cd ${MY_WORKSPACE}/tools"
+  alias dl="cd ${MY_WORKSPACE}/tools/download"
+  alias sf="cd ${MY_WORKSPACE}/tools/software"
+  alias gi="cd ${MY_WORKSPACE}/tools/git/marslo"
+  alias cddp="cd ${MY_WORKSPACE}/tools/git/sandbox/deprecated"
+  alias ib="cd ${MY_WORKSPACE}/tools/git/marslo/ibook/docs"
+  alias mi="cd ${MY_WORKSPACE}/tools/git/marslo/myvim"
+  alias dm="cd ${MY_WORKSPACE}/tools/git/marslo/dotfiles"
+  alias mt="cd ${MY_WORKSPACE}/tools/git/marslo/mytools"
+  alias mb="cd ${MY_WORKSPACE}/tools/git/marslo/mbook/docs >/dev/null"
+fi
+
 alias oct="cd \"${HOME}/Library/CloudStorage/OneDrive-SharedLibraries-OneDriveCloudTemp\""
 
 if isWSL; then
   alias dsk="cd $HOME/userprofile/Desktop"
   alias up="cd $HOME/userprofile"
-  alias proj="cd ${MYWORKSPACE}/myprogramfiles"
+  alias proj="cd ${MY_WORKSPACE}/myprogramfiles"
   alias mw="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo'"
   alias dos="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo/job/devops'"
   alias clip='/mnt/c/Windows/System32/clip.exe'
