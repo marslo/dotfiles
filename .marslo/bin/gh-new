@@ -4,7 +4,7 @@
 #     FileName : gh-new
 #       Author : marslo
 #      Created : 2026-01-23 11:52:14
-#   LastChange : 2026-03-18 00:16:46
+#   LastChange : 2026-03-20 01:00:10
 #=============================================================================
 
 set -euo pipefail
@@ -18,47 +18,50 @@ declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
 # shellcheck disable=SC2015
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
-declare -r USAGE="""
-NAME
+declare -r USAGE="NAME
   $(c Cs)${ME}$(c) - smartify create a new PR with fzf or open exists PR
 
 USAGE
-  $(c Ys)\$ ${ME}$(c) $(c Wdi)[$(c)$(c Gis)OPTIONS$(c)$(c Wdi)]$(c)
+  $(c Ys)\$ ${ME}$(c) $(c Wd)[$(c)$(c Gs)OPTIONS$(c)$(c Wd)]$(c)
 
 OPTIONS
   $(c G)-o$(c), $(c G)--open$(c)           open the created PR in the web browser
-  $(c G)-l$(c), $(c G)--label$(c) $(c 0Mi)LABEL$(c)    add label to the created PR $(c 0i)( if label exists )$(c)
-  $(c G)-V$(c), $(c G)--verbose$(c)        show verbose output
+  $(c G)-l$(c), $(c G)--label$(c) $(c 0Mi)LABEL$(c)    add label(s) to the created PR
+                       $(c 0i)comma-separated or repeated; $(c 0Mi)'auto-merge'$(c 0i) is auto-applied (if applicate)$(c)
+  $(c G)-v$(c), $(c G)--verbose$(c)        show verbose output
   $(c G)-a$(c), $(c G)--auto$(c)           automatically open the current PR if exists in current branch
   $(c G)-D$(c), $(c G)--dryrun$(c)         show the command to be executed, but do not run it
   $(c G)-h$(c), $(c G)--help$(c)           show this help message
-  $(c C)--$(c) $(c 0Wdi)[$(c 0Mi)GH_OPTS$(c 0Wdi)]$(c)         pass all following arguments to the underlying '$(c i)gh pr create$(c)' command
+  $(c B)--$(c) $(c 0Wdi)[$(c 0Ci)GH_OPTS$(c 0Wdi)]$(c)         pass all following arguments to the underlying '$(c i)gh pr create$(c)' command
 
 EXAMPLES
   $(c 0Wdi)# create a PR from the current branch to a selected base branch$(c)
   $(c Ys)\$ ${ME}$(c)
 
-  $(c 0Wdi)# create a PR and label and open it in the web browser$(c)
-  $(c Ys)\$ ${ME} $(c 0Gi)--open --label $(c 0Mi)'auto-merge'$(c)
+  $(c 0Wdi)# create a PR and add labels$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--open --label $(c 0Mi)'bug' $(c 0Gi)--label $(c 0Mi)'enhancement,documentation'$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--open --label $(c 0Mi)'bug,enhancement'$(c)
 
   $(c 0Wdi)# open the web browser to create a pull request$(c)
-  $(c Ys)\$ ${ME} $(c 0C)-- $(c 0Mi)--web$(c)
+  $(c Ys)\$ ${ME} $(c 0B)-- $(c 0Ci)--web$(c)
 
   $(c 0Wdi)# create a PR with reviewers$(c)
-  $(c Ys)\$ ${ME} $(c 0C)-- $(c 0Mi)--reviewer USER,USER$(c)
-"""
+  $(c Ys)\$ ${ME} $(c 0B)-- $(c 0Ci)--reviewer USER,USER$(c)
+"
 declare DRYRUN=false
 declare VERBOSE=false
-declare AUTO_OPEN=false
+declare AUTO=false
 declare -a GH_OPTS=()
-declare SHOULD_OPEN=false
-declare PR_LABEL=''
+declare -a CLI_CMD=()
+declare -a LABELS=()
+declare OPEN=false
 
 function showHelp() { echo -e "${USAGE}"; exit 0; }
 function joinBy {
   local d=${1-} f=${2-}
   if shift 2; then printf %s "$f" "${@/#/$d}"; fi
 }
+function _labelExists() { gh label list --json name --jq "any(.[].name; . == \"${1}\")" | grep -q '^true$'; }
 function show() {
   local tag tcolor body extra
   local bcolor="$(c 0Wi)"
@@ -106,6 +109,7 @@ function prCmd() {
   test -z "${current}" && show error 'Not in a git repository or detached HEAD'
   isPushed "${current}"
   local gpreview="git show --color=always origin/{-1}"
+  local main=''
   test -f "$(git rev-parse --absolute-git-dir)"/refs/remotes/origin/HEAD &&
     main="$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's|^origin/||')" ||
     main="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)"
@@ -125,11 +129,11 @@ function prCmd() {
                    --bind 'ctrl-y:execute-silent(git log origin/{-1} -1 --pretty=format:"%H" | pbcopy)'
               )
 
-  test -z "${base:-}" && { show error 'no branch selected, aborting PR creation'; exit 1; }
-  ! "${DRYRUN}" && show info "drafting PR : \`$(c 0Yi)${current}$(c 0Wdi)\` -> \`$(c 0Yi)${base}$(c 0Wdi)\`"
+  test -z "${base:-}" && show error 'no branch selected, aborting PR creation'
+  "${DRYRUN}" || show info "drafting PR : \`$(c 0Yi)${current}$(c 0Wdi)\` -> \`$(c 0Yi)${base}$(c 0Wdi)\`"
 
   local label=''
-  test -z "$(gh label list --search "auto-merge")" && label='auto-merge'
+  _labelExists 'auto-merge' && label='auto-merge'
 
   # TODO: using AI to generate better body
   local title=$(git log -1 --pretty=%s)
@@ -143,7 +147,7 @@ function prCmd() {
               --title "${title}"
               --body "${body}"
          )
-  if test -n "${label}"; then arrRef+=( --label "${label}" ); fi
+  if test -n "${label:-}"; then arrRef+=( --label "${label}" ); fi
 }
 
 function checkTools() {
@@ -161,10 +165,9 @@ function checkTools() {
 
 function openPR() {
   local prId="${1:-}"
-  local open="${2:-${SHOULD_OPEN}}"
 
-  if [[ 'true' = "${open}" ]]; then
-    test -z "${prId}" && prId="$(gh pr view --json number -q .number 2>/dev/null)";
+  if "${OPEN}"; then
+    test -z "${prId:-}" && prId="$(gh pr view --json number -q .number 2>/dev/null)";
     # shellcheck disable=SC2015
     test -n "${prId:-}" && {
       local -a openCmd=( gh pr view "${prId}" --web )
@@ -177,46 +180,56 @@ function openPR() {
 }
 
 function main() {
+  local PR_ID=''
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -o | --open    ) SHOULD_OPEN=true         ; shift        ;;
-      -a | --auto    ) AUTO_OPEN=true           ; shift        ;;
-      -l | --label   ) PR_LABEL="${2}"          ; shift 2      ;;
-      -V | --verbose ) VERBOSE=true             ; shift        ;;
-      -D | --dryrun  ) DRYRUN=true              ; shift        ;;
-      --             ) shift; GH_OPTS+=( "$@" ) ; break        ;;
-      -h | --help    ) showHelp                                ;;
-      *              ) echo "Unknown argument: $1" >&2; exit 1 ;;
+      -o | --open    ) OPEN=true                   ; shift   ;;
+      -a | --auto    ) OPEN=true; AUTO=true        ; shift   ;;
+      -l | --label   ) LABELS+=( "${2}" )          ; shift 2 ;;
+      -v | --verbose ) VERBOSE=true                ; shift   ;;
+      -D | --dryrun  ) DRYRUN=true                 ; shift   ;;
+      --             ) shift; GH_OPTS+=( "$@" )    ; break   ;;
+      -h | --help    ) showHelp                              ;;
+      *              ) show error "unknown argument: \`$1\`" ;;
     esac
   done
 
-  checkTools
-
-  if "${AUTO_OPEN}" && prId=$(gh pr view --json number -q .number 2>/dev/null); then
-    show info "existing PR found: \`$(c 0Mi)#${prId}$(c 0Wdi)\`, opening it ...$(c)"
-    openPR "${prId}" 'true'
-    exit 0
+  if "${AUTO}" && PR_ID=$(gh pr view --json number -q .number 2>/dev/null); then
+    show info "existing PR found: \`$(c 0Mi)#${PR_ID}$(c 0Wdi)\`, opening it ...$(c)"
+    openPR "${PR_ID}" && exit 0
   fi
 
-  local -a cmd=()
-  prCmd cmd
+  prCmd CLI_CMD
 
-  ( "${DRYRUN}" || "${VERBOSE}" ) && {
-    local cmdstr="${cmd[*]//$'\n'/\\\\n} ${GH_OPTS[*]}"
-    local msg="command to be executed: \`$(c 0Cdi)\$ ${cmdstr}$(c 0Wdi)\` ...$(c)"
+  { "${DRYRUN}" || "${VERBOSE}"; } && {
+    local msg="command to be executed: \`$(c 0Cdi)\$ ${CLI_CMD[*]//$'\n'/\\\\n}${GH_OPTS[*]:+ ${GH_OPTS[*]}}$(c 0Wdi)\` ...$(c)"
     # shellcheck disable=SC2015
-    "${VERBOSE}" && show verbose "${msg}" || { show dryrun "${msg}"; exit 0; }
+    "${DRYRUN}" && { show dryrun "${msg}"; exit 0; } || show verbose "${msg}"
   }
 
   # new pr
-  "${cmd[@]}" "${GH_OPTS[@]}"
-  # add label
-  if [[ -n "${PR_LABEL}" ]] && prId=$(gh pr view --json number -q .number 2>/dev/null); then
-    "$(gh label list --json name --jq "any(.[].name; . == \"${PR_LABEL}\")")" && gh pr edit "${prId}" --add-label "${PR_LABEL}"
+  "${CLI_CMD[@]}" "${GH_OPTS[@]}"
+
+  # add labels
+  if [[ ${#LABELS[@]} -gt 0 ]] && PR_ID="$(gh pr view --json number -q .number 2>/dev/null)" && [[ -n "${PR_ID}" ]]; then
+    local -a labels=()
+    local -a _labels=()
+    for iterm in "${LABELS[@]}"; do
+      IFS=',' read -ra _labels <<< "${iterm}"
+      for _label in "${_labels[@]}"; do
+        [[ "${_label}" == 'auto-merge' ]] && continue
+        if   _labelExists "${_label}"; then labels+=( "${_label}" );
+        else show warning "label \`${_label}\` not found in repo, skipping";
+        fi
+      done
+    done
+    [[ ${#labels[@]} -gt 0 ]] && gh pr edit "${PR_ID}" --add-label "$( joinBy ',' "${labels[@]}" )"
   fi
+
   "${DRYRUN}" || openPR
 }
 
+checkTools
 main "$@"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

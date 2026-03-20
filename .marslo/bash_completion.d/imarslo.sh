@@ -4,10 +4,10 @@
 #     FileName : imarslo.sh
 #       Author : marslo
 #      Created : 2026-03-09 14:28:06
-#   LastChange : 2026-03-18 09:48:06
+#   LastChange : 2026-03-20 01:23:54
 #=============================================================================
 
-_compgen_nocase() {
+function _compgen_nocase() {
   local cur="$1"
   local candidates="$2"
   local word

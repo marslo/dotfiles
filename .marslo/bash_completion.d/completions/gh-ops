@@ -4,8 +4,24 @@
 #     FileName : gh-ops
 #       Author : marslo
 #      Created : 2026-02-27 23:04:41
-#   LastChange : 2026-03-10 21:29:19
+#   LastChange : 2026-03-19 23:17:56
 #=============================================================================
+
+function _compgen_nocase() {
+  local cur="$1"
+  local candidates="$2"
+  local word
+
+  # clear the array before each call
+  COMPREPLY=()
+
+  for word in ${candidates}; do
+    # convert both word and cur to lowercase for case-insensitive comparison
+    if [[ "${word,,}" == "${cur,,}"* ]]; then
+      COMPREPLY+=( "$word" )
+    fi
+  done
+}
 
 function _gh_ops() {
   local cur prev opts
@@ -32,20 +48,14 @@ function _gh_ops() {
         -h --help"
 
   case "${prev}" in
-    -S|--state )
-        COMPREPLY=( $(compgen -W "open closed all merged" -- "${cur}") )
-        return 0
-        ;;
-    -B|--base )
-        local branches
-        branches=$(git branch --format="%(refname:short)" 2>/dev/null)
-        COMPREPLY=( $(compgen -W "${branches}" -- "${cur}") )
-        return 0
-        ;;
-    -l|--add-label|-L|--remove-label|-R|--repo )
-        COMPREPLY=()
-        return 0
-        ;;
+    -S|--state ) COMPREPLY=( $(compgen -W "open closed all merged" -- "${cur}") ); return 0 ;;
+    -B|--base  ) local branches=''
+                 branches=$(git branch --format="%(refname:short)" 2>/dev/null);
+                 COMPREPLY=( $(compgen -W "${branches}" -- "${cur}") ); return 0 ;;
+    -R|--repo  ) local repos=''
+                 repos="$(gh repo list --json nameWithOwner -q '.[].nameWithOwner' 2>/dev/null)"
+                 _compgen_nocase "${cur}" "${repos}"; return 0 ;;
+    -l|--add-label|-L|--remove-label ) COMPREPLY=(); return 0 ;;
   esac
 
   for (( i=1; i < COMP_CWORD; i++ )); do

@@ -25,10 +25,10 @@ aliases:
     # co: pr checkout
     co: '!$HOME/.marslo/bin/gh-ops --checkout'
     cl: '!$HOME/.marslo/bin/gh-ops --close'
-    squash-clean: '!sh -c "$HOME/.marslo/bin/gh-ops --squash -- --delete-branch \"\$@\"" --'
-    rebase-clean: '!sh -c "$HOME/.marslo/bin/gh-ops --rebase -- --delete-branch \"\$@\"" --'
+    squash-clean: '!bash -c "$HOME/.marslo/bin/gh-ops --squash -- --delete-branch \"\$@\"" --'
+    rebase-clean: '!bash -c "$HOME/.marslo/bin/gh-ops --rebase -- --delete-branch \"\$@\"" --'
     pr-new: '!$HOME/.marslo/bin/gh-new --open --label "auto-merge"'
-    pro: '!$HOME/.marslo/bin/gh-new --open --auto'
+    pro: '!$HOME/.marslo/bin/gh-ops --auto-open'
     pr-open: '!$HOME/.marslo/bin/gh-ops --open'
     pr-close: '!$HOME/.marslo/bin/gh-ops --close'
     pr-label: '!$HOME/.marslo/bin/gh-ops --add-label'

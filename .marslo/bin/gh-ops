@@ -4,7 +4,7 @@
 #     FileName : gh-ops
 #       Author : marslo
 #      Created : 2026-01-21 20:38:07
-#   LastChange : 2026-03-19 22:20:00
+#   LastChange : 2026-03-20 01:31:09
 #  Inspired by : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/
 #=============================================================================
 
@@ -12,13 +12,17 @@ set -euo pipefail
 
 declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
-declare -r JQ_FILE="${HERE}/gh.d/gh-ops-preview.jq"
 
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
 [[ -f "${HERE}/bash-colors.sh" ]] && source "${HERE}/bash-colors.sh" || { c() { :; }; }
+# shellcheck disable=SC2015
+[[ -f "${HERE}/gh.d/gh-preview" ]] && source "${HERE}/gh.d/gh-preview" || {
+  echo -e "$(c 0Rs)ERROR: missing dependency: $(c 0Mi)\`gh-preview\` $(c 0Wi)script not found. please make sure it is present in the same directory or in the PATH$(c)" >&2
+  exit 1
+}
 
 declare -r USAGE="NAME
   $(c Cs)${ME}$(c) - interactively GitHub PR using fzf
@@ -41,7 +45,7 @@ OPTIONS
   $(c G)-S$(c), $(c G)--state$(c) $(c 0Mi)STATE$(c)         filter PR by state $(c 0i)(e.g. $(c 0Ci)open$(c 0i), $(c 0Ci)closed$(c 0i), $(c 0Ci)all$(c 0i), $(c 0Ci)merged$(c 0i))$(c)
   $(c G)-B$(c), $(c G)--base$(c) $(c 0Mi)BRANCH_NAME$(c)    filter PR by base branch
   $(c G)-R$(c), $(c G)--repo$(c) $(c 0Mi)OWNER/REPO$(c)     filter PR by repository $(c 0i)(e.g. $(c 0Ci)OWNER/REPO$(c 0i))$(c)
-  $(c G)-V$(c), $(c G)--verbose$(c)             show verbose output
+  $(c G)-v$(c), $(c G)--verbose$(c)             show verbose output
   $(c G)--dryrun$(c)                  show the command to be executed, but do not run it
   $(c G)-h$(c), $(c G)--help$(c)                show this help message
   $(c C)--$(c) $(c 0Mi)GH_OPTIONS$(c)             pass all following arguments to gh CLI $(c 0i)(e.g. $(c 0Ci)--auto$(c 0i), $(c 0Ci)--delete-branch$(c)$(c 0i), etc.)$(c)
@@ -76,16 +80,35 @@ TIPS
 
 declare DRYRUN=false
 declare VERBOSE=false
-declare SHOULD_OPEN=false
-declare AUTO_OPEN=false
-declare -a GH_OPTS=()
+declare OPEN=false
+declare AUTO=false
+declare -a CLI_CMD=( gh pr )
 declare -a CLI_OPTS=()
-declare -a CLI_CMD=( gh )
+declare -a GH_OPTS=()
+declare -a GHD_OPTS=()
 declare -a REVIEW_ARGS=()
 declare -a OPTIONS=()
 declare REPO_PATH=''
 
 function showHelp() { echo -e "${USAGE}"; exit 0; }
+function _output() {
+  local _extra='' _option='' _body=''
+  _hasOption 'add-label' && _extra='to' || _extra='from'
+  _hasOption 'review'    && {
+    [[ ${#REVIEW_ARGS[@]} -gt 0 ]] && { _option="${REVIEW_ARGS[0]#--}"; _extra='on'; } || :
+    [[ ${#REVIEW_ARGS[@]} -eq 3 ]] && _body="${REVIEW_ARGS[2]}"                        || :
+  } || _option="$(joinBy ' and ' "${OPTIONS[@]}")"
+
+  # shellcheck disable=SC2016
+  printf "$(c Ci)~~> %s$(c)%b $(c 0Mis)%s #%s$(c)%b%b $(c Ci)..$(c)\n" \
+         "${_option}" \
+         "${LABEL:+ $(c 0Mis)'${LABEL}'} $(c 0Ci)${_extra}" \
+         "${REPO_PATH}" \
+         "${PR_ID}" \
+         "${_body:+ $(c 0Ci)with message $(c 0Bi)'${_body}'$(c)}" \
+         "${GH_OPTS[*]:+ $(c 0i)with gh OPTS $(c 0Mis)${GH_OPTS[*]}$(c)}" >&2
+}
+
 function show() {
   local tag tcolor body
   local extra=''
@@ -96,6 +119,7 @@ function show() {
     warning          ) tag="$1";    shift; body="${*}"; tcolor="$(c 0Yi)"                      ;;
     error            ) tag="$1";    shift; body="${*}"; tcolor="$(c 0Ri)"                      ;;
     dryrun | verbose ) tag=">> $1"; shift; body="${*}"; tcolor="$(c 0Wdi)"; bcolor="${tcolor}" ;;
+    action           ) _output; return 0                                                       ;;
     *                ) tag='error';        body="${*}"; tcolor="$(c 0Ri)"                      ;;
   esac
 
@@ -111,6 +135,9 @@ function joinBy {
 
 function _hasOption() { [[ " ${OPTIONS[*]} " == *" $1 "* ]]; }
 function _checkReviewOptions() { [[ ${#REVIEW_ARGS[@]} -gt 0 ]] && show error "--comment/--approve/--request-changes are mutually exclusive" || :; }
+function _dryrun()  { "${DRYRUN}"  && { show dryrun  "${1}"; exit 0; }; }
+function _verbose() { "${VERBOSE}" && show verbose "${1}" || :        ; }
+function _dryrunOrVerbose() { _dryrun "${1}" || _verbose "${1}"       ; }
 
 function checkTools() {
   local -a tools=( 'gh' 'fzf' )
@@ -128,14 +155,12 @@ function checkTools() {
 function openPR() {
   local id="${1:-}"
 
-  if "${SHOULD_OPEN}"; then
-    "${AUTO_OPEN}" && {
-      test -z "${id:-}" && id="$(gh pr view --json number -q .number 2>/dev/null)"
-    }
+  if "${OPEN}"; then
     # shellcheck disable=SC2015
     test -n "${id:-}" && {
-      local -a openCmd=( gh pr view "${id}" --web )
-      "${VERBOSE}" && show info "opening PR $(c 0Mi)\`#${id}\`$(c 0Wdi) in web browser ...$(c)" || :
+      local -a openCmd=( "${CLI_CMD[@]}" view "${id}" --web )
+      _dryrun  "command to be executed: \`$(c 0Cdi)\$ ${openCmd[*]}$(c 0Wdi)\` ...$(c)"
+      _verbose "opening PR $(c 0Mi)\`#${id}\`$(c 0Wdi) in web browser ...$(c)"
       "${openCmd[@]}"
     } || {
       show warning "cannot open PR: no PR ID found"
@@ -143,115 +168,20 @@ function openPR() {
   fi
 }
 
-# shellcheck disable=SC2015,SC2059
-function jc() {
-  [ $# == 0 ] && printf "\\u001b[0m" || \
-  printf "${1}" | sed 's/\(.\)/\1;/g;s/\([SDIUFNHT]\)/1\1/g;s/\([KRGYBMCW]\)/3\1/g;s/\([krgybmcw]\)/4\1/g;y/SDIUFNHTsdiufnhtKRGYBMCWkrgybmcw/12345789123457890123456701234567/;s/^\(.*\);$/\\u001b[\1m/g'
-}
-
-# shellcheck disable=SC2016,SC2064
-function getId() {
-  test -f "${JQ_FILE}" || show error "missing JQ filter file at ${JQ_FILE}"
-  export JQ_FILTER="$(cat "${JQ_FILE}")"
-
-  local CACHE_FILE="/tmp/gh_ops_cache_$$"
-  trap "rm -f ${CACHE_FILE}" EXIT
-  : > "${CACHE_FILE}"
-
-  local TEMPLATE='"'
-  TEMPLATE+='#\(.number) - \(.title)'
-  TEMPLATE+='\t'
-  TEMPLATE+="$(jc Cs)Author:$(jc) \(.author.login)\n"
-  TEMPLATE+="$(jc Ys)Created:$(jc) \(.createdAt) $(jc Ms)•$(jc) $(jc Ys)Updated:$(jc) \(.updatedAt)\n\n"
-  TEMPLATE+='\(.title)'
-  TEMPLATE+='\( .title as $t | (.body // "") | if startswith($t) then .[($t | length):] else . end | gsub("(?s)[ \t]*<!--.*?-->[ \t]*\n?"; "") | sub("^\\s+"; "") | if . == "" then "" else "\n\n" + . end )'
-  TEMPLATE+='"'
-
-  local EXTRACT_ID_CMD='sed -n "$(( {n}+1 ))p" "'${CACHE_FILE}'" | sed -En "s/^#([0-9]+).*/\1/p"'
-
-  local REMOTE_CMD=''
-  REMOTE_CMD+='change-preview('
-  REMOTE_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
-  REMOTE_CMD+='if [ -n "${id}" ]; then gh pr view "${id}" --json mergeable,reviewDecision,reviewRequests,reviews,body,labels,state --jq "$JQ_FILTER" 2>/dev/null; else echo "Loading Remote ..."; fi'
-  REMOTE_CMD+=')+'
-  REMOTE_CMD+='transform-preview-label('
-  REMOTE_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
-  REMOTE_CMD+='printf "\033[1;36m[ REMOTE #%s ]\033[0m" "${id}"'
-  REMOTE_CMD+=')'
-  export CMD_REMOTE="${REMOTE_CMD}"
-
-  local LOCAL_CMD=''
-  LOCAL_CMD+='change-preview('
-  LOCAL_CMD+='content=$( sed -n "$(({n}+1))p" "'${CACHE_FILE}'" | cut -f2- ); '
-  LOCAL_CMD+='printf "%b\n" "${content}"'
-  LOCAL_CMD+=')+'
-  LOCAL_CMD+='transform-preview-label('
-  LOCAL_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
-  LOCAL_CMD+='printf "\033[1;35m[ LOCAL #%s ]\033[0m" "${id}"'
-  LOCAL_CMD+=')'
-  export CMD_LOCAL="${LOCAL_CMD}"
-
-  # result:transform-list-label
-  local BIND_RESULT_CMD='if [[ -z ${FZF_QUERY} ]]; then echo " ${FZF_MATCH_COUNT} items "; else echo " ${FZF_MATCH_COUNT} matches for [${FZF_QUERY}] "; fi'
-
-  # focus:transform-preview-label
-  local BIND_FOCUS_CMD=''
-  BIND_FOCUS_CMD+='id=$( '${EXTRACT_ID_CMD}' ); '
-  BIND_FOCUS_CMD+='if echo "${FZF_PREVIEW_LABEL}" | grep -q -i "remote"; then '
-  BIND_FOCUS_CMD+='  printf "\033[1;36m[ REMOTE #%s ]\033[0m" "${id}"; '
-  BIND_FOCUS_CMD+='else '
-  BIND_FOCUS_CMD+='  printf "\033[1;35m[ LOCAL #%s ]\033[0m" "${id}"; '
-  BIND_FOCUS_CMD+='fi'
-
-  # ctrl-/:transform
-  local BIND_TOGGLE_CMD=''
-  BIND_TOGGLE_CMD+='if echo "${FZF_PREVIEW_LABEL}" | grep -q -i "remote"; then '
-  BIND_TOGGLE_CMD+='  echo "${CMD_LOCAL}"; '
-  BIND_TOGGLE_CMD+='else '
-  BIND_TOGGLE_CMD+='  echo "${CMD_REMOTE}"; '
-  BIND_TOGGLE_CMD+='fi'
-
-  local PR_ID=''
-  CLI_CMD+=( pr list --json 'number,title,author,createdAt,updatedAt,body' )
-  CLI_CMD+=( "${CLI_OPTS[@]}" )
-  PR_ID=$(
-    "${CLI_CMD[@]}" | jq ".[] | ${TEMPLATE}" |
-    sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/' -e 's/\\u001b/\\033/g' |
-    tee "${CACHE_FILE}" |
-    fzf +m --ansi \
-        --with-nth=1 \
-        --delimiter='\t' \
-        --color='query:bold:italic:magenta,prompt:italic' \
-        --preview-window=top:65%:wrap \
-        --prompt=' PR: ' --info='inline-right:  ' \
-        --preview='content=$(sed -n "$(( {n}+1 ))p" "'${CACHE_FILE}'" | cut -f2-); printf "%b\n" "${content}"' \
-        --preview-label=$'\033[1;35m[ Local ]\033[0m' \
-        --bind "result:transform-list-label:${BIND_RESULT_CMD}" \
-        --bind "focus:transform-preview-label:${BIND_FOCUS_CMD}" \
-        --bind "ctrl-/:transform:${BIND_TOGGLE_CMD}" \
-        --bind "ctrl-y:execute-silent(echo {1} | sed -En 's/^#([0-9]+).*/\1/p' | pbcopy)" \
-        --bind "ctrl-o:execute-silent(echo {1} | awk '{print \$1}' | xargs gh pr view --web)" |
-    sed -En 's/^#([0-9]+).*/\1/p'
-  )
-
-  unset JQ_FILTER CMD_REMOTE CMD_LOCAL
-  test -n "${PR_ID}" && echo "${PR_ID}" || return 1
-}
-
 function getLabel() {
-  local nowLabels
-  nowLabels="$( gh pr view "${PR_ID}" --json labels --jq '.labels[].name' )"
+  local _labels
+  _labels="$( "${CLI_CMD[@]}" view "${PR_ID}" --json labels --jq '.labels[].name' )"
 
   case "$1" in
     --add-label    ) local allLabels
                      allLabels="$( gh label list --json name --jq '.[].name' )"
-                     comm -23 <( sort <<< "${allLabels}" ) <( sort <<< "${nowLabels}" ) \
+                     comm -23 <( sort <<< "${allLabels}" ) <( sort <<< "${_labels}" ) \
                        | fzf --ansi --prompt='󰩀 add > ' -0 -m | paste -sd "," - ;;
-    --remove-label ) if [[ -z "${nowLabels:-}" ]]; then
+    --remove-label ) if [[ -z "${_labels:-}" ]]; then
                        show error "no labels on PR #${PR_ID}"
                        return 1
                      fi
-                     sort <<< "${nowLabels}" \
+                     sort <<< "${_labels}" \
                        | fzf --ansi --prompt='󰩀 remove > ' -0 -m | paste -sd "," - ;;
   esac
 }
@@ -268,95 +198,77 @@ function main() {
     ['--request-changes']='review'
   )
 
-  local cmd=( gh pr )
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -l | --add-label  | \
       -L | --remove-label ) OPTIONS+=("${MAPPING[$1]:-${1#--}}") ;
                             if [[ -n "${2:-}" && "${2}" != -* ]] ; then
-                              LABELS+=("${2}"); shift;
+                              IFS=',' read -ra _label <<< "${2}"; LABELS+=("${_label[@]}"); shift;
                             fi                                   ; shift ;;
       -c | --checkout   | \
       -C | --close      | \
       -s | --squash     | \
       -r | --rebase       ) OPTIONS+=("${MAPPING[$1]:-${1#--}}") ; shift ;;
-      -o | --open         ) SHOULD_OPEN=true                     ; shift ;;
-      -A | --auto-open    ) SHOULD_OPEN=true; AUTO_OPEN=true     ; shift ;;
-      -V | --verbose      ) VERBOSE=true                         ; shift ;;
+      -o | --open         ) OPEN=true                            ; shift ;;
+      -A | --auto-open    ) OPEN=true; AUTO=true                 ; shift ;;
+      -v | --verbose      ) VERBOSE=true                         ; shift ;;
       --dryrun            ) DRYRUN=true                          ; shift ;;
       --request-changes | \
       -M | --comment      ) _checkReviewOptions; OPTIONS+=("${MAPPING[$1]}") ;
                             [[ -z "${2:-}" || "${2}" == -* ]] && show error "${1} requires a body message"
-                            [[ 'request-changes' = "${1#--}" ]] && rarg='--request-changes' || rarg='--comment'
+                            local rarg; [[ 'request-changes' = "${1#--}" ]] && rarg='--request-changes' || rarg='--comment'
                             REVIEW_ARGS+=( "${rarg}" --body "${2}" ) ; shift 2 ;;
       -a | --approve      ) _checkReviewOptions; OPTIONS+=("${MAPPING[$1]}") ;
                             REVIEW_ARGS+=( --approve ) ;
                             [[ -n "${2:-}" && "${2}" != -* ]] && { REVIEW_ARGS+=( --body "${2}" ); shift ;} ;
                             shift ;;
       -S | --state      | \
-      -B | --base         ) CLI_OPTS+=( "--${MAPPING[$1]:-${1#--}}" "$2" ); shift 2 ;;
-      -R | --repo         ) CLI_OPTS+=( "--${MAPPING[$1]:-${1#--}}" "$2" );
-                            cmd+=( "--${MAPPING[$1]:-${1#--}}" "$2" )     ;
-                            REPO_PATH="${2}"                              ; shift 2 ;;
-      --                  ) shift ; GH_OPTS+=( "$@" )                     ; break   ;;
-      -h | --help         ) showHelp                                     ;;
-      *                   ) show error "unknown argument: \`$1\`"        ;;
+      -B | --base         ) GHD_OPTS+=( "--${MAPPING[$1]:-${1#--}}" "$2" ) ; shift 2 ;;
+      -R | --repo         ) GHD_OPTS+=( "--${MAPPING[$1]:-${1#--}}" "$2" ) ;
+                            CLI_CMD+=( "--${MAPPING[$1]:-${1#--}}" "$2" )  ;
+                            REPO_PATH="${2}"                               ; shift 2 ;;
+      --                  ) shift ; GH_OPTS+=( "$@" )                      ; break   ;;
+      -h | --help         ) showHelp                                      ;;
+      *                   ) show error "unknown argument: \`$1\`"         ;;
     esac
   done
 
-  # uniq
-  mapfile -t OPTIONS < <(printf '%s\n' "${OPTIONS[@]}" | sort -u)
+  # uniq (guard against empty array producing a blank line that mapfile would capture)
+  [[ ${#OPTIONS[@]} -gt 0 ]] && mapfile -t OPTIONS < <(printf '%s\n' "${OPTIONS[@]}" | sort -u) || OPTIONS=()
+  REPO_PATH="${REPO_PATH:-$( gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null )}"
 
-  checkTools
-
-  local -a LABEL=''
+  local LABEL=''
   [[ "${#LABELS[@]}" -gt 0 ]] && LABEL="$( joinBy ',' "${LABELS[@]}" )"
 
-  # shellcheck disable=SC2155
-  local PR_ID="$( getId )"
+  local PR_ID=''
+  "${AUTO}" && PR_ID="$( gh pr view --json number -q .number 2>/dev/null )" || PR_ID="$( getPRId "${GHD_OPTS[@]}" )"
   test -z "${PR_ID}" && exit 0
-  while read -r option; do
+
+  for option in "${OPTIONS[@]}"; do
     case "${option}" in
-      checkout | close         ) cmd+=( "${option}" "${PR_ID}"    )                  ;;
-      squash                   ) cmd+=( merge "${PR_ID}" --squash )                  ;;
-      rebase                   ) cmd+=( merge "${PR_ID}" --rebase )                  ;;
-      review                   ) cmd+=( "${option}" "${PR_ID}" "${REVIEW_ARGS[@]}" ) ;;
-      add-label | remove-label ) test -n "${LABEL}" || LABEL="$( getLabel "--${option}")"
-                                 test -n "${LABEL}" && cmd+=( edit "${PR_ID}" "--${option}" "${LABEL}" ) ;;
-      *                        ) test -n "${option:-}" && show error "unknown option: \`${option}\`"  ;;
+      checkout | close         ) CLI_OPTS+=( "${option}" "${PR_ID}"    )                   ;;
+      squash                   ) CLI_OPTS+=( merge "${PR_ID}" --squash )                   ;;
+      rebase                   ) CLI_OPTS+=( merge "${PR_ID}" --rebase )                   ;;
+      review                   ) CLI_OPTS+=( "${option}" "${PR_ID}" "${REVIEW_ARGS[@]}" )  ;;
+      add-label | remove-label ) test -n "${LABEL:-}" || LABEL="$( getLabel "--${option}")" ;
+                                 test -n "${LABEL:-}" && CLI_OPTS+=( edit "${PR_ID}" "--${option}" "${LABEL}" ) ;;
+      *                        ) show error "unknown option: \`${option}\`"                ;;
     esac
-  done < <( printf '%s\n' "${OPTIONS[@]}" | sort -u )
+  done
 
-  [[ 0 = "${#OPTIONS[@]}" && "${SHOULD_OPEN}" ]] && { openPR "${PR_ID}"; exit 0; }
+  [[ 0 = "${#OPTIONS[@]}" ]] && "${OPEN}" && { openPR "${PR_ID}"; exit 0; }
 
-  { "${DRYRUN}" || "${VERBOSE}"; } && {
-    local msg="command to be executed: \`$(c 0Cdi)\$ ${cmd[*]}${GH_OPTS[*]:+ ${GH_OPTS[*]}}$(c 0Wdi)\` ...$(c)"
-    # shellcheck disable=SC2015
-    "${DRYRUN}" && { show dryrun "${msg}"; exit 0; } || show verbose "${msg}"
-  }
+  # show info
+  _dryrunOrVerbose "command to be executed: \`$(c 0Cdi)\$ ${CLI_CMD[*]}${CLI_OPTS[*]:+ ${CLI_OPTS[*]}}${GH_OPTS[*]:+ ${GH_OPTS[*]}}$(c 0Wdi)\` ...$(c)"
+  show action
 
-  REPO_PATH="${REPO_PATH:-$( gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null )}"
-  local _extra='' _option='' _body=''
-  _hasOption 'add-label' && _extra='to' || _extra='from'
-  _hasOption 'review'    && {
-    [[ ${#REVIEW_ARGS[@]} -gt 0 ]] && { _option="${REVIEW_ARGS[0]#--}"; _extra='on'; } || :
-    [[ ${#REVIEW_ARGS[@]} -eq 3 ]] && _body="${REVIEW_ARGS[2]}"                        || :
-  } || _option="$(joinBy ' and ' "${OPTIONS[@]}")"
+  # run cli
+  "${CLI_CMD[@]}" "${CLI_OPTS[@]}" "${GH_OPTS[@]}"
 
-  # shellcheck disable=SC2016
-  printf "$(c Ci)~~> %s$(c)%b $(c 0Mis)%s #%s$(c)%b%b $(c Ci)..$(c)\n" \
-         "${_option}" \
-         "${LABEL:+ $(c 0Mis)'${LABEL}'} $(c 0Ci)${_extra}" \
-         "${REPO_PATH}" \
-         "${PR_ID}" \
-         "${_body:+ $(c 0Ci)with message $(c 0Bi)'${_body}'$(c)}" \
-         "${GH_OPTS[*]:+ $(c 0i)with gh OPTS $(c 0Mis)${GH_OPTS[*]}$(c)}" >&2
-
-  "${cmd[@]}" "${GH_OPTS[@]}"
-
-  "${SHOULD_OPEN}" && { openPR "${PR_ID}"; exit 0; } || :
+  "${OPEN}" && { openPR "${PR_ID}"; exit 0; } || :
 }
 
+checkTools
 main "$@"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
