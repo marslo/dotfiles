@@ -21,6 +21,9 @@ function _gh_ops() {
         -r --rebase
         -l --add-label
         -L --remove-label
+        -M --comment
+        -a --approve
+        --request-changes
         -S --state
         -B --base
         -R --repo

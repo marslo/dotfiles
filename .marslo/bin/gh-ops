@@ -4,7 +4,7 @@
 #     FileName : gh-ops
 #       Author : marslo
 #      Created : 2026-01-21 20:38:07
-#   LastChange : 2026-03-10 21:09:32
+#   LastChange : 2026-03-19 22:20:00
 #  Inspired by : https://seb.jambor.dev/posts/improving-shell-workflows-with-fzf/
 #=============================================================================
 
@@ -20,8 +20,7 @@ declare -r JQ_FILE="${HERE}/gh.d/gh-ops-preview.jq"
 # shellcheck disable=SC2015
 [[ -f "${HERE}/bash-colors.sh" ]] && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
-declare -r USAGE="""
-NAME
+declare -r USAGE="NAME
   $(c Cs)${ME}$(c) - interactively GitHub PR using fzf
 
 USAGE
@@ -34,8 +33,11 @@ OPTIONS
   $(c G)-A$(c), $(c G)--auto-open$(c)           automatically open the PR in the web browser after selection
   $(c G)-s$(c), $(c G)--squash$(c)              squash merge the selected pull request and delete the branch
   $(c G)-r$(c), $(c G)--rebase$(c)              rebase merge the selected pull request and delete
-  $(c G)-l$(c), $(c G)--label$(c) $(c 0Mi)LABEL$(c)         add label(s) to the selected pull request $(c 0i)(default:  using fzf to select)$(c)
+  $(c G)-l$(c), $(c G)--add-label$(c) $(c 0Mi)LABEL$(c)     add label(s) to the selected pull request $(c 0i)(default:  using fzf to select)$(c)
   $(c G)-L$(c), $(c G)--remove-label$(c) $(c 0Mi)LABEL$(c)  remove label(s) from the selected pull request $(c 0i)(default:  using fzf to select)$(c)
+  $(c G)-M$(c), $(c G)--comment$(c) $(c 0Mi)MESSAGE$(c)     add a review comment to the selected pull request with message
+  $(c G)-a$(c), $(c G)--approve$(c) $(c 0Mi)<MESSAGE>$(c)   approve the selected pull request with or without message
+  $(c G)--request-changes$(c) $(c 0Mi)MESSAGE$(c) request changes on the selected pull request with message
   $(c G)-S$(c), $(c G)--state$(c) $(c 0Mi)STATE$(c)         filter PR by state $(c 0i)(e.g. $(c 0Ci)open$(c 0i), $(c 0Ci)closed$(c 0i), $(c 0Ci)all$(c 0i), $(c 0Ci)merged$(c 0i))$(c)
   $(c G)-B$(c), $(c G)--base$(c) $(c 0Mi)BRANCH_NAME$(c)    filter PR by base branch
   $(c G)-R$(c), $(c G)--repo$(c) $(c 0Mi)OWNER/REPO$(c)     filter PR by repository $(c 0i)(e.g. $(c 0Ci)OWNER/REPO$(c 0i))$(c)
@@ -46,7 +48,7 @@ OPTIONS
 
 EXAMPLES
   $(c Wdi)# interactively select a pull request and checkout the corresponding branch$(c)
-  $(c 0Ys)\$ ${ME} $(c 0Wdi)or $(c 0Ys)\$ ${ME} $(c 0Gi)--checkout$(c)
+  $(c 0Ys)\$ ${ME} $(c 0Gi)--checkout$(c)
 
   $(c Wdi)# update all submodules after checkout$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--checkout $(c 0Ci)-- $(c 0Mi)--recurse-submodules$(c)
@@ -55,24 +57,33 @@ EXAMPLES
   $(c Ys)\$ ${ME} $(c 0Gi)--close $(c 0Ci)-- $(c 0Mi)--delete-branch$(c)
 
   $(c Wdi)# add label(s) to the closed PR$(c)
-  $(c Ys)\$ ${ME} $(c 0Gi)--label $(c 0Mi)bug,help $(c 0Gi)--state $(c 0Mi)closed$(c)$(c)
-  $(c Ys)\$ ${ME} $(c 0Gi)--label $(c 0Mi)bug $(c 0Gi)--label $(c 0Mi)help $(c 0Gi)--state $(c 0Mi)closed$(c)$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--add-label $(c 0Mi)bug,help $(c 0Gi)--state $(c 0Mi)closed$(c)$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--add-label $(c 0Mi)bug $(c 0Gi)--add-label $(c 0Mi)help $(c 0Gi)--state $(c 0Mi)closed$(c)$(c)
+
+  $(c Wdi)# approve the PR$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--approve$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--approve $(c 0Mi)'looks good to me'$(c)
+
+  $(c Wdi)# comment on the PR - to trigger the Jenkins pipeline with keyword$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--comment $(c 0Mi)'cri'$(c)
 
 TIPS
   while in the fzf selection menu:
     • press $(c 0Bsi)ctrl-y$(c) to copy the PR ID to clipboard
     • press $(c 0Bsi)ctrl-o$(c) to open the selected PR in the web browser
     • press $(c 0Bsi)ctrl-/$(c) to toggle between local and remote preview (requires the preview script to be present)
-"""
+"
 
-declare OPTION=''
 declare DRYRUN=false
 declare VERBOSE=false
+declare SHOULD_OPEN=false
+declare AUTO_OPEN=false
 declare -a GH_OPTS=()
 declare -a CLI_OPTS=()
 declare -a CLI_CMD=( gh )
-declare SHOULD_OPEN=false
-declare AUTO_OPEN=false
+declare -a REVIEW_ARGS=()
+declare -a OPTIONS=()
+declare REPO_PATH=''
 
 function showHelp() { echo -e "${USAGE}"; exit 0; }
 function show() {
@@ -88,15 +99,18 @@ function show() {
     *                ) tag='error';        body="${*}"; tcolor="$(c 0Ri)"                      ;;
   esac
 
-  [[ 'error' == "${tag}" ]] && extra="$(c Wdi). exit ...$(c)" || extra=''
+  [[ 'error' = "${tag}" ]] && extra="$(c Wdi). exit ...$(c)" || extra=''
   printf "%b%s$(c)%b: %b$(c)%b\n" "${tcolor}" "${tag^^}" "${bcolor}" "${body}" "${extra}" >&2;
-  [[ 'error' == "${tag}" ]] && exit 1 || :
+  [[ 'error' = "${tag}" ]] && exit 1 || :
 }
 
 function joinBy {
   local d=${1-} f=${2-}
   if shift 2; then printf %s "$f" "${@/#/$d}"; fi
 }
+
+function _hasOption() { [[ " ${OPTIONS[*]} " == *" $1 "* ]]; }
+function _checkReviewOptions() { [[ ${#REVIEW_ARGS[@]} -gt 0 ]] && show error "--comment/--approve/--request-changes are mutually exclusive" || :; }
 
 function checkTools() {
   local -a tools=( 'gh' 'fzf' )
@@ -249,31 +263,49 @@ function main() {
     ['-s']='squash'    ['-r']='rebase'
     ['-l']='add-label' ['-L']='remove-label'
     ['-S']='state'     ['-B']='base'    ['-R']='repo'
+    ['-M']='review'    ['--comment']='review'
+    ['-a']='review'    ['--approve']='review'
+    ['--request-changes']='review'
   )
 
+  local cmd=( gh pr )
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -l | --add-label  | \
-      -L | --remove-label ) OPTION="${MAPPING[$1]:-${1#--}}" ;
-                            if [[ -n "${2:-}" && "${2}" != -* ]]; then
+      -L | --remove-label ) OPTIONS+=("${MAPPING[$1]:-${1#--}}") ;
+                            if [[ -n "${2:-}" && "${2}" != -* ]] ; then
                               LABELS+=("${2}"); shift;
-                            fi                               ; shift ;;
+                            fi                                   ; shift ;;
       -c | --checkout   | \
       -C | --close      | \
       -s | --squash     | \
-      -r | --rebase       ) OPTION="${MAPPING[$1]:-${1#--}}" ; shift ;;
-      -o | --open         ) SHOULD_OPEN=true                 ; shift ;;
-      -A | --auto-open    ) SHOULD_OPEN=true; AUTO_OPEN=true ; shift ;;
-      -V | --verbose      ) VERBOSE=true                     ; shift ;;
-      --dryrun            ) DRYRUN=true                      ; shift ;;
+      -r | --rebase       ) OPTIONS+=("${MAPPING[$1]:-${1#--}}") ; shift ;;
+      -o | --open         ) SHOULD_OPEN=true                     ; shift ;;
+      -A | --auto-open    ) SHOULD_OPEN=true; AUTO_OPEN=true     ; shift ;;
+      -V | --verbose      ) VERBOSE=true                         ; shift ;;
+      --dryrun            ) DRYRUN=true                          ; shift ;;
+      --request-changes | \
+      -M | --comment      ) _checkReviewOptions; OPTIONS+=("${MAPPING[$1]}") ;
+                            [[ -z "${2:-}" || "${2}" == -* ]] && show error "${1} requires a body message"
+                            [[ 'request-changes' = "${1#--}" ]] && rarg='--request-changes' || rarg='--comment'
+                            REVIEW_ARGS+=( "${rarg}" --body "${2}" ) ; shift 2 ;;
+      -a | --approve      ) _checkReviewOptions; OPTIONS+=("${MAPPING[$1]}") ;
+                            REVIEW_ARGS+=( --approve ) ;
+                            [[ -n "${2:-}" && "${2}" != -* ]] && { REVIEW_ARGS+=( --body "${2}" ); shift ;} ;
+                            shift ;;
       -S | --state      | \
-      -B | --base       | \
-      -R | --repo         ) CLI_OPTS+=( "--${MAPPING[$1]:-${1#--}}" "$2" ); shift 2 ;;
-      --                  ) shift ; GH_OPTS+=( "$@" )        ; break ;;
-      -h | --help         ) showHelp                                 ;;
-      *                   ) show error "unknown argument: \`$1\`"    ;;
+      -B | --base         ) CLI_OPTS+=( "--${MAPPING[$1]:-${1#--}}" "$2" ); shift 2 ;;
+      -R | --repo         ) CLI_OPTS+=( "--${MAPPING[$1]:-${1#--}}" "$2" );
+                            cmd+=( "--${MAPPING[$1]:-${1#--}}" "$2" )     ;
+                            REPO_PATH="${2}"                              ; shift 2 ;;
+      --                  ) shift ; GH_OPTS+=( "$@" )                     ; break   ;;
+      -h | --help         ) showHelp                                     ;;
+      *                   ) show error "unknown argument: \`$1\`"        ;;
     esac
   done
+
+  # uniq
+  mapfile -t OPTIONS < <(printf '%s\n' "${OPTIONS[@]}" | sort -u)
 
   checkTools
 
@@ -283,17 +315,19 @@ function main() {
   # shellcheck disable=SC2155
   local PR_ID="$( getId )"
   test -z "${PR_ID}" && exit 0
-  local cmd=( gh pr )
-  case "${OPTION:-}" in
-    checkout | close         ) cmd+=( "${OPTION}" "${PR_ID}"    )          ;;
-    squash                   ) cmd+=( merge "${PR_ID}" --squash )          ;;
-    rebase                   ) cmd+=( merge "${PR_ID}" --rebase )          ;;
-    add-label | remove-label ) test -n "${LABEL}" || LABEL="$( getLabel "--${OPTION}")"
-                               test -n "${LABEL}" && cmd+=( edit "${PR_ID}" "--${OPTION}" "${LABEL}" ) ;;
-    *                        ) test -n "${OPTION:-}" && show error "unknown option: \`${OPTION}\`"  ;;
-  esac
+  while read -r option; do
+    case "${option}" in
+      checkout | close         ) cmd+=( "${option}" "${PR_ID}"    )                  ;;
+      squash                   ) cmd+=( merge "${PR_ID}" --squash )                  ;;
+      rebase                   ) cmd+=( merge "${PR_ID}" --rebase )                  ;;
+      review                   ) cmd+=( "${option}" "${PR_ID}" "${REVIEW_ARGS[@]}" ) ;;
+      add-label | remove-label ) test -n "${LABEL}" || LABEL="$( getLabel "--${option}")"
+                                 test -n "${LABEL}" && cmd+=( edit "${PR_ID}" "--${option}" "${LABEL}" ) ;;
+      *                        ) test -n "${option:-}" && show error "unknown option: \`${option}\`"  ;;
+    esac
+  done < <( printf '%s\n' "${OPTIONS[@]}" | sort -u )
 
-  [[ -z "${OPTION}" && "${SHOULD_OPEN}" ]] && { openPR "${PR_ID}"; exit 0; }
+  [[ 0 = "${#OPTIONS[@]}" && "${SHOULD_OPEN}" ]] && { openPR "${PR_ID}"; exit 0; }
 
   { "${DRYRUN}" || "${VERBOSE}"; } && {
     local msg="command to be executed: \`$(c 0Cdi)\$ ${cmd[*]}${GH_OPTS[*]:+ ${GH_OPTS[*]}}$(c 0Wdi)\` ...$(c)"
@@ -301,17 +335,26 @@ function main() {
     "${DRYRUN}" && { show dryrun "${msg}"; exit 0; } || show verbose "${msg}"
   }
 
-  local _extra=''; [[ "${OPTION}" == 'add-label' ]] && _extra='to' || _extra='from'
+  REPO_PATH="${REPO_PATH:-$( gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null )}"
+  local _extra='' _option='' _body=''
+  _hasOption 'add-label' && _extra='to' || _extra='from'
+  _hasOption 'review'    && {
+    [[ ${#REVIEW_ARGS[@]} -gt 0 ]] && { _option="${REVIEW_ARGS[0]#--}"; _extra='on'; } || :
+    [[ ${#REVIEW_ARGS[@]} -eq 3 ]] && _body="${REVIEW_ARGS[2]}"                        || :
+  } || _option="$(joinBy ' and ' "${OPTIONS[@]}")"
+
   # shellcheck disable=SC2016
-  printf "$(c Ci)~~> %s$(c)%b $(c 0Mis)#%s$(c)%b $(c Ci)..$(c)\n" \
-         "${OPTION}" \
+  printf "$(c Ci)~~> %s$(c)%b $(c 0Mis)%s #%s$(c)%b%b $(c Ci)..$(c)\n" \
+         "${_option}" \
          "${LABEL:+ $(c 0Mis)'${LABEL}'} $(c 0Ci)${_extra}" \
+         "${REPO_PATH}" \
          "${PR_ID}" \
+         "${_body:+ $(c 0Ci)with message $(c 0Bi)'${_body}'$(c)}" \
          "${GH_OPTS[*]:+ $(c 0i)with gh OPTS $(c 0Mis)${GH_OPTS[*]}$(c)}" >&2
 
   "${cmd[@]}" "${GH_OPTS[@]}"
 
-  [[ -n "${OPTION}" && "${SHOULD_OPEN}" ]] && { openPR "${PR_ID}"; exit 0; }
+  "${SHOULD_OPEN}" && { openPR "${PR_ID}"; exit 0; } || :
 }
 
 main "$@"
