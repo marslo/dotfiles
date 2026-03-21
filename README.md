@@ -27,6 +27,7 @@ Life is short, make it easier!
 
 - [setup](#setup)
   - [dotfiles](#dotfiles)
+  - [gh extensions](#gh-extensions)
   - [fonts](#fonts)
   - [tools](#tools)
 - [folder structure](#folder-structure)
@@ -52,6 +53,17 @@ Life is short, make it easier!
 ### dotfiles
 ```bash
 $ bash install.sh
+```
+
+### gh extensions
+```bash
+# gh new
+$ gh extension install marslo/gh-new
+$ gh new --setup --force
+
+# gh ops
+$ gh extension install marslo/gh-ops
+$ gh ops --setup --force
 ```
 
 ### fonts
