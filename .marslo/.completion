@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2026-03-06 00:55:44
+#   LastChange : 2026-03-20 22:08:47
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -23,34 +23,34 @@ declare COMPLETION_DIR="${HOME}"/.marslo/bash_completion.d
 declare ANSIBLE_COMPLETION_PATH="${COMPLETION_DIR}/ansible-completion"            # https://github.com/dysosmus/ansible-completion
 # declare NPM_COMPLETION="$HOME/.npm/lib/node_modules/npm-completion"             # for npm-completion https://github.com/Jephuff/npm-bash-completion
 
-test -f "${RT_COMPLETION}"                          && source "${RT_COMPLETION}"
-test -f "${COMPLETION_DIR}"/imarslo.sh              && source "${COMPLETION_DIR}"/imarslo.sh
-test -f "${COMPLETION_DIR}"/cht.sh/cht.sh           && source "${COMPLETION_DIR}"/cht.sh/cht.sh
-test -f "${COMPLETION_DIR}"/complete_alias          && source "${COMPLETION_DIR}"/complete_alias
-test -f "${COMPLETION_DIR}"/npm-groovy-lint.sh      && source "${COMPLETION_DIR}"/npm-groovy-lint.sh
+test -f "${RT_COMPLETION}"                           && source "${RT_COMPLETION}"
+test -f "${COMPLETION_DIR}"/imarslo.sh               && source "${COMPLETION_DIR}"/imarslo.sh
+test -f "${COMPLETION_DIR}"/cht.sh/cht.sh            && source "${COMPLETION_DIR}"/cht.sh/cht.sh
+test -f "${COMPLETION_DIR}"/complete_alias           && source "${COMPLETION_DIR}"/complete_alias
+test -f "${COMPLETION_DIR}"/npm-groovy-lint.sh       && source "${COMPLETION_DIR}"/npm-groovy-lint.sh
 # for git alias completion - should load after source git-completion.sh ( after .imac/.ilinux )
-test -f "${COMPLETION_DIR}"/gitalias.sh             && source "${COMPLETION_DIR}"/gitalias.sh
-test -f "${COMPLETION_DIR}"/gh.arsenal.sh           && source "${COMPLETION_DIR}"/gh.arsenal.sh
+test -f "${COMPLETION_DIR}"/gitalias.sh              && source "${COMPLETION_DIR}"/gitalias.sh
 
-type -P commitlint >/dev/null                       && source "${COMPLETION_DIR}/commitlint.sh"
-type -P pre-commit >/dev/null                       && source "${COMPLETION_DIR}/pre-commit.sh"
-type -P kubectl    >/dev/null                       && source "${COMPLETION_DIR}/kubectl.sh"
-type -P npm        >/dev/null                       && source "${COMPLETION_DIR}/npm.sh"
-type -P gh         >/dev/null                       && source "${COMPLETION_DIR}/gh.bash.sh"
-type -P bat        >/dev/null                       && source "${COMPLETION_DIR}/bat.sh"
-type -P pipx       >/dev/null                       && source "${COMPLETION_DIR}/pipx.sh"
-type -P pip        >/dev/null                       && source "${COMPLETION_DIR}/pip.sh"
-type -P poetry     >/dev/null                       && source "${COMPLETION_DIR}/poetry.sh"
-type -P code       >/dev/null                       && source "${COMPLETION_DIR}/code.sh"
-type -P fossa      >/dev/null                       && source "${COMPLETION_DIR}/fossa.sh"
-type -P typos      >/dev/null                       && source "${COMPLETION_DIR}/typos.sh"
-type -P scc        >/dev/null                       && source "${COMPLETION_DIR}/scc.sh"
-type -P extractor  >/dev/null                       && source "${COMPLETION_DIR}/extractor.sh"
-# test -d "${NPM_COMPLETION}"                       && source "${NPM_COMPLETION}/npm-completion.sh"
+type -P commitlint >/dev/null                        && source "${COMPLETION_DIR}/commitlint.sh"
+type -P pre-commit >/dev/null                        && source "${COMPLETION_DIR}/pre-commit.sh"
+type -P kubectl    >/dev/null                        && source "${COMPLETION_DIR}/kubectl.sh"
+type -P npm        >/dev/null                        && source "${COMPLETION_DIR}/npm.sh"
+type -P gh         >/dev/null                        && source "${COMPLETION_DIR}/gh.bash.sh"
+type -P bat        >/dev/null                        && source "${COMPLETION_DIR}/bat.sh"
+type -P pipx       >/dev/null                        && source "${COMPLETION_DIR}/pipx.sh"
+type -P pip        >/dev/null                        && source "${COMPLETION_DIR}/pip.sh"
+type -P poetry     >/dev/null                        && source "${COMPLETION_DIR}/poetry.sh"
+type -P code       >/dev/null                        && source "${COMPLETION_DIR}/code.sh"
+type -P fossa      >/dev/null                        && source "${COMPLETION_DIR}/fossa.sh"
+type -P typos      >/dev/null                        && source "${COMPLETION_DIR}/typos.sh"
+type -P scc        >/dev/null                        && source "${COMPLETION_DIR}/scc.sh"
+type -P extractor  >/dev/null                        && source "${COMPLETION_DIR}/extractor.sh"
+test -L "${COMPLETION_DIR}/gh-arsenal-completion.sh" && source "${COMPLETION_DIR}/gh-arsenal-completion.sh"
+# test -d "${NPM_COMPLETION}"                        && source "${NPM_COMPLETION}/npm-completion.sh"
 # via `vault -autocomplete-install`
-type -P vault      >/dev/null                       && complete -C "$(type -P vault)" vault
-type -t _fd        >/dev/null 2>&1                  && complete -F _fd -o nosort -o bashdefault -o default ff ffs
-type -t _comp_cmd_chromium_browser >/dev/null 2>&1  && complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome
+type -P vault      >/dev/null                        && complete -C "$(type -P vault)" vault
+type -t _fd        >/dev/null 2>&1                   && complete -F _fd -o nosort -o bashdefault -o default ff ffs
+type -t _comp_cmd_chromium_browser >/dev/null 2>&1   && complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome
 complete -o default -o bashdefault chrome
 
 # instead of eval "$(/bin/cat "${ANSIBLE_COMPLETION_PATH}"/*.bash)" -- for fcf

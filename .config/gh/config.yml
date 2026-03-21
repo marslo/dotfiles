@@ -23,16 +23,16 @@ aliases:
     myissues: issue list --author "@me" --state open
     repo-path: repo view --json nameWithOwner -q .nameWithOwner
     # co: pr checkout
-    co: '!$HOME/.marslo/bin/gh-ops --checkout'
-    cl: '!$HOME/.marslo/bin/gh-ops --close'
-    squash-clean: '!bash -c "$HOME/.marslo/bin/gh-ops --squash -- --delete-branch \"\$@\"" --'
-    rebase-clean: '!bash -c "$HOME/.marslo/bin/gh-ops --rebase -- --delete-branch \"\$@\"" --'
-    pr-new: '!$HOME/.marslo/bin/gh-new --open --label "auto-merge"'
-    pro: '!$HOME/.marslo/bin/gh-ops --auto-open'
-    pr-open: '!$HOME/.marslo/bin/gh-ops --open'
-    pr-close: '!$HOME/.marslo/bin/gh-ops --close'
-    pr-label: '!$HOME/.marslo/bin/gh-ops --add-label'
-    pr-unlabel: '!$HOME/.marslo/bin/gh-ops --remove-label'
+    co: '!gh ops --checkout'
+    cl: '!gh ops --close'
+    squash-clean: '!bash -c "gh ops --squash -- --delete-branch \"\$@\"" --'
+    rebase-clean: '!bash -c "gh ops --rebase -- --delete-branch \"\$@\"" --'
+    pr-new: '!gh new --open --label "auto-merge"'
+    pro: '!gh ops --auto-open'
+    pr-open: '!gh ops --open'
+    pr-close: '!gh ops --close'
+    pr-label: '!gh ops --add-label'
+    pr-unlabel: '!gh ops --remove-label'
 # The path to a unix socket through which send HTTP connections. If blank, HTTP traffic will be handled by net/http.DefaultTransport.
 http_unix_socket:
 # What web browser gh should use when opening URLs. If blank, will refer to environment.
