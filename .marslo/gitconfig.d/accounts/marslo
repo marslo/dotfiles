@@ -1,12 +1,13 @@
 [user]
   name       = marslo
   email      = marslo.jiao@gmail.com
+  # `$ gpg --armor --export ${KEY_ID}`
   signingkey = 6C549DA3FA02DB3D
 
 [commit]
-    gpgsign  = true
+  gpgsign    = true
 
 [tag]
-    gpgsign  = true
+  gpgsign    = true
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:

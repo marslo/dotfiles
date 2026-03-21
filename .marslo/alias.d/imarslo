@@ -55,6 +55,7 @@ if test -d "${MY_WORKSPACE}/tools"; then
   alias mb="cd ${MY_WORKSPACE}/tools/git/marslo/mbook/docs >/dev/null"
 fi
 
+test -d "$HOME/.local/share/gh/extensions" && alias ghee="cd $HOME/.local/share/gh/extensions" || :
 alias oct="cd \"${HOME}/Library/CloudStorage/OneDrive-SharedLibraries-OneDriveCloudTemp\""
 
 if isWSL; then
