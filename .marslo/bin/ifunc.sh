@@ -87,7 +87,7 @@ function ibtoc() {
   path=${*:-}
   if [ 0 -eq $# ]; then
     # shellcheck disable=SC2124
-    path="${MYWORKSPACE}/tools/git/marslo/mbook/docs"
+    path="${MY_WORKSPACE}/tools/git/marslo/mbook/docs"
     xargs doctoc --github \
                  --notitle \
                  --maxlevel 3 >/dev/null \
