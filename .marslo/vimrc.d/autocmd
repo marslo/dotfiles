@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-03-19 15:57:57
+"    LastChange : 2026-03-24 17:58:31
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -288,6 +288,8 @@ if has( 'autocmd' )
     autocmd BufWinEnter   copilot:///log    call timer_start(50, {-> execute('resize -5')})
     autocmd BufEnter      copilot:///log    setlocal nonumber norelativenumber modifiable nospell wrap
     autocmd BufEnter      copilot:///panel  setlocal nonumber norelativenumber modifiable nospell
+    " ctrl+x ctrl+e
+    autocmd BufReadPost   **/T/bash-fc.*    let b:coc_diagnostic_disable = 1
   augroup END
 
   " to fix the <SNR>13_StarSetf issue -- no-augroup

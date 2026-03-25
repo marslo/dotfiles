@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-03-07 02:16:17
+#   LastChange : 2026-03-24 20:35:07
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -32,7 +32,7 @@ test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :
 _fzf_comprun() {
   local command=$1; shift
 
-  case "$command" in
+  case "${command}" in
               tree ) fd . --type d --hidden --follow | fzf --height 60% --preview 'tree -C {}' "$@" ;;
                 cd ) fzf --height 60% --preview 'tree -C {} | head -200' "$@" ;;
     export | unset ) fzf --height 60% --preview "eval 'echo \$'{}"       "$@" ;;
@@ -41,29 +41,52 @@ _fzf_comprun() {
 }
 
 _fzf_compgen_path() {
-  fd --hidden --follow --exclude ".git" . "$1"
+  fd --hidden --follow --exclude ".git" --exclude "node_modules" . "$1"
 }
 
 _fzf_compgen_dir() {
-  fd --type d --hidden --follow --exclude ".git" . "$1"
+  fd --type d --hidden --follow --exclude ".git" --exclude "node_modules" . "$1"
 }
 
 # usage: eval "$( _load_fzf_context )"
 #        ... | fzf "${fzfopt[@]}"
 function _load_fzf_context() {
   local -a CAT=( "$(type -P cat)" )
-  type -P bat >/dev/null && CAT=( "$(type -P bat)" --theme='Nord' --color=always --line-range :500 )
-  local previewCmd="if file -bL --mime-encoding {} | grep -iq 'binary' && ! iconv -f utf-8 -t utf-8 {} >/dev/null 2>&1; then file -bL {}; else ${CAT[*]} {}; fi"
+  if type -P bat >/dev/null; then
+    CAT=( "$(type -P bat)" --theme='Nord' --color=always --line-range :500 )
+  fi
+  local GLOW_PATH="$(type -P glow)"
+  local FIGLET_PATH="$(type -P figlet)"
+  local LOLCAT_PATH="$(type -P lolcat)"
+  local BIN_PIPE=""
+  [[ -x "${FIGLET_PATH}" ]] && BIN_PIPE+=" | \"${FIGLET_PATH}\" -f \"$(brew --prefix)\"/share/figlet/future.tlf -w \"\${FZF_PREVIEW_COLUMNS:-65}\""
+  [[ -x "${LOLCAT_PATH}" ]] && BIN_PIPE+=" | \"${LOLCAT_PATH}\" -f"
+  # shellcheck disable=SC2016
+  local previewCmd='
+    case '{}' in
+      *.md | *.MD ) if test -x "'${GLOW_PATH}'"; then
+                       CLICOLOR_FORCE=1 "'${GLOW_PATH}'" -s dark -w "${FZF_PREVIEW_COLUMNS:-65}" {}
+                     else
+                       '${CAT[*]}' {}
+                     fi ;;
+                 * ) if file -bL --mime-encoding {} | grep -iq "binary" && ! iconv -f utf-8 -t utf-8 {} >/dev/null 2>&1; then
+                       printf "%s\n" "$(file -bL {})" '"${BIN_PIPE}"'
+                     else
+                       '${CAT[*]}' {}
+                     fi ;;
+    esac'
   local offset='case {} in
     *jenkinsfile/* | *vars/* ) echo "change-preview-window(right,60%,nowrap,rounded,+15)" ;;
-    *                        ) echo "change-preview-window(right,60%,nowrap,rounded,+0)"  ;;
+                           * ) echo "change-preview-window(right,60%,nowrap,rounded,+0)"  ;;
   esac'
   local -a fzfopt=( --exit-0
                     --height 50%
                     --multi --cycle
+                    --ansi
+                    --keep-right
                     --preview "${previewCmd}"
                     --preview-window 'right,60%,nowrap,rounded,+0'
-                    --bind 'ctrl-/:toggle-preview'
+                    --bind 'ctrl-\:toggle-preview'
                     --bind 'ctrl-o:execute(bat {} > /dev/tty)'
                     --bind "focus:transform: ${offset}"
                   )
@@ -83,7 +106,7 @@ function _load_fd_context() {
                         local -n _ref="$1"; shift ;
                         fdopt+=( --ignore-file "$HOME/.fdignore" )
                         for pattern in "${_ref[@]}"; do
-                          fdopt+=( --exclude "$pattern" )
+                          fdopt+=( --exclude "${pattern}" )
                         done ;
                       fi    ;;
       *             ) args+=( "$1" ); shift ;;
@@ -294,7 +317,9 @@ function fzfInPath() {                     # return file name via fzf in particu
   local path="${1:-.}"
   [[ $# -ge 1 ]] && shift                  # pop path from args ($@)
 
-  local -a fzfopt=( --cycle --multi --header "filter in ${1} :" )
+  eval "$( _load_fzf_context )"
+  fzfopt+=( --header "filter in ${path} :" )
+
   [[ $# -ge 1 ]] && fzfopt+=( "$@" )
 
   local -a fdopt=( --type f --hidden --follow --unrestricted --ignore-file "$HOME/.fdignore" )
@@ -389,7 +414,7 @@ function fman() {                          # show [man] page with [f]zf
       --bind "ctrl-i:+change-preview(${batman})+change-prompt(ᓆ  man > )" \
       --bind "ctrl-t:+change-preview(${chtshow})+change-prompt(ᓆ  cht.sh > )" \
       --bind "enter:execute(${batman})+change-preview(${batman})+change-prompt(ᓆ > )" \
-      --bind='ctrl-/:toggle-preview' \
+      --bind='ctrl-\:toggle-preview' \
       --header 'CTRL-N/P or SHIFT-↑/↓ to view preview contents; ENTER/Q to maximize/normal preview window' \
       --exit-0
 }
@@ -404,6 +429,7 @@ function fman() {                          # show [man] page with [f]zf
 function imgview() {                       # [view] [im]a[g]e via [imgcat](https://github.com/eddieantonio/imgcat)
   fd --unrestricted --type f --exclude .git --exclude node_modules '^*\.(png|jpeg|jpg|xpm|bmp)$' |
   fzf "$@" --height 100% \
+           --keep-right \
            --preview "imgcat -W \$FZF_PREVIEW_COLUMNS -H \$FZF_PREVIEW_LINES {}" \
            --bind "ctrl-y:execute-silent(printf '%s' {+} | pbcopy)+abort" \
            --bind 'ctrl-/:toggle-preview' \
@@ -436,7 +462,7 @@ function b() {                             # chrome [b]ookmarks browser with jq
 
   urls=$( jq -r "${template}" < "${bookmark}" \
              | sed -E $'s/(.*)\t(.*)/\\1\t\x1b[36m\\2\x1b[m/g' \
-             | fzf --ansi \
+             | fzf --ansi --wrap \
              | cut -d$'\t' -f2
         )
   # shellcheck disable=SC2046
@@ -700,7 +726,9 @@ function vimdiff() {                       # smart vimdiff
   local rFile
   local -a var=()
   local -a options=()
-  local -a fzfopt=( --cycle --multi --header 'filter in rc paths:' )
+
+  eval "$( _load_fzf_context )"
+  fzfopt+=( --header 'filter in rc paths:' )
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -712,11 +740,11 @@ function vimdiff() {                       # smart vimdiff
   fzfopt+=( "${options[@]}" )
 
   if [[ 0 -eq $# ]]; then
-    lFile=$(fzfInPath '.' "${options[@]}" true)
+    lFile=$(fzfInPath '.' "${options[@]}")
     [[ -z "${lFile}" ]] && return 1
     rFile=$(fdInRC -x | sed -rn 's/^[^|]* \| (.+)$/\1/p' | fzf "${fzfopt[@]}" )
   elif [[ 1 -eq $# ]]; then
-    lFile=$(fzfInPath '.' "${options[@]}" true)
+    lFile=$(fzfInPath '.' "${options[@]}")
     [[ -z "${lFile}" ]] && return 1
     [[ -d "$1"       ]] && rFile=$(fzfInPath "$1" "${options[@]}") || rFile="$1"
   elif [[ 2 -eq $# ]]; then
