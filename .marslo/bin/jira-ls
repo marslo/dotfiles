@@ -4,7 +4,7 @@
 #     FileName : jira-ls
 #       Author : marslo
 #      Created : 2026-01-21 20:57:09
-#   LastChange : 2026-03-16 17:27:18
+#   LastChange : 2026-03-25 11:16:40
 #=============================================================================
 
 set -euo pipefail
@@ -20,6 +20,7 @@ declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
 declare _PROJECT='IPBUSW'
+declare -a PROJECTS=()
 declare RETURN_TYPE='full'
 declare UPDATE_LIMIT=''
 declare ASSIGNEE=''
@@ -58,8 +59,8 @@ OPTIONS
   $(c G)-h$(c), $(c G)--help$(c)                 show this help message and exit
 
 EXAMPLE
-  $(c Wdi)# list 2 weeks in-progress jira ticket in project 'PROJID' for \`currentUser()\`$(c)
-  $(c Y)\$ ${ME} $(c 0Gi)--project $(c 0Mi)PROJID $(c 0Bi)--in-progress $(c 0Gi)--assignee -u $(c 0Mi)'-2w'$(c)
+  $(c Wdi)# list 2 weeks in-progress jira ticket in project 'PROJID' and 'NEWID' for \`currentUser()\`$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)--project $(c 0Mi)PROJID $(c 0Gi)--project $(c 0Mi)NEWID $(c 0Bi)--in-progress $(c 0Gi)--assignee -u $(c 0Mi)'-2w'$(c)
 
   $(c Wdi)# list closed and todo tickets in default project for user 'alice' after '2026-03-01 14:30'$(c)
   $(c Y)\$ ${ME} $(c 0Bi)--todo --closed $(c 0Gi)--assignee $(c 0Mi)alice $(c 0Gi)--update $(c 0Mi)'2026-03-01 14:30'$(c)
@@ -72,37 +73,37 @@ function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -h | --help             ) showUsage                   ;;
+    -h | --help             ) showUsage                         ;;
     -r | --return           ) case "${2:-}" in
                                 full | short ) RETURN_TYPE="$2" ;;
                                 *            ) die "'--return' must be 'full' or 'short', got '$2'" ;;
                               esac
-                              shift 2                     ;;
-    -p | --project          ) PROJECT="$2"      ; shift 2 ;;
-    -u | --update           ) UPDATE_LIMIT="$2" ; shift 2 ;;
+                              shift 2                           ;;
+    -p | --project          ) PROJECTS+=( "$2" ) ; shift 2      ;;
+    -u | --update           ) UPDATE_LIMIT="$2" ; shift 2       ;;
     --assignee | --reporter ) PARAM="${1#--}"; PARAM="${PARAM^^}";
                               if [[ -n "${2:-}" && "$2" != -* ]]; then
                                 printf -v "${PARAM}" "%s" "$2"; shift 2;
                               else
                                 printf -v "${PARAM}" "%s" "currentUser()"; shift 1;
-                              fi                          ;;
+                              fi                                ;;
     --*                     ) KEY="${1#--}"
                               if [[ -n "${JQL_MAP[${KEY}]}" ]]; then
                                 KEYS+=( "${KEY}" ); shift ;
                               else
                                 die "Unknown option '$1'"
-                              fi                          ;;
-    *                       ) die "Unknown argument '$1'" ;;
+                              fi                                ;;
+    *                       ) die "Unknown argument '$1'"       ;;
   esac
 done
 
 { test -z "${ASSIGNEE:-}" && test -z "${REPORTER:-}"; } && ASSIGNEE='currentUser()'
-test 0 -eq "${#KEYS[@]}"  && KEYS=('open')
+test 0 -eq "${#KEYS[@]}"  && KEYS=( 'open' )
 
 # setup -4w for closed issues by default
 for key in "${KEYS[@]}"; do
-  jql="${JQL_MAP[$key]}"
-  if [[ "$key" == "closed" ]] && [[ -z "${UPDATE_LIMIT:-}" ]]; then
+  jql="${JQL_MAP[${key}]}"
+  if [[ "${key}" == "closed" ]] && [[ -z "${UPDATE_LIMIT:-}" ]]; then
     jql="(${jql}) AND updated >= '-4w'"
   fi
   CURRENT_STATUS+=( "(${jql})" )
@@ -111,18 +112,25 @@ done
 # get final status part
 declare STATUS=''
 if [[ ${#CURRENT_STATUS[@]} -gt 0 ]]; then
-  STATUS=$(IFS='|'; set -- "${CURRENT_STATUS[@]}"; echo "$*")
+  STATUS=$(IFS='|'; echo "${CURRENT_STATUS[*]}")
   STATUS="${STATUS//|/ OR }"
-  STATUS="($STATUS)"
+  # for multiple status ( status=(..) OR status=(..) )
+  STATUS="( ${STATUS} )"
 fi
 
-declare query="project=${PROJECT:-${_PROJECT}}"
-query+=" AND (${STATUS:-${_STATUS}})"
-test -n "${ASSIGNEE}" && query+=" AND assignee=${ASSIGNEE}"
-test -n "${REPORTER}" && query+=" AND reporter=${REPORTER}"
-[[ -n "${UPDATE_LIMIT:-}" ]] && query+=" AND updated >= '${UPDATE_LIMIT}'"
+[[ ${#PROJECTS[@]} -eq 0 ]] && PROJECTS=( "${_PROJECT}" )
+
+#shellcheck disable=SC2155
+declare query="project in ( $(IFS=', '; echo "${PROJECTS[*]}") )"
+query+="${STATUS:+ AND ${STATUS}}"
+query+="${ASSIGNEE:+ AND assignee=${ASSIGNEE}}"
+query+="${REPORTER:+ AND reporter=${REPORTER}}"
+# shellcheck disable=SC2016
+query+="${UPDATE_LIMIT:+ AND updated >= '${UPDATE_LIMIT}'}"
 
 declare JIRA_API_TOKEN="${JIRA_API_TOKEN:-$(passToken marvell/marslo/jira)}"
+test -n "${JIRA_API_TOKEN:-}" || die "JIRA API token not found. Please set the \`JIRA_API_TOKEN\` environment variable"
+
 declare json=''
 json="$( curl -u "marslo:${JIRA_API_TOKEN}" \
               --data-urlencode "jql=${query}" \
@@ -137,13 +145,13 @@ if echo "${json}" | jq -e 'has("errorMessages")' >/dev/null 2>&1; then
 fi
 
 if ! echo "${json}" | jq -e '.issues | length > 0' > /dev/null; then
-  echo -e "\033[0;3;35m>> No issues found ...\033[0m" >&2
+  echo -e "$(c Wdi)>> $(c 0Mi)No issues found for query:\n$(c 0Wdi)\`\`\`\n${query}\n\`\`\`$(c)" >&2
   exit 0
 fi
 
 declare INAME="Marslo Jiao"
 declare TEMPLATE='"'
-TEMPLATE+='\(.key). \(.fields.summary)'
+TEMPLATE+='\(.key): \(.fields.summary)'
 TEMPLATE+='\t'
 TEMPLATE+='Status: '
 TEMPLATE+='\(if .fields.status.name | test("Done|Fixed|Closed") then "\\033[1;35m" '
@@ -157,8 +165,8 @@ TEMPLATE+='Created: \(.fields.created) • Updated: \(.fields.updated)\n\n'
 TEMPLATE+='\(.fields.description)'
 TEMPLATE+='"'
 
-declare GET_ID="echo {1} | awk -F. '{printf \"%s\", \$1}'"
-declare FORMAT_CONTENT="echo {1} | sed 's/\. /: /' | tr -d '\n'"
+declare GET_ID="echo {1} | awk -F: '{printf \"%s\", \$1}'"
+declare FORMAT_CONTENT="echo {1} | tr -d '\n'"
 declare jira=''
 jira="$(
   echo "${json}" | jq ".issues[] | ${TEMPLATE}" |
@@ -167,11 +175,10 @@ jira="$(
       --delimiter='\t' \
       --preview='printf "%b" {2}' \
       --preview-window=top:70%:wrap \
-      --bind "ctrl-y:execute-silent(${GET_ID} | pbcopy)" \
-      --bind "ctrl-Y:execute-silent(${FORMAT_CONTENT} | pbcopy)" \
+      --bind "ctrl-k:execute-silent(${GET_ID} | pbcopy)" \
+      --bind "ctrl-y:execute-silent(${FORMAT_CONTENT} | pbcopy)" \
       --bind "ctrl-o:execute(${GET_ID} | xargs -I {} open https://essjira.marvell.com/browse/{})" |
   cut -f1 |
-  sed -e 's/\. /: /' |
   trim
 )"
 
