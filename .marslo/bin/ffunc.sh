@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-03-24 20:35:07
+#   LastChange : 2026-03-24 22:24:52
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -46,6 +46,36 @@ _fzf_compgen_path() {
 
 _fzf_compgen_dir() {
   fd --type d --hidden --follow --exclude ".git" --exclude "node_modules" . "$1"
+}
+
+# usage: _fzf_fill "${cmd}" - similar to `Ctrl+R` in bash
+# i.e.:  _fzf_fill seq 10
+_fzf_fill() {
+  local cmd
+
+  if [[ $# -gt 1 ]] || type "$1" &>/dev/null; then
+    cmd=$("$@" | fzf --height 40% --reverse)
+  else
+    cmd="$*"
+  fi
+
+  [ -z "${cmd}" ] && return
+
+  # reset cursor to the beginning of current line:
+  # move up 3 lines, clear to the end of line, and return cursor to the beginning of line
+  tput cuu 3
+  tput ed
+  tput cr
+
+  local _prompt=$(echo -ne "${PS1@P}")
+  # fill the command and wait for edit
+  read -re -p "${_prompt}" -i "${cmd}" hisCmd
+
+  # save into history and execute
+  if [ -n "${hisCmd}" ]; then
+    history -s "${hisCmd}"
+    eval "${hisCmd}"
+  fi
 }
 
 # usage: eval "$( _load_fzf_context )"
@@ -1284,7 +1314,8 @@ function goto() {                          # another `cd`
 function jcli() {                          # [j]enkins [cli]
   domain="$( echo 'jenkins-1.domain.com' 'jenkins-2.domain.com' | fmt -1 | fzf --prompt 'domain> ')"
   cmd="java -jar ~/.jenkins/${domain}/jenkins-cli.jar -auth @$HOME/.jenkins/${domain}/auth -s http://${domain} "
-  bash -c "osascript -e \"tell application \\\"System Events\\\" to keystroke \\\"${cmd}\\\"\" &"
+  # bash -c "osascript -e \"tell application \\\"System Events\\\" to keystroke \\\"${cmd}\\\"\" &"
+  _fzf_fill "${cmd}"
 }
 
 # /**************************************************************
