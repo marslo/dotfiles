@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-03-24 22:24:52
+#   LastChange : 2026-03-24 22:30:07
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -61,20 +61,34 @@ _fzf_fill() {
 
   [ -z "${cmd}" ] && return
 
-  # reset cursor to the beginning of current line:
-  # move up 3 lines, clear to the end of line, and return cursor to the beginning of line
-  tput cuu 3
+  # check count of '\n' in PS1
+  local n_count
+  n_count=$(echo -n "$PS1" | grep -o "\\\\n" | wc -l)
+
+  # _rows = number of '\n' + 1 (current input line)
+  local _rows=$(( n_count + 1 ))
+
+  # cleanup cursor: move up `_rows` lines, clear to the end of line, and return cursor to the beginning of line
+  tput cuu "${_rows}"
   tput ed
   tput cr
 
+  # render PS1 with prompt expansion and handle escape sequences properly
   local _prompt=$(echo -ne "${PS1@P}")
-  # fill the command and wait for edit
   read -re -p "${_prompt}" -i "${cmd}" hisCmd
 
-  # save into history and execute
-  if [ -n "${hisCmd}" ]; then
-    history -s "${hisCmd}"
+  # to remove the original command from history - 毁尸灭迹
+  # history -d $((HISTCMD)) 2>/dev/null
+  if [[ -n "${hisCmd}" ]]; then
+    history -a
     eval "${hisCmd}"
+    # adding timestamp if HISTTIMEFORMAT is set, to keep consistent with the format in HISTFILE
+    {
+      [[ -n "$HISTTIMEFORMAT" ]] && echo "#$(date +%s)"
+      echo "${hisCmd}"
+    } >> "${HISTFILE:-$HOME/.bash_history}"
+    # read all history
+    history -n
   fi
 }
 
