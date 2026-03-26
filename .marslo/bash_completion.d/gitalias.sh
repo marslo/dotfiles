@@ -4,7 +4,7 @@
 #     FileName : gitalias.sh
 #       Author : marslo
 #      Created : 2025-12-11 21:28:56
-#   LastChange : 2026-03-17 15:32:43
+#   LastChange : 2026-03-25 20:35:56
 #=============================================================================
 
 function _git_rob() { _git_checkout; }
@@ -120,6 +120,70 @@ function _git_rev_parse() {
   if declare -F __git_complete_refs >/dev/null; then
     __git_complete_refs
   fi
+}
+
+# to to revert to latest & default bash completion via :
+# $ source /opt/homebrew/etc/bash_completion.d/git-completion.bash
+function _git_config () {
+    local subcommands subcommand
+    if ! declare -f __git_resolve_builtins >/dev/null; then
+        return
+    fi
+
+    __git_resolve_builtins "config"
+    subcommands="$___git_resolved_builtins"
+    subcommand="$(__git_find_subcommand "$subcommands")"
+
+    # additional options for top-level (no subcommand) completion - which is deprecated
+    if [ -z "$subcommand" ]; then
+        case "$cur" in
+            --*)
+                local topOps="
+                    --global --system --local --worktree --file --blob
+                    --list --get --get-all --get-regexp --get-urlmatch --get-color --get-colorbool
+                    --add --unset --unset-all --rename-section --remove-section --edit
+                    --replace-all --append --comment --all --regexp --url= --value= --no-value
+                    --fixed-value --type --bool --int --bool-or-int --path --expiry-date --no-type
+                    --null --name-only --show-names --no-show-names --show-origin --show-scope
+                    --includes --no-includes --default
+                "
+                __gitcomp "${topOps}"
+                return
+                ;;
+            -*)
+                # short options
+                __gitcomp "-f -l -e -z"
+                return
+                ;;
+            *)
+                # completion for subcommands
+                __gitcomp "${subcommands}"
+                # completion for variable values (advice.*.enabled, pager.branch, etc.)
+                __git_complete_config_variable_name
+                return
+                ;;
+        esac
+    fi
+
+    # `git config <subcommand> --...` options
+    case "${cur}" in
+        --*)
+            __gitcomp_builtin "config_${subcommand}"
+            return
+        ;;
+    esac
+
+    # keep the original variable name/value filtering logic for subcommands
+    case "$subcommand" in
+        get) __gitcomp_nl "$(__git_config_get_set_variables)" ;;
+        set)
+            case "${prev}" in
+                *.*) __git_complete_config_variable_value ;;
+                *) __git_complete_config_variable_name ;;
+            esac
+            ;;
+        unset) __gitcomp_nl "$(__git_config_get_set_variables)" ;;
+    esac
 }
 
 function _git_mcx() {
