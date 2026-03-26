@@ -278,4 +278,20 @@ if !has('nvim')
   augroup END
 endif
 
+" to addresses a performance bottleneck in the GnuPG SSH-Agent when handling high-concurrency SSH handshake requests
+function! PlugUpdateHTTPS()
+    let l:old_global = $GIT_CONFIG_GLOBAL
+    let l:old_system = $GIT_CONFIG_SYSTEM
+
+    let $GIT_CONFIG_GLOBAL = '/dev/null'
+    let $GIT_CONFIG_SYSTEM = '/dev/null'
+
+    PlugUpdate
+
+    let $GIT_CONFIG_GLOBAL = l:old_global
+    let $GIT_CONFIG_SYSTEM = l:old_system
+endfunction
+
+command! PlugUpdateHTTPS call PlugUpdateHTTPS()
+
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

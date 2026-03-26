@@ -22,8 +22,11 @@ let pluginHome          = expand( '~/.vim/plugged' ) . '/'
 let mapleader           = ','
 let g:mapleader         = ','
 let maplocalleader      = '\\'
-let g:plug_shallow      = 0
 let g:polyglot_disabled = ['git']
+let g:plug_shallow      = 0
+" concurrency for PlugUpdate - ssh
+" let g:plug_threads    = 8
+" let g:plug_url_format = 'https://github.com/%s.git'
 
 filetype off
 call plug#begin( '~/.vim/plugged' )
@@ -46,6 +49,8 @@ Plug 'tomtom/tlib_vim'
 Plug 'yegappan/mru'
 Plug 'fracpete/vim-large-files'
 Plug 'Konfekt/FastFold'
+Plug 'kana/vim-textobj-user'
+Plug 'kana/vim-textobj-fold'
 Plug 'dhruvasagar/vim-table-mode'
 Plug 'vim-autoformat/vim-autoformat'
 Plug 'marslo/MarsloFunc'
