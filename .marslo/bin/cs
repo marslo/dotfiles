@@ -19,8 +19,8 @@ print_help_message_and_exit() {
 with caching, fuzzy search on predefined ':list' items & custom queries and
 preview of downloaded sheets via FZF.
 
-Usage: $script_name [QUERY [-P|--no-paging] | [-r|--remove-cache]]
-       $script_name [-h|--help | -i|--index | --purge]
+Usage: ${script_name} [QUERY [-P|--no-paging] | [-r|--remove-cache]]
+       ${script_name} [-h|--help | -i|--index | --purge]
 
 Arguments:
   QUERY
@@ -44,15 +44,15 @@ Environment variables:
   CS_CACHE_DIR             Default: ~/.cache/cheat_sheets
 
 Examples:
-  $script_name                       # Open the predefined :list of topics in FZF
-  $script_name :intro                # Read the introductionto cht.sh
-  $script_name ruby                  # View the Ruby cheat sheet
-  $script_name ruby/                 # Open the :list for Ruby topic in FZF
-  $script_name ruby/complex numbers  # Custom query in Ruby topic. \
+  ${script_name}                       # Open the predefined :list of topics in FZF
+  ${script_name} :intro                # Read the introductionto cht.sh
+  ${script_name} ruby                  # View the Ruby cheat sheet
+  ${script_name} ruby/                 # Open the :list for Ruby topic in FZF
+  ${script_name} ruby/complex numbers  # Custom query in Ruby topic. \
 You can type a custom query in the FZF prompt as well.
-  $script_name any query -r          # Remove the cache file for the query
+  ${script_name} any query -r          # Remove the cache file for the query
 
-Dependences:
+Dependencies:
   bat, curl, fzf
 " | bat --plain --language help
   exit 0
@@ -61,17 +61,17 @@ Dependences:
 _download_cheat_sheet() {
   echo "Downloading $query ..."
   # Quote the query in a way that can be reused as shell input
-  printf -v escaped_query "%q" "$query"
-  curl --create-dirs --silent --show-error --output "$cache_file" "https://cht.sh/$escaped_query"
+  printf -v escaped_query "%q" "${query}"
+  curl --create-dirs --silent --show-error --output "${cache_file}" "https://cht.sh/${escaped_query}"
 
   # Clear the echo-ed message
   # Move the cursor up 1 line (\e[1A). Move to the beginning (\r). Clear it (\e[2K).
   printf "\e[1A\r\e[2K"
 
   # Check for an unknown topic and remove the cache file
-  if grep --quiet --line-regexp "Unknown topic." "$cache_file"; then
-    >&2 cat "$cache_file"
-    rm -f "$cache_file"
+  if grep --quiet --line-regexp "Unknown topic." "${cache_file}"; then
+    >&2 cat "${cache_file}"
+    rm -f "${cache_file}"
     exit 1
   fi
 }
@@ -97,9 +97,9 @@ EOF
 
   find "${topic:-./}" -maxdepth 1 -type f -printf "%T@ %f\n" |
     sort -k1 -rg | sed -e 's/^.*[_ ]//' |
-    awk '/:list/ {next} !seen[$1]++' - "$cache_file" |
+    awk '/:list/ {next} !seen[$1]++' - "${cache_file}" |
     fzf --height 80% --reverse --print-query --prompt "> $topic" \
-        --preview "$ps" --preview-window 75% --info right \
+        --preview "${ps}" --preview-window 75% --info right \
         --bind 'ctrl-/:toggle-preview' \
         --bind "ctrl-o:execute($xo)" |
     tail -1
@@ -113,13 +113,13 @@ _build_cache_file_path() {
   query="$topic${query//+( )/+}" # Replace consecutive spaces with a plus
 
   # Append ":list" if the query ends with a slash
-  [[ $query == */ ]] && query="$query:list"
+  [[ ${query} == */ ]] && query="${query}:list"
 
   # Mirror cache file path with the query
-  cache_file="$query"
+  cache_file="${query}"
 
   # Prefix "_" to distinguish 'ruby' (file) from 'ruby/nested' (directory)
-  [[ $query == */* ]] || cache_file="_$query"
+  [[ ${query} == */* ]] || cache_file="_${query}"
 }
 
 browse() {
@@ -127,27 +127,27 @@ browse() {
   _build_cache_file_path
 
   # Download the file if it doesn't exist
-  [[ -f $cache_file ]] || _download_cheat_sheet
+  [[ -f ${cache_file} ]] || _download_cheat_sheet
 
-  if [[ $query = :list || $query = */:list ]]; then
+  if [[ ${query} = :list || ${query} = */:list ]]; then
     topic="${query%:list}" # Without the ":list" suffix
     selection="$(_fuzzy_find_from_the_list)"
 
-    [[ -n $selection ]] && browse "$selection" "$topic"
+    [[ -n ${selection} ]] && browse "${selection}" "${topic}"
   else
     # Display the full command to reopen the selected cheat sheet
-    echo -e "\e[38;5;29m$script_name ${query}\e[0m\n"
+    echo -e "\e[38;5;29m${script_name} ${query}\e[0m\n"
     # shellcheck disable=SC2086
-    bat $bat_options "$cache_file"
+    bat ${bat_options} "${cache_file}"
   fi
 }
 
 remove_cache_file_and_exit() {
-  echo -n "Removing the cache file for '$query' query... "
+  echo -n "Removing the cache file for '${query}' query... "
   _build_cache_file_path
 
-  if [[ -f $cache_file ]]; then
-    rm -f "$cache_file" && echo "Done"
+  if [[ -f "${cache_file}" ]]; then
+    rm -f "${cache_file}" && echo "Done"
     exit 0
   else
     >&2 echo -e "\nNo cache file found"
@@ -156,29 +156,29 @@ remove_cache_file_and_exit() {
 }
 
 purge_cache_directory_and_exit() {
-  read -rp "Remove cheat sheets cache directory '$CS_CACHE_DIR'? [y/n] " reply
-  [[ $reply = y ]] && rm -rf "$CS_CACHE_DIR"
+  read -rp "Remove cheat sheets cache directory '${CS_CACHE_DIR}'? [y/n] " reply
+  [[ ${reply} = y ]] && rm -rf "${CS_CACHE_DIR}"
   exit 0
 }
 
 main() {
-  mkdir -p "$CS_CACHE_DIR"
-  cd "$CS_CACHE_DIR"
+  mkdir -p "${CS_CACHE_DIR}"
+  cd "${CS_CACHE_DIR}"
 
   bat_options="--style=plain"
 
   case "$1" in
-  "") query=":list" ;;
-  -i | --index) query="" ;;
-  -h | --help) print_help_message_and_exit ;;
-  --purge) purge_cache_directory_and_exit ;;
-  *" -P" | *" --no-paging") query="${1% *}" && bat_options+=" --paging=never" ;;
-  *" -r" | *" --remove-cache") remove_cache_file_and_exit "${query:=${1% *}}" ;;
-  *) query="$1" ;;
+    ""                          ) query=":list"                                     ;;
+    -i | --index                ) query=""                                          ;;
+    -h | --help                 ) print_help_message_and_exit                       ;;
+    --purge                     ) purge_cache_directory_and_exit                    ;;
+    *" -P" | *" --no-paging"    ) query="${1% *}" && bat_options+=" --paging=never" ;;
+    *" -r" | *" --remove-cache" ) remove_cache_file_and_exit "${query:=${1% *}}"    ;;
+    *                           ) query="$1"                                        ;;
   esac
-  [[ $query = ":help" ]] && bat_options+=" --language=help"
+  [[ ${query} = ":help" ]] && bat_options+=" --language=help"
 
-  browse "$query"
+  browse "${query}"
 }
 
 main "$*"
