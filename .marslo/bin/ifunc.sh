@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2026-03-06 00:58:04
+#  LastChange : 2026-03-31 18:55:58
 #  Description : ifunctions
 # =============================================================================
 
@@ -741,7 +741,7 @@ function fdiff() {
 }
 
 # setme - set or remove user as/from admin
-# usage : setme [-a, -s, --set, --add]
+# usage : setme [-a, --admin]
 #               [-r, --remove]
 #               [-c, --check]
 #               [-u, --user <username>]
@@ -752,21 +752,21 @@ function setme() {
   }
 
   local USER=''
-  local SETUP=false
+  local ADMIN=false
   local REMOVE=false
   local CHECK=true
   # shellcheck disable=SC2155
   local USAGE="USAGE
     $(c Cs)\$ setme $(c 0Gi)[ OPTIONS ]$(c)
   \nOPTIONS
-    $(c G)-a$(c), $(c G)-s$(c), $(c G)--set$(c), $(c G)--add$(c)     : set the account as admin
-    $(c G)-r$(c), $(c G)--remove$(c)             : remove the account from admin
-    $(c G)-c$(c), $(c G)--check$(c)              : check if the account is admin $(c 0i)(default)$(c)
-    $(c G)-u$(c), $(c G)--user $(c 0Mi)<username>$(c)    : specify the username $(c 0i)(default: current user)$(c)
-    $(c G)-h$(c), $(c G)--help$(c)               : show this help message
+    $(c G)-a$(c), $(c G)--admin$(c)                set the account as admin
+    $(c G)-r$(c), $(c G)--remove$(c)               remove the account from admin
+    $(c G)-c$(c), $(c G)--check$(c)                check if the account is admin $(c 0i)(default)$(c)
+    $(c G)-u$(c), $(c G)--user $(c 0Mi)<username>$(c)      specify the username $(c 0i)(default: current user)$(c)
+    $(c G)-h$(c), $(c G)--help$(c)                 show this help message
   \nEXAMPLE
     $(c Wdi)# set the current user as admin$(c)
-    $(c Y)\$ setme $(c 0Gi)--set$(c)
+    $(c Y)\$ setme $(c 0Gi)--admin$(c)
 
     $(c Wdi)# remove the current user from admin$(c)
     $(c Y)\$ setme $(c 0Gi)--remove --user $(c 0Mi)john$(c)
@@ -779,18 +779,18 @@ function setme() {
 
   while [[ $# -gt 0 ]]; do
     case $1 in
-      -a | -s | --set | --add ) SETUP=true  ; shift   ;;
-      -r | --remove           ) REMOVE=true ; shift   ;;
-      -c | --check            ) CHECK=true  ; shift   ;;
-      -u | --user             ) USER="$2"   ; shift 2 ;;
-      -h | --help             ) echo -e "${USAGE}" ; return 0 ;;
-      *                       ) echo "Unknown option: '$1'" >&2; return 1 ;;
+      -a | --admin  ) ADMIN=true  ; shift   ;;
+      -r | --remove ) REMOVE=true ; shift   ;;
+      -c | --check  ) CHECK=true  ; shift   ;;
+      -u | --user   ) USER="$2"   ; shift 2 ;;
+      -h | --help   ) echo -e "${USAGE}" ; return 0 ;;
+      *             ) echo "Unknown option: '$1'" >&2; return 1 ;;
     esac
   done
 
   USER="${USER:-$(whoami)}"
 
-  if "${SETUP}"; then
+  if "${ADMIN}"; then
     isAdmin "${USER}" || {
       echo -e "$(c Wdi)>> setting up standard user: $(c 0Mi)${USER} $(c 0Wdi)...$(c)"
       sudo dscl . -merge /Groups/admin GroupMembership "${USER}"
@@ -812,31 +812,52 @@ function setme() {
 }
 
 # @credit: https://stackoverflow.com/a/59040037/2940319
+# requires bash 4.2+ and printf with \U support: printf "\\U$(printf '%08x' 0x2620)"; echo -e "\U2620"
 function unicode2utf8() {
-  local x="$1"               # ok if '0x2620'
-  x=${x/\\u/0x}              # '\u2620' -> '0x2620'
-  x=${x/U+/0x}; x=${x/u+/0x} # 'U-2620' -> '0x2620'
-  x=$((x)) # from hex to decimal
-  local y=$x n=0
-  [ $x -ge 0 ] || return 1
-  while [ $y -gt 0 ]; do y=$((y>>1)); n=$((n+1)); done
-  if [ $n -le 7 ]; then       # 7
-    y=$x
-  elif [ $n -le 11 ]; then    # 5+6
+  local USAGE='NAME'
+  USAGE+="\n  $(c Cs)unicode2utf8$(c) - convert a unicode code point to its corresponding UTF-8 character"
+  USAGE+='\n\nSYNOPSIS'
+  USAGE+="\n  $(c Ys)\$ unicode2utf8$(c) $(c 0Gi)<unicode>$(c)"
+  USAGE+='\n\nEXAMPLE'
+  USAGE+="\n  $(c Y)\$ unicode2utf8 $(c 0Gi)0x2620$(c)"
+  USAGE+="\n  $(c Y)\$ unicode2utf8 $(c 0Gi)'\\\\u2620'$(c)"
+  USAGE+="\n  $(c Y)\$ $(c Gi)for (( i=0x2500; i<0x2600; i++ )); do $(c 0Y)unicode2utf8 $(c 0Gi)\$i; done$(c)"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h | --help ) echo -e "${USAGE}"; return 0;;
+      -*          ) echo "ERROR: unknown option '$1'"; return 1;;
+      *           ) local x="${1}"
+                    x="${x/\\u/0x}"        # \u2620 -> 0x2620
+                    x="${x/\\U/0x}"        # \U000F1887 -> 0x000F1887
+                    x="${x/U+/0x}"         # U+1F600 -> 0x1F600
+                    x="${x/u+/0x}"         # u+1F600 -> 0x1F600
+                    x=$((x)) 2>/dev/null        || { echo "ERROR: Invalid numeric format '${raw}'." >&2; return 1; }
+                    (( x > 0x10FFFF || x < 0 )) && { echo "ERROR: Code point '${raw}' is out of range. Max is 0x10FFFF." >&2; return 1; }
+                    shift ;;
+    esac
+  done
+
+  local y=${x} n=0
+  [ ${x} -ge 0 ] || return 1
+  while [ ${y} -gt 0 ]; do y=$(( y>>1 )); n=$(( n+1 )); done
+  if [ ${n} -le 7 ]; then       # 7
+    y=${x}
+  elif [ ${n} -le 11 ]; then    # 5+6
     y=" $(( ((x>> 6)&0x1F)+0xC0 )) \
         $(( (x&0x3F)+0x80 ))"
-  elif [ $n -le 16 ]; then    # 4+6+6
+  elif [ ${n} -le 16 ]; then    # 4+6+6
     y=" $(( ((x>>12)&0x0F)+0xE0 )) \
         $(( ((x>> 6)&0x3F)+0x80 )) \
         $(( (x&0x3F)+0x80 ))"
-  else                        # 3+6+6+6
+  else                          # 3+6+6+6
     y=" $(( ((x>>18)&0x07)+0xF0 )) \
         $(( ((x>>12)&0x3F)+0x80 )) \
         $(( ((x>> 6)&0x3F)+0x80 )) \
         $(( (x&0x3F)+0x80 ))"
   fi
-  printf -v y '\\x%x' $y
-  echo -n -e $y
+  printf -v y '\\x%x' ${y}
+  echo -n -e ${y}
 }
 
 # credit: https://github.com/nemausus/dotfiles/blob/master/bashrc#L113

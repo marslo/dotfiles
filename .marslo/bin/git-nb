@@ -4,7 +4,7 @@
 #     FileName : git-nb
 #       Author : marslo
 #      Created : 2026-03-16 15:45:59
-#   LastChange : 2026-03-17 15:19:07
+#   LastChange : 2026-03-31 19:10:09
 #  Description : create a [n]ew [b]ranch with the Jira ID
 #=============================================================================
 
@@ -102,11 +102,15 @@ OPTIONS
   $(c G)-i$(c), $(c G)--interactive$(c)       interactive mode, ask for confirmation before creating the branch
   $(c G)-v$(c), $(c G)-vv$(c)                 multiple $(c 0Gi)-v$(c) options increase verbosity $(c 0i)(max: $(c 0Yi)2$(c))$(c)
   $(c G)-h$(c)                      show this help message and exit
+
+ENVIRONMENT VARIABLES
+  • $(c 0Ci)\`GIT_NB_INTERACTIVE\`$(c): $(c 0Wdi)set the default interactive mode for the script$(c)
+                          $(c 0Ci)true $(c 0Wdi)== $(c 0Gi)-y/--yes$(c 0Wdi), and $(c 0Ci)false $(c 0Wdi)== $(c 0Gi)-i/--interactive$(c)
 "
 
 declare VERBOSE=0
 declare CHECKOUT=true
-declare INTERACTIVE=true
+declare INTERACTIVE="${GIT_NB_INTERACTIVE:-true}"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -c | --checkout    ) CHECKOUT=true            ; shift  ;;
