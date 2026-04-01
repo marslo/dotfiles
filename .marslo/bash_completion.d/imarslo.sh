@@ -4,7 +4,7 @@
 #     FileName : imarslo.sh
 #       Author : marslo
 #      Created : 2026-03-09 14:28:06
-#   LastChange : 2026-03-20 01:23:54
+#   LastChange : 2026-03-31 18:59:56
 #=============================================================================
 
 function _compgen_nocase() {
@@ -147,22 +147,39 @@ function _jira_stat_completions() { _jira_stat_logic; }
 function _jira_ls_completions()   { _jira_ls_logic; }
 
 function _gdoc_completion() {
-  local cur prev opts re_projects sms_projects
+  local cur prev opts reProjects smsProjects
 
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
   opts="--re --sms -l --local -v --verbose -h --help"
 
-  re_projects="release-engineering"
-  sms_projects="common util wukong vega exerciser nevox zao lion alpine"
+  reProjects="release-engineering"
+  smsProjects="common util wukong vega exerciser nevox zao lion alpine"
 
   case "${prev}" in
-      --re  ) COMPREPLY=( $(compgen -W "${re_projects}" -- "${cur}")  ); return 0 ;;
-      --sms ) COMPREPLY=( $(compgen -W "${sms_projects}" -- "${cur}") ); return 0 ;;
+      --re  ) COMPREPLY=( $(compgen -W "${reProjects}" -- "${cur}")  ); return 0 ;;
+      --sms ) COMPREPLY=( $(compgen -W "${smsProjects}" -- "${cur}") ); return 0 ;;
       *     ) ;;
   esac
 
   if [[ "${cur}" == -* ]] ; then
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+    return 0
+  fi
+}
+
+function _setme_completion() {
+  local cur prev opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  opts="-a --admin -r --remove -c --check -u --user -h --help"
+
+  case "${prev}" in
+    -u|--user) COMPREPLY=( $(compgen -u -- "${cur}") ); return 0 ;;
+  esac
+
+  if [[ ${cur} == -* ]] || [[ -z ${cur} ]]; then
     COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
     return 0
   fi
@@ -174,5 +191,6 @@ complete -F _jira_ls_completions   jira-ls
 complete -F _hex2rgba_completion   hex2rgba
 complete -F _rgba2hex_completion   rgba2hex
 complete -F _gdoc_completion       gdoc
+complete -F _setme_completion      setme
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
