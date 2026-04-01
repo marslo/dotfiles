@@ -1,9 +1,9 @@
 --[[
 =============================================================================
      FileName : init.lua
-       Author : marslo.jiao@gmail.com
+       Author : marslo
       Created : 2024-01-11 01:33:04
-   LastChange : 2026-03-02 19:43:11
+   LastChange : 2026-04-01 14:51:11
 =============================================================================
 --]]
 
@@ -30,15 +30,10 @@ pcall( require, 'config.devicons' )
 pcall( require, 'config.fzf' )
 
 -- treesitter
-vim.api.nvim_create_autocmd({"BufReadPost", "BufNewFile"}, {
-  group = vim.api.nvim_create_augroup("LazyLoadTreesitter", { clear = true }),
-  callback = function()
-    local ok_ts, err_ts = pcall( require, 'config.nvim-treesitter' )
-    if not ok_ts then
-      vim.notify( err_ts, vim.log.levels.WARN )
-    end
-  end,
-})
+local ok_ts, err_ts = pcall(require, 'config.nvim-treesitter')
+if not ok_ts then
+  vim.notify(err_ts, vim.log.levels.WARN)
+end
 
 -- nvim-cmp
 pcall( require, 'config.cmp' )

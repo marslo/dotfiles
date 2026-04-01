@@ -114,7 +114,7 @@ if IsNvim()
   Plug 'rafamadriz/friendly-snippets'
 
   " treesitter & lint
-  Plug 'nvim-treesitter/nvim-treesitter', { 'branch': 'master', 'do': ':TSUpdate' }
+  Plug 'nvim-treesitter/nvim-treesitter', { 'branch': 'main', 'do': ':TSUpdate' }
   Plug 'mfussenegger/nvim-lint'
 endif
 
