@@ -62,10 +62,9 @@ _fzf_fill() {
   [ -z "${cmd}" ] && return
 
   # check count of '\n' in PS1
+  # _rows = number of '\n' + 1 (current input line)
   local n_count
   n_count=$(echo -n "$PS1" | grep -o "\\\\n" | wc -l)
-
-  # _rows = number of '\n' + 1 (current input line)
   local _rows=$(( n_count + 1 ))
 
   # cleanup cursor: move up `_rows` lines, clear to the end of line, and return cursor to the beginning of line
@@ -94,17 +93,20 @@ _fzf_fill() {
 
 # usage: eval "$( _load_fzf_context )"
 #        ... | fzf "${fzfopt[@]}"
+# environment variable:
+#   - FZF_TOILET=true/false: whether use `toilet` to preview binary file info
+#   - FZF_TOILET_FONT=<fontname>: the font name for `toilet` preview, default to `bfraktur`
 function _load_fzf_context() {
   local -a CAT=( "$(type -P cat)" )
-  if type -P bat >/dev/null; then
-    CAT=( "$(type -P bat)" --theme='Nord' --color=always --line-range :500 )
+  if BAT="$(type -P bat)" >/dev/null; then
+    CAT=( "${BAT}" --theme='Nord' --color=always --line-range :500 )
   fi
   local GLOW_PATH="$(type -P glow)"
-  local FIGLET_PATH="$(type -P figlet)"
+  local TOILET_PATH="$(type -P toilet)"
   local LOLCAT_PATH="$(type -P lolcat)"
-  local BIN_PIPE=""
-  [[ -x "${FIGLET_PATH}" ]] && BIN_PIPE+=" | \"${FIGLET_PATH}\" -f \"$(brew --prefix)\"/share/figlet/future.tlf -w \"\${FZF_PREVIEW_COLUMNS:-65}\""
-  [[ -x "${LOLCAT_PATH}" ]] && BIN_PIPE+=" | \"${LOLCAT_PATH}\" -f"
+  local BIN_PIPE=''
+  ${FZF_TOILET:-true} && [[ -x "${TOILET_PATH}" ]] && BIN_PIPE+=" | \"${TOILET_PATH}\" -f ${FZF_TOILET_FONT:-bfraktur} -w \"\${FZF_PREVIEW_COLUMNS:-65}\""
+  [[ -x "${LOLCAT_PATH}" ]]   && BIN_PIPE+=" | \"${LOLCAT_PATH}\" -f"
   # shellcheck disable=SC2016
   local previewCmd='
     case '{}' in
@@ -1501,18 +1503,18 @@ function mkexp() {                         # [m]a[k]e environment variable [e][x
 
   PKG_CONFIG_PATH=${PKG_CONFIG_PATH:-}
   PKG_CONFIG_PATH+=":${HOMEBREW_PREFIX}/lib/pkgconfig"
-  test -d "${CURL_OPENSSL_HOME}"  && PKG_CONFIG_PATH+=":${CURL_OPENSSL_HOME}/lib/pkgconfig"
-  test -d "${TCLTK_HOME}"         && PKG_CONFIG_PATH+=":${TCLTK_HOME}/lib/pkgconfig"
-  command -v brew >/dev/null 2>&1 && PKG_CONFIG_PATH+=':/usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig/14'
-  test -d "${SQLITE_HOME}"        && PKG_CONFIG_PATH+=":${SQLITE_HOME}/lib/pkgconfig"
-  test -d "${OPENSSL_HOME}"       && PKG_CONFIG_PATH+=":${OPENSSL_HOME}/lib/pkgconfig"
-  test -d "${PYTHON_HOME}"        && PKG_CONFIG_PATH+=":${PYTHON_HOME}/lib/pkgconfig"
-  test -d "${RUBY_HOME}"          && PKG_CONFIG_PATH+=":${RUBY_HOME}/lib/pkgconfig"
-  test -d "${LIBRESSL_HOME}"      && PKG_CONFIG_PATH+=":${LIBRESSL_HOME}/lib/pkgconfig"
-  test -d "${ICU4C_711}"          && PKG_CONFIG_PATH+=":${ICU4C_711}/lib/pkgconfig"
-  test -d "${EXPAT_HOME}"         && PKG_CONFIG_PATH+=":${EXPAT_HOME}/lib/pkgconfig"
-  test -d "${NCURSES_HOME}"       && PKG_CONFIG_PATH+=":${NCURSES_HOME}/lib/pkgconfig"
-  test -d "${ZLIB_HOME}"          && PKG_CONFIG_PATH+=":${ZLIB_HOME}/lib/pkgconfig"
+  test -d "${CURL_OPENSSL_HOME}"   && PKG_CONFIG_PATH+=":${CURL_OPENSSL_HOME}/lib/pkgconfig"
+  test -d "${TCLTK_HOME}"          && PKG_CONFIG_PATH+=":${TCLTK_HOME}/lib/pkgconfig"
+  test -d "${HOMEBREW_CONFIG_DIR}" && PKG_CONFIG_PATH+=":${HOMEBREW_CONFIG_DIR}/pkgconfig/14"
+  test -d "${SQLITE_HOME}"         && PKG_CONFIG_PATH+=":${SQLITE_HOME}/lib/pkgconfig"
+  test -d "${OPENSSL_HOME}"        && PKG_CONFIG_PATH+=":${OPENSSL_HOME}/lib/pkgconfig"
+  test -d "${PYTHON_HOME}"         && PKG_CONFIG_PATH+=":${PYTHON_HOME}/lib/pkgconfig"
+  test -d "${RUBY_HOME}"           && PKG_CONFIG_PATH+=":${RUBY_HOME}/lib/pkgconfig"
+  test -d "${LIBRESSL_HOME}"       && PKG_CONFIG_PATH+=":${LIBRESSL_HOME}/lib/pkgconfig"
+  test -d "${ICU4C_711}"           && PKG_CONFIG_PATH+=":${ICU4C_711}/lib/pkgconfig"
+  test -d "${EXPAT_HOME}"          && PKG_CONFIG_PATH+=":${EXPAT_HOME}/lib/pkgconfig"
+  test -d "${NCURSES_HOME}"        && PKG_CONFIG_PATH+=":${NCURSES_HOME}/lib/pkgconfig"
+  test -d "${ZLIB_HOME}"           && PKG_CONFIG_PATH+=":${ZLIB_HOME}/lib/pkgconfig"
   PKG_CONFIG_PATH=$( echo "$PKG_CONFIG_PATH" | tr ':' '\n' | uniq | sed '/^$/d' | paste -s -d: )
 
   LIBRARY_PATH="${HOMEBREW_PREFIX}/lib"

@@ -10,18 +10,35 @@
 
 # UPDT   : 2019-05-24 If Weather unavailable nicely formatted error message.
 # UPDT   : 2024-01-26 fix the "today" position offset issue due to extra space in `cal`
+# UPDT   : 2026-04-01 add lolcat for color time output (if available); add dynamic column position base on width of weather
 
 # NOTE   : to display all available toilet fonts use this one-liner:
 #          for i in ${TOILET_FONT_PATH:=/usr/share/figlet}/*.{t,f}lf; do j=${i##*/}; toilet -d "${i%/*}" -f "$j" "${j%.*}"; done
 
-# setup for 92 character wide terminal
-declare dateColumn=34                                   # default is 27 for 80 character line, 34 for 92 character line
-declare timeColumn=61                                   # default is 49 for   "   "   "   "    61 "   "   "   "
+# get width of calendar dynamically via `$(tput cols)`
+declare dateColumn=38                                   # default is 27 for 80 character line, 34 for 92 character line
+declare timeColumn=$(( dateColumn + 24 ))
 declare intranet=$(netstat -nr -f inet | awk '$3 ~ /UGScg|UG/' | awk '$2 ~ /10\.(85|86|87|68|78)\.[0-9]{1,3}\.[0-9]{1,3}/' | wc -l)
 declare -a CURL=( curl '-sgk' )
 declare temp=$(mktemp -d)
 [[ "${intranet}" -gt 0      ]] && CURL+=( -x http://proxy.domain.com:8080 )
 [[ -f "${temp}/now-weather" ]] && rm -rf "${temp}/now-weather"
+
+declare MAX_LINES=7
+printf '\n%.0s' $(seq 1 ${MAX_LINES})
+tput cuu ${MAX_LINES}                             # return the cursor to the top left corner
+tput sc                                           # save cursor position.
+
+function updateMaxLines() {
+  local file="${1:?File path is required}"
+  local offset="${2:-0}"
+  local lines=0
+
+  if [[ -f "${file}" ]]; then
+    lines=$(wc -l < "${file}")
+    [[ $(( lines + offset )) -gt ${MAX_LINES} ]] && MAX_LINES=$(( lines + offset ))
+  fi
+}
 
 #------------------------------ WEATHER -------------------------------------
 
@@ -36,34 +53,26 @@ fi
 
 # was valid weather report found or an error message?
 if grep '°C' "${temp}"/now-weather >/dev/null 2>&1; then
-  weatherDone=true
+  tput rc && tput cud1                            # back to anchor and move down 1 line
   cat "${temp}"/now-weather
+  _width=$(sed 's/\x1b\[[0-9;]*m//g' "${temp}/now-weather" | awk '{ if (length > max) max = length } END { print max }')
+  dateColumn=$(( _width + 2 ))
 else
-  weatherDone=false
   dateColumn=1                                    # show data as first column if got weather failed
-  timeColumn=27                                   # move 34 column right if got weather failed
 fi
-[[ -f "${temp}"/now-weather ]] && rm -rf "${temp}"/now-weather
+timeColumn=$(( dateColumn + 24 ))                 # move 26 column right if got weather report
+[[ -f "${temp}"/now-weather ]] && {
+  updateMaxLines "${temp}/now-weather"
+  rm -rf "${temp}"/now-weather
+}
 
-#------------------------------- DATA ---------------------------------------
+#------------------------------- CALENDAR ---------------------------------------
 
 # calendar current month with today highlighted.
-# colors 00=bright white, 31=red, 32=green, 33=yellow, 34=blue, 35=purple,
-#        36=cyan, 37=white
+# colors 00=bright white, 31=red, 32=green, 33=yellow, 34=blue, 35=purple, 36=cyan, 37=white
 
-tput sc                                         # save cursor position.
-if [[ "$weatherDone" == true ]] ; then
-    tput cuu 6                                  # move up 6 lines
-    # depending on length of your city name and country name you will:
-    #   1. comment out next three lines of code. uncomment fourth code line.
-    #   2. change subtraction value and set number of print spaces to match
-    #      subtraction value. then place comment on fourth code line.
-    column=$((dateColumn - 10))
-    tput cuf $column                            # move x column number
-    printf '%10s' ''                            # blank out ", country" with 10 spaces
-else
-    tput cuf $dateColumn                        # position to column 27 for date display
-fi
+tput rc
+tput cuf ${dateColumn}
 
 # -h needed to turn off formatting: https://askubuntu.com/questions/1013954/bash-substring-stringoffsetlength-error/1013960#1013960
 # -h not supported in Ubuntu 18.04. Use second answer: https://askubuntu.com/a/1028566/307523
@@ -72,22 +81,21 @@ fi
 #   - osx: cal has no more extra whitespace in each line, 20 chars per line
 #                    cal -h                 remove trailing spaces     remove empty line
 #                       v                              v                       v
-cal | tr -cd '\11\12\15\40\60-\136\140-\176' | sed 's/[ \t]*$//' | sed '/^[[:space:]]*$/d' > "${temp}"/terminal
+cal | tr -cd '\11\12\15\40\60-\136\140-\176' | sed 's/[ \t]*$//' | sed '/^[[:space:]]*$/d' > "${temp}"/now-calendar
+updateMaxLines "${temp}/now-calendar"
+
 calLineCnt=1
 today=$(date +"%e")
 printf "\033[32m"                               # color green -- see list above.
 
 while IFS= read -r cal; do
   printf "%s" "$cal"
-  if [[ $calLineCnt -gt 2 ]] ; then
+  if [[ ${calLineCnt} -gt 2 ]] ; then
     tput cub "$(awk '{print length($0)}' <<< "${cal}")"
     for (( j=0 ; j <= 18 ; j += 3 )) ; do       # see if today is on current line & invert background
       day=${cal:$j:2}                           # current day on calendar line
-      if [[ "$day" == "$today" ]] ; then
-        printf "\033[7m"                        # reverse: [7m
-        printf "%s" "$today"
-        printf "\033[0m"                        # normal: [0m
-        printf "\033[32m"                       # color green -- see list above.
+      if [[ "${day}" == "${today}" ]] ; then
+        printf "\033[7m%s\033[27m" "${today}"   # reverse: [7m; normal: [0m; green: [32m
         tput cuf 1
       else
         tput cuf 3
@@ -96,40 +104,48 @@ while IFS= read -r cal; do
   fi
 
   tput cud1                                     # move one line down
-  tput cuf $dateColumn                          # move 27 columns right
-  calLineCnt=$((++calLineCnt))
-done < "${temp}"/terminal
+  tput cuf ${dateColumn}                        # move xx columns right
+  calLineCnt=$(( ++calLineCnt ))
+done < "${temp}"/now-calendar
 
-printf "\033[00m"                               # color -- bright white (default)
-tput rc                                         # restore saved cursor position.
+printf "\033[00m"                               # reset color to default
 
 #------------------------------- TIME ---------------------------------------
 
-tput sc                                         # save cursor position.
-tput cuu 6                                      # move up 9 lines
-tput cuf $timeColumn                            # move 49 columns right
+tput rc && tput cud1                            # back to anchor and move down 1 line
+tput cuf ${timeColumn}
 
 if hash toilet 2>/dev/null; then                # if has toilet
-  date +"%I:%M %P" | toilet -f future > "${temp}"/terminal
+  date +"%I:%M %P" | toilet -f future > "${temp}"/now-time
 elif hash figlet 2>/dev/null; then              # if has figlet
   if [[ 'Darwin' = "$(uname)" ]]; then
-    date +"%I:%M %P" | figlet -f "$(brew --prefix)"/share/figlet/future.tlf > "${temp}"/terminal
+    date +"%I:%M %P" | figlet -f "$(brew --prefix)"/share/figlet/future.tlf > "${temp}"/now-time
   else
-    date +"%I:%M %P" | figlet -f /usr/local/share/figlet/future.tlf > "${temp}"/terminal
+    date +"%I:%M %P" | figlet -f /usr/local/share/figlet/future.tlf > "${temp}"/now-time
   fi
 else
-  date +"%I:%M %P" > "${temp}"/terminal
+  date +"%I:%M %P" > "${temp}"/now-time
+fi
+
+# using lolcat to color time output if available
+if hash lolcat 2>/dev/null; then
+  lolcat -f --freq=0.2 --spread=2.0 "${temp}"/now-time > "${temp}"/now-time.tmp && mv "${temp}"/now-time.tmp "${temp}"/now-time
 fi
 
 while IFS= read -r time; do
-  printf "\033[01;36m"                          # color cyan
-  printf "%s" "$time"
+  # color cyan
+  hash lolcat 2>/dev/null || printf "\033[01;36m"
+  printf "%b" "${time}"
   tput cud1                                     # up one line
-  tput cuf $timeColumn                          # move 49 columns right
-done < "${temp}"/terminal
+  tput cuf ${timeColumn}                        # move 49 columns right
+done < "${temp}"/now-time
+
+updateMaxLines "${temp}/now-time" 1
+
+tput rc                                         # restore saved cursor position.
+tput cud ${MAX_LINES}
 
 [[ -d "${temp}" ]] && rm -rf "${temp}"
-tput rc                                         # restore saved cursor position.
 exit 0
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=indent:
