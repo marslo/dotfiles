@@ -11,23 +11,19 @@
 # UPDT   : 2019-05-24 If Weather unavailable nicely formatted error message.
 # UPDT   : 2024-01-26 fix the "today" position offset issue due to extra space in `cal`
 # UPDT   : 2026-04-01 add lolcat for color time output (if available); add dynamic column position base on width of weather
+# UPDT   : 2026-04-01 refactor the whole structure, and using dynamic MAX_LINES for prompt location
 
 # NOTE   : to display all available toilet fonts use this one-liner:
 #          for i in ${TOILET_FONT_PATH:=/usr/share/figlet}/*.{t,f}lf; do j=${i##*/}; toilet -d "${i%/*}" -f "$j" "${j%.*}"; done
 
 # get width of calendar dynamically via `$(tput cols)`
-declare dateColumn=38                                   # default is 27 for 80 character line, 34 for 92 character line
-declare timeColumn=$(( dateColumn + 24 ))
+declare DATE_COLUMN=38                                   # default is 27 for 80 character line, 34 for 92 character line
+declare TIME_COLUMN=$(( DATE_COLUMN + 24 ))
 declare intranet=$(netstat -nr -f inet | awk '$3 ~ /UGScg|UG/' | awk '$2 ~ /10\.(85|86|87|68|78)\.[0-9]{1,3}\.[0-9]{1,3}/' | wc -l)
-declare -a CURL=( curl '-sgk' )
 declare temp=$(mktemp -d)
-[[ "${intranet}" -gt 0      ]] && CURL+=( -x http://proxy.domain.com:8080 )
-[[ -f "${temp}/now-weather" ]] && rm -rf "${temp}/now-weather"
-
-declare MAX_LINES=7
-printf '\n%.0s' $(seq 1 ${MAX_LINES})
-tput cuu ${MAX_LINES}                             # return the cursor to the top left corner
-tput sc                                           # save cursor position.
+declare -a CURL=( curl '-sgk' --fail --silent --max-time 3 )
+#              timeout #. increase for slow connection---^
+[[ "${intranet}" -gt 0 ]] && CURL+=( -x "${PROXY_URL:-http://proxy.domain.com:8080}" )
 
 function updateMaxLines() {
   local file="${1:?File path is required}"
@@ -40,40 +36,15 @@ function updateMaxLines() {
   fi
 }
 
-#------------------------------ WEATHER -------------------------------------
-
-# current weather, already in color so no need to override
-# replace edmonton with your city name, gps, etc. see: curl wttr.in/:help
-# shellcheck disable=SC2086
-if ! "${CURL[@]}" wttr.in/sanjose?QmM0 --fail --silent --max-time 3 1>"${temp}"/now-weather 2>/dev/null; then
-#                       timeout #. increase for slow connection---^
+# --- ${temp}/now-weather ---
+if ! "${CURL[@]}" wttr.in/sanjose?QmM0 1>"${temp}"/now-weather 2>/dev/null; then
   ~/.marslo/bin/iweather > "${temp}"/now-weather
 fi
-[[ -f "${temp}"/now-weather && $(wc -c < "${temp}"/now-weather) -gt 100 ]] || ~/.marslo/bin/iweather > "${temp}"/now-weather
-
-# was valid weather report found or an error message?
-if grep '°C' "${temp}"/now-weather >/dev/null 2>&1; then
-  tput rc && tput cud1                            # back to anchor and move down 1 line
-  cat "${temp}"/now-weather
-  _width=$(sed 's/\x1b\[[0-9;]*m//g' "${temp}/now-weather" | awk '{ if (length > max) max = length } END { print max }')
-  dateColumn=$(( _width + 2 ))
-else
-  dateColumn=1                                    # show data as first column if got weather failed
+if ! grep -q '°C' "${temp}/now-weather" 2>/dev/null; then
+  test -f "${temp}/now-weather" && rm -f "${temp}/now-weather"
 fi
-timeColumn=$(( dateColumn + 24 ))                 # move 26 column right if got weather report
-[[ -f "${temp}"/now-weather ]] && {
-  updateMaxLines "${temp}/now-weather"
-  rm -rf "${temp}"/now-weather
-}
 
-#------------------------------- CALENDAR ---------------------------------------
-
-# calendar current month with today highlighted.
-# colors 00=bright white, 31=red, 32=green, 33=yellow, 34=blue, 35=purple, 36=cyan, 37=white
-
-tput rc
-tput cuf ${dateColumn}
-
+# --- ${temp}/now-calendar ---
 # -h needed to turn off formatting: https://askubuntu.com/questions/1013954/bash-substring-stringoffsetlength-error/1013960#1013960
 # -h not supported in Ubuntu 18.04. Use second answer: https://askubuntu.com/a/1028566/307523
 # to fit for both macOS and Linux
@@ -82,20 +53,58 @@ tput cuf ${dateColumn}
 #                    cal -h                 remove trailing spaces     remove empty line
 #                       v                              v                       v
 cal | tr -cd '\11\12\15\40\60-\136\140-\176' | sed 's/[ \t]*$//' | sed '/^[[:space:]]*$/d' > "${temp}"/now-calendar
+
+# --- ${temp}/now-time ---
+declare -a charCmd=()
+if hash toilet 2>/dev/null; then
+  charCmd=( toilet -f future )
+elif hash figlet 2>/dev/null; then
+  declare _ffont=''
+  test 'Darwin' = "$(uname)"                   && _ffont="$(brew --prefix)"/share/figlet/future.tlf
+  test -f '/usr/local/share/figlet/future.tlf' && _ffont='/usr/local/share/figlet/future.tlf'
+  test -f '/usr/share/figlet/future.tlf'       && _ffont='/usr/share/figlet/future.tlf'
+  charCmd=( figlet -f "${_ffont}" )
+fi
+# shellcheck disable=SC2015
+[[ ${#charCmd[@]} -gt 0 ]] && date +"%I:%M %P" | "${charCmd[@]}" > "${temp}"/now-time \
+                           || date +"%I:%M %P" > "${temp}"/now-time
+hash lolcat 2>/dev/null && lolcat -f --freq=0.2 --spread=2.0 "${temp}"/now-time > "${temp}"/now-time.tmp && mv "${temp}"/now-time.tmp "${temp}"/now-time
+
+#------------------------------ MAX_LINES ------------------------------
+declare MAX_LINES=0
 updateMaxLines "${temp}/now-calendar"
+updateMaxLines "${temp}/now-weather" 1
+updateMaxLines "${temp}/now-time"    1
+printf '\n%.0s' $(seq 1 ${MAX_LINES})
+tput cuu ${MAX_LINES}
+tput sc
+
+#------------------------------ WEATHER ------------------------------
+if [[ -f "${temp}/now-weather" ]]; then
+  tput rc && tput cud1                            # back to anchor and move down 1 line
+  cat "${temp}/now-weather"
+  _width=$(sed 's/\x1b\[[0-9;]*m//g' "${temp}/now-weather" | wc -L)
+  DATE_COLUMN=$(( _width + 3 ))
+else
+  DATE_COLUMN=1
+fi
+TIME_COLUMN=$(( DATE_COLUMN + 24 ))
+
+#------------------------------ CALENDAR ------------------------------
+tput rc && tput cuf ${DATE_COLUMN}                 # back to anchor and move right ${DATE_COLUMN} column
 
 calLineCnt=1
 today=$(date +"%e")
-printf "\033[32m"                               # color green -- see list above.
+printf "\033[32m"
 
 while IFS= read -r cal; do
-  printf "%s" "$cal"
+  printf "%s" "${cal}"
   if [[ ${calLineCnt} -gt 2 ]] ; then
     tput cub "$(awk '{print length($0)}' <<< "${cal}")"
-    for (( j=0 ; j <= 18 ; j += 3 )) ; do       # see if today is on current line & invert background
-      day=${cal:$j:2}                           # current day on calendar line
+    for (( j=0 ; j <= 18 ; j += 3 )) ; do
+      day=${cal:$j:2}
       if [[ "${day}" == "${today}" ]] ; then
-        printf "\033[7m%s\033[27m" "${today}"   # reverse: [7m; normal: [0m; green: [32m
+        printf "\033[7m%s\033[27m" "${today}"
         tput cuf 1
       else
         tput cuf 3
@@ -103,49 +112,27 @@ while IFS= read -r cal; do
     done
   fi
 
-  tput cud1                                     # move one line down
-  tput cuf ${dateColumn}                        # move xx columns right
+  tput cud1
+  tput cuf ${DATE_COLUMN}
   calLineCnt=$(( ++calLineCnt ))
 done < "${temp}"/now-calendar
+printf '\033[00m'
 
-printf "\033[00m"                               # reset color to default
+#------------------------------ TIME ------------------------------
+tput rc && tput cud1                              # back to anchor and move down 1 line
+tput cuf ${TIME_COLUMN}                            # move right ${TIME_COLUMN} column
 
-#------------------------------- TIME ---------------------------------------
-
-tput rc && tput cud1                            # back to anchor and move down 1 line
-tput cuf ${timeColumn}
-
-if hash toilet 2>/dev/null; then                # if has toilet
-  date +"%I:%M %P" | toilet -f future > "${temp}"/now-time
-elif hash figlet 2>/dev/null; then              # if has figlet
-  if [[ 'Darwin' = "$(uname)" ]]; then
-    date +"%I:%M %P" | figlet -f "$(brew --prefix)"/share/figlet/future.tlf > "${temp}"/now-time
-  else
-    date +"%I:%M %P" | figlet -f /usr/local/share/figlet/future.tlf > "${temp}"/now-time
-  fi
-else
-  date +"%I:%M %P" > "${temp}"/now-time
-fi
-
-# using lolcat to color time output if available
-if hash lolcat 2>/dev/null; then
-  lolcat -f --freq=0.2 --spread=2.0 "${temp}"/now-time > "${temp}"/now-time.tmp && mv "${temp}"/now-time.tmp "${temp}"/now-time
-fi
-
-while IFS= read -r time; do
-  # color cyan
-  hash lolcat 2>/dev/null || printf "\033[01;36m"
-  printf "%b" "${time}"
-  tput cud1                                     # up one line
-  tput cuf ${timeColumn}                        # move 49 columns right
+while IFS= read -r timeStr; do
+  hash toilet 2>/dev/null || printf "\033[01;35m"
+  printf "%b" "${timeStr}"
+  tput cud1
+  tput cuf ${TIME_COLUMN}
 done < "${temp}"/now-time
+printf "\033[00m"
 
-updateMaxLines "${temp}/now-time" 1
+tput rc && tput cud ${MAX_LINES}                  # back to anchor and move down ${MAX_LINES} lines
 
-tput rc                                         # restore saved cursor position.
-tput cud ${MAX_LINES}
-
-[[ -d "${temp}" ]] && rm -rf "${temp}"
+test -d "${temp}" && rm -rf "${temp}"
 exit 0
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=indent:
