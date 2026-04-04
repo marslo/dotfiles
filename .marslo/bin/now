@@ -68,7 +68,7 @@ fi
 # shellcheck disable=SC2015
 [[ ${#charCmd[@]} -gt 0 ]] && date +"%I:%M %P" | "${charCmd[@]}" > "${temp}"/now-time \
                            || date +"%I:%M %P" > "${temp}"/now-time
-hash lolcat 2>/dev/null && lolcat -f --freq=0.2 --spread=2.0 "${temp}"/now-time > "${temp}"/now-time.tmp && mv "${temp}"/now-time.tmp "${temp}"/now-time
+hash lolcat 2>/dev/null && lolcat -f --freq=0.1 --spread=1.0 --truecolor "${temp}"/now-time > "${temp}"/now-time.tmp && mv "${temp}"/now-time.tmp "${temp}"/now-time
 
 #------------------------------ MAX_LINES ------------------------------
 declare MAX_LINES=0
@@ -83,7 +83,7 @@ tput sc
 if [[ -f "${temp}/now-weather" ]]; then
   tput rc && tput cud1                            # back to anchor and move down 1 line
   cat "${temp}/now-weather"
-  _width=$(sed 's/\x1b\[[0-9;]*m//g' "${temp}/now-weather" | wc -L)
+  _width=$(sed 's/\x1b\[[0-9;]*m//g' "${temp}/now-weather" | sed 's/[ \t]*$//' | wc -L)
   DATE_COLUMN=$(( _width + 3 ))
 else
   DATE_COLUMN=1
@@ -120,10 +120,10 @@ printf '\033[00m'
 
 #------------------------------ TIME ------------------------------
 tput rc && tput cud1                              # back to anchor and move down 1 line
-tput cuf ${TIME_COLUMN}                            # move right ${TIME_COLUMN} column
+tput cuf ${TIME_COLUMN}                           # move right ${TIME_COLUMN} column
 
 while IFS= read -r timeStr; do
-  hash toilet 2>/dev/null || printf "\033[01;35m"
+  hash lolcat 2>/dev/null || printf "\033[01;35m"
   printf "%b" "${timeStr}"
   tput cud1
   tput cuf ${TIME_COLUMN}
@@ -131,7 +131,6 @@ done < "${temp}"/now-time
 printf "\033[00m"
 
 tput rc && tput cud ${MAX_LINES}                  # back to anchor and move down ${MAX_LINES} lines
-
 test -d "${temp}" && rm -rf "${temp}"
 exit 0
 
