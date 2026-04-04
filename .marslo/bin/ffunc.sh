@@ -835,21 +835,73 @@ function vd() {                            # vd - open [v]im[d]iff loaded files 
 #
 # **************************************************************/
 
+# goto         : goto to selected git repo path
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+function goto() {
+  local path="${1:-${HOME}/iMarslo/job/code}"
+  local repo=''
+  local CLIPBOARD=''
+
+  type -P pbcopy >/dev/null 2>&1 && CLIPBOARD="pbcopy"
+  type -P xclip >/dev/null 2>&1  && CLIPBOARD="xclip -selection clipboard"
+  type -P xsel >/dev/null 2>&1   && CLIPBOARD="xsel -b"
+
+  # shellcheck disable=SC2155
+  local showPager=$(git config pager.show || echo "cat")
+  local gheader="printf \"\033[0;3;37m\$ git -C %s show -s\033[0m\n\n\" \"\$(echo {2} | sed \"s|${path}/||\")\""
+  local gpreview="git -C {2} show --color=always --date=local -m HEAD ${showPager:+| ${showPager} --color=always}"
+  local gpreviewS="git -C {2} show --color=always --date=local -s HEAD ${showPager:+| ${showPager} --color=always}"
+
+  repo=$(
+    fd -H -I -t f -E '*sandbox*' -E '*archive*' -E '*poc*' -p '\.git/config$' "${path}" -x rg -l 'github\.com' 2>/dev/null |
+    sed 's|/\.git/config$||' |
+    awk -F/ '{printf "%s\t%s\n", $NF, $0}'  |
+    fzf --delimiter '\t' \
+        --with-nth=1 \
+        --height 50% \
+        --prompt='repo> ' \
+        --preview "${gheader}; ${gpreviewS}" \
+        --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
+        --bind "ctrl-o:execute(bash -c \"${gpreview}\")+change-preview(${gpreviewS})+change-prompt(repo> )" \
+        --bind "ctrl-y:execute-silent(printf \"%s\" {2} | eval ${CLIPBOARD})" \
+        --bind 'ctrl-\:change-preview-window:up,60%|hidden|right,55%' |
+    cut -f2
+  )
+
+  test -d "${repo}" && { cd "${repo}" || return; }
+}
+
+# cdm          : [cd] to selected [m]ount path
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+function cdm() {                           # another `cd`
+  local path=''
+  path=$( printf "%s\n" 'path/to/folder' 'path/to/folder' fzf --prompt '➤ ' )
+
+  local name=''
+  name="$(sed -rn 's:^([^/]+).*:\1:p' <<< "${path}")"
+  inMounted "${name}" || fmount --auto --silent -q "${name}"
+
+  [[ -n "${path}" ]] && cd "/tmp/${path}" || \
+    echo -e "$(c Wdi)~~>$(c) $(c Mi)${name}$(c) is not mounted ...$(c)"
+}
+
 # shellcheck disable=SC2034,SC2316
 function cdp() {                           # cdp - [c][d] to selected [p]arent directory
   local declare dirs=()
-  get_parent_dirs() {
+  getParentDirs() {
     if [[ -d "${1}" ]]; then dirs+=("$1"); else return; fi
     if [[ "${1}" == '/' ]]; then
       for _dir in "${dirs[@]}"; do echo $_dir; done
     else
       # shellcheck disable=SC2046
-      get_parent_dirs $(dirname "$1")
+      getParentDirs $(dirname "$1")
     fi
   }
   # shellcheck disable=SC2155,SC2046
-  local DIR=$(get_parent_dirs $(realpath "${1:-$PWD}") | fzf-tmux --tac)
-  cd "$DIR" || return
+  local DIR=$( getParentDirs $(realpath "${1:-$PWD}") | fzf-tmux --tac )
+  cd "${DIR}" || return
 }
 
 function cdd() {                           # cdd - [c][d] to selected sub [d]irectory
@@ -858,14 +910,13 @@ function cdd() {                           # cdd - [c][d] to selected sub [d]ire
   dir=$(fd --type d --hidden --ignore-file ~/.fdignore | fzf --no-multi -0) && cd "${dir}"
 }
 
-function cdr() {                           # cdd - [c][d] to selected [r]epo directory - same series: `vimr`
-  local repodir=''
-
+function cdr() {                           # cdr - [c][d] to selected [r]epo directory - same series: `vimr`
   if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "Not in a git repository"
     return 1
   fi
 
+  local repodir=''
   repodir="$(git rev-parse --show-toplevel)"
   selection=$(
     {
@@ -893,7 +944,7 @@ function cdf() {                           # [c][d] into the directory of the se
     cd "$(dirname "${file}")" || return
   else
     # shellcheck disable=SC2164
-    file=$(fzf --multi --query "$1") && dir=$(dirname "${file}") && cd "${dir}"
+    file=$(fzf --multi --query "$1") && dir=$(dirname "${file}") && { cd "${dir}" || return; }
   fi
 }
 
@@ -1307,23 +1358,6 @@ function inMounted() {
   # check value
   for val in "${mounted[@]}"; do [[ "$val" == "$query" ]] && return 0; done
   return 1
-}
-
-# goto         : cd to selected path
-# @author      : marslo
-# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
-function goto() {                          # another `cd`
-  path=$( echo "path/to/target" \
-               "path/to/source" |
-          fmt -1 |
-          fzf --prompt '➤ '
-        )
-
-  name="$(sed -rn 's:^([^/]+).*:\1:p' <<< "${path}")"
-  inMounted "${name}" || fmount --auto --silent -q "${name}"
-
-  [[ -n "${path}" ]] && cd "/tmp/${path}" || \
-    echo -e "$(c Wdi)~~>$(c) $(c Mi)${name}$(c) is not mounted ...$(c)"
 }
 
 # jcli         : execute Jenkins CLI command
