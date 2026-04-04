@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-04-03 21:48:20
+#   LastChange : 2026-04-04 00:17:22
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -904,6 +904,8 @@ function cdf() {                           # [c][d] into the directory of the se
 function fif() {                           # [f]ind-[i]n-[f]ile
   if [ ! "$#" -gt 0 ]; then
     bash "${iRCHOME}"/bin/rfv
+  elif [[ 1 -eq "$#" && -d "${1:-}" ]]; then
+    bash "${iRCHOME}"/bin/rfv --path "$1"
   else
     $(type -P rg) --files-with-matches --no-messages --hidden --follow --smart-case "$1" |
     fzf --height 80% \

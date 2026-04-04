@@ -1,91 +1,161 @@
 #!/usr/bin/env bash
-
+# shellcheck source=/dev/null disable=SC2155
 ############################################################################################################
 ##  references:                                                                                           ##
+##  - * https://github.com/junegunn/fzf/issues/3572#issuecomment-3963787483                               ##
 ##  - https://github.com/junegunn/fzf/blob/master/ADVANCED.md#ripgrep-integration                         ##
 ##  - https://github.com/junegunn/fzf/issues/3572#issuecomment-1887735150                                 ##
 ##  - https://github.com/junegunn/fzf/blob/master/ADVANCED.md#switching-between-ripgrep-mode-and-fzf-mode ##
+##  - Dynamic preview height: fzf 0.46+ result/resize transform + FZF_LINES / FZF_MATCH_COUNT / …         ##
 ############################################################################################################
 
-set -o allexport -o errexit -o nounset -o pipefail
+set -o errexit -o nounset -o pipefail
 # https://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin
 
-SHELL=$(type -P bash)
-
-# Set rows to the number of lines in the terminal
-rows=$(tput lines)
-buffer_space="5"
+# prefer bash for fzf execute/become; transform uses [[ ]] (bash/ksh), not plain sh.
+SHELL=$(command -v bash)
+WITH_SHELL="${SHELL} -c"
 
 # =================== helper functions ====================
 
-die() {
-  echo ERROR: "$*" >&2
-  exit 1
-}
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
-# Function to send GET/POST request to fzf with optional data load
-curl_fzf() {
-  command curl --silent --request "$1" --data "${2-}" "localhost:$FZF_PORT"
-}
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
+declare -r USAGE="NAME
+  $(c Ci)${ME}$(c) — interactive ripgrep + fzf file/line picker
 
-spin_me() {
-  local old_size=""
-  # Loop as long 'fzf' (parent process) is alive
-  while command kill -0 "$PPID" 2>/dev/null; do
-    # Calculate the new size of the preview window based on the number of matches and rows in
-    # the terminal
-    new_size="$(
-      curl_fzf GET |
-        jq --raw-output --argjson rows "$rows" --argjson buffer_space "$buffer_space" \
-          '[
-          ([($rows/3), ($rows - .matchCount - $buffer_space) ] | max),
-          ($rows - $buffer_space)
-        ] | min | floor'
-    )"
-    # If new size is different from old size, update the preview window size and header
-    if [ "$new_size" != "$old_size" ]; then
-      curl_fzf POST "change-preview-window:$new_size"
-      # curl_fzf POST "change-header(Preview Window Size: $new_size/ ∑ Rows: $rows)+change-preview-window:$new_size"
-      old_size=$new_size
-    fi
-    sleep 0.5
-  done
-}
+USAGE
+  $(c Ys)${ME} $(c 0G)[OPTIONS] $(c 0B)[PATTERN ...]$(c)
+
+OPTIONS
+  $(c G)-p$(c), $(c G)--path$(c) $(c 0Mi)DIR$(c)   search under DIR $(c 0i)(default: current directory)$(c)
+  $(c G)-q$(c), $(c G)--query$(c) $(c 0Mi)STR$(c)  initial fzf query $(c 0i)(same as $(c 0Wi)fzf --query$(c)$(c 0i))$(c)
+  $(c G)-h$(c), $(c G)--help$(c)       show this help and exit
+
+PATTERNS
+  optional initial ripgrep query. Use CTRL-R / CTRL-F inside fzf to switch modes.
+  words are passed with ripgrep's -e (patterns starting with '-' are OK; no extra '--').
+
+EXAMPLES
+  $(c 0Wdi)# search in current directory$(c)
+  $(c Y)\$ ${ME}$(c)
+  $(c 0Wdi)# search in ~/code/myproject for keywrod 'myfunc'$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)-p $(c 0Mi)~/code/myproject myfunc$(c)
+  $(c 0Wdi)# same, but start with fzf query box pre-filled$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)-p $(c 0Mi)~/code/myproject $(c 0Gi)-q $(c 0Mi)myfunc$(c)
+  $(c 0Wdi)# search in /tmp for files with 'foo' in the name (no content search)$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)--path $(c 0Mi)/tmp $(c 0C)-- $(c 0Bi)-pattern-starting-with-dash$(c)
+
+SHORTCUT KEYS (inside fzf):
+  • CTRL-R  $(c Wi)ripgrep mode (re-run rg with the query)$(c)
+  • CTRL-F  $(c Wi)fzf mode (fuzzy-filter current results)$(c)
+  • Enter   $(c Wi)open file in nvim at the selected line$(c)
+
+NOTE
+  Requires: fzf, rg; preview uses bat; Enter uses nvim.
+"
+
+function usage() { echo -e "${USAGE}"; exit 0; }
+function die()   { echo ERROR: "$*" >&2; exit 1; }
+
+# fzf 0.46+ exports FZF_* into transform actions (CHANGELOG 0.46.0)
+# replaces the old --listen + curl/jq polling (issue #3572)
+# shellcheck disable=SC2016
+declare preview='
+# 1 line for info, another for the prompt, and 2 more lines for the preview window border
+lines=$(( FZF_LINES - FZF_MATCH_COUNT - 4 ))
+# Many matches (e.g. initial full rg) make that formula tiny; keep at least half the terminal for preview.
+half=$(( FZF_LINES / 2 ))
+if (( lines < half )); then
+  lines=$half
+fi
+if [[ $FZF_MATCH_COUNT -eq 0 ]]; then
+  echo "change-preview-window:hidden"
+elif [[ $lines -gt 3 ]]; then
+  echo "change-preview-window:$lines"
+elif [[ $FZF_PREVIEW_LINES -ne 3 ]]; then
+  echo "change-preview-window:3"
+fi'
+
+# ===================== arguments ========================
+
+declare TARGET_PATH='.'
+declare -a POS=()
+declare FZF_QUERY=''
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -p | --path ) [[ -d "$2"  ]] || die "option '$1' requires a path"; TARGET_PATH=$2; shift 2 ;;
+    -q | --query) [[ $# -ge 2 ]] || die "option '$1' requires a value"; FZF_QUERY=$2; shift 2 ;;
+    -h | --help ) usage ;;
+    --          ) shift; POS+=("$@"); break ;;
+    *           ) POS+=("$1"); shift ;;
+  esac
+done
 
 # =================== check requirements ====================
 
-if ((rows <= 1)); then
-  die "'rows' must be higher than 1."
+if (( ${LINES:-$(tput lines)} <= 1 )); then
+  die "Terminal height must be greater than 1 line."
 fi
 
-for tool in curl fzf jq; do
-  if ! type -p $tool >/dev/null; then
-    die "'$tool' was not found."
-  fi
+for tool in fzf rg; do
+  if ! type -p "${tool}" >/dev/null; then die "'${tool}' was not found."; fi
 done
 
 # ===================== let's begin ========================
 
+# Shell-safe path for embedding inside fzf reload(...) / execute strings.
+RG_PATH_Q=$(printf %q "$TARGET_PATH")
+
 # https://github.com/junegunn/fzf/blob/master/ADVANCED.md#ripgrep-integration
-declare fdOpt=''
-[[ "$(pwd)" = "$HOME" ]] && fdOpt=' --max-depth 3'
-RG_PREFIX="rg --color=always --line-number --hidden --no-heading --smart-case --column --ignore-file $HOME/.fdignore ${fdOpt} "
-# shellcheck disable=SC2086
-rg --color=always --line-number --hidden --no-heading --smart-case --column  --ignore-file "$HOME"/.fdignore ${fdOpt} "${*:-}" |
-  FZF_DEFAULT_OPTS="" fzf \
+declare -a RG_OPTS=(
+  --color=always
+  --line-number
+  --hidden
+  --no-heading
+  --smart-case
+  --column
+  --ignore-file "$HOME/.fdignore"
+)
+
+if _rfv_target_abs=$(cd -- "$TARGET_PATH" 2>/dev/null && pwd -P); then
+  case "$_rfv_target_abs" in
+    "$HOME" | "$HOME"/*) RG_OPTS+=( --max-depth 3 ) ;;
+  esac
+fi
+unset _rfv_target_abs
+
+RG_BIND_QUERY="rg ${RG_OPTS[*]} -e {q} ${RG_PATH_Q}"
+
+declare -a RG_EXTRA=( '' )
+declare -a FZF_EXTRA=()
+[[ ${#POS[@]} -ne 0  ]] && RG_EXTRA=( -e "${POS[*]}" )
+[[ -n "${FZF_QUERY}" ]] && FZF_EXTRA+=( --query "${FZF_QUERY}" )
+
+rg "${RG_OPTS[@]}" "${RG_EXTRA[@]}" "${TARGET_PATH}" |
+  FZF_DEFAULT_OPTS='' fzf "${FZF_EXTRA[@]}" \
+    --cycle \
     --ansi \
+    --with-shell "${WITH_SHELL}" \
     --height 100% \
     --layout default \
     --disabled \
-    --bind "start:reload(${RG_PREFIX} {q})+unbind(ctrl-r)+execute-silent(spin_me &)" \
+    --bind "start:reload(${RG_BIND_QUERY})+unbind(ctrl-r)" \
     --bind "ctrl-f:unbind(change,ctrl-f)+change-prompt(⍨ ‣ )+enable-search+rebind(ctrl-r)+transform-query(echo {q} > /tmp/rg-fzf-r; cat /tmp/rg-fzf-f)" \
-    --bind "ctrl-r:unbind(ctrl-r)+change-prompt(ᓙ ‣ )+disable-search+reload($RG_PREFIX {q} || true)+rebind(change,ctrl-f)+transform-query(echo {q} > /tmp/rg-fzf-f; cat /tmp/rg-fzf-r)" \
-    --bind "change:reload:sleep 0.1; ${RG_PREFIX} {q} || true" \
+    --bind "ctrl-r:unbind(ctrl-r)+change-prompt(ᓙ ‣ )+disable-search+reload(${RG_BIND_QUERY} || true)+rebind(change,ctrl-f)+transform-query(echo {q} > /tmp/rg-fzf-f; cat /tmp/rg-fzf-r)" \
+    --bind "change:reload:sleep 0.1; ${RG_BIND_QUERY} || true" \
+    --bind "result:transform:${preview}" \
+    --bind "resize:transform:${preview}" \
+    --bind "load:transform:${preview}" \
     --color "hl:-1:underline,hl+:-1:underline:reverse,prompt:#404945,header:italic:#928374" \
     --delimiter : \
-    --listen \
     --prompt 'ᓙ ‣ ' \
     --header 'CTRL-R ( ripgrep mode ); CTRL-F ( fzf mode )' \
-    --preview 'bat --color=always {1} --highlight-line {2}' \
-    --preview-window 'up,border-bottom,+{2}+3/3,~3' \
+    --preview 'bat --color=always --theme gruvbox-dark-marslo --style=numbers {1} --highlight-line {2}' \
+    --preview-window 'up,border-bottom:50%,+{2}+3/3' \
     --bind 'enter:become(nvim {1} +{2})'
