@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-03-25 22:29:13
+"    LastChange : 2026-04-03 21:40:43
 " =============================================================================
 
 " /**************************************************************
@@ -16,6 +16,7 @@
 " **************************************************************/
 " :help map-overview : https://vimhelp.org/map.txt.html#map-overview
 noremap  <leader>v    :e ~/.vimrc<CR>
+nnoremap <leader>sv   :source $MYVIMRC<CR>:echohl WarningMsg<CR>:echom "Config Reloaded!"<CR>:echohl None<CR>
 nnoremap j            gj
 nnoremap gj           j
 nnoremap k            gk

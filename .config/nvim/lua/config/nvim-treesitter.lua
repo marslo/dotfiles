@@ -20,6 +20,10 @@ local ft_ignore = {
   ["jenkinsfile"] = true,
 }
 
+local indent_bypass = {
+  ["lua"] = true
+}
+
 local function safe_ts_start(buf)
   if not vim.api.nvim_buf_is_valid(buf) then return end
 
@@ -52,9 +56,13 @@ local function safe_ts_start(buf)
     if not vim.api.nvim_buf_is_valid(buf) then return end
     -- enable highlight
     local ok, _ = pcall( vim.treesitter.start, buf, lang )
-    -- enable indent
     if ok then
-      vim.bo[buf].indentexpr = "v:lua.vim.treesitter.indentexpr()"
+      -- enable indent
+      if not indent_bypass[ft] then
+        -- vim.bo[buf].indentexpr = "nvim_treesitter#indent()"
+        -- vim.bo[buf].indentexpr = "v:lua.require('nvim-treesitter').indentexpr()"
+        vim.bo[buf].indentexpr = "v:lua.require('nvim-treesitter.indent').get_indent(v:lnum)"
+      end
       if ft == 'groovy' or ft == 'Jenkinsfile' then
         vim.bo[buf].syntax = 'on'
       end
@@ -87,7 +95,7 @@ local function install_all_parsers()
       vim.cmd( "redraw!" )
       vim.notify( "Installation started! Use :messages to check progress.", vim.log.levels.INFO )
     else
-      vim.notify( "All custom TS parsers are already installed." )
+      vim.notify( "All TS parsers are already installed." )
     end
   end)
 end
@@ -97,13 +105,13 @@ vim.api.nvim_create_user_command( 'TSInstallAll', install_all_parsers, {} )
 -- autocmd
 vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter" }, {
   group = ts_group,
-  callback = function(args)
-    safe_ts_start(args.buf)
+  callback = function( args )
+    safe_ts_start( args.buf )
   end
 })
 
 -- execute immediately for the current buffer
-if vim.api.nvim_get_vvar("vim_did_enter") == 1 then
+if vim.api.nvim_get_vvar( "vim_did_enter" ) == 1 then
   safe_ts_start( vim.api.nvim_get_current_buf() )
 end
 
@@ -112,4 +120,4 @@ pcall(function()
   require('nvim-treesitter.install').prefer_git = true
 end)
 
--- vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=lua:
+-- vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=lua:foldmethod=indent:

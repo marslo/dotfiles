@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-03-19 15:51:06
+"    LastChange : 2026-04-03 21:36:19
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -233,12 +233,12 @@ let g:indentLine_conceallevel         = 2
 let g:indentLine_char                 = '¦'
 let g:indentLine_bufTypeExclude       = ['help', 'terminal']
 let g:indentLine_bufNameExclude       = ['_.*', 'NERD_tree.*']
-let g:vim_json_conceal                = 0
 
 " LunarWatcher/auto-pairs
 let g:AutoPairsMapBS                        = 1
 let g:AutoPairsFlyMode                      = 0
 let g:AutoPairsNoJump                       = 0
+" let g:AutoPairsMapCR                      = 0
 let g:AutoPairsCompleteOnlyOnSpace          = 1                     " ╮ only auto-pair if the next character is NOT a '\w'
 let g:AutoPairsSpaceCompletionRegex         = '\w'                  " ╯
 " let g:AutoPairsJumpBlacklist              = [ '<', '>' ]
@@ -491,7 +491,7 @@ if !exists('g:vscode')
         \                   ?  "\<DOWN>" : coc#refresh()
   inoremap <silent><expr> <UP> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
   inoremap <silent><expr> <C-M>
-       \ coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+        \ coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
   command! -nargs=0 OR  :call CocActionAsync('runCommand', 'editor.action.organizeImport')
   imap <C-j> <Plug>(coc-snippets-expand-jump)
   inoremap <silent><expr> <C-j>
@@ -499,6 +499,8 @@ if !exists('g:vscode')
         \ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
         \ CheckBackSpace() ? "\<TAB>" :
         \ coc#refresh()
+  " inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
+  "       \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 endif
 
 " Konfekt/FastFold
@@ -587,8 +589,8 @@ nnoremap <silent> <leader>l  :Buffers<CR>
 nnoremap <silent> <Leader>H  :Helptags<CR>
 nnoremap <silent> <Leader>g  :Commits<CR>
 nnoremap <silent> <Leader>hh :History:<CR>
-inoremap <expr> <c-x><c-k> fzf#vim#complete('cat /usr/share/dict/words')
-inoremap <expr> <c-x><c-l> fzf#vim#complete(fzf#wrap({
+inoremap <expr> <c-x><c-k>   fzf#vim#complete('cat /usr/share/dict/words')
+inoremap <expr> <c-x><c-l>   fzf#vim#complete(fzf#wrap({
   \ 'prefix': '^.*$',
   \ 'source': 'rg -n ^ --color always',
   \ 'options': '--ansi --delimiter : --nth 3..',

@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-03-24 22:30:07
+#   LastChange : 2026-04-03 21:48:20
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -295,8 +295,8 @@ function cat() {                           # smart cat
 function fdInRC() {                        # [f]in[d] [in] [rc] files
   local -A ignoreList=(
     [base]='.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf'
-    [rc]='ss/ log*/ ansible-completion/ .archive/ *.png *.pem *.p12 *.pub *.lst'
-    [config]='*.bak *backup'
+    [rc]='ss/ log*/ backup*/ ansible-completion/ .archive/ *.png *.pem *.p12 *.pub *.lst'
+    [config]='*.bak *backup backup*/'
     [extra]='*.pem *.p12 *.png *.jpg *.jpeg *.gif *.svg *.zip *.tar *.gz *.bz2 *.xz *.7z *.rar'
   )
 
