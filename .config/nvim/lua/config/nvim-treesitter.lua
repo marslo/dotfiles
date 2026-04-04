@@ -14,6 +14,7 @@ vim.treesitter.language.register( 'groovy', { 'Jenkinsfile' } )
 local ft_ignore = {
   [""] = true,
   ["markdown"] = true,
+  ["markdown_inline"] = true,
   ["groovy"] = true,
   ["Jenkinsfile"] = true,
   ["jenkinsfile"] = true,
@@ -27,6 +28,11 @@ local function safe_ts_start(buf)
 
   -- bypass the filetype in ft_ignore or buffertype is not empty
   if ft_ignore[ft] or bt ~= "" then
+    vim.schedule(function()
+      if vim.api.nvim_buf_is_valid(buf) then
+        pcall(vim.treesitter.stop, buf)
+      end
+    end)
     return
   end
 
