@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2026-03-20 22:08:47
+#   LastChange : 2026-04-03 17:20:39
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -31,24 +31,25 @@ test -f "${COMPLETION_DIR}"/npm-groovy-lint.sh       && source "${COMPLETION_DIR
 # for git alias completion - should load after source git-completion.sh ( after .imac/.ilinux )
 test -f "${COMPLETION_DIR}"/gitalias.sh              && source "${COMPLETION_DIR}"/gitalias.sh
 
-type -P commitlint >/dev/null                        && source "${COMPLETION_DIR}/commitlint.sh"
-type -P pre-commit >/dev/null                        && source "${COMPLETION_DIR}/pre-commit.sh"
-type -P kubectl    >/dev/null                        && source "${COMPLETION_DIR}/kubectl.sh"
-type -P npm        >/dev/null                        && source "${COMPLETION_DIR}/npm.sh"
-type -P gh         >/dev/null                        && source "${COMPLETION_DIR}/gh.bash.sh"
-type -P bat        >/dev/null                        && source "${COMPLETION_DIR}/bat.sh"
-type -P pipx       >/dev/null                        && source "${COMPLETION_DIR}/pipx.sh"
-type -P pip        >/dev/null                        && source "${COMPLETION_DIR}/pip.sh"
-type -P poetry     >/dev/null                        && source "${COMPLETION_DIR}/poetry.sh"
-type -P code       >/dev/null                        && source "${COMPLETION_DIR}/code.sh"
-type -P fossa      >/dev/null                        && source "${COMPLETION_DIR}/fossa.sh"
-type -P typos      >/dev/null                        && source "${COMPLETION_DIR}/typos.sh"
-type -P scc        >/dev/null                        && source "${COMPLETION_DIR}/scc.sh"
-type -P extractor  >/dev/null                        && source "${COMPLETION_DIR}/extractor.sh"
+hash commitlint 2>/dev/null                          && source "${COMPLETION_DIR}/commitlint.sh"
+hash pre-commit 2>/dev/null                          && source "${COMPLETION_DIR}/pre-commit.sh"
+hash kubectl    2>/dev/null                          && source "${COMPLETION_DIR}/kubectl.sh"
+hash npm        2>/dev/null                          && source "${COMPLETION_DIR}/npm.sh"
+hash gh         2>/dev/null                          && source "${COMPLETION_DIR}/gh.bash.sh"
+hash bat        2>/dev/null                          && source "${COMPLETION_DIR}/bat.sh"
+hash pipx       2>/dev/null                          && source "${COMPLETION_DIR}/pipx.sh"
+hash pip        2>/dev/null                          && source "${COMPLETION_DIR}/pip.sh"
+hash poetry     2>/dev/null                          && source "${COMPLETION_DIR}/poetry.sh"
+hash code       2>/dev/null                          && source "${COMPLETION_DIR}/code.sh"
+hash fossa      2>/dev/null                          && source "${COMPLETION_DIR}/fossa.sh"
+hash typos      2>/dev/null                          && source "${COMPLETION_DIR}/typos.sh"
+hash scc        2>/dev/null                          && source "${COMPLETION_DIR}/scc.sh"
+hash extractor  2>/dev/null                          && source "${COMPLETION_DIR}/extractor.sh"
+# hash mas      2>/dev/null                          && source "${COMPLETION_DIR}/mas.sh"
 test -L "${COMPLETION_DIR}/gh-arsenal-completion.sh" && source "${COMPLETION_DIR}/gh-arsenal-completion.sh"
 # test -d "${NPM_COMPLETION}"                        && source "${NPM_COMPLETION}/npm-completion.sh"
 # via `vault -autocomplete-install`
-type -P vault      >/dev/null                        && complete -C "$(type -P vault)" vault
+hash vault      2>/dev/null                          && complete -C "$(type -P vault)" vault
 type -t _fd        >/dev/null 2>&1                   && complete -F _fd -o nosort -o bashdefault -o default ff ffs
 type -t _comp_cmd_chromium_browser >/dev/null 2>&1   && complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome
 complete -o default -o bashdefault chrome

@@ -43,6 +43,7 @@
   "diagnostic.virtualText": true,
   "diagnostic.virtualTextCurrentLineOnly": false,
   "diagnostic.checkCurrentLine": false,
+  "diagnostic.refreshOnInsertMode": false,
   "diagnostic-languageserver.filetypes": {
     "yaml": [ "yamllint" ],
     "vim": "vint",
@@ -53,6 +54,11 @@
   "yaml.schemas": {
     "file:///Users/marslo/.marslo/schemas/pre-commit-config.json": ".pre-commit-config.yaml"
   },
+
+  "json.format.enable": true,
+  "json.validate.enable": true,
+  "json.trace.server": "off",
+  "json.maxItemsComputed": 1000,
 
   "suggest.maxCompleteItemCount": 16,
   "suggest.enablePreselect": true,
@@ -82,6 +88,6 @@
   "coc.source.file.priority": 80,
   "coc.source.buffer.priority": 70,
   "coc.source.word.priority": 1,
-  "coc.source.dictionary.priority": 1,
+  "coc.source.dictionary.priority": 1
   // "workspace.ignoredFolders": [ "**/.git/**" ]
 }

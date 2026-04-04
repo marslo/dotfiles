@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-03-19 15:51:00
+"    LastChange : 2026-04-03 21:01:25
 " =============================================================================
 
 " /**************************************************************
@@ -60,6 +60,7 @@ set softtabstop=2                                                   " width for 
 set shiftwidth=2                                                    " the tab width by using >> & <<
 set autoindent smartindent expandtab
 set cindent
+set foldmethod=indent
 set cinoptions=(0,u0,U0
 set smarttab                                                        " smarttab: the width of <Tab> in first line would refer to 'shiftwidth' parameter
 set linebreak

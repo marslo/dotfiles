@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-03-24 17:58:31
+"    LastChange : 2026-04-03 21:01:16
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -95,17 +95,20 @@ if has( 'autocmd' )
     autocmd BufRead,BufNewFile .*ignore            set filetype=ignore
     autocmd FileType           ignore,gitconfig    setlocal commentstring=#\ %s
     autocmd FileType           json                setlocal commentstring=//\ %s
-    " for json conccellevel issue
-    autocmd FileType           json,jsonc          call timer_start(10, { -> execute('setlocal concealcursor=') })
+    " to prevent the json insert "shaking" issue, and show double-quotes in edit mode
+    autocmd FileType           json,jsonc
+            \  setlocal conceallevel=1 concealcursor=nc
+            \| let g:indentLine_setConceal   = 0
+            \| let g:vim_json_conceal        = 0
+            \| let g:vim_json_syntax_conceal = 0
     " force set jsonc for json with comments: $ npm i -g vscode-langservers-extracted
     autocmd BufNewFile,BufRead *tsconfig*.json,
-          \*eslintrc*.json,
-          \*babelrc*.json,
-          \*.code-workspace,
-          \.vscode/*.json,
-          \*[Ss]ettings*.json,*.json.current,*keybindings.json
-          \ set filetype=jsonc
-    " autocmd BufRead,BufNewFile *.json                                    setlocal filetype=jsonc
+            \ ,*eslintrc*.json
+            \ ,*babelrc*.json
+            \ ,*.code-workspace
+            \ ,.vscode/*.json
+            \ ,*[Ss]ettings*.json,*.json.current,*keybindings.json
+            \ set filetype=jsonc
     autocmd FileType           markdown,html
             \ let g:AutoPairsCompleteOnlyOnSpace = 1 |
             \ let b:AutoPairs = autopairs#AutoPairsDefine({
@@ -118,12 +121,13 @@ if has( 'autocmd' )
     if index( ['project.config', 'groups'], expand('%:r') ) == -1
       autocmd BufRead,BufNewFile *.config          set syntax=gitconfig noexpandtab
     endif
-    autocmd BufNewFile,BufRead                                                " git config files
-            \ */.git/config,
-            \ .gitconfig,
-            \ .gitmodules,
-            \ gitconfig,
-            \ ~/.marslo/.gitalias
+    " git config files
+    autocmd BufNewFile,BufRead
+            \ ,*/.git/config
+            \ ,.gitconfig
+            \ ,.gitmodules
+            \ ,gitconfig
+            \ ,~/.marslo/.gitalias
             \ setfiletype gitconfig
   augroup END
 
@@ -131,12 +135,11 @@ if has( 'autocmd' )
     autocmd!
     autocmd Syntax       bash                set filetype=sh
     autocmd FileType     sh,bash,shell
-            \ setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab |
+            \ setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab foldmethod=indent |
             \ call SafeRetab()
     autocmd BufWritePre  *.sh call SafeRetab()
     autocmd BufWritePost *.sh                                                 " automatic redraw for shellcheck
             \ if has('syntax') && exists('g:loaded_shellcheck') | silent! redraw! | endif
-    " autocmd BufWritePost *.sh  silent !chmod +x %
   augroup END
 
   augroup Groovy
@@ -169,21 +172,23 @@ if has( 'autocmd' )
 
   augroup Vimrc
     autocmd!
-    if fnamemodify(expand('%:p:h'), ':t') ==# 'vimrc.d'
-      autocmd! BufWritePost ~/.marslo/vimrc.d/* silent! source $MYVIMRC
-               \| execute 'silent redraw!'
-               \| echohl WarningMsg
-               \| echom expand('%:p') . " changed! " . $MYVIMRC . " sourced!"
-               \| echohl None
-    endif
+    function! SafeReloadConfig(filepath) abort
+      let l:save_pos = winsaveview()
+      execute 'silent redraw!'
+      echohl WarningMsg
+      echom a:filepath . ' changed! ' . $MYVIMRC . ' Reloading ...'
+      echohl None
+      let l:cmd = 'silent! source ~/.vimrc | silent! call winrestview(' . string(l:save_pos) . ')'
+      call timer_start(150, { -> execute(l:cmd) })
+    endfunction
 
-    if IsNvim() && !exists('g:vscode') && expand('%:p') =~# '^' . stdpath('config')
-      autocmd! BufWritePost ~/.config/nvim/*  silent! source $MYVIMRC
-               \| execute 'silent redraw!'
-               \| echohl WarningMsg
-               \| echom expand('%:p') . " changed! " . $MYVIMRC . " sourced!"
-               \| echohl None
+    if IsVim() && fnamemodify(expand('%:p:h'), ':t') ==# 'vimrc.d'
+      autocmd! BufWritePost ~/.marslo/vimrc.d/* call SafeReloadConfig(expand('%:p'))
     endif
+    " -- disable for pos restoring issue when source vimrc -- "
+    " if IsNvim() && !exists('g:vscode') && expand('%:p') =~# '^' . stdpath('config')
+    "   autocmd! BufWritePost ~/.config/nvim/* call SafeReloadConfig(expand('%:p'))
+    " endif
   augroup END
 
   augroup CustomTabularize
@@ -242,11 +247,21 @@ if has( 'autocmd' )
     " autocmd BufRead,BufNewFile *                               if !did_filetype() && &ft ==# '' | set syntax=Jenkinsfile | endif
     autocmd BufRead,BufNewFile *                               if empty( &filetype ) | setfiletype Jenkinsfile | endif
     " autocmd BufWinEnter      *                               silent! loadview                                     " autocmd BufWinLeave * silent! mkview
-    autocmd BufReadPost        *                               silent! loadview
+    " autocmd BufReadPost      *                               silent! loadview
+    " restore cursor position when reopen file
+    autocmd BufReadPost        *
+            \ if line("'\"") > 1 && line("'\"") <= line("$") && &filetype !~# 'commit' |
+            \   execute "normal! g`\"" |
+            \ endif
     autocmd Syntax             *                               syn match ExtraWhitespace /\s\+$\| \+\ze\t/
     autocmd BufReadPost        *                               if &diff | let g:blamer_enabled=0 | endif            " ╮ disable git blame in diff mode
     " autocmd BufEnter         *                               if ! empty(&key) | let g:blamer_enabled=0 | endif    " ╯ and encrypt mode
-    autocmd BufWritePre        *                               %s/\s\+$//e | %s/\r$//e   " automatic remove trailing space
+    " automatic remove trailing space
+    autocmd BufWritePre        *
+            \ let s:save_pos = winsaveview() |
+            \ silent! %s/\s\+$//e |
+            \ silent! %s/\r$//e |
+            \ call winrestview(s:save_pos)
     " automatic retab: https://vim.fandom.com/wiki/Remove_unwanted_spaces
     autocmd BufWritePre        *                               call SafeRetab()
     autocmd BufRead,BufNewFile *.ltsv                          set filetype=ltsv syntax=groovy noexpandtab
@@ -258,21 +273,19 @@ if has( 'autocmd' )
             \ setlocal commentstring=#\ %s
     autocmd FileType           help                            setlocal nofoldenable
     autocmd Syntax             c,cpp,xml,html,xhtml            normal zM
-    " autocmd VimLeave         *                               silent :%bd                                          " :windo bd
-    " autocmd BufReadPre,BufNewFile * if expand('%:p:h') =~# 'job/code/devops' | let b:coc_enabled = 0 | endif
   augroup END
 
   " vim-matchup
   augroup MatchupTripleQuotes
     autocmd!
     autocmd FileType  python,groovy,Jenkinsfile
-          \ if exists('b:match_words') |
-          \   if b:match_words !~# '""":"""' |
-          \     let b:match_words .= ',""":""",' . "'''" . ':' . "'''" |
-          \   endif |
-          \ else |
-          \   let b:match_words = '""":""",' . "'''" . ':' . "'''" |
-          \ endif
+            \ if exists('b:match_words') |
+            \   if b:match_words !~# '""":"""' |
+            \     let b:match_words .= ',""":""",' . "'''" . ':' . "'''" |
+            \   endif |
+            \ else |
+            \   let b:match_words = '""":""",' . "'''" . ':' . "'''" |
+            \ endif
     autocmd FileType markdown nnoremap <silent><buffer> [% :call search('^```', 'bW')<CR>
     autocmd FileType markdown nnoremap <silent><buffer> ]% :call search('^```', 'W')<CR>
   augroup END

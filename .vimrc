@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2025-12-08 17:51:23
+"    LastChange : 2026-04-03 19:01:07
 " =============================================================================
 
 runtime macros/matchit.vim
@@ -55,10 +55,11 @@ endif
 
 if has( 'nvim' ) | let g:loaded_perl_provider = 0 | endif
 if has( 'nvim' )
-  set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.nviminfo
+  " set shada=%,<800,'100,/50,:100,h,f0
+  set viminfo=%,<800,'30,/50,:100,h,f0,n~/.vim/cache/.nviminfo
 else
   if v:version > 74399 | set cryptmethod=blowfish2 | endif
-  set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.viminfo
+  set viminfo=%,<800,'30,/50,:100,h,f0,n~/.vim/cache/.viminfo
   set ttymouse=xterm2
 endif
 if empty( glob('~/.vim/cache/') ) | execute 'silent !mkdir -p ~/.vim/cache' | endif
