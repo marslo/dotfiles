@@ -154,7 +154,7 @@ rg "${RG_OPTS[@]}" "${RG_EXTRA[@]}" "${TARGET_PATH}" |
     --bind "load:transform:${preview}" \
     --color "hl:-1:underline,hl+:-1:underline:reverse,prompt:#404945,header:italic:#928374" \
     --delimiter : \
-    --prompt 'ᓙ ‣ ' \
+    --prompt '➤ ' \
     --header 'CTRL-R ( ripgrep mode ); CTRL-F ( fzf mode )' \
     --preview 'bat --color=always --theme gruvbox-dark-marslo --style=numbers {1} --highlight-line {2}' \
     --preview-window 'up,border-bottom:50%,+{2}+3/3' \
