@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-04-04 00:17:22
+#   LastChange : 2026-04-06 15:27:37
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -865,7 +865,8 @@ function goto() {
         --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
         --bind "ctrl-o:execute(bash -c \"${gpreview}\")+change-preview(${gpreviewS})+change-prompt(repo> )" \
         --bind "ctrl-y:execute-silent(printf \"%s\" {2} | eval ${CLIPBOARD})" \
-        --bind 'ctrl-\:change-preview-window:up,60%|hidden|right,55%' |
+        --bind 'ctrl-\:change-preview-window:up,60%|hidden|right,55%' \
+        --bind "ctrl-o:execute(open https://github.com/<OWNER>/{1})" |
     cut -f2
   )
 
