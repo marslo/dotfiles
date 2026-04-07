@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-03-19 15:50:49
+"    LastChange : 2026-04-07 01:12:44
 " =============================================================================
 
 " color table
@@ -15,8 +15,13 @@ highlight! Grey             ctermfg=241    guifg=#616161
 highlight! link Ignore      Grey
 highlight! ExtraWhitespace  ctermfg=245    ctermbg=NONE    guifg=#928374   guibg=NONE
 highlight! SpellBad         term=underline cterm=underline ctermbg=NONE    guibg=NONE  guisp=NONE
+" highlight! PasteHighlight ctermfg=235   ctermbg=175   guifg=#282828 guibg=#d3869b
+highlight! PasteHighlight   ctermfg=67    ctermbg=175   guifg=#282828 guibg=#5f87af
 
-highlight! ColumnLimit      guibg=NONE     guifg=#4e4e4e   ctermfg=240
+" let s:columnLimit = 80
+if IsVim()
+  highlight! ColumnLimit    guibg=#4e4e4e   ctermbg=240
+endif
 
 " - vim cursor color depends on terminal color
 " - nvim curcor color depends on `set termguicolors`
@@ -135,11 +140,12 @@ if IsNvim()
 endif
 
 " bash
-highlight BashFunction guifg=#ea6962 gui=italic ctermfg=167 cterm=italic
 if IsNvim()
+  highlight BashFunction guifg=#ea6962 gui=italic ctermfg=167 cterm=italic
   highlight! link @keyword.function.bash    BashFunction
   highlight! link @keyword.bash             BashFunction
   highlight! link @keyword.conditional.bash BashFunction
+  highlight! link @boolean.bash             PurpleItalic
 endif
 
 " syn groovyJDKMethods : flatten leftShift reverse collectEntries readLines toInteger eachFile compareTo push splitEachLine upto call eachLine eachLine withPrintWriter immutable withWriterAppend any step read newOutputStream times collect tokenize toList getIn invokeMethods putAt previous intersect findAll withReader writeLine withWriter readBytes subMap join println grep newInputStream getOut count eachWithIndex getAt find every getErr each eachByte getText newReader append dump newWriter inspect sort size write pop print asWritable inject withStream asList reverseEach newPrintWriter collectMany next waitForOrKill isCase

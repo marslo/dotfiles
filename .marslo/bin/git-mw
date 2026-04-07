@@ -30,8 +30,7 @@ declare TOPIC=''
 declare PRIVATE=false
 declare REMOVE_PRIVATE=false
 # shellcheck disable=SC2155
-declare USAGE="""
-NAME
+declare USAGE="NAME
   $(c Ys)${ME}$(c) - $(c Ysi)m$(c 0i)rslo revie$(c 0Ysi)w$(c) - Push changes to Gerrit with specific reviewers and flags
 
 USAGE
@@ -52,7 +51,7 @@ EXAMPLES
   $(c Ys)\$ ${ME} $(c 0Gi)--sms --ready --topic$(c) $(c 0Mi)\"my-topic\"$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--private$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--remove-private$(c)
-"""
+"
 
 # shellcheck disable=SC2054
 while [[ $# -gt 0 ]]; do

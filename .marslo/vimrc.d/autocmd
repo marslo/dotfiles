@@ -97,7 +97,7 @@ if has( 'autocmd' )
     autocmd FileType           json                setlocal commentstring=//\ %s
     " to prevent the json insert "shaking" issue, and show double-quotes in edit mode
     autocmd FileType           json,jsonc
-            \  setlocal conceallevel=1 concealcursor=nc
+            \  setlocal conceallevel=1 concealcursor=c
             \| let g:indentLine_setConceal   = 0
             \| let g:vim_json_conceal        = 0
             \| let g:vim_json_syntax_conceal = 0
@@ -178,7 +178,7 @@ if has( 'autocmd' )
       echohl WarningMsg
       echom a:filepath . ' changed! ' . $MYVIMRC . ' Reloading ...'
       echohl None
-      let l:cmd = 'silent! source ~/.vimrc | silent! call winrestview(' . string(l:save_pos) . ')'
+      let l:cmd = 'silent! source $MYVIMRC | silent! call winrestview(' . string(l:save_pos) . ')'
       call timer_start(150, { -> execute(l:cmd) })
     endfunction
 

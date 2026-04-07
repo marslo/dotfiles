@@ -4,7 +4,7 @@
 #     FileName : iweather
 #       Author : marslo
 #      Created : 2023-08-11 03:05:27
-#   LastChange : 2026-04-01 22:43:55
+#   LastChange : 2026-04-07 01:10:06
 # ===========================================================================
 
 shopt -s extglob
@@ -51,8 +51,8 @@ function windDirection() {
 }
 
 function getLatLon() {
-  ccity=$(echo "$*" | xargs | sed 's/ /%20/g')
-  "${CURL[@]}" "${API_HOME}/geo/1.0/direct?q=${ccity,,}&limit=1&appid=${appid}" | jq -r '.[] | "lat=" + (.lat|tostring) + "&lon=" + (.lon|tostring)' > "${locFile}"
+  ccity=$( echo -n "$*" | jq -sRr @uri )
+  "${CURL[@]}" "${API_HOME}/data/2.5/weather?q=${ccity,,}&limit=1&appid=${appid}" | jq -r '.coord | "lat=" + (.lat|tostring) + "&lon=" + (.lon|tostring)' > "${locFile}"
   if [[ ! -s ${locFile} ]] || [[ ! -f "${locFile}" ]]; then
     echo '-1'
   else
@@ -184,7 +184,7 @@ declare -A descMap=(
                       ['01_temperature']="\033[38;5;214m${temperature}\033[0m °C"
                       ['02_windSpeed']="$(windDirection "${windDeg}") \033[38;5;220m${windSpeed}\033[0m m/s"
                       ['03_visibility']="${visibility} km"
-                      ['04_humidity']="${humidity} %"
+                      ['04_humidity']="${humidity}%"
                       ['05_uvi']="${uvi} mW/cm2"
                    )
 
@@ -192,12 +192,15 @@ declare -A descMap=(
 "${verbose}" && echo -e " $(c G)$(capitalized ${cname})$(c): $(capitalized ${description})"
 
 declare _icon="${!codeMap["x${weatherIcon:0:-1}"]}"
-declare _iconWidth="$(printf '%b' "${_icon}" | sed 's/\x1b\[[0-9;]*m//g' | awk '{ if (length > max) max = length } END { print max }')"
-declare pad=$(printf '%*s' "${_iconWidth}" '')
+# if no GUN Coreutils installed, using `awk '{ if (length > max) max = length } END { print max }'` for `wc -L` instead
+declare _iconWidth="$( printf '%b' "${_icon}" | sed 's/\x1b\[[0-9;]*m//g' | wc -L | xargs )"
 
 paste -d ' ' \
-  <(printf '%b' "${_icon}" | sed '1{/^$/d}' | sed "s/^$/${pad}/") \
-  <(for k in "${!descMap[@]}"; do echo "$k"; done | sort -h | while read -r _d; do printf '%b\n' "${descMap[$_d]}"; done)
+  <(printf '%b' "${_icon}" | awk -v w="${_iconWidth}" '
+      NR==1 && /^$/ {next}
+      { v=$0; gsub(/\x1b\[[0-9;]*m/, "", v); printf "%s%*s\n", $0, w-length(v), "" }
+  ') \
+  <(for k in "${!descMap[@]}"; do echo "${k}"; done | sort -h | while read -r _d; do printf '%b\n' "${descMap[$_d]}"; done)
 
 test -f "${tempfile}" && rm -f "${tempfile}"
 test -f "${locFile}"  && rm -f "${locFile}"

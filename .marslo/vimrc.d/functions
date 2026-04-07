@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-01-20 22:54:48
+"    LastChange : 2026-04-02 16:11:58
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -211,11 +211,13 @@ function! ToggleMouse()
     echohl Red   | echon '🖱️ Mouse disabled ' . l:env | echohl None
   else
     set mouse=nvi
-    echohl Green | echon '🖱️ Mouse enabled ' . l:env | echohl None
+    echohl Green | echon '🖱️ Mouse enabled ' . l:env  | echohl None
   endif
 endfunction
 
 " highlight paste in both vim and neovim
+nnoremap <silent> p p:call PasteHighlight()<CR>
+nnoremap <silent> P P:call PasteHighlight()<CR>
 function! PasteHighlight() abort
   let l:start = getpos("'[")
   let l:end   = getpos("']")
@@ -229,18 +231,17 @@ function! PasteHighlight() abort
 
   if l:start_lnum == l:end_lnum
     let l:len = l:end_col - l:start_col + 1
-    let l:match_id = matchaddpos('IncSearch', [[l:start_lnum, l:start_col, l:len]])
+    let l:match_id = matchaddpos('PasteHighlight', [[l:start_lnum, l:start_col, l:len]])
     call setpos('.', l:end)
   else
     let l:pattern = '\%'.l:start_lnum.'l\_.*\%'.l:end_lnum.'l'
-    let l:match_id = matchadd('IncSearch', l:pattern)
+    let l:match_id = matchadd('PasteHighlight', l:pattern)
+
     call setpos('.', l:start)
   endif
 
   call timer_start(150, {-> matchdelete(l:match_id)})
 endfunction
-nnoremap <silent> p p:call PasteHighlight()<CR>
-nnoremap <silent> P P:call PasteHighlight()<CR>
 
 " highlight yank in vim only
 if !has('nvim')
