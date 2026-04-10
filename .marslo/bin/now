@@ -66,7 +66,7 @@ fi
 # shellcheck disable=SC2015
 [[ ${#charCmd[@]} -gt 0 ]] && date +"%I:%M %P" | "${charCmd[@]}" > "${temp}"/now-time \
                            || date +"%I:%M %P" > "${temp}"/now-time
-hash lolcat 2>/dev/null && lolcat -f --freq=0.1 --spread=2.0 --truecolor "${temp}"/now-time > "${temp}"/now-time.tmp && mv "${temp}"/now-time.tmp "${temp}"/now-time
+hash lolcat 2>/dev/null && lolcat -f --freq=0.1 --spread=1.5 --truecolor "${temp}"/now-time > "${temp}"/now-time.tmp && mv "${temp}"/now-time.tmp "${temp}"/now-time
 
 #------------------------------ MAX_LINES ------------------------------
 declare MAX_LINES=0

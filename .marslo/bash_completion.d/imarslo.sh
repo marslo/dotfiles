@@ -4,7 +4,7 @@
 #     FileName : imarslo.sh
 #       Author : marslo
 #      Created : 2026-03-09 14:28:06
-#   LastChange : 2026-03-31 18:59:56
+#   LastChange : 2026-04-09 17:50:35
 #=============================================================================
 
 function _compgen_nocase() {
@@ -185,6 +185,66 @@ function _setme_completion() {
   fi
 }
 
+function _knrun_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    opts="-c --cmd -f --file -l --armcc -d --dind -o --offline -p --personal --no-hhost --re -v --verbose -q --quiet -h --help -e --examples --"
+
+    local i
+    for (( i=1; i < COMP_CWORD; i++ )); do
+      if [[ "${COMP_WORDS[i]}" == "--" ]]; then
+        COMPREPLY=( $(compgen -f -- "${cur}") )
+        return 0
+      fi
+    done
+
+    case "${prev}" in
+      -c | --cmd  ) COMPREPLY=(); return 0 ;;
+      -f | --file ) COMPREPLY=( $(compgen -f -- "${cur}") ); return 0 ;;
+    esac
+
+    if [[ ${cur} == -* ]] ; then
+      COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+      return 0
+    fi
+
+    COMPREPLY=()
+}
+
+_ghperm_completion() {
+  local cur prev opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+  opts="-o --org -m --mrvl --srv -u --url -p --permission -v -vv -h --help"
+
+  # shellcheck disable=SC2155
+  case "${prev}" in
+      -o|--org        ) if [[ -n "${GH_OWNER_LIST}" && -f "${GH_OWNER_LIST}" && -r "${GH_OWNER_LIST}" ]]; then
+                          local orgs=$(command cat "${GH_OWNER_LIST}" 2>/dev/null)
+                          _compgen_nocase "${cur}" "${orgs}"
+                        fi;
+                        return 0 ;;
+      --srv           ) local accounts="srv-release1 sa-ip-sw-jenkins"
+                        COMPREPLY=( $(compgen -W "${accounts}" -- "${cur}") )
+                        return 0 ;;
+      -p|--permission ) local perms="admin maintain write triage read"
+                        COMPREPLY=( $(compgen -W "${perms}" -- "${cur}") )
+                        return 0
+                        ;;
+      *               ) ;;
+  esac
+
+  if [[ "${cur}" == -* ]] ; then
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+    return 0
+  fi
+}
+
 complete -F _jira_completions      jira
 complete -F _jira_stat_completions jira-stat
 complete -F _jira_ls_completions   jira-ls
@@ -192,5 +252,7 @@ complete -F _hex2rgba_completion   hex2rgba
 complete -F _rgba2hex_completion   rgba2hex
 complete -F _gdoc_completion       gdoc
 complete -F _setme_completion      setme
+complete -F _knrun_completion      knrun
+complete -F _ghperm_completion     ghperm.sh
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
