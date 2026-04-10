@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-04-06 15:27:37
+#   LastChange : 2026-04-08 13:25:28
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1185,15 +1185,18 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   }
 
   if [[ -n ${nodes} ]]; then
-    trap exit SIGINT SIGTERM; while read -r _node; do
-      "${rhost}"   && _node="$(ssh -n "${username}"@"${_node}" \"hostname\")"
-      ! "${quiet}" && printf "\n$(c Wd)>>$(c) $(c Ys)%s$(c) $(c Wd)<<$(c)\n" "${_node}"
-      if [[ -n "${path}" ]]; then
-        runRemote '<'   "${path}"
-      else
-        runRemote '<<<' "${cmd}"
-      fi
-    done <<< "${nodes}"
+    (
+      trap exit SIGINT SIGTERM; while read -r _node; do
+        "${rhost}"   && _node="$(ssh -n "${username}"@"${_node}" \"hostname\")"
+        ! "${quiet}" && printf "\n$(c Wd)>>$(c) $(c Ys)%s$(c) $(c Wd)<<$(c)\n" "${_node}"
+        if [[ -n "${path}" ]]; then
+          runRemote '<'   "${path}"
+        else
+          runRemote '<<<' "${cmd}"
+        fi
+      done <<< "${nodes}"
+    )
+    return $?
   fi
 }
 

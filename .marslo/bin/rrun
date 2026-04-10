@@ -4,7 +4,7 @@
 #     FileName : rrun
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-09 16:43:02
-#   LastChange : 2026-02-25 18:00:23
+#   LastChange : 2026-04-08 13:17:10
 #  Description : [r]emote [run]
 #=============================================================================
 
@@ -222,7 +222,7 @@ trap exit SIGINT SIGTERM; while IFS= read -r -d ',' line; do
   fi
   ACCOUNT="${USER:-${name}}"
 
-  "${quiet}" || printf "\n$(c Wd)>>$(c) $(c Ys)%s$(c) - $(c Ys)%s$(c) $(c Wd)<<$(c)\n" "${ACCOUNT}@${IP}" "$(ssh -n "${ACCOUNT}@${IP}" 'echo $(hostname)')"
+  "${quiet}" || printf "\n$(c Wd)>> $(c 0Ys)%s $(c 0Wd)- $(c 0Ys)%s $(c 0Wd)<<$(c)\n" "${ACCOUNT}@${IP}" "$(ssh -n "${ACCOUNT}@${IP}" 'echo $(hostname)')"
 
   # using sub-shell is due to setup `set -e` behavior
   # shellcheck disable=SC2205
