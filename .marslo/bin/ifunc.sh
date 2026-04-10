@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2026-03-31 18:55:58
+#  LastChange : 2026-04-09 23:01:30
 #  Description : ifunctions
 # =============================================================================
 
@@ -33,8 +33,8 @@ function getsum    { awk '{ sum += $1 } END { print sum }' "$1"; }
 ## how many days since now https://tecadmin.net/calculate-difference-between-two-dates-in-bash/
 function hmdays()  { usage="SYNOPSIS:\t\$ hmdays YYYY-MM-DD"; [[ 1 -ne $# ]] && echo -e "${usage}" || echo $(( ( $(date -d "$1" +%s) - $(date +%s))/(3600*24))) days; }
 # https://serverfault.com/a/906310/129815
-function ssl_expiry () { echo | openssl s_client -connect "${1}":443 2> /dev/null | openssl x509 -noout -enddate; }
-function convert2av()  { ffmpeg -i "$1" -i "$2" -c copy -map 0:0 -map 1:0 -shortest -strict -2 "$3"; }
+function ssl_expiry() { echo | openssl s_client -connect "${1}":443 2> /dev/null | openssl x509 -noout -enddate; }
+function convert2av() { ffmpeg -i "$1" -i "$2" -c copy -map 0:0 -map 1:0 -shortest -strict -2 "$3"; }
 function ipshow() {
   ip -c addr show 2>/dev/null |
   awk '
@@ -878,6 +878,46 @@ function extract() {
     *.gz      ) gunzip   "$1" ;;
     *         ) echo     "'$1' cannot be extracted" ;;
   esac
+}
+
+# to generate the ctags - .tags file
+# shellcheck disable=SC2155
+function gctags() {
+  local version=$(ctags --version 2>/dev/null | head -1)
+  [[ "${version}" != *"Universal Ctags"* && "$(uname --operating-system)" = 'Darwin' ]] && brew install universal-ctags
+
+  local -a path=( 'vars' 'jenkinsfile' )
+  local language='Groovy'
+  local tagfile=''
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -l | --language ) language="$2" ; shift 2 ;;
+      -p | --path     ) path+=( "$2" ) ; shift 2 ;;
+      -t | --tagfile  ) path+=( "$2" ) ; shift 2 ;;
+      -h | --help     ) echo "Usage: gctags [OPTIONS] [PATHS...]"
+                        echo "OPTIONS:"
+                        echo "  -l, --language <LANGUAGE>  specify the language for ctags (default: Groovy)"
+                        echo "  -p, --path <PATH>          specify additional paths to include (can be used multiple times)"
+                        echo "  -t, --tagfile <FILE>       specify the output tag file (default: .tags in repo root or current directory)"
+                        echo "  -h, --help                 show this help message"
+                        return 0 ;;
+      *               ) echo "ERROR: unknown option '$1'"; exit 1;;
+    esac
+  done
+
+  test -z "${tagfile}" && {
+    git rev-parse --is-inside-work-tree &> /dev/null && tagfile="$(git rev-parse --show-toplevel)"/.tags || tagfile="$(pwd)"/.tags
+  }
+
+  local cmd=( ctags --quiet --recurse \
+                    --languages="${language}"
+                    --exclude=.git --exclude=node_modules --exclude='*/node_modules/*'
+                    -f "${tagfile}"
+            )
+
+  echo -e "$(c Wdi)>> generating ctags for $(c 0Cis)${language} $(c 0Wdi)to $(c 0Mi)${tagfile//$HOME/\~}$(c 0Wdi) ...$(c)"
+  "${cmd[@]}" "${path[@]}"
 }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
