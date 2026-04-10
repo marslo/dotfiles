@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-04-09 21:12:34
+"    LastChange : 2026-04-10 01:04:27
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -16,6 +16,20 @@
 "  \__,_|\__,_|\__\___/ \___|_| |_| |_|\__,_|
 "
 " **************************************************************/
+
+" ALE has no b:ale_lint_on_enter; only g:ale_lint_on_enter registers BufWinEnter
+" call ale#Queue manually for groovy buffers (same as LintOnEnter).
+function! s:AleLintOnGroovy(bufnr) abort
+  if !exists('*ale#Queue')
+    return
+  endif
+  let l:ft = getbufvar( a:bufnr, '&filetype' )
+  if index( ['groovy'], l:ft ) < 0
+    return
+  endif
+  call ale#Queue( 0, 'lint_file', a:bufnr )
+endfunction
+
 function! SafeRetab()
   if expand('%:e') =~# '^\(ltsv\|config\|diffs\)$' | return | endif
 
@@ -61,36 +75,6 @@ function! s:ApplyFTSettings() abort
     " if no foldmethod is set, use indent as default
     if &l:foldmethod ==# 'manual' | setlocal foldmethod=indent | endif
   endif
-endfunction
-
-function! s:AleLocList(timer_id) abort
-  if !get(g:, 'ale_open_list', 0)
-    return
-  endif
-  let l:maxh = get(g:, 'ale_list_window_size', 10)
-  let l:back = winnr()
-  if get(g:, 'ale_set_quickfix', 0)
-    let l:n = len(getqflist())
-    if l:n < 1 | return | endif
-    let l:want = min([l:maxh, l:n])
-    copen
-    execute 'resize' l:want
-    execute l:back . 'wincmd w'
-  elseif get(g:, 'ale_set_loclist', 0)
-    let l:n = len(getloclist(0))
-    if l:n < 1 | return | endif
-    let l:want = min([l:maxh, l:n])
-    lopen
-    execute 'resize' l:want
-    execute l:back . 'wincmd w'
-  endif
-endfunction
-
-function! s:AleScheduleLoclist() abort
-  if ! exists('g:loaded_ale')
-    return
-  endif
-  call timer_start( 0, function('s:AleLocList') )
 endfunction
 
 if has( 'autocmd' )
@@ -176,16 +160,19 @@ if has( 'autocmd' )
 
   augroup Groovy
     autocmd!
-    autocmd Filetype   Groovy                set filetype=groovy syntax=groovy
-    autocmd Syntax     groovy,Jenkinsfile    normal zM
-    autocmd FileType   groovy,Jenkinsfile    setlocal foldmethod=indent
+    autocmd Filetype    Groovy                set filetype=groovy syntax=groovy
+    autocmd Syntax      groovy,Jenkinsfile    normal zM
+    autocmd FileType    groovy,Jenkinsfile    setlocal foldmethod=indent
             \| setlocal tabstop=2 softtabstop=2 shiftwidth=2
-    autocmd FileType   Jenkinsfile           setlocal commentstring=//\ %s
+    autocmd FileType    Jenkinsfile           setlocal commentstring=//\ %s
+    " FileType: first open (BufWinEnter can run before ft is set). BufWinEnter: switch back to buffer.
+    autocmd FileType    groovy                call s:AleLintOnGroovy(str2nr(expand('<abuf>')))
+    autocmd BufWinEnter *                     call s:AleLintOnGroovy(str2nr(expand('<abuf>')))
 
     " https://vim.fandom.com/wiki/Syntax_folding_for_Java
-    autocmd FileType   java                  setlocal foldmarker=/**,**/ foldmethod=marker foldcolumn=1
-    if did_filetype()                      | finish             | endif
-    if getline(1) =~# '^#!.*[/\\]groovy\>' | setfiletype groovy | endif       " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
+    autocmd FileType   java                   setlocal foldmarker=/**,**/ foldmethod=marker foldcolumn=1
+    if did_filetype()                       | finish             | endif
+    if getline(1) =~# '^#!.*[/\\]groovy\>'  | setfiletype groovy | endif       " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
   augroup END
 
   augroup Python
@@ -322,11 +309,6 @@ if has( 'autocmd' )
     autocmd FileType markdown nnoremap <silent><buffer> ]% :call search('^```', 'W')<CR>
   augroup END
 
-  " fixed with settings: g:ale_list_window_size = 2
-  " augroup AleLoclist
-  "   autocmd!
-  "   autocmd User ALELintPost call s:AleScheduleLoclist()
-  " augroup END
 
   augroup LAST_OVERRIDE
     autocmd!

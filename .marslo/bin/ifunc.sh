@@ -917,7 +917,7 @@ function gctags() {
             )
 
   echo -e "$(c Wdi)>> generating ctags for $(c 0Cis)${language} $(c 0Wdi)to $(c 0Mi)${tagfile//$HOME/\~}$(c 0Wdi) ...$(c)"
-  "${cmd[@]}" "${path[@]}"
+  "${cmd[@]}" "${path[@]}" 2>/dev/null >(grep -v -E 'Cargo|TOML')
 }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

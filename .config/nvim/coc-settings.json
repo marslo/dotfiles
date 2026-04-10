@@ -46,6 +46,7 @@
   "diagnostic.checkCurrentLine": false,
   "diagnostic.refreshOnInsertMode": false,
   "diagnostic-languageserver.mergeConfig": true,
+  "diagnostic.locationlistUpdate": false,
    // for : workspace.showOutput → diagnostic-languageserver == groovy.trace.server
   "diagnostic-languageserver.trace.server": "messages",
   "diagnostic-languageserver.linters": {
@@ -57,20 +58,26 @@
         "none",
         "--loglevel",
         "warning",
-        "%tempfile"
+        "-c",
+        "/Users/marslo/.groovylintrc.json",
+        "-o",
+        "json",
+        "%filepath"
       ],
       "debounce": 500,
       "sourceName": "npm-groovy-lint",
-      "formatLines": 1,
-       // tolerate ANSI escape codes in message
-      "formatPattern": [
-        "^\\s+(\\d+)\\s+(?:\\x1b\\[[0-9;]*m)*(error|warning|info)(?:\\x1b\\[[0-9;]*m)*\\s+(.*)$",
-        {
-          "line": 1,
-          "security": 2,
-          "message": 3
-        }
-      ],
+      "isStdout": true,
+      "isStderr": false,
+      "parseJson": {
+        // lodash.get: %filepath must match `files` keys in npm-groovy-lint JSON (same as last arg). Unrelated to ALE.
+        "errorsRoot": "files[\"%filepath\"].errors",
+        "line": "line",
+        "column": "range.start.character",
+        "endLine": "range.end.line",
+        "endColumn": "range.end.character",
+        "security": "severity",
+        "message": "[${rule}] ${msg} "
+      },
       "securities": {
         "error": "error",
         "warning": "warning",
@@ -82,9 +89,7 @@
     "yaml": [ "yamllint" ],
     "vim": "vint",
     "sh": "shellcheck",
-    "groovy": "npm-groovy-lint",
-    "Jenkinsfile": "npm-groovy-lint",
-    "jenkinsfile": "npm-groovy-lint"
+    "groovy": "npm-groovy-lint"
   },
 
   "yaml.schemas": {
