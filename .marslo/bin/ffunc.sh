@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-04-08 13:25:28
+#   LastChange : 2026-04-09 22:18:13
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -294,21 +294,24 @@ function cat() {                           # smart cat
 
 function fdInRC() {                        # [f]in[d] [in] [rc] files
   local -A ignoreList=(
-    [base]='.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf'
     [rc]='ss/ log*/ backup*/ ansible-completion/ .archive/ *.png *.pem *.p12 *.pub *.lst'
     [config]='*.bak *backup backup*/'
     [extra]='*.pem *.p12 *.png *.jpg *.jpeg *.gif *.svg *.zip *.tar *.gz *.bz2 *.xz *.7z *.rar'
   )
 
-  local -a rcPaths=() cfgRoots=()
   function getValidDirs() {
     local p
     for p in "$@"; do [[ -d "${p}" ]] && printf '%s\0' "${p}"; done
   }
-  local -a rcRawPaths=( "${HOME}"/.marslo "${HOME}"/.idlerc "${HOME}"/.ssh "${HOME}"/.jfrog "${HOME}"/.pip "${HOME}"/.config/nvim "${HOME}"/.cht.sh "${HOME}"/.git-templates "${HOME}"/.config/bat/syntaxes )
+
+  # for rc folders
+  local -a rcRawPaths=( "${HOME}"/.marslo "${HOME}"/.idlerc "${HOME}"/.ssh "${HOME}"/.jfrog "${HOME}"/.pip "${HOME}"/.config/nvim "${HOME}"/.cht.sh "${HOME}"/.git-templates "${HOME}"/.config/bat/syntaxes "${HOME}"/.ctags.d )
+  # ~/.config
   local -a cfgNames=( cheat github-copilot htop yamllint pip ncdu bat gh )
+  local -a rcPaths=() cfgRoots=()
   mapfile -d '' -t rcPaths  < <(getValidDirs "${rcRawPaths[@]}")
   mapfile -d '' -t cfgRoots < <(getValidDirs "${cfgNames[@]/#/$HOME/.config/}")
+  local base='.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf|.ctags'
 
   local doExtraIgnore=false
   while [[ $# -gt 0 ]]; do
@@ -347,7 +350,7 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
 
   {
     # top-level rc-like files under $HOME
-    fd --max-depth 1 "${ignoreList[base]}" "${HOME}" --exclude '*archive*' "${fdopt[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
+    fd --max-depth 1 "${base}" "${HOME}" --exclude '*archive*' "${fdopt[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
     # rcPaths
     fd . "${rcPaths[@]}" "${fdopt[@]}" "${exRc[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
     # ~/.config

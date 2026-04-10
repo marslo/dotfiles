@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-04-03 21:01:16
+"    LastChange : 2026-04-09 21:12:34
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -63,6 +63,36 @@ function! s:ApplyFTSettings() abort
   endif
 endfunction
 
+function! s:AleLocList(timer_id) abort
+  if !get(g:, 'ale_open_list', 0)
+    return
+  endif
+  let l:maxh = get(g:, 'ale_list_window_size', 10)
+  let l:back = winnr()
+  if get(g:, 'ale_set_quickfix', 0)
+    let l:n = len(getqflist())
+    if l:n < 1 | return | endif
+    let l:want = min([l:maxh, l:n])
+    copen
+    execute 'resize' l:want
+    execute l:back . 'wincmd w'
+  elseif get(g:, 'ale_set_loclist', 0)
+    let l:n = len(getloclist(0))
+    if l:n < 1 | return | endif
+    let l:want = min([l:maxh, l:n])
+    lopen
+    execute 'resize' l:want
+    execute l:back . 'wincmd w'
+  endif
+endfunction
+
+function! s:AleScheduleLoclist() abort
+  if ! exists('g:loaded_ale')
+    return
+  endif
+  call timer_start( 0, function('s:AleLocList') )
+endfunction
+
 if has( 'autocmd' )
 
   " assumes set ignorecase smartcase
@@ -96,11 +126,13 @@ if has( 'autocmd' )
     autocmd FileType           ignore,gitconfig    setlocal commentstring=#\ %s
     autocmd FileType           json                setlocal commentstring=//\ %s
     " to prevent the json insert "shaking" issue, and show double-quotes in edit mode
+    " ALE vscodejson is LSP, so it keeping show publishDiagnostics when insert; and g:ale_open_list=1 will non-stop execute lopen/lclose
     autocmd FileType           json,jsonc
-            \  setlocal conceallevel=1 concealcursor=c
+            \  setlocal conceallevel=1 concealcursor=nc
             \| let g:indentLine_setConceal   = 0
             \| let g:vim_json_conceal        = 0
             \| let g:vim_json_syntax_conceal = 0
+            \| let b:ale_open_list           = 'on_save'
     " force set jsonc for json with comments: $ npm i -g vscode-langservers-extracted
     autocmd BufNewFile,BufRead *tsconfig*.json,
             \ ,*eslintrc*.json
@@ -289,6 +321,12 @@ if has( 'autocmd' )
     autocmd FileType markdown nnoremap <silent><buffer> [% :call search('^```', 'bW')<CR>
     autocmd FileType markdown nnoremap <silent><buffer> ]% :call search('^```', 'W')<CR>
   augroup END
+
+  " fixed with settings: g:ale_list_window_size = 2
+  " augroup AleLoclist
+  "   autocmd!
+  "   autocmd User ALELintPost call s:AleScheduleLoclist()
+  " augroup END
 
   augroup LAST_OVERRIDE
     autocmd!

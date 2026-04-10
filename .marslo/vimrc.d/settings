@@ -1,9 +1,9 @@
 " =============================================================================
 "      FileName : settings
-"        Author : marslo.jiao@gmail.com
+"        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-04-03 21:01:25
+"    LastChange : 2026-04-09 22:17:43
 " =============================================================================
 
 " /**************************************************************
@@ -32,7 +32,9 @@ set lazyredraw
 set fileformat=unix
 set fileformats=unix
 set nowrap                                                          " no wrap lines
-set tags=tags
+" $ brew install universal-ctags
+" $ ctags --recurse --languages=Groovy -f .tags vars jenkinsfile
+set tags=./.tags;,./tags;,tags
 set updatetime=300
 set maxmempattern=5000
 set history=1000

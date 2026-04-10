@@ -35,6 +35,7 @@
   // "java.project.importHint": false,
   // "java.autobuild.enabled": false,
 
+  // don't display coc diagnostics by ale
   "diagnostic.displayByAle": false,
   "diagnostic.errorSign": "✘",
   "diagnostic.infoSign": "ϊ",
@@ -44,11 +45,46 @@
   "diagnostic.virtualTextCurrentLineOnly": false,
   "diagnostic.checkCurrentLine": false,
   "diagnostic.refreshOnInsertMode": false,
+  "diagnostic-languageserver.mergeConfig": true,
+   // for : workspace.showOutput → diagnostic-languageserver == groovy.trace.server
+  "diagnostic-languageserver.trace.server": "messages",
+  "diagnostic-languageserver.linters": {
+    "npm-groovy-lint": {
+      "command": "/Users/marslo/.npm/bin/npm-groovy-lint",
+      "args": [
+        "--noserver",
+        "--failon",
+        "none",
+        "--loglevel",
+        "warning",
+        "%tempfile"
+      ],
+      "debounce": 500,
+      "sourceName": "npm-groovy-lint",
+      "formatLines": 1,
+       // tolerate ANSI escape codes in message
+      "formatPattern": [
+        "^\\s+(\\d+)\\s+(?:\\x1b\\[[0-9;]*m)*(error|warning|info)(?:\\x1b\\[[0-9;]*m)*\\s+(.*)$",
+        {
+          "line": 1,
+          "security": 2,
+          "message": 3
+        }
+      ],
+      "securities": {
+        "error": "error",
+        "warning": "warning",
+        "info": "info"
+      }
+    }
+  },
   "diagnostic-languageserver.filetypes": {
     "yaml": [ "yamllint" ],
     "vim": "vint",
     "sh": "shellcheck",
-    "groovy": "npm-groovy-lint"
+    "groovy": "npm-groovy-lint",
+    "Jenkinsfile": "npm-groovy-lint",
+    "jenkinsfile": "npm-groovy-lint"
   },
 
   "yaml.schemas": {
