@@ -106,6 +106,8 @@ type -P pyenv >/dev/null                   && eval "$(pyenv init -)"
 #
 # --------------------------------------------------------------/
 # check via `$ shopt -p`
+# keeps COLUMNS/LINES in sync without $(tput cols) and $(tput lines)
+shopt -s checkwinsize
 shopt -s cdspell
 shopt -s dirspell
 shopt -s cmdhist

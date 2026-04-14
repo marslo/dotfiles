@@ -57,8 +57,8 @@
   rank        = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git log --format=\"%aN\" --numstat \"$@\" | git_rank_calc' -"
   ls          = log --stat --pretty=short --graph
   ### [p]retty [l]og(s)
-  pl          = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git -c log.decorate=short --no-pager log --color=always --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:\"%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" \"$@\" | git_color_gpg' -"
-  pls         = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git -c log.decorate=full log --decorate --color=always --graph --abbrev-commit --date=relative --pretty=tformat:\"%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" \"$@\" | git_color_gpg | less -FRX' -"
+  pl          = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git -c log.decorate=short --no-pager log --color=always --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:\"%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" \"$@\" | git_color_gpg' -"
+  pls         = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git -c log.decorate=full log --decorate --color=always --graph --abbrev-commit --date=relative --pretty=tformat:\"%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" \"$@\" | git_color_gpg | less -FRX' -"
   ### [p]revious branch [p]retty [l]og
   ppl         = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git --no-pager log --color=always --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:\"%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" @{-1} \"$@\" | git_color_gpg' -"
   ### [f]ull [p]retty [l]log
@@ -485,18 +485,26 @@
 
   ### [r]eset to [o]riginal
   ro          = "!f() { \
+                        git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo \"fatal: not a git repository\" >&2; exit 128; }; \
                         if [ 0 -eq $# ]; then \
                           branch=$(git rev-parse --abbrev-ref HEAD); \
                         else \
                           branch=\"$*\"; \
                         fi; \
                         if [ 'HEAD' = \"${branch}\" ]; then \
+                          source $HOME/.marslo/bin/ig.sh; \
+                          state=$(showGitState); \
+                          if [[ \"${state}\" != 'normal' ]]; then \
+                            printf \"\\033[2;3;37m~~> current HEAD is in \\033[0;3;34m%s \\033[0;2;3;37mstate. skip ...\\033[0m\\n\" \"${state%%' '*}\"; \
+                            return 1; \
+                          fi; \
                           commit=$(git rev-parse HEAD); \
                           remote=$(rg --color=never -l --no-heading \"${commit}\" .git/logs/refs/remotes/* 2>/dev/null | \
-                                   sed -E "s:.git/logs/refs/remotes/\\([^/]+\\)/.*:\\\\1:" | head -n1); \
+                                   sed -E \"s:.git/logs/refs/remotes/\\([^/]+\\)/.*:\\\\1:\" | head -n1); \
                           extra=\"\\033[37;2;3m(${remote})\\033[0m\"; \
                         else \
                           remote=$(git for-each-ref --format='%(upstream:remotename)' \"refs/heads/${branch}\"); \
+                          test -z \"${remote}\" && remote='origin'; \
                           extra=''; \
                         fi; \
                         printf \"\\033[0;37;2;3m~~> reset to \\033[0;1;3;34m%s/%s\\033[0m%s\n\" "remotes/${remote}" "${branch}" " ${extra}"; \
@@ -518,6 +526,7 @@
   ### [r]eset to [o]riginal and re[b]ase
   rob         = "!f() { \
                         : git rebase ; \
+                        git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo \"fatal: not a git repository\" >&2; exit 128; }; \
                         if [ 0 -eq $# ]; then \
                           branch=$(git rev-parse --abbrev-ref HEAD); \
                         else \
@@ -549,8 +558,8 @@
   #### [d]iff via colorful [w]ords
   wd          = diff --color-words -U0
   # [l]ine [d]iff
-  ld          = !bash -c 'source ~/.marslo/bin/ig.sh && git diff -U0 \"$@\" | diff-lines' -
-  # ld        = !bash -l -c 'git diff -U0 "$@" | diff-lines' -
+  ld          = !bash -c 'source ~/.marslo/bin/ig.sh && git diff -U0 \"$@\" | diffLines' -
+  # ld        = !bash -l -c 'git diff -U0 "$@" | diffLines' -
   ldiff       = -c diff.external=difft diff -U0
   diffremote  = "!bash -c 'while read branch; do \n\
                              git fetch origin ${branch}; \n\

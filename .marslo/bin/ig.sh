@@ -4,7 +4,7 @@
 #    FileName : ig.sh
 #      Author : marslo
 #     Created : 2012
-#  LastChange : 2026-03-14 00:17:31
+#  LastChange : 2026-04-10 19:55:42
 #        Desc : for git
 # =============================================================================
 
@@ -258,7 +258,7 @@ function gbl() {
 # for git diff
 # inspired from http://stackoverflow.com/questions/8259851/using-git-diff-how-can-i-get-added-and-modified-lines-numbers
 # usage: $ git ld
-function diff-lines() {
+function diffLines() {
   local path=
   local line=
   while read -r; do
@@ -313,6 +313,38 @@ function git_rank_calc() {
       }
     }
   ' | sort -rn | cut -f2-
+}
+
+# to show the git state (merge/rebase/cherry-pick/revert/bisect/normal)
+function showGitState() {
+  local gRoot
+  gRoot=$(git rev-parse --git-dir 2>/dev/null) || { echo "not a git repo"; return 1; }
+
+  if [[ -f "${gRoot}/MERGE_HEAD" ]]; then
+    echo "merge"
+  elif [[ -d "${gRoot}/rebase-merge" ]]; then
+    # interactive rebase
+    local step total
+    step=$(command cat "${gRoot}/rebase-merge/msgnum" 2>/dev/null)
+    total=$(command cat "${gRoot}/rebase-merge/end" 2>/dev/null)
+    echo "rebase-i (${step}/${total})"
+  elif [[ -d "${gRoot}/rebase-apply" ]]; then
+    if [[ -f "${gRoot}/rebase-apply/rebasing" ]]; then
+      echo "rebase"
+    elif [[ -f "${gRoot}/rebase-apply/applying" ]]; then
+      echo "am"          # git am (applying patches)
+    else
+      echo "rebase/am"
+    fi
+  elif [[ -f "${gRoot}/CHERRY_PICK_HEAD" ]]; then
+    echo "cherry-pick"
+  elif [[ -f "${gRoot}/REVERT_HEAD" ]]; then
+    echo "revert"
+  elif [[ -f "${gRoot}/BISECT_LOG" ]]; then
+    echo "bisect"
+  else
+    echo "normal"
+  fi
 }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

@@ -112,7 +112,7 @@ if has( 'autocmd' )
     " to prevent the json insert "shaking" issue, and show double-quotes in edit mode
     " ALE vscodejson is LSP, so it keeping show publishDiagnostics when insert; and g:ale_open_list=1 will non-stop execute lopen/lclose
     autocmd FileType           json,jsonc
-            \  setlocal conceallevel=1 concealcursor=nc
+            \  setlocal conceallevel=1 concealcursor=c
             \| let g:indentLine_setConceal   = 0
             \| let g:vim_json_conceal        = 0
             \| let g:vim_json_syntax_conceal = 0
@@ -166,8 +166,8 @@ if has( 'autocmd' )
             \| setlocal tabstop=2 softtabstop=2 shiftwidth=2
     autocmd FileType    Jenkinsfile           setlocal commentstring=//\ %s
     " FileType: first open (BufWinEnter can run before ft is set). BufWinEnter: switch back to buffer.
-    autocmd FileType    groovy                call s:AleLintOnGroovy(str2nr(expand('<abuf>')))
-    autocmd BufWinEnter *                     call s:AleLintOnGroovy(str2nr(expand('<abuf>')))
+    " autocmd FileType  groovy                call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
+    autocmd BufWinEnter *                     call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
 
     " https://vim.fandom.com/wiki/Syntax_folding_for_Java
     autocmd FileType   java                   setlocal foldmarker=/**,**/ foldmethod=marker foldcolumn=1
