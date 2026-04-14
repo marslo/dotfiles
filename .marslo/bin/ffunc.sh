@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-04-09 22:18:13
+#   LastChange : 2026-04-14 01:52:28
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -634,7 +634,7 @@ function vim() {                           # magic vim - fzf list in most recent
   local orgv=false                         # force using vim instead of nvim
   local -a voption=()
   local -a ignores=(
-    '*.pem' '*.p12'
+    '*.pem' '*.p12' '*.tags'
     '*.png' '*.webp' '*.jpg' '*.jpeg' '*.gif' '*.svg' '*.ico' '*.pdf' '*.mp4' '*.mp3'
     '*.zip' '*.tar' '*.gz' '*.bz2' '*.xz' '*.7z' '*.rar'
     '*.o' '*.a' '*.so' '*.ko' '*.bin' '*.exe' '*.dll' '*.dylib'
@@ -857,7 +857,8 @@ function goto() {
   local gpreviewS="git -C {2} show --color=always --date=local -s HEAD ${showPager:+| ${showPager} --color=always}"
 
   repo=$(
-    fd -H -I -t f -E '*sandbox*' -E '*archive*' -E '*poc*' -p '\.git/config$' "${path}" -x rg -l 'github\.com' 2>/dev/null |
+    fd -H -I -t f -E '*sandbox*' -E '*archive*' -E '*poc*' -p '\.git/config$' "${path}" --exec-batch rg -l 'Marvell-Lab' 2>/dev/null |
+    xargs ls -t |
     sed 's|/\.git/config$||' |
     awk -F/ '{printf "%s\t%s\n", $NF, $0}'  |
     fzf --delimiter '\t' \

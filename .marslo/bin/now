@@ -82,7 +82,7 @@ if [[ -f "${temp}/now-weather" ]]; then
   tput rc && tput cud1                            # back to anchor and move down 1 line
   cat "${temp}/now-weather"
   _width=$(sed 's/\x1b\[[0-9;]*m//g' "${temp}/now-weather" | sed 's/[ \t]*$//' | wc -L)
-  DATE_COLUMN=$(( _width + 3 ))
+  DATE_COLUMN=$(( _width + 4 ))
 else
   DATE_COLUMN=1
 fi

@@ -3,7 +3,7 @@
 #     FileName : git-bb
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-11 21:39:58
-#   LastChange : 2026-03-23 21:15:20
+#   LastChange : 2026-04-14 03:55:13
 #  Description : git branch switcher
 #                 - init : [a83a0ec](https://github.com/marslo/dotfiles/commit/a83a0ec625f154dc096750b777cb39108e50e5f9)
 #                 - `ctrl-/` and `ctrl-o` to modify view and `ctrl-y` copy commit hash
@@ -116,7 +116,7 @@ if [[ -n "${branch:-}" ]]; then
   printf "\033[0;2;3;37m~~> %b\033[0;2;3;37mcheckout \033[0;1;33m%s\033[0m\n" \
          "$(${FORCE} && printf '\033[0;1;3;35mforce\033[0m ')" "${_full}"
 
-  declare -a cmd=( git checkout "${_short}" )
+  declare -a cmd=( git checkout "${_short#origin/}" )
   ${FORCE:-false} && cmd+=( --force ) || :
   "${cmd[@]}"
 fi

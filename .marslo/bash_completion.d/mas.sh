@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2207
 
-function _mas() {
+function _mas_completion() {
   local cur cword
 
   if declare -F _init_completion >/dev/null 2>&1; then
@@ -36,6 +36,6 @@ function _mas() {
   fi
 }
 
-complete -F _mas mas
+complete -F _mas_completion mas
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
