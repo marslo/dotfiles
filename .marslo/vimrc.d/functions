@@ -1,9 +1,9 @@
 " =============================================================================
 "      FileName : functions
-"        Author : marslo.jiao@gmail.com
+"        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-04-02 16:11:58
+"    LastChange : 2026-04-15 22:49:25
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -136,6 +136,9 @@ function! GroovyKeywords() abort
   " doc comment region, support /** .. **/ and /** .. */
   syntax region  groovyDocComment start="/\*\*"  end="\s*\*\*/" end="\s*\*/" keepend contains=groovyCommentTitle,@groovyHtml,groovyDocTags,groovyTodo,@Spell
   syntax match   groovyDocTags  contained "@\(description\)\>"
+
+  " force refresh of syntax highlighting
+  syntax sync fromstart
 endfunction
 autocmd Syntax groovy,Jenkinsfile,jenkinsfile call GroovyKeywords()
 

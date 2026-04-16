@@ -1,9 +1,9 @@
 " =============================================================================
 "      FileName : cmds
-"        Author : marslo.jiao@gmail.com
+"        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2025-10-20 19:09:49
+"    LastChange : 2026-04-15 23:25:38
 " =============================================================================
 
 " /**************************************************************
@@ -40,5 +40,6 @@ command! -nargs=0        Iname      execute 'echo expand("%:p")'
 command! -nargs=0 -range FormatJSON execute <line1> . ',' . <line2> . '!jq -M ' . (<q-args> ==# '' ? '' : <q-args> . ' ') . '.'
 " echo highlight
 command! -nargs=0 Hitest            echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+command! -nargs=0 FixSyntax         syntax sync fromstart
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

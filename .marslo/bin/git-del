@@ -2,9 +2,9 @@
 # shellcheck source=/dev/null
 #=============================================================================
 #     FileName : git-del
-#       Author : marslo.jiao@gmail.com
+#       Author : marslo
 #      Created : 2023-12-14 17:55:55
-#   LastChange : 2026-03-10 16:01:00
+#   LastChange : 2026-04-15 23:25:26
 #  Description : delete branch or tag from remote and local
 #                -  - E0A0/E725
 #=============================================================================
@@ -63,8 +63,8 @@ function deleteRemote() {
 
 function deleteLocal() {
   local name="$1"
-  if   [[ 1 = "${BRANCH_FOUND}" ]]; then git branch -D "${name}" && success "branch : " "${name}" "removed from local ..."
-  elif [[ 1 = "${TAG_FOUND}"    ]]; then git tag    -d "${name}" && success "tag    : " "${name}" "removed from local ..."
+  if   [[ 1 = "${BRANCH_FOUND}" ]]; then git branch -D "${name}" && success "branch " "${name}" "removed from local ..."
+  elif [[ 1 = "${TAG_FOUND}"    ]]; then git tag    -d "${name}" && success "tag    " "${name}" "removed from local ..."
   else warn "${name}" "cannot be found in local ..."
   fi
 }
