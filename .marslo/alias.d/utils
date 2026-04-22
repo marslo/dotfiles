@@ -4,7 +4,7 @@
 #   FileName: utils
 #     Author: marslo.jiao@gmail.com
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2026-02-12 14:54:18
+# LastChange: 2026-04-21 20:42:15
 # =============================================================================
 
 # using source instead of alias in ~/.marslo/.marslorc
@@ -101,7 +101,6 @@ alias els='eza -al --group-directories-first --sort=modified --tree !(.git)'
 alias ela='eza -al'
 
 alias tmax='tmux at -t marslo'
-alias ctmax='tmux new -s marslo -d && tmux at -t marslo'
 alias ta='tmux at -t '
 alias tls="tmux list-sessions -F '#{session_created} (created #{t/f/%y-%m-%d %H#:%M#:%S:window_activity}) - #{session_name}: #{session_windows} windows#{?session_grouped - (group ,}#{session_group}#{?session_grouped,),}#{?session_attached, [attached],}' | sort -Vr | sed 's/\S*\s//'"
 alias tmuxls='tmux ls -F "#{session_created} #{session_name}: #{session_windows} windows (created #{t/f/%y-%m-%d %H#:%M#:%S:window_activity})#{?session_grouped, (group ,}#{session_group}#{?session_grouped,),}#{?session_attached, [attached],}" | sort -Vr | sed "s/\S*\s//"'

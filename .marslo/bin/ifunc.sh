@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2026-04-09 23:01:30
+#  LastChange : 2026-04-21 20:41:58
 #  Description : ifunctions
 # =============================================================================
 
@@ -918,6 +918,18 @@ function gctags() {
 
   echo -e "$(c Wdi)>> generating ctags for $(c 0Cis)${language} $(c 0Wdi)to $(c 0Mi)${tagfile//$HOME/\~}$(c 0Wdi) ...$(c)"
   "${cmd[@]}" "${path[@]}" 2>/dev/null >(grep -v -E 'Cargo|TOML')
+}
+
+function ctmux() {
+  local session="${1:-marslo}"
+  tmux new -s "${session}" -d && tmux at -t "${session}"
+}
+
+function tmuxcat() {
+  for s in $(tmux ls -F '#S'); do
+    echo -e "\n\033[1;35m=== Session: $s ===\033[0m";
+    tmux capture-pane -pt "${s}" | tail -n 5;
+  done
 }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
