@@ -1,4 +1,7 @@
-## more for weather icons: https://erikflowers.github.io/weather-icons/
+## more for weather icons:
+## - https://erikflowers.github.io/weather-icons/
+## - https://github.com/chubin/wttr.in/blob/master/internal/renderer/v1/icons.go
+
 sunny='''
 \033[38;5;226m    \\   /    \033[0m
 \033[38;5;226m     .-.     \033[0m
@@ -86,7 +89,6 @@ thunderStorm='''
 \033[38;5;21;1m  ‚‘\033[38;5;228;5m⚡\033[38;5;21;25m‘‚\033[38;5;228;5m⚡\033[38;5;21;25m‚‘ \033[0m
 \033[38;5;21;1m  ‚’‚’\033[38;5;228;5m⚡\033[38;5;21;25m’‚’  \033[0m
 '''
-
 
 thunderySnowShowers='''
 \033[38;5;226m _`/""\033[38;5;250m.-.    \033[0m

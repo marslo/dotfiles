@@ -2,7 +2,7 @@
 "      FileName : os
 "        Author : marslo.jiao@gmail.com
 "       Created : 2024-04-18 03:18:08
-"    LastChange : 2025-01-03 09:57:03
+"    LastChange : 2026-04-16 16:37:27
 " =============================================================================
 
 function! IsLinux()
@@ -60,12 +60,17 @@ function! IsWSL()
   return 0
 endfunction
 
+" vscode or cursor
+function! IsVscodeOrCursor()
+  return exists('g:vscode')
+endfunction
+
 function! IsNvim()
-  return has('nvim')
+  return has('nvim') && ! exists('g:vscode')
 endfunction
 
 function! IsVim()
-  return ! has('nvim')
+  return ! ( has('nvim') || exists('g:vscode') )
 endfunction
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=viml

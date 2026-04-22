@@ -21,6 +21,8 @@ declare DATE_COLUMN=38                                   # default is 27 for 80 
 declare TIME_COLUMN=$(( DATE_COLUMN + 24 ))
 declare intranet=$(netstat -nr -f inet | awk '$3 ~ /UGScg|UG/' | awk '$2 ~ /10\.(85|86|87|68|78)\.[0-9]{1,3}\.[0-9]{1,3}/' | wc -l)
 declare temp=$(mktemp -d)
+# shellcheck disable=SC2064
+trap "rm -rf '${temp}'" EXIT INT TERM
 declare -a CURL=( curl '-sgk' --fail --silent --max-time 3 )
 #              timeout #. increase for slow connection---^
 [[ "${intranet}" -gt 0 ]] && CURL+=( -x "${PROXY_URL:-http://proxy.domain.com:8080}" )
@@ -129,7 +131,6 @@ done < "${temp}"/now-time
 printf "\033[00m"
 
 tput rc && tput cud ${MAX_LINES}                  # back to anchor and move down ${MAX_LINES} lines
-test -d "${temp}" && rm -rf "${temp}"
 exit 0
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=indent:

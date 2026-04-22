@@ -1,0 +1,14 @@
+# Readline: minimal mode-in-prompt (no visible prefix).  Loaded by pstoggle when
+# PROMPT_MODE=simple (bind -f only this file — not ~/.inputrc).
+
+set show-mode-in-prompt on
+# Mode strings use Readline “visible / non-printing” markers (same as PS1 \[ \]):
+#   \1  start of a non-printing sequence (not counted in prompt width; no wrap glitch)
+#   \2  end of non-printing sequence
+# Between them we send a terminal control sequence only (no ᓏ/ᓎ glyphs here).
+#   \e  ESC (033); with [0 q  this is DECSCUSR “CSI 0 SP q”:
+#       on iTerm2 this resets the cursor to the profile’s default shape; on other
+#       terminals the meaning of Ps=0 may differ (often “default cursor” for that emu).
+set emacs-mode-string "\1\e[0 q\2"
+set vi-ins-mode-string "\1\e[0 q\2"
+set vi-cmd-mode-string "\1\e[0 q\2"

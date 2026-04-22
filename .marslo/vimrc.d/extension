@@ -54,8 +54,6 @@ Plug 'kana/vim-textobj-fold'
 Plug 'dhruvasagar/vim-table-mode'
 Plug 'vim-autoformat/vim-autoformat'
 Plug 'marslo/MarsloFunc'
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
 Plug 'honza/vim-snippets'                                           " coc-snippets
 Plug 'tomtom/tcomment_vim'
 Plug 'preservim/vim-markdown'                                       " markdown
@@ -85,16 +83,18 @@ Plug 'rizzatti/dash.vim'
 Plug 'parkr/vim-jekyll'                                             " github page
 Plug 'dstein64/vim-startuptime'
 
-if has('macunix')
+if IsMac()
   Plug 'xu-cheng/brew.vim'
 endif
 
 " disable in vscode/cursor neovim
-if !exists('g:vscode')
+if ! IsVscodeOrCursor()
+  Plug 'vim-airline/vim-airline'
+  Plug 'vim-airline/vim-airline-themes'
   Plug 'neoclide/coc.nvim', { 'branch': 'release' }
 endif
 
-if IsNvim()
+if IsNvim() || IsVscodeOrCursor()
   Plug 'zbirenbaum/copilot-cmp'
   Plug 'zbirenbaum/copilot.lua'                                     " check via `:verbose command Copilot`
   Plug 'CopilotC-Nvim/CopilotChat.nvim' , { 'branch': 'main' }      " check via `:verbose command CopilotChat`
@@ -251,7 +251,7 @@ let g:AutoPairsShortcutToggle               = '<M-j>'
 let g:AutoPairs                             = autopairs#AutoPairsDefine({ '<': '>' })
 let g:AutoPairsFiletypeBlacklist            = [ 'registers', 'nerdtree', 'vim-plug' ]
 
-" vim-airline/vim-airline
+" vim-airline/vim-airline (skip in VS Code: g:loaded_airline=1 before plug#end above)
 let g:airline_powerline_fonts                      = 1
 let g:airline_highlighting_cache                   = 1
 let g:airline_detect_spelllang                     = 0              " disable spelling language
@@ -315,10 +315,14 @@ function! AirlineInit()
   let g:airline_section_c = '%<' . airline#section#create([ '%F' ]) " let g:airline_section_c = '%<' . '%{expand(%:p:~)}'
   let g:airline_section_x = airline#section#create([ '%{CocCurrentFunction()}' ])
 endfunction
-autocmd User AirlineAfterInit call AirlineInit()
-autocmd User CocStatusChange,CocDiagnosticChange call airline#update_statusline()
+
 set updatetime=1000
-autocmd CursorHold,CursorHoldI * call airline#update_statusline()
+if ! IsVscodeOrCursor()
+  autocmd User AirlineAfterInit call AirlineInit()
+  autocmd User CocStatusChange,CocDiagnosticChange call airline#update_statusline()
+  autocmd CursorHold,CursorHoldI * call airline#update_statusline()
+endif
+
 
 " scrooloose/nerd utf-8 tree
 " control+option+n in macOS
@@ -450,7 +454,7 @@ let g:Hexokinase_optInPatterns = [
   \ ]
 
 " neoclide/coc.nvim
-if !exists('g:vscode')
+if ! IsVscodeOrCursor()
   set updatetime=300
   set signcolumn=yes
   let g:coc_disable_startup_warning = 1
@@ -499,8 +503,8 @@ if !exists('g:vscode')
         \ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
         \ CheckBackSpace() ? "\<TAB>" :
         \ coc#refresh()
-  " inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
-  "       \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+  " inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() :
+  "       \ "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 endif
 
 " Konfekt/FastFold

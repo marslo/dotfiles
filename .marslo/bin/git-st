@@ -24,7 +24,7 @@ git rev-parse --abbrev-ref HEAD >/dev/null 2>&1 || emptyRepo=true
 
 function showLog() {
   branch="${1:-"$(git symbolic-ref -q HEAD)"}"
-  local format='%C(#678963)%h%C(reset) -%C(italic yellow)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?'
+  local format='%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(auto)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?'
   local -a cmd=( git --no-pager log
                      --color=always
                      --graph

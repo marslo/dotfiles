@@ -1,8 +1,8 @@
 #=============================================================================
-#     FileName : .gitcolors
-#       Author : marslo.jiao@gmail.com
+#     FileName : gitcolors
+#       Author : marslo
 #      Created : 2024-05-01 22:35:53
-#   LastChange : 2024-05-16 01:31:35
+#   LastChange : 2026-04-16 21:25:20
 #=============================================================================
 
 # - colors:
@@ -38,7 +38,7 @@
   old               = 241 bold italic strike # #626262
   new               = 2 bold                 # #98971A
   whitespace        = 178 reverse            # #D7AF00
-  commit            = 6 italic               # #689d6a
+  commit            = 6                      # #689d6a
   func              = 106 italic             # #87AF00
   context           = normal italic
 [color "blame"]
@@ -49,7 +49,7 @@
   remoteBranch      = 213 dim                # normal: #FF87FF; dim: #A557A5 (-35%)
   branch            = 178                    # #D7AF00
   tag               = 100 italic             # #878700
-  HEAD              = 172                    # #D78700
+  HEAD              = 172 italic             # #D78700
   stash             = 140 italic
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker

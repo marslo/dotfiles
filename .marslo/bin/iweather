@@ -4,7 +4,7 @@
 #     FileName : iweather
 #       Author : marslo
 #      Created : 2023-08-11 03:05:27
-#   LastChange : 2026-04-07 01:10:06
+#   LastChange : 2026-04-20 21:39:31
 # ===========================================================================
 
 shopt -s extglob
@@ -156,14 +156,14 @@ fi
 [[ -z "${sunny}"         ]] && die "import $(c 0G)weather.icon$(c) first!"
 
 getWeatherData "${cname}"
-weatherIcon="$( jq -r .weather[].icon        < "${tempfile}" )"
-description="$( jq -r .weather[].description < "${tempfile}" )"
-temperature="$( jq -r .temp                  < "${tempfile}" )"
-windSpeed="$(   jq -r .wind_speed            < "${tempfile}" )"
-windDeg=$(      jq -r .wind_deg              < "${tempfile}" )
-humidity=$(     jq -r .humidity              < "${tempfile}" )
-visibility="$( bc <<< "scale=2; $(jq -r .visibility < "${tempfile}")/1000" )"
-uvi="$(        bc <<< "scale=1; $(jq -r .uvi        < "${tempfile}")/1"    )"
+weatherIcon="$( jq -r '.weather[0].icon'       < "${tempfile}" )"
+description="$( jq -r '.weather | map(.description) | join(", ")' < "${tempfile}" )"
+temperature="$( jq -r '.temp'                  < "${tempfile}" )"
+windSpeed="$(   jq -r '.wind_speed'            < "${tempfile}" )"
+windDeg=$(      jq -r '.wind_deg'              < "${tempfile}" )
+humidity=$(     jq -r '.humidity'              < "${tempfile}" )
+visibility="$( bc <<< "scale=2; $(jq -r '.visibility' < "${tempfile}")/1000" )"
+uvi="$(        bc <<< "scale=1; $(jq -r '.uvi'        < "${tempfile}")/1"    )"
 
 # workaround for : E: Numbers with leading 0 are considered octal
 # Weather icons: https://openweathermap.org/weather-conditions
@@ -184,7 +184,7 @@ declare -A descMap=(
                       ['01_temperature']="\033[38;5;214m${temperature}\033[0m °C"
                       ['02_windSpeed']="$(windDirection "${windDeg}") \033[38;5;220m${windSpeed}\033[0m m/s"
                       ['03_visibility']="${visibility} km"
-                      ['04_humidity']="${humidity}%"
+                      ['04_humidity']="${humidity} %"
                       ['05_uvi']="${uvi} mW/cm2"
                    )
 

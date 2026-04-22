@@ -162,13 +162,13 @@ if has( 'autocmd' )
   augroup Groovy
     autocmd!
     autocmd Filetype    Groovy                set filetype=groovy syntax=groovy
-    autocmd Syntax      groovy,Jenkinsfile    normal zM
     autocmd FileType    groovy,Jenkinsfile    setlocal foldmethod=indent
             \| setlocal tabstop=2 softtabstop=2 shiftwidth=2
     autocmd FileType    Jenkinsfile           setlocal commentstring=//\ %s
     " FileType: first open (BufWinEnter can run before ft is set). BufWinEnter: switch back to buffer.
     " autocmd FileType  groovy                call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
     autocmd BufWinEnter *                     call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
+    autocmd Syntax      groovy,Jenkinsfile    normal zM
 
     " https://vim.fandom.com/wiki/Syntax_folding_for_Java
     autocmd FileType   java                   setlocal foldmarker=/**,**/ foldmethod=marker foldcolumn=1

@@ -57,8 +57,8 @@
   rank        = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git log --format=\"%aN\" --numstat \"$@\" | git_rank_calc' -"
   ls          = log --stat --pretty=short --graph
   ### [p]retty [l]og(s)
-  pl          = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git -c log.decorate=short --no-pager log --color=always --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:\"%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" \"$@\" | git_color_gpg' -"
-  pls         = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git -c log.decorate=full log --decorate --color=always --graph --abbrev-commit --date=relative --pretty=tformat:\"%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" \"$@\" | git_color_gpg | less -FRX' -"
+  pl          = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git -c log.decorate=short --no-pager log --color=always --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:\"%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(auto)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" \"$@\" | git_color_gpg' -"
+  pls         = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git -c log.decorate=full log --decorate --color=always --graph --abbrev-commit --date=relative --pretty=tformat:\"%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(auto)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" \"$@\" | git_color_gpg | less -FRX' -"
   ### [p]revious branch [p]retty [l]og
   ppl         = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git --no-pager log --color=always --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:\"%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" @{-1} \"$@\" | git_color_gpg' -"
   ### [f]ull [p]retty [l]log
@@ -484,6 +484,7 @@
                 "
 
   ### [r]eset to [o]riginal
+  # git submodule foreach --recursive git lfs pull; \
   ro          = "!f() { \
                         git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo \"fatal: not a git repository\" >&2; exit 128; }; \
                         if [ 0 -eq $# ]; then \
@@ -594,6 +595,8 @@
   # convert anything into sh+ : `\"` -> `\\\"`
   quote-string      = "!read -r l; printf \\\"!; printf %s \"$l\" | sed 's/\\([\\\"]\\)/\\\\\\1/g'; printf \" #\\\"\\n\" #"
   quote-string-undo = "!read -r l; printf %s \"$l\" | sed 's/\\\\\\([\\\"]\\)/\\1/g'; printf \"\\n\" #"
+  ### [a]utomatic set [up]stream
+  aup               = "!git branch --set-upstream-to=origin/$(git rev-parse --abbrev-ref @) $(git rev-parse --abbrev-ref @)"
   show-upstream     = "!bash -c 'while read branch; do \n\
                                    upstream=$(git rev-parse --abbrev-ref ${branch}@{upstream} 2>/dev/null); \n\
                                    if [[ $? = 0 ]]; then \n\
