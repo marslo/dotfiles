@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2026-03-26 12:50:08
+# LastChange : 2026-04-21 22:36:23
 # =============================================================================
 
 # execute configuration only in the interactive shell
@@ -24,6 +24,7 @@ function isFedora()  { test -f /etc/os-release && test 'fedora' = "$(awk -F '=' 
 function isUbuntu()  { test -f /etc/os-release && test 'ubuntu' = "$(awk -F '='    '/^ID=/ { print $2 }' /etc/os-release)"; }
 function isRHEL()    { test -f /etc/os-release && test 'rhel'   = "$(awk -F '[="]' '/^ID=/ { print $3 }' /etc/os-release)"; }
 function isCentOS()  { test -f /etc/os-release && test 'centos' = "$(awk -F '[="]' '/^ID=/ { print $3 }' /etc/os-release)"; }
+function isTmux()    { test -n "${TMUX:-}"; }
 # for public server (use common account)
 function bello()     { source ~/.marslo/.marslorc; set -o vi;  }
 function bye()       { source "${iRCHOME}"/.bye; set -o emacs; }
@@ -171,16 +172,16 @@ for script in "${iRCHOME}"/bin/{ifunc,ffunc,ig,im,icolor}.sh; do
 done
 isOSX && test -f "${iRCHOME}"/bin/ii.sh && source "${iRCHOME}"/bin/ii.sh
 
-# disable system info shows in vscode/cursor/docker-desktop terminal and nvim/vim terminal
+# disable system info shows in tmux/vscode/cursor/docker-desktop terminal and nvim/vim terminal
 declare programs=( 'cursor' 'vscode' 'docker_desktop' )
 # shellcheck disable=SC2155
 declare programsRE="^($(IFS='|'; printf '%s' "${programs[*]}"))$"
-if ! [[ -n "${NVIM:-}" || -n "${VIMRUNTIME:-}" || "${TERM_PROGRAM:-}" =~ ${programsRE} ]]; then
-  ! isLinux && test -f "${iRCHOME}"/bin/screenfetch-dev && bash "${iRCHOME}"/bin/screenfetch-dev
-  test -f "${iRCHOME}"/bin/now        && bash   "${iRCHOME}"/bin/now
-  test -f "${iRCHOME}"/.tmux-session  && source "${iRCHOME}"/.tmux-session
-  isOSX     && echo ''
+if ! [[ -n "${NVIM:-}" || -n "${VIMRUNTIME:-}" || -n "${TMUX:-}" || "${TERM_PROGRAM:-}" =~ ${programsRE} ]]; then
+  ! isLinux && test -f "${iRCHOME}"/bin/screenfetch-dev   && bash "${iRCHOME}"/bin/screenfetch-dev
+  test -f "${iRCHOME}"/bin/now && bash "${iRCHOME}"/bin/now
 fi
+isTmux && test -f "${iRCHOME}/.tmux-session" && source "${iRCHOME}/.tmux-session"
+isOSX  && echo ''
 
 # type -P starship >/dev/null 2>&1 && eval "$(starship init bash)"
 

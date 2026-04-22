@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2026-04-21 20:41:58
+#  LastChange : 2026-04-21 22:36:56
 #  Description : ifunctions
 # =============================================================================
 
@@ -925,10 +925,12 @@ function ctmux() {
   tmux new -s "${session}" -d && tmux at -t "${session}"
 }
 
-function tmuxcat() {
-  for s in $(tmux ls -F '#S'); do
-    echo -e "\n\033[1;35m=== Session: $s ===\033[0m";
-    tmux capture-pane -pt "${s}" | tail -n 5;
+# t/f -> for tmux 3.2+
+# debug via: $ tmux display -vp '#{t/f/%Y-%m-%d %H#:%M#:%S:session_created}'
+function tmux-tail() {
+  tmux ls -F '#{session_name}|#{t/f/%y-%m-%d %H#:%M#:%S:session_created}' | while IFS='|' read -r s timestamp; do
+    printf "\n\033[0;3;36m>> %s - \033[0;1;35m%s \033[0;3;36m<<\033[0m\n" "${timestamp}" "${s}"
+    tmux capture-pane -pt "${s}" | tail -n 8
   done
 }
 
