@@ -4,7 +4,7 @@
 #     FileName : jira-ls
 #       Author : marslo
 #      Created : 2026-01-21 20:57:09
-#   LastChange : 2026-03-25 11:16:40
+#   LastChange : 2026-04-23 18:42:56
 #=============================================================================
 
 set -euo pipefail
@@ -19,7 +19,8 @@ declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # shellcheck disable=SC2015
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
-declare _PROJECT='IPBUSW'
+declare -A PROJECTS_ID=( ['PROJ1']='23918' ['PROJ2']='23917' ['PROJ3']='18308' ['PROJ4']='15014' )
+declare _PROJECT='PROJ1'
 declare -a PROJECTS=()
 declare RETURN_TYPE='full'
 declare UPDATE_LIMIT=''
@@ -43,7 +44,7 @@ SYNOPSIS
   $(c Ys)\$ ${ME} $(c 0G)[OPTIONS]$(c)
 
 OPTIONS
-  $(c G)-p$(c), $(c G)--project $(c 0Mi)PROJECT_KEY$(c)  specify the JIRA project key $(c 0i)(default: $(c 0Mi)'IPBUSW'$(c 0i))$(c)
+  $(c G)-p$(c), $(c G)--project $(c 0Mi)PROJECT_KEY$(c)  specify the JIRA project key $(c 0i)(default: $(c 0Mi)'${_PROJECT}'$(c 0i))$(c)
   $(c G)--assignee$(c) $(c 0Mi)USER_ID$(c)         filter issues assigned to the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
   $(c G)--reporter$(c) $(c 0Mi)USER_ID$(c)         filter issues reported by the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
 
@@ -118,10 +119,12 @@ if [[ ${#CURRENT_STATUS[@]} -gt 0 ]]; then
   STATUS="( ${STATUS} )"
 fi
 
+declare -a IDS=()
 [[ ${#PROJECTS[@]} -eq 0 ]] && PROJECTS=( "${_PROJECT}" )
+for p in "${PROJECTS[@]}"; do IDS+=("${PROJECTS_ID[${p}]:-${p}}"); done
 
 #shellcheck disable=SC2155
-declare query="project in ( $(IFS=', '; echo "${PROJECTS[*]}") )"
+declare query="project in ($(IFS=', '; echo "${IDS[*]}"))"
 query+="${STATUS:+ AND ${STATUS}}"
 query+="${ASSIGNEE:+ AND assignee=${ASSIGNEE}}"
 query+="${REPORTER:+ AND reporter=${REPORTER}}"
@@ -132,7 +135,7 @@ declare JIRA_API_TOKEN="${JIRA_API_TOKEN:-$(passToken marvell/marslo/jira)}"
 test -n "${JIRA_API_TOKEN:-}" || die "JIRA API token not found. Please set the \`JIRA_API_TOKEN\` environment variable"
 
 declare json=''
-json="$( curl -u "marslo:${JIRA_API_TOKEN}" \
+json="$( command curl -u "marslo:${JIRA_API_TOKEN}" \
               --data-urlencode "jql=${query}" \
               --get \
               --silent \
