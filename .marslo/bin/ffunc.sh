@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-04-14 01:52:28
+#   LastChange : 2026-04-25 01:44:49
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -98,15 +98,18 @@ _fzf_fill() {
 #   - FZF_TOILET_FONT=<fontname>: the font name for `toilet` preview, default to `bfraktur`
 function _load_fzf_context() {
   local -a CAT=( "$(type -P cat)" )
-  if BAT="$(type -P bat)" >/dev/null; then
-    CAT=( "${BAT}" --theme='Nord' --color=always --line-range :500 )
-  fi
+  BAT="$(type -P bat)" >/dev/null && CAT=( "${BAT}" --theme='Nord' --color=always --line-range :500 )
+
+  local -a TREE=( command ls '-Al' )
+  type -P tree >/dev/null && TREE=( command tree '-C' '-L' 2 )
+
   local GLOW_PATH="$(type -P glow)"
   local TOILET_PATH="$(type -P toilet)"
   local LOLCAT_PATH="$(type -P lolcat)"
   local BIN_PIPE=''
   ${FZF_TOILET:-true} && [[ -x "${TOILET_PATH}" ]] && BIN_PIPE+=" | \"${TOILET_PATH}\" -f ${FZF_TOILET_FONT:-bfraktur} -w \"\${FZF_PREVIEW_COLUMNS:-65}\""
-  [[ -x "${LOLCAT_PATH}" ]]   && BIN_PIPE+=" | \"${LOLCAT_PATH}\" -f"
+  [[ -x "${LOLCAT_PATH}" ]] && BIN_PIPE+=" | \"${LOLCAT_PATH}\" -f"
+
   # shellcheck disable=SC2016
   local previewCmd='
     case '{}' in
@@ -115,16 +118,21 @@ function _load_fzf_context() {
                      else
                        '${CAT[*]}' {}
                      fi ;;
-                 * ) if file -bL --mime-encoding {} | grep -iq "binary" && ! iconv -f utf-8 -t utf-8 {} >/dev/null 2>&1; then
+                 * ) if test -d {}; then
+                       '${TREE[*]}' {}
+                     elif file -bL --mime-encoding {} | grep -iq "binary" && ! iconv -f utf-8 -t utf-8 {} >/dev/null 2>&1; then
                        printf "%s\n" "$(file -bL {})" '"${BIN_PIPE}"'
                      else
                        '${CAT[*]}' {}
                      fi ;;
     esac'
-  local offset='case {} in
-    *jenkinsfile/* | *vars/* ) echo "change-preview-window(right,60%,nowrap,rounded,+15)" ;;
-                           * ) echo "change-preview-window(right,60%,nowrap,rounded,+0)"  ;;
-  esac'
+
+  local offset='
+    case {} in
+      *jenkinsfile/* | *vars/* ) echo "change-preview-window(right,60%,nowrap,rounded,+15)" ;;
+                             * ) echo "change-preview-window(right,60%,nowrap,rounded,+0)"  ;;
+    esac
+  '
   local -a fzfopt=( --exit-0
                     --height 50%
                     --multi --cycle
@@ -136,14 +144,15 @@ function _load_fzf_context() {
                     --bind 'ctrl-o:execute(bat {} > /dev/tty)'
                     --bind "focus:transform: ${offset}"
                   )
+
   typeset -p fzfopt
 }
 
-# usage: eval "$( _load_fd_context "$@" [ -r ignores ] )"
+# usage: eval "$( _load_fd_context "$@" [ -r ignores ] [ -f|--file ] [ -d|--dir ] )"
 #        fd . "${fdopt[@]}" | ...
 function _load_fd_context() {
   local -a args=()
-  local -a fdopt=( --type f --hidden --follow --exclude .git --exclude node_modules )
+  local -a fdopt=()
 
   while test -n "$1"; do
     case "$1" in
@@ -155,15 +164,22 @@ function _load_fd_context() {
                           fdopt+=( --exclude "${pattern}" )
                         done ;
                       fi    ;;
+      -f | --file   ) fdopt+=( --type f ) ; shift ;;
+      -d | --dir    ) fdopt+=( --type d ) ; shift ;;
       *             ) args+=( "$1" ); shift ;;
     esac
   done
+
+  if [[ ! " ${fdopt[*]} ${args[*]} " =~ [[:space:]](--type[[:space:]=]|-t[[:space:]=a-zA-Z]) ]]; then
+    fdopt+=( --type f )
+  fi
+  fdopt+=(--hidden --follow --exclude .git --exclude node_modules)
 
   set -- "${args[@]}"
   [[ 0 -eq "$#" || ( -d "${1:-}" && ( "." == "$1" || "$1" == ./* ) ) ]] && fdopt+=( --strip-cwd-prefix )
   [[ "${HOME}" == "$PWD" || ( -d "${1:-}" && "${HOME}" == "$(realpath "${1:-}")" ) ]] && fdopt+=( --max-depth 3 )
 
-  isWSL || fdopt+=( --exec-batch ls -t )
+  isWSL || fdopt+=( --exec-batch ls -td )
   typeset -p fdopt
 }
 
@@ -175,7 +191,7 @@ function _load_fd_context() {
 #                                        |__/
 # **************************************************************/
 
-# smart copy   : using `fzf` to list files and copy the selected file
+# smart copy   : using `fzf` to list files and copy the content of selected file
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
@@ -186,7 +202,7 @@ function _load_fd_context() {
 #   - otherwise copy the content of parameter `$1` via `pbcopy` or `clip.exe`
 # shellcheck disable=SC2317
 function copy() {                          # smart copy
-  [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -v)$(c)$(c Rs). EXIT..$(c)" && return;
+  [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -s)$(c)$(c Rs). EXIT..$(c)" && return;
 
   eval "$( _load_fd_context "$@" )"
   eval "$( _load_fzf_context     )"
@@ -204,6 +220,40 @@ function copy() {                          # smart copy
   else
     "${COPY}" < "$1" &&
        printf "$(c Wd)>>$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${1}"
+  fi
+}
+
+# path copy    : using `fzf` to list files and copy the path of selected file
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+function pc() {                            # path copy
+  test -x "${COPY}" || { echo -e "$(c Rs)ERROR: '${COPY}' NOT found in PATH. EXIT..$(c)" && return; }
+  local mode=''
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -p | --path | -d | --dir ) mode='--dir'  ; shift ;;
+      -f | --file              ) mode='--file' ; shift ;;
+      *                        ) break                 ;;
+    esac
+  done
+
+  eval "$( _load_fd_context "$@" ${mode:+"${mode}"} )"
+  eval "$( _load_fzf_context )"
+
+  if [[ 0 -eq $# ]]; then
+    file=$({ [[ '--dir' = "${mode}" ]] && echo '.'; fd . "${fdopt[@]}"; } | fzf "${fzfopt[@]}") &&
+         realpath "${file}" | "${COPY}" &&
+         printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${file}"
+  elif [[ 1 -eq $# ]] && [[ -d "$1" ]]; then
+    local -a target=()
+    [[ '.' = "${1}" ]] && target=("${1}") || target=('.' "${1}")
+    file=$({ [[ '--dir' = "${mode}" ]] && echo "${1}"; fd "${target[@]}" "${fdopt[@]}"; } | fzf "${fzfopt[@]}") &&
+         realpath "${file}" | "${COPY}" &&
+         printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${file}"
+  else
+    realpath "${1}" | "${COPY}" &&
+    printf "$(c Wd)>> path of $(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${1}"
   fi
 }
 
