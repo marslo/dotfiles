@@ -4,7 +4,7 @@
 #     FileName : git-fd
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-04-10 19:59:15
-#   LastChange : 2026-03-13 23:38:51
+#   LastChange : 2026-04-29 20:33:43
 #=============================================================================
 
 set -euo pipefail
@@ -221,9 +221,6 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   echo "fatal: not a git repository (or any of the parent directories): .git" >&2;
   exit 128
 }
-[[ -z "${AUTHOR}" ]] && AUTHOR="$(git config user.email 2>/dev/null)"
-"${VERBOSE}" && [[ -z "${AUTHOR}" ]] && echo -e "$(c Wdi)WARNING: no author specified ...$(c)"
-
 # or: git log --all --find-object="${hash}" --pretty=format:"%H %an %cd %s"
 if test -n "${BLOB:-}"; then
   while read -r commit; do

@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2026-04-21 22:36:56
+#  LastChange : 2026-04-25 03:22:45
 #  Description : ifunctions
 # =============================================================================
 
@@ -20,7 +20,7 @@
 # shellcheck disable=SC2154,SC2086,SC1091
 function mrc()     { source "${iRCHOME}"/.marslorc; }
 function erc()     { command nvim "${iRCHOME}/.marslorc"; }
-function take()    { mkdir -p "$1" && cd "$1" || return; }
+function take()    { if test -d "$1"; then cd "$1" || return; else mkdir -p "$1" && cd "$1" || return; fi; }
 function getperm() { find "$1" -printf '%m\t%u\t%g\t%p\n'; }
 function rdiff()   { rsync -rv --size-only --dry-run "$1" "$2"; }
 function rget()    { route -nv get "$@"; }
