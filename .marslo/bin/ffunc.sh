@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-04-25 01:44:49
+#   LastChange : 2026-04-30 18:05:52
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -173,13 +173,14 @@ function _load_fd_context() {
   if [[ ! " ${fdopt[*]} ${args[*]} " =~ [[:space:]](--type[[:space:]=]|-t[[:space:]=a-zA-Z]) ]]; then
     fdopt+=( --type f )
   fi
-  fdopt+=(--hidden --follow --exclude .git --exclude node_modules)
+  # --ignore-file "$HOME/.fdignore"
+  fdopt+=( --hidden --follow --exclude .git --exclude node_modules )
 
   set -- "${args[@]}"
   [[ 0 -eq "$#" || ( -d "${1:-}" && ( "." == "$1" || "$1" == ./* ) ) ]] && fdopt+=( --strip-cwd-prefix )
   [[ "${HOME}" == "$PWD" || ( -d "${1:-}" && "${HOME}" == "$(realpath "${1:-}")" ) ]] && fdopt+=( --max-depth 3 )
 
-  isWSL || fdopt+=( --exec-batch ls -td )
+  isWSL || fdopt+=( --exec-batch ls -td1 )
   typeset -p fdopt
 }
 
@@ -355,9 +356,9 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
   }
 
   # for rc folders
-  local -a rcRawPaths=( "${HOME}"/.marslo "${HOME}"/.idlerc "${HOME}"/.ssh "${HOME}"/.jfrog "${HOME}"/.pip "${HOME}"/.config/nvim "${HOME}"/.cht.sh "${HOME}"/.git-templates "${HOME}"/.config/bat/syntaxes "${HOME}"/.ctags.d )
+  local -a rcRawPaths=( "${HOME}"/.marslo "${HOME}"/.idlerc "${HOME}"/.ssh "${HOME}"/.jfrog "${HOME}"/.pip "${HOME}"/.config/nvim "${HOME}"/.cht.sh "${HOME}"/.git-templates "${HOME}"/.config/bat/syntaxes "${HOME}"/.ctags.d "${HOME}"/.hammerspoon )
   # ~/.config
-  local -a cfgNames=( cheat github-copilot htop yamllint pip ncdu bat gh )
+  local -a cfgNames=( cheat github-copilot htop yamllint pip ncdu bat gh btop )
   local -a rcPaths=() cfgRoots=()
   mapfile -d '' -t rcPaths  < <(getValidDirs "${rcRawPaths[@]}")
   mapfile -d '' -t cfgRoots < <(getValidDirs "${cfgNames[@]/#/$HOME/.config/}")

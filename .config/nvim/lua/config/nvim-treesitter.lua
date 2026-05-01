@@ -13,8 +13,6 @@ vim.treesitter.language.register( 'groovy', { 'Jenkinsfile' } )
 
 local ft_ignore = {
   [""] = true,
-  ["markdown"] = true,
-  ["markdown_inline"] = true,
   ["groovy"] = true,
   ["Jenkinsfile"] = true,
   ["jenkinsfile"] = true,
@@ -73,7 +71,7 @@ end
 local ensure_installed = {
   'bash', 'c', 'cmake', 'css', 'csv', 'diff', 'dockerfile',
   'git_config', 'git_rebase', 'gitcommit', 'gitignore', 'groovy',
-  'ini', 'java', 'jq', 'json', 'lua', 'markdown', 'python',
+  'html', 'ini', 'java', 'jq', 'json', 'lua', 'markdown', 'python',
   'query', 'ssh_config', 'vim', 'vimdoc', 'xml', 'yaml'
 }
 
@@ -119,5 +117,14 @@ end
 pcall(function()
   require('nvim-treesitter.install').prefer_git = true
 end)
+
+-- disable conceal for markdown so ``` fences are always visible
+vim.api.nvim_create_autocmd("FileType", {
+  group   = ts_group,
+  pattern = { "markdown", "markdown.mdx" },
+  callback = function()
+    vim.opt_local.conceallevel = 0
+  end,
+})
 
 -- vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=lua:foldmethod=indent:

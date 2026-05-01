@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-04-22 09:51:49
+"    LastChange : 2026-04-30 16:25:07
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -114,7 +114,7 @@ if has( 'autocmd' )
     autocmd FileType           json                setlocal commentstring=//\ %s
     " to prevent the json insert "shaking" issue, and show double-quotes in edit mode
     " ALE vscodejson is LSP, so it keeping show publishDiagnostics when insert; and g:ale_open_list=1 will non-stop execute lopen/lclose
-    autocmd FileType           json,jsonc
+    autocmd FileType           json,jsonc,markdown
             \  setlocal conceallevel=1 concealcursor=c
             \| let g:indentLine_setConceal   = 0
             \| let g:vim_json_conceal        = 0

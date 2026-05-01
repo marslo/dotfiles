@@ -55,14 +55,32 @@ local function check_underline_at_cursor()
 
   -- check Treesitter syntax highlights as a fallback
   if not is_underlined and pcall(require, "vim.treesitter") then
-    -- get the syntax tree capture group at the current cursor position
     local captures = vim.treesitter.get_captures_at_pos(0, row - 1, col)
-    for _, capture in ipairs(captures) do
-      local hl = vim.api.nvim_get_hl(0, {name = capture.capture, link = false})
-      if hl and (hl.underline or hl.undercurl) then
-        is_underlined = true
-        break
+    for _, ts_cap in ipairs(captures) do
+
+      if ts_cap and ts_cap.capture then
+        -- 1. direct capture-name match: some captures always mean "underlined" regardless of hl attrs
+        --    e.g. markdown link labels are underlined by convention but the hl group may only be a link
+        if ts_cap.capture:find("^markup%.link") then
+          is_underlined = true
+          break
+        end
+
+        -- 2. check "@capture" and "@capture.lang" with link=true to follow the full link chain
+        local names = { "@" .. ts_cap.capture }
+        if ts_cap.lang then
+          table.insert(names, "@" .. ts_cap.capture .. "." .. ts_cap.lang)
+        end
+        for _, name in ipairs(names) do
+          local hl = vim.api.nvim_get_hl(0, {name = name, link = true})
+          if hl and (hl.underline or hl.undercurl) then
+            is_underlined = true
+            break
+          end
+        end
+        if is_underlined then break end
       end
+
     end
   end
 
@@ -75,7 +93,7 @@ local dynamic_cursor_grp = vim.api.nvim_create_augroup( "DynamicCursorShape", { 
 -- check with filetype
 vim.api.nvim_create_autocmd("FileType", {
   group = dynamic_cursor_grp,
-  pattern = { "sh", "python", "groovy", "jenkinsfile", "lua" },
+  pattern = { "sh", "python", "groovy", "jenkinsfile", "lua", "markdown" },
   callback = function(args)
 
     -- to avoid affect other buffers, binding CursorMoved only to the specific Buffer ID that triggered this filetype
@@ -94,5 +112,36 @@ vim.api.nvim_create_autocmd("FileType", {
 
   end
 })
+
+-------------------------------------------------------------------
+-- :DebugCursor  →  print extmarks + captures at cursor position --
+vim.api.nvim_create_user_command('DebugCursor', function()
+  local pos = vim.api.nvim_win_get_cursor(0)
+  local row, col = pos[1], pos[2]
+  print("=== extmarks ===")
+  local marks = vim.api.nvim_buf_get_extmarks(0, -1, {row-1, col}, {row-1, col}, {details = true, overlap = true})
+  for _, mark in ipairs(marks) do
+    local d = mark[4]
+    if d and d.hl_group then
+      local hl = vim.api.nvim_get_hl(0, {name = d.hl_group, link = false})
+      print(string.format("  hl_group=%-50s underline=%s", d.hl_group, tostring(hl.underline)))
+    end
+  end
+  print("=== ts captures ===")
+  local captures = vim.treesitter.get_captures_at_pos(0, row-1, col)
+  for _, c in ipairs(captures) do
+    local hl_base      = vim.api.nvim_get_hl(0, {name = "@" .. c.capture,                       link = true})
+    local hl_base_raw  = vim.api.nvim_get_hl(0, {name = "@" .. c.capture,                       link = false})
+    local hl_lang      = c.lang and vim.api.nvim_get_hl(0, {name = "@" .. c.capture .. "." .. c.lang, link = true})  or nil
+    local link_name    = hl_base_raw and hl_base_raw.link or nil
+    print(string.format("  capture=%-40s lang=%-20s link=%-30s @base_ul=%s  @lang_ul=%s",
+      c.capture,
+      tostring(c.lang),
+      tostring(link_name),
+      tostring(hl_base and hl_base.underline),
+      tostring(hl_lang and hl_lang.underline)))
+  end
+end, {})
+-------------------------------------------------------------------
 
 -- vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=lua:
