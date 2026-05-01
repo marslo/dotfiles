@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2026-04-21 21:04:17
+#   LastChange : 2026-04-30 18:13:38
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -29,7 +29,8 @@ test -f "${COMPLETION_DIR}"/cht.sh/cht.sh            && source "${COMPLETION_DIR
 test -f "${COMPLETION_DIR}"/complete_alias           && source "${COMPLETION_DIR}"/complete_alias
 test -f "${COMPLETION_DIR}"/npm-groovy-lint.sh       && source "${COMPLETION_DIR}"/npm-groovy-lint.sh
 # for git alias completion - should load after source git-completion.sh ( after .imac/.ilinux )
-test -f "${COMPLETION_DIR}"/gitalias.sh              && source "${COMPLETION_DIR}"/gitalias.sh
+test -f "${COMPLETION_DIR}"/git-customize.sh         && source "${COMPLETION_DIR}"/git-customize.sh
+test -f "${COMPLETION_DIR}"/git-completion.sh        && source "${COMPLETION_DIR}"/git-completion.sh
 
 type -P commitlint >/dev/null                        && source "${COMPLETION_DIR}/commitlint.sh"
 type -P pre-commit >/dev/null                        && source "${COMPLETION_DIR}/pre-commit.sh"
