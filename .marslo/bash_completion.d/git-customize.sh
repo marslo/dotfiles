@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2207
 #=============================================================================
-#     FileName : gitalias.sh
+#     FileName : git-customize.sh
 #       Author : marslo
 #      Created : 2025-12-11 21:28:56
-#   LastChange : 2026-03-26 18:23:17
+#   LastChange : 2026-05-04 19:38:38
 #=============================================================================
 
+function _git_ca()     { _git_mcx;      }
 function _git_ro()     { _git_checkout; }
 function _git_rob()    { _git_checkout; }
 function _git_bb()     { _git_checkout; }
@@ -17,171 +18,23 @@ function _git_finda () { __gitcomp_nl "$(git --list-cmds=alias 2>/dev/null)"; }
 
 function _git_nb() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local options="-c --checkout -C --no-checkout -y --yes -i --interactive -v -vv -h"
+  compopt +o nospace 2>/dev/null
 
-  case "$cur" in
-    -* ) COMPREPLY=( $(compgen -W "$options" -- "$cur") ) ;;
-    *  ) COMPREPLY=() ;;
-  esac
-}
-
-# for git reflog - must load after _git_reflog loaded
-__git_log_common_options="${__git_log_common_options} --no-abbrev --no-walk --do-walk --walk-reflogs --expire= --expire-unreachable= --all --rewrite --updateref --stale-fix --dry-run --verbose --single-worktree"
-
-function _git_rev_list() {
-  local cur="${COMP_WORDS[COMP_CWORD]}"
-
-  local opts="
-      --abbrev --abbrev-commit --all --alternate-refs --author=
-      --committer= --basic-regexp --bisect --bisect-all --bisect-vars
-      --boundary --branches= --cherry --cherry-mark --cherry-pick
-      --children --count --date= --date-order --dense --disk-usage
-      --do-walk --exclude= --exclude-first-parent-only --exclude-hidden=
-      --exclude-promisor-objects --extended-regexp --filter=
-      --filter-print-omitted --first-parent --fixed-strings --format=
-      --glob= --grep= --grep-reflog= --header --ignore-missing
-      --in-commit-order --invert-grep --left-only --left-right
-      --max-age= --max-count= --max-parents= --merge --merges --min-age=
-      --min-parents= --missing= --no-abbrev --no-abbrev-commit
-      --no-commit-header --no-max-parents --no-min-parents
-      --no-object-names --no-walk --not --objects --objects-edge
-      --objects-edge-aggressive --parents --perl-regexp --pretty=
-      --quiet --reflog --regexp-ignore-case --remotes= --reverse
-      --right-only --show-linear-break --show-pulls --after=
-      --simplify-by-decoration --simplify-merges --since= --since-as-filter=
-      --skip= --sparse --tags= --topo-order --unpacked --until=
-      --before= --use-bitmap-index --remove-empty --progress=
-      --full-history --ancestry-path --author-date-order --indexed-objects
-      --object-names --oneline --expand-tabs= --expand-tabs --no-expand-tabs
-      --show-signature --relative-date --timestamp --graph
-  "
-
-  if [[ "${cur}" == -* ]]; then
-    compopt -o nospace 2>/dev/null
-    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-    return 0
-  fi
-
-  if declare -F __git_complete_refs >/dev/null; then
-    __git_complete_refs
-    return 0
-  fi
-}
-
-function _git_var() {
-  local cur="${COMP_WORDS[COMP_CWORD]}"
-
-  if [[ "${cur}" == -* ]]; then
-    COMPREPLY=( $(compgen -W "-l" -- "${cur}") )
-    return 0
-  fi
-
-  local vars="
-    GIT_COMMITTER_IDENT
-    GIT_AUTHOR_IDENT
-    GIT_EDITOR
-    GIT_SEQUENCE_EDITOR
-    GIT_PAGER
-    GIT_DEFAULT_BRANCH
-    GIT_SHELL_PATH
-    GIT_ATTR_SYSTEM
-    GIT_ATTR_GLOBAL
-    GIT_CONFIG_SYSTEM
-    GIT_CONFIG_GLOBAL
-  "
-  COMPREPLY=( $(compgen -W "${vars}" -- "${cur}") )
-  return 0
-}
-
-function _git_rev_parse() {
-  local cur="${COMP_WORDS[COMP_CWORD]}"
-
-  if [[ "${cur}" == -* ]]; then
-    local opts="
-      --parseopt --sq --sq-quote --keep-dashdash --stop-at-non-option
-      --short --short= --verify --quiet --stuck-long --no-revs
-      --not --branches --tags --remotes --all --revs-only
-      --since= --after= --until= --before= --prefix
-      --default --abbrev-ref --abbrev-ref= --symbolic --symbolic-full-name
-      --git-dir --git-common-dir --git-path --shared-index-path
-      --show-toplevel --show-superproject-working-tree
-      --show-prefix --show-cdup --show-toplevel --output-object-format=
-      --is-inside-git-dir --is-inside-work-tree --is-bare-repository --is-shallow-repository
-      --resolve-git-dir --absolute-git-dir
-      --flags --no-flags --objects --no-objects --branches= --tags= --remotes=
-      --exclude= --glob= --local-env-vars --path-format=
-    "
-    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
-
-    if [[ "${cur}" == *=* ]]; then
-      compopt -o nospace 2>/dev/null
+  local i
+  for (( i=1; i < COMP_CWORD; i++ )); do
+    if [[ "${COMP_WORDS[i]}" == "--" ]]; then
+      declare -F _jira_ls_logic >/dev/null 2>&1 && {
+        _jira_ls_logic
+        [[ ${#COMPREPLY[@]} -eq 0 && -z "${cur}" ]] && COMPREPLY=( $(compgen -W "${_JIRA_LS_OPTS}" -- "") )
+      }
+      return 0
     fi
-    return 0
-  fi
+  done
 
-  if declare -F __git_complete_refs >/dev/null; then
-    __git_complete_refs
-  fi
-}
-
-# to to revert to latest & default bash completion via :
-# $ source /opt/homebrew/etc/bash_completion.d/git-completion.bash
-function _git_config() {
-  local subcommands subcommand
-  if ! declare -f __git_resolve_builtins >/dev/null; then
-    return
-  fi
-
-  __git_resolve_builtins "config"
-  # shellcheck disable=SC2154
-  subcommands="${___git_resolved_builtins}"
-  subcommand="$(__git_find_subcommand "$subcommands")"
-
-  # additional options for top-level (no subcommand) completion - which is deprecated
-  if [ -z "$subcommand" ]; then
-    case "$cur" in
-      --*) local topOps="
-                --global --system --local --worktree --file --blob
-               --list --get --get-all --get-regexp --get-urlmatch --get-color --get-colorbool
-               --add --unset --unset-all --rename-section --remove-section --edit
-               --replace-all --append --comment --all --regexp --url= --value= --no-value
-               --fixed-value --type --bool --int --bool-or-int --path --expiry-date --no-type
-               --null --name-only --show-names --no-show-names --show-origin --show-scope
-               --includes --no-includes --default
-           "
-           __gitcomp "${topOps}"
-           return
-           ;;
-        # short options
-        -*) __gitcomp "-f -l -e -z"
-           return
-           ;;
-      *) if [[ "${cur}" == *.* ]]; then
-           # show variable names for `git config -<TAB>` or `git config --<TAB>`
-           __git_complete_config_variable_name
-         else
-           # show subcommand for `git config <TAB>`
-           __gitcomp "${subcommands}"
-         fi
-         return
-         ;;
-    esac
-  fi
-
-  # `git config <subcommand> --...` options
+  local options="-c --checkout -C --no-checkout -y --yes -i --interactive -v -vv -h --"
   case "${cur}" in
-    --*) __gitcomp_builtin "config_${subcommand}"; return ;;
-  esac
-
-  # keep the original variable name/value filtering logic for subcommands
-  case "$subcommand" in
-    get   ) __gitcomp_nl "$(__git_config_get_set_variables)" ;;
-    set   ) case "${prev}" in
-                *.* ) __git_complete_config_variable_value   ;;
-                *   ) __git_complete_config_variable_name    ;;
-            esac
-                                                             ;;
-    unset ) __gitcomp_nl "$(__git_config_get_set_variables)" ;;
+    -* ) COMPREPLY=( $(compgen -W "${options}" -- "${cur}") ) ;;
+    *  ) COMPREPLY=() ;;
   esac
 }
 
@@ -191,17 +44,17 @@ function _git_mcx() {
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-  local long_opt=false
+  local longOpt=false
   for (( i=1; i < COMP_CWORD; i++ )); do
     if [[ "${COMP_WORDS[i]}" == "--" ]]; then
-      long_opt=true
+      longOpt=true
       break
     fi
   done
 
-  if ${long_opt}; then
+  if ${longOpt}; then
     if [[ ${cur} == -* ]] || [[ -z ${cur} ]]; then
-        COMPREPLY=( $(compgen -W "--help" -- "${cur}") )
+      COMPREPLY=( $(compgen -W "--help" -- "${cur}") )
     fi
     return 0
   fi
@@ -221,25 +74,23 @@ function _git_mcx() {
   fi
 }
 
-function _git_ca() {
-  _git_mcx
-}
-
+# for git reflog - must load after _git_reflog loaded
+__git_log_common_options="${__git_log_common_options} --no-abbrev --no-walk --do-walk --walk-reflogs --expire= --expire-unreachable= --all --rewrite --updateref --stale-fix --dry-run --verbose --single-worktree"
 function _git_stat() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local prev="${COMP_WORDS[COMP_CWORD-1]}"
 
   local i=1
-  local long_opt=0
+  local longOpt=0
   while (( i < COMP_CWORD )); do
     if [[ "${COMP_WORDS[i]}" == "--" ]]; then
-      long_opt=1
+      longOpt=1
       break
     fi
     (( i++ ))
   done
 
-  if (( long_opt )); then
+  if (( longOpt )); then
     if [[ "${cur}" == -* ]]; then
       compopt -o nospace 2>/dev/null
       COMPREPLY=( $(compgen -W "${__git_log_common_options}" -- "${cur}") )
@@ -251,7 +102,7 @@ function _git_stat() {
     -u|--user|--author|--account) return 0 ;;
   esac
 
-  if [[ "$cur" == -* ]]; then
+  if [[ "${cur}" == -* ]]; then
     local opts="-a --all -l --lc --line-change -c --cc --commit-count -u --user --author --account -h --help -v --verbose --debug --"
     COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
     return 0
@@ -288,20 +139,18 @@ function _git_changed() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
 
   local i=1
-  local long_opt=0
+  local longOpt=0
   while (( i < COMP_CWORD )); do
     if [[ "${COMP_WORDS[i]}" == "--" ]]; then
-      long_opt=1
+      longOpt=1
       break
     fi
     (( i++ ))
   done
 
-  if (( long_opt )); then
-    return 0
-  fi
+  if (( longOpt )); then return 0; fi
 
-  if [[ "$cur" == -* ]]; then
+  if [[ "${cur}" == -* ]]; then
     local opts="
       -a --all
       -s --staged
@@ -327,7 +176,7 @@ function _git_fd() {
   case "${prev}" in
     -e|--ext|-f|--file|-g|--grep|-k|--keyword|-m|--message|--blob) return 0 ;;
     -u|--author) local authors=$( git log -1000 --format="%ae" 2>/dev/null | sort -u )
-                 COMPREPLY=( $(compgen -W "${authors}" -- "$cur") )
+                 COMPREPLY=( $(compgen -W "${authors}" -- "${cur}") )
                  return 0 ;;
   esac
 
@@ -354,7 +203,7 @@ function _git_fd() {
 }
 
 complete -o bashdefault -o default -F _git_stat        git-stat 2>/dev/null || \
-complete -o default -F _git_stat git-stat
+complete -o default                -F _git_stat        git-stat
 complete -o bashdefault -o default -F _git_gerrit_stat git-gerrit-stat
 complete -o bashdefault -o default -F _git_changed     git-changed
 complete -o bashdefault -o default -F _git_fd          git-fd

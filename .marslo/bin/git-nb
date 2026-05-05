@@ -4,7 +4,7 @@
 #     FileName : git-nb
 #       Author : marslo
 #      Created : 2026-03-16 15:45:59
-#   LastChange : 2026-03-31 19:10:09
+#   LastChange : 2026-05-04 19:46:31
 #  Description : create a [n]ew [b]ranch with the Jira ID
 #=============================================================================
 
@@ -68,7 +68,10 @@ function getName() {
 
 function main() {
   local jira=''
-  jira=$(jira ls --project 'IPBUSW' --return 'full')
+
+  [[ " ${JIRA_OPTS[*]} " != *' --project '* ]] && JIRA_OPTS+=( --project 'DEVOPS' )
+  [[ " ${JIRA_OPTS[*]} " != *' --return '*  ]] && JIRA_OPTS+=( --return 'full'    )
+  jira=$( jira ls "${JIRA_OPTS[@]}" 2>/dev/null )
 
   test -n "${jira}" || die "no JIRA issue found !"
   [[ "${VERBOSE}" -ge 1 ]] && { info 'jira issue selected' "${jira}"; } || :
@@ -102,24 +105,31 @@ OPTIONS
   $(c G)-i$(c), $(c G)--interactive$(c)       interactive mode, ask for confirmation before creating the branch
   $(c G)-v$(c), $(c G)-vv$(c)                 multiple $(c 0Gi)-v$(c) options increase verbosity $(c 0i)(max: $(c 0Yi)2$(c))$(c)
   $(c G)-h$(c)                      show this help message and exit
+  $(c iC)-- $(c 0Mi)[JIRA OPTIONS]$(c)       options for \`jira ls\` command, e.g. $(c 0Mi)--project PROJECT_ID$(c)
 
 ENVIRONMENT VARIABLES
   • $(c 0Ci)\`GIT_NB_INTERACTIVE\`$(c): $(c 0Wdi)set the default interactive mode for the script$(c)
                           $(c 0Ci)true $(c 0Wdi)== $(c 0Gi)-y/--yes$(c 0Wdi), and $(c 0Ci)false $(c 0Wdi)== $(c 0Gi)-i/--interactive$(c)
+
+EXAMPLES
+  $(c Wdi)# create branch with closed JIRA issue$(c)
+  $(c Ys)\$ ${ME} $(c 0Csi)-- $(c 0Mi)--closed$(c)
 "
 
 declare VERBOSE=0
 declare CHECKOUT=true
 declare INTERACTIVE="${GIT_NB_INTERACTIVE:-true}"
+declare -a JIRA_OPTS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -c | --checkout    ) CHECKOUT=true            ; shift  ;;
-    -C | --no-checkout ) CHECKOUT=false           ; shift  ;;
-    -y | --yes         ) INTERACTIVE=false        ; shift  ;;
-    -i | --interactive ) INTERACTIVE=true         ; shift  ;;
-    -v | -vv           ) VERBOSE=$(( ${#1} - 1 )) ; shift  ;;
-    -h                 ) echo -e "${USAGE}" >&2   ; exit 0 ;;
-    *                  ) die "unknown option '$1'"         ;;
+    -c | --checkout    ) CHECKOUT=true              ; shift  ;;
+    -C | --no-checkout ) CHECKOUT=false             ; shift  ;;
+    -y | --yes         ) INTERACTIVE=false          ; shift  ;;
+    -i | --interactive ) INTERACTIVE=true           ; shift  ;;
+    -v | -vv           ) VERBOSE=$(( ${#1} - 1 ))   ; shift  ;;
+    -h                 ) echo -e "${USAGE}" >&2     ; exit 0 ;;
+    --                 ) shift; JIRA_OPTS+=( "$@" ) ; break  ;;
+    *                  ) die "unknown option '$1'"           ;;
   esac
 done
 
