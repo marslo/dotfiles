@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo.jiao@gmail.com
 #     Created : 2012
-#  LastChange : 2026-04-25 03:22:45
+#  LastChange : 2026-05-05 00:07:22
 #  Description : ifunctions
 # =============================================================================
 
@@ -933,5 +933,14 @@ function tmux-tail() {
     tmux capture-pane -pt "${s}" | tail -n 8
   done
 }
+
+# to switch profile in iTerm2 when running agent command
+# to install cursor agent via: `$ curl https://cursor.com/install -fsS | bash`
+function agent() {
+  printf "\033]50;SetProfile=everforest\a"
+  command agent "$@"
+  printf "\033]50;SetProfile=gruvbox\a"
+}
+
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

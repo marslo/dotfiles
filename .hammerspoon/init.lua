@@ -44,7 +44,7 @@ local function startObserver()
     local a = hs.application.get("Cursor")
     if not a then return end
     local desc = getFocusedDescription(a)
-    if desc == "editor" then
+    if desc == "editor" or desc == "text field" then
       switchToEnglish()
     end
   end)
