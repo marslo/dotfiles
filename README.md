@@ -25,12 +25,12 @@ Life is short, make it easier!
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [folder structure](#folder-structure)
 - [setup](#setup)
   - [dotfiles](#dotfiles)
   - [gh extensions](#gh-extensions)
   - [fonts](#fonts)
   - [tools](#tools)
-- [folder structure](#folder-structure)
 - [manual configure](#manual-configure)
   - [`~/.marslo/.marslorc`](#marslomarslorc)
   - [inputrc:](#inputrc)
@@ -48,6 +48,33 @@ Life is short, make it easier!
 ![LS_COLORS](https://github.com/marslo/dotfiles/raw/assets/screenshots/LS_COLORS-2.png)
 
 ![LS_COLORS_ALL](https://github.com/marslo/dotfiles/raw/assets/screenshots/LS_COLORS_ALL-2.png)
+
+
+## folder structure
+```bash
+dotfiles                   # -> $HOME
+├── .bashrc                # source ~/.marslorc or ~/.marslorc.wsl
+├── .marsorc               # ╮ main entry
+├── .marsorc.wsl           # ╯
+├── .config
+│   ├── nvim               # nvim/init.lua
+│   └── ...
+├── .marslo
+│   ├── bin                # all tools/bins/scripts
+│   ├── .alias             # entry for alias.d
+│   ├── alias.d
+│   ├── .completion        # entry for bash_completion.d
+│   ├── bash_completion.d
+│   ├── gitconfig.d
+│   ├── inputrc.d
+│   └── vimrc.d
+├── .vimrc                 # source `.marslo/vimrc.d/*`
+├── .inputrc               # include `.marslo/inputrc.d/*`
+├── .gitconfigi            # include `.marslo/gitconfig.d/*`
+└── ...                    # rc/profile/ignore/...
+```
+
+![bash](https://github.com/marslo/dotfiles/raw/assets/screenshots/shell.png)
 
 ## setup
 ### dotfiles
@@ -109,6 +136,10 @@ $ fc-query -f '%{family}\n' /path/to/font.ttf
 - [more](https://github.com/marslo/fonts?tab=readme-ov-file#install-patched-fonts)
 
 ### tools
+
+> [!TIP]
+> check more in [awesome shell](https://marslo.github.io/ibook/devops/awesome/awesome.html) | [devenv setup](https://marslo.github.io/ibook/linux/devenv.html)
+
 - [fzf](https://marslo.github.io/ibook/devops/awesomeShell.html#fzf)
 - [fd](https://marslo.github.io/ibook/devops/awesomeShell.html#fd)
 - [rg](https://marslo.github.io/ibook/devops/awesomeShell.html#rg-the-faster-mg)
@@ -116,26 +147,6 @@ $ fc-query -f '%{family}\n' /path/to/font.ttf
 - [fzy](https://marslo.github.io/ibook/devops/awesomeShell.html#fzy)
 - [bat](https://marslo.github.io/ibook/devops/awesomeShell.html#bat)
 - [c](https://marslo.github.io/ibook/devops/awesomeShell.html#c-bash-color)
-- [devenv setup](https://marslo.github.io/ibook/linux/devenv.html)
-
-## folder structure
-```bash
-dotfiles                   # -> $HOME
-├── .config
-│   ├── nvim               # nvim/init.lua
-│   └── ...
-├── .marslo
-│   ├── .alias             # all alias
-│   ├── bin                # all bins/scripts
-│   └── vimrc.d            # all vimrc congiures
-├── .vimrc                 # source vimrc.d/*
-├── .marsorc               # ╮ source all in `.marslo/{.alias,bin}`
-├── .marsorc.wsl           # ╯
-├── .bashrc                # source ~/.marslorc or ~/.marslorc.wsl
-└── ...                    # rc/profile/ignore/...
-```
-
-![bash](https://github.com/marslo/dotfiles/raw/assets/screenshots/shell.png)
 
 ## manual configure
 ### `~/.marslo/.marslorc`
