@@ -4,7 +4,7 @@
 #     FileName : semantic-release
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-06-17 23:02:43
-#   LastChange : 2025-11-10 19:36:35
+#   LastChange : 2026-05-07 03:14:04
 #=============================================================================
 
 set -euo pipefail
@@ -21,7 +21,7 @@ function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" 
 function showUsage() { echo -e "${usage}" >&2; exit 0; }
 
 declare -r GIT_USER="$(git config --get user.name)"
-declare -r USER="${GITHUB_USER:-${GIT_USER:-marslo}}"
+declare -r ACCOUNT="${GITHUB_USER:-${GIT_USER:-marslo}}"
 declare -r TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-${SEMANTIC_RELEASE_TOKEN:-}}}"
 
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
@@ -38,7 +38,7 @@ USAGE
 
 OPTIONS
   $(c G)-b$(c), $(c G)--branch $(c 0Mi)<branch>$(c)  the branch to release from $(c 0Wdi)( default: $(c 0Mi)current branch$(c) $(c 0Wdi))$(c)
-  $(c G)-v$(c), $(c G)--verbose$(c), $(c G)--debug$(c) enable debug mode $(c 0Wdi)( default: $(c 0Mi)enabled$(c) $(c 0Wdi))$(c)
+  $(c G)-v$(c), $(c G)--verbose$(c), $(c G)--debug$(c) enable debug mode $(c 0Wdi)( default: $(c 0Mi)disabled$(c) $(c 0Wdi))$(c)
   $(c G)--no-debug$(c)             disable debug mode $(c 0Wdi)( default: $(c 0Mi)disabled$(c) $(c 0Wdi))$(c)
   $(c G)--dryrun$(c)               perform a dry run without making any changes $(c 0Wdi)( default: $(c 0Mi)disabled$(c) $(c 0Wdi))$(c)
   $(c G)-i$(c), $(c G)--init$(c)             initialize semantic-release environment $(c 0Wdi)( \$ npm i -g ... )$(c)
@@ -78,6 +78,7 @@ if "${init}"; then
   npmcmd+=( @semantic-release/exec )
   npmcmd+=( @semantic-release/git )
   npmcmd+=( @semantic-release/github )
+  npmcmd+=( conventional-changelog-conventionalcommits )
   "${debug}" && npmcmd+=( --verbose )
   "${npmcmd[@]}" || {
     echo -e '\n'
@@ -86,22 +87,39 @@ if "${init}"; then
   exit 0
 fi
 
-[[ -z "${USER}"  ]] && die "$(c 0Ci)\$GITHUB_USER$(c) is not set and $(c 0Ci)git user.name$(c) is not configured"
-[[ -z "${TOKEN}" ]] && die "$(c 0Ci)\$GITHUB_TOKEN$(c) or $(c 0Ci)\$GH_TOKEN$(c) cannot be found in environment variables, set it before running this script"
+[[ -z "${ACCOUNT}" ]] && die "$(c 0Ci)\$GITHUB_USER$(c) is not set and $(c 0Ci)git user.name$(c) is not configured"
+[[ -z "${TOKEN}"   ]] && die "$(c 0Ci)\$GITHUB_TOKEN$(c) or $(c 0Ci)\$GH_TOKEN$(c) cannot be found in environment variables, set it before running this script"
 
+declare -r NPM_GLOBAL_ROOT="$(npm root -g 2>/dev/null)"
 declare -a cmd=( env )
-cmd+=( CI=true )
+[[ -t 0 ]] && cmd+=( "GPG_TTY=$(tty)" )
+# cmd+=( CI=true )
+cmd+=( GIT_CONFIG_PARAMETERS="'commit.gpgsign=false' 'tag.gpgsign=false'" )
+[[ -n "${TOKEN}" ]] && cmd+=( "GH_TOKEN=${TOKEN}" )
+[[ -n "${TOKEN}" ]] && cmd+=( "GITHUB_TOKEN=${TOKEN}" )
 cmd+=( GIT_BRANCH="${branch}" )
+[[ -n "${NPM_GLOBAL_ROOT}" ]] && cmd+=( NODE_PATH="${NPM_GLOBAL_ROOT}" )
 cmd+=( npx semantic-release --branch "${branch}" )
+
+# fall back to global config when no local .releaserc* / release.config.* is found
+if ! compgen -G ".releaserc*" > /dev/null && ! compgen -G "release.config.*" > /dev/null; then
+  # shellcheck disable=SC2015
+  [[ -f "${HOME}/.releaserc.json" ]] && cmd+=( --extends "${HOME}/.releaserc.json" ) || die "no local .releaserc found and \$HOME/.releaserc.json does not exist"
+fi
 
 "${debug}"  && cmd+=( --debug )
 "${dryrun}" && cmd+=( --dry-run )
 
-"${debug}"  && echo -e "$(c 0Wdi)>> running:\n\t$(c 0Mdi)${cmd[*]} $(c 0Wdi)..$(c)\n" >&2
+"${debug}" && {
+  declare CMD_STR="${cmd[*]}"
+  [[ -n "${TOKEN}" ]] && CMD_STR="${CMD_STR//${TOKEN}/*********}"
+  echo -e "$(c 0Wdi)>> running:\n\t$(c 0Mdi)${CMD_STR} $(c 0Wdi)..$(c)\n" >&2
+}
 
+trap 'unset GITHUB_TOKEN GITHUB_USER' EXIT
 export GITHUB_TOKEN="${TOKEN}"
-export GITHUB_USER="${USER}"
+export GH_TOKEN="${TOKEN}"
+export GITHUB_USER="${ACCOUNT}"
 "${cmd[@]}" || { echo -e '\n'; die "semantic-release failed"; }
-unset GITHUB_TOKEN GITHUB_USER
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

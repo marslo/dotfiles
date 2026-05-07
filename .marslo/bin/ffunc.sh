@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-04-30 18:05:52
+#   LastChange : 2026-05-05 22:46:56
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -254,7 +254,7 @@ function pc() {                            # path copy
          printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${file}"
   else
     realpath "${1}" | "${COPY}" &&
-    printf "$(c Wd)>> path of $(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${1}"
+    printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${1}"
   fi
 }
 
