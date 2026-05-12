@@ -4,11 +4,11 @@
 #     FileName : ghperm.sh
 #       Author : marslo
 #      Created : 2025-09-03 19:00:40
-#   LastChange : 2026-05-12 00:30:17
+#   LastChange : 2026-05-12 01:20:43
 #  Description : check repo permissions for github
 #=============================================================================
 # Environment Variables:
-#  • GITHUB_LAB_OWNER : github organization
+#  • GHE_LAB_OWNER    : GHE private organization
 #  • PASS_GHE_ME      : pass path for personal github token
 #  • PASS_GHE_RELEASE : pass path for release service account token
 #  • PASS_GHE_JENKINS : pass path for jenkins service account token
@@ -55,8 +55,8 @@ function usage() {
   echo -e "  $(c G)-v$(c), $(c G)-vv$(c)                  enable verbose output, multiple $(c 0Gi)-v$(c) options increase verbosity $(c 0i)(max: $(c 0Yi)2$(c))$(c)"
   echo -e "  $(c G)-h$(c), $(c G)--help$(c)               show this help message and exit"
   echo -e "\nEXAMPLE"
-  echo -e "  $(c 0Wdi)# list service account \`srv-release1\` has ADMIN perms in organization \`${GITHUB_LAB_OWNER:-Domain-Lab}\`$(c)"
-  echo -e "  $(c Ys)\$ ${ME} $(c 0Gi)--srv $(c 0Mi)srv-release1 $(c 0Gi)-o $(c 0Mi)${GITHUB_LAB_OWNER:-Domain-Lab} $(c 0Gi)-p $(c 0Mi)admin$(c)"
+  echo -e "  $(c 0Wdi)# list service account \`srv-release1\` has ADMIN perms in organization \`${GHE_LAB_OWNER:-Domain-Lab}\`$(c)"
+  echo -e "  $(c Ys)\$ ${ME} $(c 0Gi)--srv $(c 0Mi)srv-release1 $(c 0Gi)-o $(c 0Mi)${GHE_LAB_OWNER:-Domain-Lab} $(c 0Gi)-p $(c 0Mi)admin$(c)"
   exit 0
 }
 

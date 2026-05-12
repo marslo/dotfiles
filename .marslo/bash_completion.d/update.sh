@@ -4,7 +4,7 @@
 #     FileName : update.sh
 #       Author : marslo
 #      Created : 2025-11-14 19:43:32
-#   LastChange : 2026-05-05 00:13:21
+#   LastChange : 2026-05-12 01:49:26
 #=============================================================================
 
 set -euo pipefail
@@ -26,7 +26,6 @@ type -P gh      >/dev/null && { command gh completion -s bash            > "${HE
 type -P bat     >/dev/null && { command bat --completion bash            > "${HERE}"/bat.sh            ; info "bat"     ; }
 type -P pipx    >/dev/null && { command register-python-argcomplete pipx > "${HERE}"/pipx.sh           ; info "pipx"    ; }
 type -P pip     >/dev/null && { command pip completion --bash            > "${HERE}"/pip.sh            ; info "pip"     ; }
-type -P fzf     >/dev/null && { command fzf --bash                       > "${HERE}"/fzf.sh            ; info "fzf"     ; }
 type -P cheat   >/dev/null && { command cheat --completion bash          > "${HERE}"/cheat.sh          ; info "cheat"   ; }
 type -P smctl   >/dev/null && { command smctl completion bash            > "${HERE}"/completions/smctl ; info "smctl"   ; }
 

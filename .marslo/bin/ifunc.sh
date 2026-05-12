@@ -942,5 +942,4 @@ function agent() {
   printf "\033]50;SetProfile=gruvbox\a"
 }
 
-
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

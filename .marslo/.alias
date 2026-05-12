@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1091,SC2154,SC2155
+# shellcheck source=/dev/null
 #=============================================================================
 #     FileName : .alias
 #       Author : marslo.jiao@gmail.com
@@ -7,15 +7,16 @@
 #   LastChange : 2025-06-27 17:27:25
 #=============================================================================
 
-declare ALIAS_DIR="${iRCHOME}/alias.d"
+# shellcheck disable=SC2154
+declare ALIAS_HOME="${iRCHOME}/alias.d"
 
 while read -r _i; do
-  source "${ALIAS_DIR}/${_i}"
-done < <(/bin/ls -1 "${ALIAS_DIR}" | grep --color=never -vE "docker|kubernetes|mac")
+  source "${ALIAS_HOME}/${_i}"
+done < <(/bin/ls -1 "${ALIAS_HOME}" | grep --color=never -vE "docker|kubernetes|mac")
 
-[[ 'Darwin' = "$(uname --operating-system)" ]] && source "${ALIAS_DIR}"/mac
-type -P kubectl >/dev/null 2>&1                && source "${ALIAS_DIR}"/kubernetes
-type -P docker  >/dev/null 2>&1                && source "${ALIAS_DIR}"/docker
+[[ 'Darwin' = "$(uname --operating-system)" ]] && source "${ALIAS_HOME}"/mac
+type -P kubectl >/dev/null 2>&1                && source "${ALIAS_HOME}"/kubernetes
+type -P docker  >/dev/null 2>&1                && source "${ALIAS_HOME}"/docker
 
 unset "${_i}"
 

@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-05-12 00:02:22
+#   LastChange : 2026-05-12 01:26:10
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1202,8 +1202,9 @@ function goto() {
   local gpreview="git -C {2} show --color=always --date=local -m HEAD ${showPager:+| ${showPager} --color=always}"
   local gpreviewS="git -C {2} show --color=always --date=local -s HEAD ${showPager:+| ${showPager} --color=always}"
 
+  # requires setup environment variable `GHE_LAB_OWNER` to filter repos by owner
   repo=$(
-    fd -H -I -t f -E '*sandbox*' -E '*archive*' -E '*poc*' -p '\.git/config$' "${path}" --exec-batch rg -l 'github.com' 2>/dev/null |
+    fd -H -I -t f -E '*sandbox*' -E '*archive*' -E '*poc*' -p '\.git/config$' "${path}" --exec-batch rg -l "${GHE_LAB_OWNER:-OWNER}" 2>/dev/null |
     xargs ls -t |
     sed 's|/\.git/config$||' |
     awk -F/ '{printf "%s\t%s\n", $NF, $0}'  |
@@ -1216,7 +1217,7 @@ function goto() {
         --bind "ctrl-o:execute(bash -c \"${gpreview}\")+change-preview(${gpreviewS})+change-prompt(repo> )" \
         --bind "ctrl-y:execute-silent(printf \"%s\" {2} | eval ${CLIPBOARD})" \
         --bind 'ctrl-\:change-preview-window:up,60%|hidden|right,55%' \
-        --bind "ctrl-o:execute(open https://github.com/<OWNER>/{1})" |
+        --bind "ctrl-o:execute(open https://github.com/${GHE_LAB_OWNER:-OWNER}/{1})" |
     cut -f2
   )
 
@@ -1728,10 +1729,12 @@ function kpcani() {                        # [k]ubectl [p]od [can]-[i]
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @references  :
 #   - exit in while loop by Ctrl-C: https://stackoverflow.com/a/58508884/2940319; https://gist.github.com/iangreenleaf/279849
+# @Environment Variable:
+#   - ARTIFACTORY_DOMAIN : the private artifactory url
 # [d]ocker [r]emote [c][l]ea[r]
 function drclr() {                        # [d]ocker [r]emote [c][l]ea[r]
   local username='devops'
-  local hostname='artifactory.domain.com'
+  local hostname="${ARTIFACTORY_DOMAIN:-artifactory.domain.com}"
   local registry='storage-ff-devops-docker'
   local delete=false
   local dangling=false

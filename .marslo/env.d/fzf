@@ -4,12 +4,20 @@
 #     FileName : fzf
 #       Author : marslo
 #      Created : 2023-10-06 00:47:47
-#   LastChange : 2026-05-11 23:51:09
+#   LastChange : 2026-05-12 01:41:12
 # =============================================================================
 
 # shellcheck disable=SC2155
 declare ENV_HOME="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 
+
+# /**************************************************************
+#                        _
+#  ___ _ ___ __  ___ ___| |_ _  _ _ __
+# / -_) ' \ V / (_-</ -_)  _| || | '_ \
+# \___|_||_\_/  /__/\___|\__|\_,_| .__/
+#                                |_|
+# **************************************************************/
 # fzf
 FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS:+$FZF_DEFAULT_OPTS} "
 FZF_DEFAULT_OPTS+="--height 35% --min-height 8+ "             # https://github.com/junegunn/fzf/issues/4226
@@ -121,6 +129,12 @@ __fzf_ctrl_t_dynamic() {
   fi
 }
 
+# /**************************************************************
+#  _              _    __     __
+# | |___  __ _ __| |  / _|___/ _|
+# | / _ \/ _` / _` | |  _|_ /  _|
+# |_\___/\__,_\__,_| |_| /__|_|
+# **************************************************************/
 # load fzf bindings first
 if test -f "$HOME"/.fzf.bash; then
   source "${ENV_HOME}"/fzf.bash
@@ -142,6 +156,12 @@ if type __fzf_history__ >/dev/null 2>&1; then
   done
 fi
 
+# /**************************************************************
+#             _             _           _    __              _   _
+#  __ _  _ __| |_ ___ _ __ (_)______ __| |  / _|_  _ _ _  __| |_(_)___ _ _  ___
+# / _| || (_-<  _/ _ \ '  \| |_ / -_) _` | |  _| || | ' \/ _|  _| / _ \ ' \(_-<
+# \__|\_,_/__/\__\___/_|_|_|_/__\___\__,_| |_|  \_,_|_||_\__|\__|_\___/_||_/__/
+# **************************************************************/
 ## preview contents via `$ cd **<tab>` | `$ cd ,,<tab>`: -> FZF_COMPLETION_TRIGGER
 # - https://pragmaticpineapple.com/four-useful-fzf-tricks-for-your-terminal/
 # - https://github.com/junegunn/fzf?tab=readme-ov-file#fuzzy-completion-for-bash-and-zsh
@@ -164,7 +184,7 @@ _fzf_compgen_dir() {
   fd --type d --hidden --follow --exclude ".git" --exclude "node_modules" . "$1"
 }
 
-# usage: _fzf_fill "${cmd}" - similar to `Ctrl+R` in bash
+# usage: _fzf_fill "${cmd}" - similar to `Ctrl+R` in bash - for command completion
 # i.e.:  _fzf_fill seq 10
 _fzf_fill() {
   local cmd

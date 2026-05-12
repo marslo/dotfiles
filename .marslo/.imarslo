@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2155,SC2034
 
 # dangerous operation needs confirm
 alias rm='rm -i'
@@ -22,6 +23,7 @@ alias sl='ls'
 alias :q='exit'
 alias :x='exit'
 
+# shellcheck disable=SC2290
 alias -- +='pushd .'
 alias -- ++='pushd +1'
 alias -- +++='pushd +2'
@@ -50,10 +52,10 @@ alias tig="tig 2> /dev/null"
 
 alias c='clear'
 alias ff=firefox
-alias ud='du -h --max-depth=1 --exclude='\./\.*''
+alias ud="du -h --max-depth=1 --exclude='\./\.*'"
 alias ud.='du -h --max-depth=1'
 alias udf='du -skh'
-alias uds='du --block-size=MiB --max-depth=1 --exclude='\./\.*' | sort -nr'
+alias uds="du --block-size=MiB --max-depth=1 --exclude='\./\.*' | sort -nr"
 alias uds.='du --block-size=MiB --max-depth=1 | sort -nr'
 alias df='df -kTh'
 # alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
@@ -67,8 +69,9 @@ alias service="sudo service"
 alias systemctl="sudo systemctl"
 alias updatedb="sudo updatedb"
 alias locate="sudo locate"
-alias ports='sudo netstat -tunplea | grep $@'
+alias ports='sudo netstat -tunplea | grep'
 alias reboot='sudo shutdown -r now'
+# shellcheck disable=SC2139,SC2162
 alias howold="sudo tune2fs -l $(df -h / |(read; awk '{print $1; exit}')) | grep -i created"
 alias dropcache='sudo echo 3 > /proc/sys/vm/drop_caches'
 alias lgout='read ans; kill -HUP $PPID'
@@ -94,6 +97,7 @@ alias pip='pip --trusted-hosts pww.artifactory.cdi.philips.com'
 alias ssh="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "
 alias scp="scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "
 alias rsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '"
+# shellcheck disable=SC2139
 alias myaws="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${HOME}/.marslo/Marslo/Tools/Softwares/sshkey/marslo-aws.pem ec2-user@ec2-54-193-78-97.us-west-1.compute.amazonaws.com"
 
 # Color configure in ls
@@ -201,3 +205,5 @@ PS1+="\`if [ \$? = 0 ]; then echo ${COLIFDEFAULT}\\$; else echo ${ifSLRED}\\$; f
 PS1+="${COLNONE}"
 export PS1
 export PS2="${COLDEFAULT}  -> ${COLRESET}${COLNONE}"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

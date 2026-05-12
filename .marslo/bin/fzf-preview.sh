@@ -4,7 +4,7 @@
 #     FileName : fzf-preview.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2026-05-11 22:50:00
-#   LastChange : 2026-05-11 23:50:09
+#   LastChange : 2026-05-12 01:15:35
 #  Description : unified fzf preview command for files and directories
 #                used by: FZF_CTRL_T_OPTS (env.d/fzf), _load_fzf_context() (ffunc.sh)
 #       Syntax : fzf-preview.sh FILENAME[:LINENO][:IGNORED]
@@ -121,10 +121,17 @@ case "${file}" in
                   "${TREE[@]}" "${file}"
                 elif [[ ${mime} =~ image/ ]]; then
                   _show_image "${file}"
-                elif [[ ${mime} =~ =binary ]] || { file -bL --mime-encoding "${file}" | grep -iq "binary" && ! iconv -f utf-8 -t utf-8 "${file}" >/dev/null 2>&1; }; then
+                elif file -bL --mime-encoding "${file}" | grep -iq "binary" && ! iconv -f utf-8 -t utf-8 "${file}" >/dev/null 2>&1; then
                   _show_binary_info "${file}"
                 else
-                  "${CAT[@]}" -- "${file}"
+                  # 1. has extension → bat auto-detects (fast)
+                  # 2. no extension  → try vim modeline, fallback to bat auto-detect
+                  if [[ "${file##*/}" != *.* ]]; then
+                    declare ft
+                    ft=$(grep -Eo '(filetype|ft)=[a-zA-Z0-9_-]+' "${file}" 2>/dev/null | awk -F= 'END{print $2}')
+                    [[ -n "${ft}" ]] && CAT+=( --language="${ft}" )
+                  fi
+                  "${CAT[@]}" -- "${file}" 2>/dev/null || "${CAT[@]}" -- "${file}"
                 fi
                 ;;
 esac

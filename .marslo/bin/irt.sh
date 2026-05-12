@@ -5,10 +5,10 @@
 #     FileName : irt.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2012
-#   LastChange : 2026-02-17 20:05:31
+#   LastChange : 2026-05-12 01:27:48
 # =============================================================================
 
-RT_URL='https://my.artifactory.com/artifactory'
+RT_URL="https://${ARTIFACTORY_DOMAIN:-artifactory.domain.com}/artifactory"
 RT_PROJECT='project-1'
 declare -a CURL_OPT=( -s -g --netrc-file "$HOME/.marslo/.netrc" )
 

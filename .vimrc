@@ -97,6 +97,11 @@ if has( 'persistent_undo' )
   let &undodir=target_path
 endif
 
+if IsVscodeOrCursor()
+  set noshowmode noruler laststatus=0 noshowcmd
+  " set cmdheight=2
+endif
+
 if empty( glob('$HOME/.vim/autoload/plug.vim') ) || empty( glob($VIM . 'autoload\plug.vim') )
   execute 'silent exec "GetPlug"'
 endif

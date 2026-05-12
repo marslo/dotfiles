@@ -35,7 +35,9 @@ LS_COLORS+='*.bat=38;5;134:*.BAT=38;5;134:*.sh=38;5;143:*.bash=38;5;143:*.fish=3
 # system rc
 LS_COLORS+='*.python-version=38;5;241;3:*.iterm2_shell_integration.bash=38;5;241;3:*history=38;5;241;3:*hst=38;5;241;3:*token=38;5;239;3:*.pw=38;5;239;3:*rc=38;5;104;3:*.bash_profile=38;5;104;3:*rc.json=38;5;104;3:*rc.js=38;5;104;3:*.config.js=38;5;104;3:*rc.yaml=38;5;104;3:*.gitbash=38;5;66;3:*.profile=0;3:*.profile.wsl=0;3:*.bash_login=0;3:*.bash_logout=0;3:*.bash_completion=0;3:*.zlogin=0;3:*.zlogout=0;3:*.zprofile=0;3:*.zshenv=0;3:*id_dsa=38;5;192;3:*id_ecdsa=38;5;192;3:*id_ed25519=38;5;192;3:*id_rsa=38;5;192;3:*known_hosts=0;3:*known_hosts.old*=38;5;241;3:*cfg=0;3:*conf=0;3:*ignore=38;5;241;3:*ignore_global=38;5;241;3:*.containerignore=38;5;241;3:*.dockerignore=38;5;241;3:'
 export LS_COLORS
-export GREP_COLORS="ms=0;1;4;33;49:mc=0;4;33:sl=3;36:cx=:fn=3;35:ln=3;32:bn=32:se=3;35"
+# ms: match string;   mc: match context line;   sl: selected line;    cx: context line;
+# fn: filename;       ln: line number;          bn: byte offset;      se: separator;
+export GREP_COLORS="ms=0;1;3;4;36;49:mc=0;4;33:sl=0:cx=0:fn=0;3;35:ln=0;3;32:bn=0;32:se=0;3;35"
 # export GREP_OPTIONS='--color=always'
 export EDITOR=nvim
 export KEYTIMEOUT=1

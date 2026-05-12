@@ -4,7 +4,7 @@
 #     FileName : ssh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2025-05-27 20:12:14
-#   LastChange : 2026-02-25 17:34:18
+#   LastChange : 2026-05-12 00:34:48
 #        Usage : /path/to/ssh -- --help
 #=============================================================================
 
@@ -153,6 +153,7 @@ target=$(
   column -t -s ':' -o ' : ' | \
   fzf --ansi \
       --no-multi \
+      --no-border \
       --prompt='HOSTNAME 󱚥 ' \
       --color=fg+:#979736,hl+:#979736,label:italic:#77A678 \
       --preview-window=top:60% --height 35% --min-height 3+ \
