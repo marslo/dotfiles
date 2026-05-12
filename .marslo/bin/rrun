@@ -96,7 +96,8 @@ done
 [[ -n "${FILE}" && ! -f "${FILE}"     ]] && die "$(c Mi)'--file'$(c) is not exist";
 [[ -n "${SSH_CONFIG}" && ! -f "${SSH_CONFIG}" ]] && die "the SSH config file: $(c Ci)'${SSH_CONFIG}'$(c) is not exist";
 
-declare -a DOMAINS=( 'marvell[.]com' 'abc[.]com' )
+# keyword replacement: domain -> real hostname
+declare -a DOMAINS=( 'domain[.]com' 'abc[.]com' )
 printf -v TRIM_DOMAINS "%s|" "${DOMAINS[@]}"
 TRIM_DOMAINS="${TRIM_DOMAINS%|}"
 TRIM_REGEX="[.](${TRIM_DOMAINS})$"

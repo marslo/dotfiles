@@ -25,7 +25,8 @@ declare -a BLACKLIST=( 'sfw.*jenkins' 'sms.*jenkins' 'git@github[.]com' 'sj1git1
 printf -v BLACKLIST_REGEX "%s|" "${BLACKLIST[@]}"
 BLACKLIST_REGEX="${BLACKLIST_REGEX%|}"
 
-declare -a DOMAINS=( 'marvell[.]com' 'abc[.]com' )
+# keyword replacement: domain -> real hostname
+declare -a DOMAINS=( 'domain[.]com' 'abc[.]com' )
 printf -v TRIM_DOMAINS "%s|" "${DOMAINS[@]}"
 TRIM_DOMAINS="${TRIM_DOMAINS%|}"
 TRIM_REGEX="[.](${TRIM_DOMAINS})$"

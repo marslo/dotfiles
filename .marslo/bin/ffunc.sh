@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-05-11 21:09:49
+#   LastChange : 2026-05-12 00:02:22
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -28,56 +28,20 @@ test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :
 
 # usage: eval "$( _load_fzf_context )"
 #        ... | fzf "${fzfopt[@]}"
-# environment variable:
-#   - FZF_TOILET=true/false: whether use `toilet` to preview binary file info
-#   - FZF_TOILET_FONT=<fontname>: the font name for `toilet` preview, default to `bfraktur`
 function _load_fzf_context() {
-  local -a CAT=( "$(type -P cat)" )
-  BAT="$(type -P bat)" >/dev/null && CAT=( "${BAT}" --theme='Nord' --color=always --line-range :500 )
-
-  local -a TREE=( command ls '-Al' )
-  type -P tree >/dev/null && TREE=( command tree '-C' '-L' 2 )
-
-  local GLOW_PATH="$(type -P glow)"
-  local TOILET_PATH="$(type -P toilet)"
-  local LOLCAT_PATH="$(type -P lolcat)"
-  local BIN_PIPE=''
-  ${FZF_TOILET:-true} && [[ -x "${TOILET_PATH}" ]] && BIN_PIPE+=" | \"${TOILET_PATH}\" -f ${FZF_TOILET_FONT:-bfraktur} -w \"\${FZF_PREVIEW_COLUMNS:-65}\""
-  [[ -x "${LOLCAT_PATH}" ]] && BIN_PIPE+=" | \"${LOLCAT_PATH}\" -f"
-
-  # shellcheck disable=SC2016
-  local previewCmd='
-    case '{}' in
-      *.md | *.MD ) if test -x "'${GLOW_PATH}'"; then
-                       CLICOLOR_FORCE=1 "'${GLOW_PATH}'" -s dark -w "${FZF_PREVIEW_COLUMNS:-65}" {}
-                     else
-                       '${CAT[*]}' {}
-                     fi ;;
-                 * ) if test -d {}; then
-                       '${TREE[*]}' {}
-                     elif file -bL --mime-encoding {} | grep -iq "binary" && ! iconv -f utf-8 -t utf-8 {} >/dev/null 2>&1; then
-                       printf "%s\n" "$(file -bL {})" '"${BIN_PIPE}"'
-                     else
-                       '${CAT[*]}' {}
-                     fi ;;
-    esac'
-
-  local offset='
-    case {} in
-      *jenkinsfile/* | *vars/* ) echo "change-preview-window(right,60%,nowrap,rounded,+15)" ;;
-                             * ) echo "change-preview-window(right,60%,nowrap,rounded,+0)"  ;;
-    esac
-  '
+  local previewCmd="${HOME}/.marslo/bin/fzf-preview.sh {}"
   local -a fzfopt=( --exit-0
                     --height 50%
                     --multi --cycle
+                    --layout=reverse
+                    --no-border --no-input-border
                     --ansi
                     --keep-right
                     --preview "${previewCmd}"
                     --preview-window 'right,60%,nowrap,rounded,+0'
                     --bind 'ctrl-\:toggle-preview'
                     --bind 'ctrl-o:execute(bat {} > /dev/tty)'
-                    --bind "focus:transform: ${offset}"
+                    --bind "${FZF_FOCUS_OFFSET}"
                   )
 
   typeset -p fzfopt
@@ -462,12 +426,13 @@ function fman() {                          # show [man] page with [f]zf
 #   - disable `gif` due to imgcat performance issue
 # shellcheck disable=SC2215
 function imgview() {                       # [view] [im]a[g]e via [imgcat](https://github.com/eddieantonio/imgcat)
-  fd --unrestricted --type f --exclude .git --exclude node_modules '^*\.(png|jpeg|jpg|xpm|bmp)$' |
+  fd --unrestricted --type f --exclude .git --exclude node_modules -e png -e jpg -e jpeg -e gif -e xpm -e bmp -e webp -e tiff -e tif -e svg -e ico |
   fzf "$@" --height 100% \
            --keep-right \
-           --preview "imgcat -W \$FZF_PREVIEW_COLUMNS -H \$FZF_PREVIEW_LINES {}" \
+           --layout=default \
+           --preview "${HOME}/.marslo/bin/fzf-preview.sh {}" \
            --bind "ctrl-y:execute-silent(printf '%s' {+} | pbcopy)+abort" \
-           --bind 'ctrl-/:toggle-preview' \
+           --bind 'ctrl-\:change-preview-window(right:80%:nowrap|up:80%:nowrap)' \
            --header 'Press CTRL-Y to copy name into clipboard' \
            --preview-window 'up:80%:nowrap' \
            --exit-0 \
@@ -814,161 +779,6 @@ function vd() {                            # vd - open [v]im[d]iff loaded files 
   [[ ${#files[@]} -lt 2 ]] || vimdiff "${files[@]}"
 }
 
-
-# /**************************************************************
-#   __     __                    _                    _   _
-#  / _|___/ _|  ___   __ _ ___  | |_ ___   _ __  __ _| |_| |_
-# |  _|_ /  _| |___| / _` / _ \ |  _/ _ \ | '_ \/ _` |  _| ' \
-# |_| /__|_|         \__, \___/  \__\___/ | .__/\__,_|\__|_||_|
-#                    |___/                |_|
-#
-# **************************************************************/
-
-# goto         : goto to selected git repo path
-# @author      : marslo
-# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
-function goto() {
-  local path="${1:-${HOME}/iMarslo/job/code}"
-  local repo=''
-  local CLIPBOARD=''
-
-  type -P pbcopy >/dev/null 2>&1 && CLIPBOARD="pbcopy"
-  type -P xclip >/dev/null 2>&1  && CLIPBOARD="xclip -selection clipboard"
-  type -P xsel >/dev/null 2>&1   && CLIPBOARD="xsel -b"
-
-  # shellcheck disable=SC2155
-  local showPager=$(git config pager.show || echo "cat")
-  local gheader="printf \"\033[0;3;37m\$ git -C %s show -s\033[0m\n\n\" \"\$(echo {2} | sed \"s|${path}/||\")\""
-  local gpreview="git -C {2} show --color=always --date=local -m HEAD ${showPager:+| ${showPager} --color=always}"
-  local gpreviewS="git -C {2} show --color=always --date=local -s HEAD ${showPager:+| ${showPager} --color=always}"
-
-  repo=$(
-    fd -H -I -t f -E '*sandbox*' -E '*archive*' -E '*poc*' -p '\.git/config$' "${path}" --exec-batch rg -l 'Marvell-Lab' 2>/dev/null |
-    xargs ls -t |
-    sed 's|/\.git/config$||' |
-    awk -F/ '{printf "%s\t%s\n", $NF, $0}'  |
-    fzf --delimiter '\t' \
-        --with-nth=1 \
-        --height 50% \
-        --prompt='repo> ' \
-        --preview "${gheader}; ${gpreviewS}" \
-        --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
-        --bind "ctrl-o:execute(bash -c \"${gpreview}\")+change-preview(${gpreviewS})+change-prompt(repo> )" \
-        --bind "ctrl-y:execute-silent(printf \"%s\" {2} | eval ${CLIPBOARD})" \
-        --bind 'ctrl-\:change-preview-window:up,60%|hidden|right,55%' \
-        --bind "ctrl-o:execute(open https://github.com/<OWNER>/{1})" |
-    cut -f2
-  )
-
-  test -d "${repo}" && { cd "${repo}" || return; }
-}
-
-# cdm          : [cd] to selected [m]ount path
-# @author      : marslo
-# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
-function cdm() {                           # another `cd`
-  local path=''
-  path=$( printf "%s\n" 'path/to/folder' 'path/to/folder' fzf --prompt '➤ ' )
-
-  local name=''
-  name="$(sed -rn 's:^([^/]+).*:\1:p' <<< "${path}")"
-  inMounted "${name}" || fmount --auto --silent -q "${name}"
-
-  [[ -n "${path}" ]] && cd "/tmp/${path}" || \
-    echo -e "$(c Wdi)~~>$(c) $(c Mi)${name}$(c) is not mounted ...$(c)"
-}
-
-# shellcheck disable=SC2034,SC2316
-function cdp() {                           # cdp - [c][d] to selected [p]arent directory
-  local declare dirs=()
-  getParentDirs() {
-    if [[ -d "${1}" ]]; then dirs+=("$1"); else return; fi
-    if [[ "${1}" == '/' ]]; then
-      for _dir in "${dirs[@]}"; do echo $_dir; done
-    else
-      # shellcheck disable=SC2046
-      getParentDirs $(dirname "$1")
-    fi
-  }
-  # shellcheck disable=SC2155,SC2046
-  local DIR=$( getParentDirs $(realpath "${1:-$PWD}") | fzf-tmux --tac )
-  cd "${DIR}" || return
-}
-
-function cdd() {                           # cdd - [c][d] to selected sub [d]irectory
-  local dir=''
-  # shellcheck disable=SC2164
-  dir=$(fd --type d --hidden --ignore-file ~/.fdignore | fzf --no-multi -0) && cd "${dir}"
-}
-
-function cdr() {                           # cdr - [c][d] to selected [r]epo directory - same series: `vimr`
-  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo "Not in a git repository"
-    return 1
-  fi
-
-  local repodir=''
-  repodir="$(git rev-parse --show-toplevel)"
-  selection=$(
-    {
-      if [[ "${PWD}" != "${repodir}" ]]; then
-        echo ".."
-        echo "<root>"
-      fi
-
-      fd . "${repodir}" --type d --hidden --ignore-file ~/.fdignore --color=never | sed "s|^${repodir}/||"
-    } | fzf --no-multi --exit-0 --prompt ' ' --height 40% --layout=reverse
-  )
-  case "${selection}" in
-    "" )       return                                 ;;
-    "<root>" ) cd "${repodir}" || exit 1              ;;
-    ".." )     cd ..                                  ;;
-    * )        cd "${repodir}/${selection}" || exit 1 ;;
-  esac
-}
-
-function cdf() {                           # [c][d] into the directory of the selected [f]ile
-  local file
-  local dir
-  if [[ -n "$1" ]]; then
-    file="$1"
-    cd "$(dirname "${file}")" || return
-  else
-    # shellcheck disable=SC2164
-    file=$(fzf --multi --query "$1") && dir=$(dirname "${file}") && { cd "${dir}" || return; }
-  fi
-}
-
-# references:
-# - https://github.com/junegunn/fzf/blob/master/ADVANCED.md#using-fzf-as-the-secondary-filter
-# - https://github.com/junegunn/fzf/issues/3572#issuecomment-1887735150
-# shellcheck disable=SC2154
-function fif() {                           # [f]ind-[i]n-[f]ile
-  if [ ! "$#" -gt 0 ]; then
-    bash "${iRCHOME}"/bin/rfv
-  elif [[ 1 -eq "$#" && -d "${1:-}" ]]; then
-    bash "${iRCHOME}"/bin/rfv --path "$1"
-  else
-    $(type -P rg) --files-with-matches --no-messages --hidden --follow --smart-case "$1" |
-    fzf --height 80% \
-        --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
-        --bind "enter:become($(type -P vim) {+})" \
-        --header 'CTRL-N/CTRL-P or CTRL-↑/CTRL-↓ to view contents' \
-        --preview "bat --color=always --style=plain {} |
-                   rg --no-line-number --colors 'match:bg:yellow' --ignore-case --pretty --context 10 \"$1\" ||
-                   rg --no-line-number --ignore-case --pretty --context 10 \"$1\" {} \
-                  "
-  fi
-}
-
-# /**************************************************************
-#   __     __              _   _ _ _ _
-#  / _|___/ _|  ___   _  _| |_(_) (_) |_ _  _
-# |  _|_ /  _| |___| | || |  _| | | |  _| || |
-# |_| /__|_|          \_,_|\__|_|_|_|\__|\_, |
-#                                        |__/
-#
-# **************************************************************/
 # lsps         : list processes
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
@@ -1109,7 +919,7 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
 
   # shellcheck disable=SC2086
   if "${hhost}" && "${reproject}"; then
-    nodes=$( echo re-{01..26} | fmt -1 | fzf --prompt "hostname >" )
+    nodes=$( echo re-{01..26} jenkins | fmt -1 | fzf --prompt "hostname >" )
   elif "${phost}"; then
     nodes=$( echo sj4dl360n4u20 | fmt -1 | fzf --prompt "hostname >" )
   else
@@ -1213,11 +1023,11 @@ function processMount() {
   local verbose="${3}"
   [[ 'Darwin' = "$(uname)" ]] && prefix='/tmp' || prefix='/mnt'
   # shellcheck disable=SC2001
-  local target="${prefix}/$( sed 's/\$//' <<< "${path/\/}")"
+  local path="${prefix}/$( sed 's/\$//' <<< "${path/\/}")"
 
   if df -h | grep -q "${host}${path}" >/dev/null; then
-    local _target="$( df -h | command grep --color=never "${host}${path}" | awk '{print $NF}' )"
-    [[ ! 'false' != "${verbose}" ]] || echo -e "$(c Wdi)~~>$(c) $(c Mi)${host}${path}$(c) $(c Wdi)has been mounted to$(c) $(c Mi)${_target}$(c) $(c Wdi)already ...$(c)"; return
+    local _path="$( df -h | command grep --color=never "${host}${path}" | awk '{print $NF}' )"
+    [[ ! 'false' != "${verbose}" ]] || echo -e "$(c Wdi)~~>$(c) $(c Mi)${host}${path}$(c) $(c Wdi)has been mounted to$(c) $(c Mi)${_path}$(c) $(c Wdi)already ...$(c)"; return
   fi
 
   isWSL || isLinux && mpoint="//${host}${path}"
@@ -1226,23 +1036,23 @@ function processMount() {
     if [[ -z "${mpoint}" ]]; then
       echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint:-mount point}$(c) $(c Wdi)cannot be empty. exit ...$(c)" && return
     else
-      echo -e "$(c Wdi)~~> try mounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)to$(c) $(c Mi)${target}$(c) $(c Wdi)...$(c)"
+      echo -e "$(c Wdi)~~> try mounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)to$(c) $(c Mi)${path}$(c) $(c Wdi)...$(c)"
     fi
   fi
 
-  [[ -d "${target}" ]] || mkdir -p "${target}"
+  [[ -d "${path}" ]] || mkdir -p "${path}"
   if isOSX; then
-    mount -t smbfs -o -d=755,-f=755 "${mpoint}" "${target}"
+    mount -t smbfs -o -d=755,-f=755 "${mpoint}" "${path}"
   elif isWSL || isLinux; then
     [[ ! -f '/usr/sbin/mount.cifs' ]] && echo -e "$(c Bi)>> install cifs-utils first :$(c) $(c Gi)sudo apt install cifs-utils$(c) $(c Bi)...$(c)" && return
     [[ ! -f "$HOME/.cifs"          ]] && echo -e "$(c Bi)>> setup \`~/.cifs\` first ...$(c)" && return
-    local _output=$( sudo mount -t cifs "${mpoint}" "${target}" -o credentials=$HOME/.cifs -vvv 2>&1 )
+    local _output=$( sudo mount -t cifs "${mpoint}" "${path}" -o credentials=$HOME/.cifs -vvv 2>&1 )
     [[ 'true' = "${verbose}" ]] && echo -e "$(c Wdi)>> [DEBUG] : ${_output} ..$(c)"
   fi
 
   if [[ '1' = "$(checkMountPoint "${mpoint}")" ]] && [[ 'false' != "${verbose}" ]]; then
-    echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint}$(c) $(c Wdi)->$(c) $(c Mi)${target}$(c) $(c Wdi)has been mounted successfully ...$(c)"
-    cd "${target}" || return
+    echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint}$(c) $(c Wdi)->$(c) $(c Mi)${path}$(c) $(c Wdi)has been mounted successfully ...$(c)"
+    cd "${path}" || return
   fi
 }
 
@@ -1362,6 +1172,162 @@ function jcli() {                          # [j]enkins [cli]
   cmd="java -jar ~/.jenkins/${domain}/jenkins-cli.jar -auth @$HOME/.jenkins/${domain}/auth -s http://${domain} "
   # bash -c "osascript -e \"tell application \\\"System Events\\\" to keystroke \\\"${cmd}\\\"\" &"
   _fzf_fill "${cmd}"
+}
+
+
+# /**************************************************************
+#   __     __                    _                    _   _
+#  / _|___/ _|  ___   __ _ ___  | |_ ___   _ __  __ _| |_| |_
+# |  _|_ /  _| |___| / _` / _ \ |  _/ _ \ | '_ \/ _` |  _| ' \
+# |_| /__|_|         \__, \___/  \__\___/ | .__/\__,_|\__|_||_|
+#                    |___/                |_|
+#
+# **************************************************************/
+
+# goto         : goto to selected git repo path
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+function goto() {
+  local path="${1:-${HOME}/iMarslo/job/code}"
+  local repo=''
+  local CLIPBOARD=''
+
+  type -P pbcopy >/dev/null 2>&1 && CLIPBOARD="pbcopy"
+  type -P xclip >/dev/null 2>&1  && CLIPBOARD="xclip -selection clipboard"
+  type -P xsel >/dev/null 2>&1   && CLIPBOARD="xsel -b"
+
+  # shellcheck disable=SC2155
+  local showPager=$(git config pager.show || echo "cat")
+  local gheader="printf \"\033[0;3;37m\$ git -C %s show -s\033[0m\n\n\" \"\$(echo {2} | sed \"s|${path}/||\")\""
+  local gpreview="git -C {2} show --color=always --date=local -m HEAD ${showPager:+| ${showPager} --color=always}"
+  local gpreviewS="git -C {2} show --color=always --date=local -s HEAD ${showPager:+| ${showPager} --color=always}"
+
+  repo=$(
+    fd -H -I -t f -E '*sandbox*' -E '*archive*' -E '*poc*' -p '\.git/config$' "${path}" --exec-batch rg -l 'github.com' 2>/dev/null |
+    xargs ls -t |
+    sed 's|/\.git/config$||' |
+    awk -F/ '{printf "%s\t%s\n", $NF, $0}'  |
+    fzf --delimiter '\t' \
+        --with-nth=1 \
+        --height 50% \
+        --prompt='repo> ' \
+        --preview "${gheader}; ${gpreviewS}" \
+        --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
+        --bind "ctrl-o:execute(bash -c \"${gpreview}\")+change-preview(${gpreviewS})+change-prompt(repo> )" \
+        --bind "ctrl-y:execute-silent(printf \"%s\" {2} | eval ${CLIPBOARD})" \
+        --bind 'ctrl-\:change-preview-window:up,60%|hidden|right,55%' \
+        --bind "ctrl-o:execute(open https://github.com/<OWNER>/{1})" |
+    cut -f2
+  )
+
+  test -d "${repo}" && { cd "${repo}" || return; }
+}
+
+# cdm          : [cd] to selected [m]ount path
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+function cdm() {                           # another `cd`
+  local path=''
+  path=$( printf "%s\n" \
+                 'pbu_sdk_stor/Work/SDK_Unified/Release_Team_Internal/Upload/SDK12' \
+                 'pbu_sdk_stor/Work/SDK_Unified/SDK12' \
+                 'isoc_platform_devops/releases/SDK-12.release' \
+                 'isoc_platform_devops/releases/asim/asim-SDK12.24.08' \
+                 'pbu_sdk_stor/Work/SDK_Unified/SDK12/SDK12.24.08-sandbox' \
+                 'isoc_platform_devops/releases/SDK-12.release/2024-08-19/SDK12.24.08' \
+                 'isoc_platform_devops/releases/SDK-12.release/2024-08-27/SDK12.24.08' |
+          fzf --prompt '➤ '
+        )
+
+  local name=''
+  name="$(sed -rn 's:^([^/]+).*:\1:p' <<< "${path}")"
+  inMounted "${name}" || fmount --auto --silent -q "${name}"
+
+  [[ -n "${path}" ]] && cd "/tmp/${path}" || \
+    echo -e "$(c Wdi)~~>$(c) $(c Mi)${name}$(c) is not mounted ...$(c)"
+}
+
+# shellcheck disable=SC2034,SC2316
+function cdp() {                           # cdp - [c][d] to selected [p]arent directory
+  local declare dirs=()
+  getParentDirs() {
+    if [[ -d "${1}" ]]; then dirs+=("$1"); else return; fi
+    if [[ "${1}" == '/' ]]; then
+      for _dir in "${dirs[@]}"; do echo $_dir; done
+    else
+      # shellcheck disable=SC2046
+      getParentDirs $(dirname "$1")
+    fi
+  }
+  # shellcheck disable=SC2155,SC2046
+  local DIR=$( getParentDirs $(realpath "${1:-$PWD}") | fzf-tmux --tac )
+  cd "${DIR}" || return
+}
+
+function cdd() {                           # cdd - [c][d] to selected sub [d]irectory
+  local dir=''
+  # shellcheck disable=SC2164
+  dir=$(fd --type d --hidden --ignore-file ~/.fdignore | fzf --no-multi -0) && cd "${dir}"
+}
+
+function cdr() {                           # cdr - [c][d] to selected [r]epo directory - same series: `vimr`
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "Not in a git repository"
+    return 1
+  fi
+
+  local repodir=''
+  repodir="$(git rev-parse --show-toplevel)"
+  selection=$(
+    {
+      if [[ "${PWD}" != "${repodir}" ]]; then
+        echo ".."
+        echo "<root>"
+      fi
+
+      fd . "${repodir}" --type d --hidden --ignore-file ~/.fdignore --color=never | sed "s|^${repodir}/||"
+    } | fzf --no-multi --exit-0 --prompt ' ' --height 40% --layout=reverse
+  )
+  case "${selection}" in
+    "" )       return                                 ;;
+    "<root>" ) cd "${repodir}" || exit 1              ;;
+    ".." )     cd ..                                  ;;
+    * )        cd "${repodir}/${selection}" || exit 1 ;;
+  esac
+}
+
+function cdf() {                           # [c][d] into the directory of the selected [f]ile
+  local file
+  local dir
+  if [[ -n "$1" ]]; then
+    file="$1"
+    cd "$(dirname "${file}")" || return
+  else
+    # shellcheck disable=SC2164
+    file=$(fzf --multi --query "$1") && dir=$(dirname "${file}") && { cd "${dir}" || return; }
+  fi
+}
+
+# references:
+# - https://github.com/junegunn/fzf/blob/master/ADVANCED.md#using-fzf-as-the-secondary-filter
+# - https://github.com/junegunn/fzf/issues/3572#issuecomment-1887735150
+# shellcheck disable=SC2154
+function fif() {                           # [f]ind-[i]n-[f]ile
+  if [ ! "$#" -gt 0 ]; then
+    bash "${iRCHOME}"/bin/rfv
+  elif [[ 1 -eq "$#" && -d "${1:-}" ]]; then
+    bash "${iRCHOME}"/bin/rfv --path "$1"
+  else
+    $(type -P rg) --files-with-matches --no-messages --hidden --follow --smart-case "$1" |
+    fzf --height 80% \
+        --bind 'ctrl-p:preview-up,ctrl-n:preview-down' \
+        --bind "enter:become($(type -P vim) {+})" \
+        --header 'CTRL-N/CTRL-P or CTRL-↑/CTRL-↓ to view contents' \
+        --preview "bat --color=always --style=plain {} |
+                   rg --no-line-number --colors 'match:bg:yellow' --ignore-case --pretty --context 10 \"$1\" ||
+                   rg --no-line-number --ignore-case --pretty --context 10 \"$1\" {} \
+                  "
+  fi
 }
 
 # /**************************************************************
@@ -1609,7 +1575,7 @@ function kns() {                           # [k]ubectl [n]ame[s]pace
   resources=$*
   namespace=$(command kubectl config view --minify -o jsonpath='{..namespace}')
   context=$(command kubectl config current-context | sed 's/-context$//')
-  newns=$(echo 'namespace_1 namespace_2 namespace_3 namespace_4' |
+  newns=$(echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania sfw-lynx sfw-lion sfw-nevox storage-ff sms-fw' |
                 fmt -1 |
                 rg --color=always --colors match:fg:142 --passthru "^${namespace}$" |
                 fzf -1 -0 \
@@ -1691,7 +1657,7 @@ function kcani() {                         # [k]ubectl [can]-[i]
   local actions='list get watch create update delete'
   local components='sts deploy secrets configmap ingressroute ingressroutetcp'
 
-  namespaces=$( echo 'namespace_1 namespace_2 namespace_3 namespace_4' |
+  namespaces=$( echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania sfw-lynx sfw-lion sfw-nevox storage-ff sms-fw' |
                       rg --color=always --colors match:fg:142 --passthru "${namespace}" |
                       fmt -1 |
                       fzf -1 -0 --no-sort --prompt='namespace> ' \
@@ -1917,7 +1883,7 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
 
   [[ 'true' = "${dind}" ]] && k8sOpt='-l devops.domain/docker.builder=true' || k8sOpt=''
   # shellcheck disable=SC2086
- nodes=$( kubecolor --kubeconfig ~/.kube/config get nodes ${k8sOpt} -o json |
+  nodes=$( kubecolor --kubeconfig ~/.kube/config get nodes ${k8sOpt} -o json |
               jq -r '.items[] | select(.spec.taints|not) | select(.status.conditions[].reason=="KubeletReady" and .status.conditions[].status=="True") | .metadata.name' |
               fzf --prompt "hostname >"
          )
@@ -2046,7 +2012,7 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
       python3 -m pip install -r ./requirements.txt
     fi
   else
-    _venv=$(command ls --color=never "$HOME/.venv" | fzf)
+    _venv=$(command ls --color=never "$HOME/.venv" | fzf --no-border --no-input-border --layout=reverse)
     activeVenv "${_venv}"
   fi
 }

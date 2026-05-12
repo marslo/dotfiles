@@ -9,12 +9,12 @@
 # $ git user-stats --after="2022-01-01"
 # Email                           Commits     Files       Insertions  Deletions   Total Lines
 # -----                           -------     -----       ----------  ---------   -----------
-# marslo@marvell.com              101         169         14090       8877        22967
-# dclark@marvell.com              65          136         3124        1901        5025
-# gperez@marvell.com              8           12          507         355         862
-# rjagdale@marvell.com            2           8           274         11          285
-# phuang@marvell.com              3           5           99          9           108
-# whar@marvell.com                1           2           17          0           17
+# marslo@domain.com               101         169         14090       8877        22967
+# dclark@domain.com               65          136         3124        1901        5025
+# gperez@domain.com               8           12          507         355         862
+# rjagdale@domain.com             2           8           274         11          285
+# phuang@domain.com               3           5           99          9           108
+# whar@domain.com                 1           2           17          0           17
 
 git_log_opts=( "$@" )
 

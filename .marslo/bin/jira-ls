@@ -4,7 +4,7 @@
 #     FileName : jira-ls
 #       Author : marslo
 #      Created : 2026-01-21 20:57:09
-#   LastChange : 2026-04-23 18:42:56
+#   LastChange : 2026-05-12 00:14:09
 #=============================================================================
 
 set -euo pipefail
@@ -131,7 +131,7 @@ query+="${REPORTER:+ AND reporter=${REPORTER}}"
 # shellcheck disable=SC2016
 query+="${UPDATE_LIMIT:+ AND updated >= '${UPDATE_LIMIT}'}"
 
-declare JIRA_API_TOKEN="${JIRA_API_TOKEN:-$(passToken marvell/marslo/jira)}"
+declare JIRA_API_TOKEN="${JIRA_API_TOKEN:-$( passToken "${PASS_JIRA:-marslo/jira}" )}"
 test -n "${JIRA_API_TOKEN:-}" || die "JIRA API token not found. Please set the \`JIRA_API_TOKEN\` environment variable"
 
 declare json=''
@@ -140,7 +140,7 @@ json="$( command curl -u "marslo:${JIRA_API_TOKEN}" \
               --get \
               --silent \
               --compressed \
-              'https://essjira.marvell.com/rest/api/2/search'
+              "${JIRA_URL:-https://jira.domain.com}/rest/api/2/search"
       )"
 
 if echo "${json}" | jq -e 'has("errorMessages")' >/dev/null 2>&1; then
@@ -180,7 +180,7 @@ jira="$(
       --preview-window=top:70%:wrap \
       --bind "ctrl-k:execute-silent(${GET_ID} | pbcopy)" \
       --bind "ctrl-y:execute-silent(${FORMAT_CONTENT} | pbcopy)" \
-      --bind "ctrl-o:execute(${GET_ID} | xargs -I {} open https://essjira.marvell.com/browse/{})" |
+      --bind "ctrl-o:execute(${GET_ID} | xargs -I {} open ${JIRA_URL:-https://jira.domain.com}/browse/{})" |
   cut -f1 |
   trim
 )"

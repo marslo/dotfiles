@@ -3,8 +3,8 @@
 # =============================================================================
 #     FileName : fzf
 #       Author : marslo
-#      Created : 2020-08-25 15:26:55
-#   LastChange : 2026-05-11 21:11:03
+#      Created : 2023-10-06 00:47:47
+#   LastChange : 2026-05-11 23:51:09
 # =============================================================================
 
 # shellcheck disable=SC2155
@@ -28,16 +28,28 @@ FZF_DEFAULT_COMMAND+="--hidden "
 FZF_DEFAULT_COMMAND+="--follow "
 FZF_DEFAULT_COMMAND+="--exclude .git --exclude node_modules"
 
+# shared fzf bindings (used by FZF_CTRL_T_OPTS and _load_fzf_context in ffunc.sh)
+FZF_FOCUS_OFFSET='focus:transform:
+  case {} in
+    *.png | *.jpg | *.jpeg | *.gif | *.xpm | *.bmp | *.svg | *.webp | *.tiff | *.tif | *.ico | *.PNG | *.JPG | *.JPEG | *.GIF | *.XPM | *.BMP | *.SVG | *.WEBP | *.TIFF | *.TIF | *.ICO )
+                                echo "change-preview-window(right,70%,nowrap,rounded,+0)" ;;
+    *jenkinsfile/* | *vars/*  ) echo "change-preview-window(right,60%,nowrap,rounded,+15)" ;;
+    *                         ) echo "change-preview-window(right,60%,nowrap,rounded,+0)"  ;;
+  esac'
+export FZF_FOCUS_OFFSET
+
 # ctrl-t for preview with bat
 FZF_CTRL_T_OPTS="${FZF_CTRL_T_OPTS:+$FZF_CTRL_T_OPTS} "
 FZF_CTRL_T_OPTS+="--height 80% "
 FZF_CTRL_T_OPTS+="--layout=reverse "
 FZF_CTRL_T_OPTS+="--no-border --no-input-border --header-lines-border bottom "
-FZF_CTRL_T_OPTS+="--preview '([[ -f {} ]] && (bat --style=numbers --color=always {} || cat {})) || ([[ -d {} ]] && (tree -C {} | less)) || echo {} 2> /dev/null | head -200' "
+FZF_CTRL_T_OPTS+="--preview '${HOME}/.marslo/bin/fzf-preview.sh {}' "
 FZF_CTRL_T_OPTS+="--bind 'enter:become:command nvim {} >/dev/tty' "
-FZF_CTRL_T_OPTS+="--bind 'ctrl-\:change-preview-window(down|hidden|)' "
+FZF_CTRL_T_OPTS+="--preview-window 'right,60%,nowrap,rounded' "
+FZF_CTRL_T_OPTS+="--bind 'ctrl-\:change-preview-window(down,70%,nowrap,rounded|hidden|right,60%,nowrap,rounded)' "
 FZF_CTRL_T_OPTS+="--bind 'ctrl-p:preview-up,ctrl-n:preview-down' "
 FZF_CTRL_T_OPTS+="--bind 'ctrl-y:execute-silent(/bin/echo -n {+} | ${COPY})' "
+FZF_CTRL_T_OPTS+="--bind '${FZF_FOCUS_OFFSET}' "
 FZF_CTRL_T_OPTS+="--header 'CTRL-N/CTRL-P to view contents, CTRL-/ to change previous window'"
 # FZF_CTRL_T_OPTS+=" --bind 'ctrl-e:become:command cd {} >/dev/tty'"
 

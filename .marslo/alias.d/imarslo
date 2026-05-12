@@ -62,8 +62,8 @@ if isWSL; then
   alias dsk="cd $HOME/userprofile/Desktop"
   alias up="cd $HOME/userprofile"
   alias proj="cd ${MY_WORKSPACE}/myprogramfiles"
-  alias mw="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo'"
-  alias dos="cd '/home/marslo/userprofile/OneDrive - Marvell/iMarslo/job/devops'"
+  alias mw="cd '/home/marslo/userprofile/OneDrive - Domain/iMarslo'"
+  alias dos="cd '/home/marslo/userprofile/OneDrive - Domain/iMarslo/job/devops'"
   alias clip='/mnt/c/Windows/System32/clip.exe'
   # alias pbcopy='/mnt/c/Windows/System32/clip.exe'
   alias pbcopy='wl-copy --trim-newline'

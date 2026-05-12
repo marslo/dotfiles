@@ -14,9 +14,6 @@
 set -euo pipefail
 
 # isGHE && main="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)"
-function isGHE() {
-  git remote get-url origin | grep -qE '(git@|https://).+[:/]Marvell-[^/]+/'
-}
 
 # shellcheck disable=SC2155,SC2016
 function getBranch() {

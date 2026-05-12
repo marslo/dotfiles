@@ -664,7 +664,7 @@ let g:syntastic_dockerfile_checkers      = [ 'hadolint' ]
 
 " github/copilot.vim
 if IsVim()
-  " let g:copilot_proxy          = 'http://ipamunix.marvell.com:8080'
+  " let g:copilot_proxy          = 'http://ipamunix.domain.com:8080'
   let g:copilot_proxy_strict_ssl = v:false
   let g:copilot_filetypes        = {
       \ '*': v:true,

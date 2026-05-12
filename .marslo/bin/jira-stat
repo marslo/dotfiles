@@ -4,7 +4,7 @@
 #     FileName : jira-stat
 #       Author : marslo
 #      Created : 2024-02-02 02:36:45
-#   LastChange : 2026-03-16 18:10:12
+#   LastChange : 2026-05-12 00:21:31
 #=============================================================================
 
 # shellcheck disable=SC2155
@@ -25,8 +25,8 @@ declare -i index=0
 declare condition='AND'
 declare SHOW_INDEX=false
 declare VERBOSE=0
-declare -r URL='https://jira.domain.com/rest/api/2'
-declare -r PASS_PATH='path/in/pass'
+declare -r URL="${JIRA_URL:-https://jira.domain.com}/rest/api/2"
+declare -r PASS_PATH="${PASS_JIRA:-marslo/jira}"
 declare -a CURL=( curl --silent --insecure --globoff )
 CURL+=( -umarslo:"$(pass show "${PASS_PATH}" | head -n1)" )
 declare -r JQ_PROG='
@@ -45,14 +45,16 @@ def clean: tostring | gsub("[\\r\\n]+"; " ");
 | join("\u001f")
 '
 
+# shellcheck disable=SC2155
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | tr '-' ' ')"
 # shellcheck disable=SC1078,SC1079
 declare -r USAGE="""show Jira ID, Summary, IssueType, Created, Updated status
 
 SYNOPSIS
-  $(c Cs)\$ jira $(c 0Wd)[ $(c 0G)OPTION$(c 0Wd) ]$(c)
+  $(c Cs)\$ ${ME} $(c 0Wd)[ $(c 0G)OPTION$(c 0Wd) ]$(c)
 
 OPTIONS
-  $(c 0G)-p$(c), $(c 0G)--project$(c) $(c 0Mi)<ID>$(c)    filter by project key
+  $(c 0G)-p$(c), $(c 0G)--project$(c) $(c 0Mi)<ID>$(c)            filter by project key
   $(c 0G)-t$(c), $(c 0G)--type$(c) $(c 0Mi)<ISSUE_TYPE>$(c)       filter by issue type
   $(c 0G)-c$(c), $(c 0G)--condition$(c) $(c 0Mi)AND|OR|IN$(c)     condition to combine multiple filters $(c i)(default: $(c 0Mi)AND$(c 0i))$(c)
   $(c 0G)-a$(c), $(c 0G)--and$(c)                     shorthand for $(c Ci)--condition AND$(c)
@@ -66,17 +68,17 @@ OPTIONS
 
 EXAMPLE
   $(c Wdi)# get Release type in project $(c 0Wi)ID$(c)
-  $(c Y)\$ jira $(c 0Gi)-p $(c 0Mi)ID $(c 0Gi)-t $(c 0Mi)Release $(c 0Gi)-a $(c 0Wdi)/ $(c 0Y)\$ jira $(c 0Gi)-p $(c 0Mi)ID $(c 0Gi)-t $(c 0Mi)Release $(c 0Gi)-c $(c 0Mi)'AND'$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)-p $(c 0Mi)ID $(c 0Gi)-t $(c 0Mi)Release $(c 0Gi)-a $(c 0Wdi)/ $(c 0Y)\$ ${ME} $(c 0Gi)-p $(c 0Mi)ID $(c 0Gi)-t $(c 0Mi)Release $(c 0Gi)-c $(c 0Mi)'AND'$(c)
 
   $(c Wdi)# get maximize 50 items from specific JQL jql with index$(c)
-  $(c Y)\$ jira $(c 0Gi)-i -m $(c 0Mi)50 $(c 0Gi)--jql $(c 0Mi)'project = ID AND resolution = Unresolved'$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)-i -m $(c 0Mi)50 $(c 0Gi)--jql $(c 0Mi)'project = ID AND resolution = Unresolved'$(c)
 
   $(c Wdi)# get Unresolved type in project $(c 0Wi)ID $(c 0Wdi)in recent 3 months$(c)
-  $(c Y)$ jira $(c 0Gi)--jql $(c 0Mi)'project = ID AND resolution = Unresolved AND created > startOfMonth(-2)'$(c)
-  $(c Y)$ jira $(c 0Gi)--jql $(c 0Mi)'project = ID AND resolution = Unresolved AND created > -90d ORDER BY updated ASC'$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)--jql $(c 0Mi)'project = ID AND resolution = Unresolved AND created > startOfMonth(-2)'$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)--jql $(c 0Mi)'project = ID AND resolution = Unresolved AND created > -90d ORDER BY updated ASC'$(c)
 
   $(c Wdi)# mixed filters with custom JQL == $(c 0Gdi)\`--jql 'project = ID AND resolution in (Fixed, Done)'\`$(c)
-  $(c Y)$ jira $(c 0Gi)--project $(c 0Mi)ID $(c 0Gi)--and --jql $(c 0Mi)'resolution in (Fixed, Done)' $(c 0Gi)-m $(c 0Mi)50$(c)
+  $(c Y)\$ ${ME} $(c 0Gi)--project $(c 0Mi)ID $(c 0Gi)--and --jql $(c 0Mi)'resolution in (Fixed, Done)' $(c 0Gi)-m $(c 0Mi)50$(c)
 """
 
 # credit: https://stackoverflow.com/a/17841619/2940319
@@ -139,8 +141,8 @@ function display() {
     arg="${1}"; shift
     case "${arg}" in
       -u | --user ) [[ "${#}" -gt 0 ]] && shift;
-                    out+="${arg} \"marslo:\$(pass show marvell/marslo/jira | head -n1)\" "; continue ;;
-      -u* ) out+="-u\"marslo:\$(pass show marvell/marslo/jira | head -n1)\" "; continue ;;
+                    out+="${arg} \"marslo:\$(pass show ${PASS_PATH} | head -n1)\" "; continue ;;
+      -u* ) out+="-u\"marslo:\$(pass show ${PASS_PATH} | head -n1)\" "; continue ;;
     esac
 
     arg="${arg//\\u001f/•}"

@@ -4,9 +4,14 @@
 #     FileName : ghperm.sh
 #       Author : marslo
 #      Created : 2025-09-03 19:00:40
-#   LastChange : 2025-12-04 02:24:09
+#   LastChange : 2026-05-12 00:30:17
 #  Description : check repo permissions for github
 #=============================================================================
+# Environment Variables:
+#  • GITHUB_LAB_OWNER : github organization
+#  • PASS_GHE_ME      : pass path for personal github token
+#  • PASS_GHE_RELEASE : pass path for release service account token
+#  • PASS_GHE_JENKINS : pass path for jenkins service account token
 
 set -euo pipefail
 
@@ -50,19 +55,19 @@ function usage() {
   echo -e "  $(c G)-v$(c), $(c G)-vv$(c)                  enable verbose output, multiple $(c 0Gi)-v$(c) options increase verbosity $(c 0i)(max: $(c 0Yi)2$(c))$(c)"
   echo -e "  $(c G)-h$(c), $(c G)--help$(c)               show this help message and exit"
   echo -e "\nEXAMPLE"
-  echo -e "  $(c 0Wdi)# list service account \`srv-release1\` has ADMIN perms in organization \`Marvell-Lab\`$(c)"
-  echo -e "  $(c Ys)\$ ${ME} $(c 0Gi)--srv $(c 0Mi)srv-release1 $(c 0Gi)-o $(c 0Mi)Marvell-Lab $(c 0Gi)-p $(c 0Mi)admin$(c)"
+  echo -e "  $(c 0Wdi)# list service account \`srv-release1\` has ADMIN perms in organization \`${GITHUB_LAB_OWNER:-Domain-Lab}\`$(c)"
+  echo -e "  $(c Ys)\$ ${ME} $(c 0Gi)--srv $(c 0Mi)srv-release1 $(c 0Gi)-o $(c 0Mi)${GITHUB_LAB_OWNER:-Domain-Lab} $(c 0Gi)-p $(c 0Mi)admin$(c)"
   exit 0
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -m | --mrvl       ) GITHUB_TOKEN="$(passToken 'marvell/marslo/github/marslo_mrvl')"; shift ;;
+    -m | --mrvl       ) GITHUB_TOKEN="$( passToken "${PASS_GHE_ME:-ghe/marslo}" )"; shift ;;
     -u | --url        ) SHOW_URL=true; shift ;;
     -o | --org        ) ORG="${2}"; shift 2;;
     --srv             ) case "${2:-}" in
-                          'srv-release1'     ) GITHUB_TOKEN="$(passToken 'marvell/re/ghe/srv-release1')" ;;
-                          'sa-ip-sw-jenkins' ) GITHUB_TOKEN="$(passToken 'marvell/re/ghe/sa_ip-sw-jenkins')" ;;
+                          'srv-release1'     ) GITHUB_TOKEN="$(passToken "${PASS_GHE_RELEASE:-ghe/release}")" ;;
+                          'sa-ip-sw-jenkins' ) GITHUB_TOKEN="$(passToken "${PASS_GHE_JENKINS:-ghe/jenkins}")" ;;
                           *                  ) die "ERROR: '${2:-<empty>}' is not acceptable for option \`--srv\`";;
                         esac;
                         shift 2 ;;
