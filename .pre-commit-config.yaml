@@ -1,6 +1,6 @@
 # yamllint disable rule:indentation
 ---
-exclude: '^(.*/screenfetch-dev|.*/gitalias|.*/\.vault/.*|\.signingmanager/.*|.*\.current|.*colors?|.*/set-git-user.sh)$'
+exclude: '^(.*/screenfetch-dev|.*/gitalias|.*/\.vault/.*|\.signingmanager/.*|.*\.current|.*colors?|.*/set-git-user.sh|.*/renew.sh)$'
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
