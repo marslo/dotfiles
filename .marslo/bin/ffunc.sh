@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-05-05 22:46:56
+#   LastChange : 2026-05-11 21:09:49
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -25,71 +25,6 @@ test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :
 # |_|  (_____)_|
 #
 # **************************************************************/
-
-## preview contents via `$ cd **<tab>` | `$ cd ,,<tab>`: -> FZF_COMPLETION_TRIGGER
-# - https://pragmaticpineapple.com/four-useful-fzf-tricks-for-your-terminal/
-# - https://github.com/junegunn/fzf?tab=readme-ov-file#fuzzy-completion-for-bash-and-zsh
-_fzf_comprun() {
-  local command=$1; shift
-
-  case "${command}" in
-              tree ) fd . --type d --hidden --follow | fzf --height 60% --preview 'tree -C {}' "$@" ;;
-                cd ) fzf --height 60% --preview 'tree -C {} | head -200' "$@" ;;
-    export | unset ) fzf --height 60% --preview "eval 'echo \$'{}"       "$@" ;;
-                 * ) fzf                                                 "$@" ;;
-  esac
-}
-
-_fzf_compgen_path() {
-  fd --hidden --follow --exclude ".git" --exclude "node_modules" . "$1"
-}
-
-_fzf_compgen_dir() {
-  fd --type d --hidden --follow --exclude ".git" --exclude "node_modules" . "$1"
-}
-
-# usage: _fzf_fill "${cmd}" - similar to `Ctrl+R` in bash
-# i.e.:  _fzf_fill seq 10
-_fzf_fill() {
-  local cmd
-
-  if [[ $# -gt 1 ]] || type "$1" &>/dev/null; then
-    cmd=$("$@" | fzf --height 40% --reverse)
-  else
-    cmd="$*"
-  fi
-
-  [ -z "${cmd}" ] && return
-
-  # check count of '\n' in PS1
-  # _rows = number of '\n' + 1 (current input line)
-  local n_count
-  n_count=$(echo -n "$PS1" | grep -o "\\\\n" | wc -l)
-  local _rows=$(( n_count + 1 ))
-
-  # cleanup cursor: move up `_rows` lines, clear to the end of line, and return cursor to the beginning of line
-  tput cuu "${_rows}"
-  tput ed
-  tput cr
-
-  # render PS1 with prompt expansion and handle escape sequences properly
-  local _prompt=$(echo -ne "${PS1@P}")
-  read -re -p "${_prompt}" -i "${cmd}" hisCmd
-
-  # to remove the original command from history - 毁尸灭迹
-  # history -d $((HISTCMD)) 2>/dev/null
-  if [[ -n "${hisCmd}" ]]; then
-    history -a
-    eval "${hisCmd}"
-    # adding timestamp if HISTTIMEFORMAT is set, to keep consistent with the format in HISTFILE
-    {
-      [[ -n "$HISTTIMEFORMAT" ]] && echo "#$(date +%s)"
-      echo "${hisCmd}"
-    } >> "${HISTFILE:-$HOME/.bash_history}"
-    # read all history
-    history -n
-  fi
-}
 
 # usage: eval "$( _load_fzf_context )"
 #        ... | fzf "${fzfopt[@]}"

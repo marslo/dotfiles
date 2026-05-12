@@ -1,15 +1,26 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034,SC2089,SC2090
 # =============================================================================
-#     FileName : .env
+#     FileName : prompt
 #       Author : marslo
 #      Created : 2020-08-25 15:26:55
-#   LastChange : 2026-04-22 23:36:43
+#   LastChange : 2026-05-11 22:40:28
 # =============================================================================
 
-#╭╶ (USERNAME@HOSTNAME PATH) - (git-branch) - (venv) ->
-#╰╶ ᓆ  $
+# complex mode
+# ╭╶ (USERNAME@HOSTNAME PATH) - (git-branch) - (venv) ->
+# ╰╶ ᓆ  $
+# simple mode
+# ╭╶ (USERNAME) - (git-branch) - (venv) ->
+# ╰╶ $
+
+# /**************************************************************
+#                             _
+#  __ ___ _ __  _ __  ___ _ _| |_ ___
+# / _/ _ \ '  \| '  \/ -_) ' \  _(_-<
+# \__\___/_|_|_|_|_|_\___|_||_\__/__/
 #
+# **************************************************************/
 # https://misc.flogisoft.com/bash/tip_colors_and_formatting
 #    --------+--------    ----+------+------
 #  | 0\;xxm | Normal |   | \e | \033 | \x1B |
@@ -53,6 +64,13 @@
 # | usage : \e[${attributes};{background};5;${foreground}m <str> \e[0m |  ----------------+-------------------------------
 #  ------------+-------------------------------------------------------
 
+# /**************************************************************
+#         _
+#  __ ___| |___ _ _ ___
+# / _/ _ \ / _ \ '_(_-<
+# \__\___/_\___/_| /__/
+#
+# **************************************************************/
 UMARK='\[\033(0\]l\[\033(B\]'
 DMARK='\[\033(0\]m\[\033(B\]'
 LMARK='\[\033(0\]q\[\033(B\]'
@@ -105,6 +123,18 @@ COL_IF_DEFAULT="\[\033[0\;38\;5\;${fgc}m\]"       # COL_IF_DEFAULT="\[\033[1\;38
 COL_RESET='\[\033[1m\]'                           # COL_RESET="\[$(tput sgr0)\]" | COL_RESET='\[\033[1m\]'
 COL_NONE='\[\033[0m\]'                            # COL_NONE='\[\033[38;5;3m\]'
 
+# /**************************************************************
+#  ___  ___ _
+# | _ \/ __/ |
+# |  _/\__ \ |
+# |_|  |___/_|
+#
+# **************************************************************/
+# PROMPT_START="\\n${COL_DEFAULT}╭╶ (\\u@\\h ${COL_RED}\\w${COL_DEFAULT}) "
+# PROMPT_NEXT="\$(__git_ps1 \"- (${COL_BD_GREEN}%s${COL_NONE}${COL_DEFAULT}) \")"
+# PROMPT_NEXT+="\$(__venv_info \"- (${COL_BD_MAGENTA}%s${COL_NONE}${COL_DEFAULT}) \")"
+# PROMPT_NEXT+="${COL_DEFAULT}\`if [ \$? = 0 ]; then echo ${COL_IF_DEFAULT}\-\>; else echo ${COL_IF_RED}\↯; fi\`"
+# PROMPT_END="\\n${COL_DEFAULT}\$ ${COL_NONE}"
 export PROMPT_MODE="${PROMPT_MODE:-complex}"
 # simple / complex: bind -f only these fragments (not ~/.inputrc — avoids resetting \C-r / fzf).
 function pstoggle() {
@@ -134,11 +164,6 @@ function __venv_info() {
   return ${exit_code}
 }
 
-# PROMPT_START="\\n${COL_DEFAULT}╭╶ (\\u@\\h ${COL_RED}\\w${COL_DEFAULT}) "
-# PROMPT_NEXT="\$(__git_ps1 \"- (${COL_BD_GREEN}%s${COL_NONE}${COL_DEFAULT}) \")"
-# PROMPT_NEXT+="\$(__venv_info \"- (${COL_BD_MAGENTA}%s${COL_NONE}${COL_DEFAULT}) \")"
-# PROMPT_NEXT+="${COL_DEFAULT}\`if [ \$? = 0 ]; then echo ${COL_IF_DEFAULT}\-\>; else echo ${COL_IF_RED}\↯; fi\`"
-# PROMPT_END="\\n${COL_DEFAULT}\$ ${COL_NONE}"
 _build_prompt() {
   local status=$?
 
@@ -191,6 +216,13 @@ _build_prompt() {
 PROMPT_COMMAND=_build_prompt
 PS2="${COL_DEFAULT}> ${COL_NONE}"
 
+# /**************************************************************
+#  ___  ___ _ _
+# | _ \/ __| | |
+# |  _/\__ \_  _|
+# |_|  |___/ |_|
+#
+# **************************************************************/
 # set -x: wall-clock with milliseconds (EPOCHREALTIME: bash 5.1+; else python3)
 function _ps4_ts() {
   local frac hms
@@ -221,4 +253,4 @@ fi
 
 unset fgc UMARK DMARK LMARK
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************:

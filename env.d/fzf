@@ -4,8 +4,11 @@
 #     FileName : fzf
 #       Author : marslo
 #      Created : 2020-08-25 15:26:55
-#   LastChange : 2026-05-11 15:00:06
+#   LastChange : 2026-05-11 21:11:03
 # =============================================================================
+
+# shellcheck disable=SC2155
+declare ENV_HOME="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 
 # fzf
 FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS:+$FZF_DEFAULT_OPTS} "
@@ -25,13 +28,10 @@ FZF_DEFAULT_COMMAND+="--hidden "
 FZF_DEFAULT_COMMAND+="--follow "
 FZF_DEFAULT_COMMAND+="--exclude .git --exclude node_modules"
 
-PROMPT_STR=$(printf "\e[38;5;240;1m╰╶ ᓆ $ \e[0m")
-
 # ctrl-t for preview with bat
 FZF_CTRL_T_OPTS="${FZF_CTRL_T_OPTS:+$FZF_CTRL_T_OPTS} "
 FZF_CTRL_T_OPTS+="--height 80% "
 FZF_CTRL_T_OPTS+="--layout=reverse "
-FZF_CTRL_T_OPTS+="--prompt='${PROMPT_STR}' --info=hidden "
 FZF_CTRL_T_OPTS+="--no-border --no-input-border --header-lines-border bottom "
 FZF_CTRL_T_OPTS+="--preview '([[ -f {} ]] && (bat --style=numbers --color=always {} || cat {})) || ([[ -d {} ]] && (tree -C {} | less)) || echo {} 2> /dev/null | head -200' "
 FZF_CTRL_T_OPTS+="--bind 'enter:become:command nvim {} >/dev/tty' "
@@ -45,7 +45,6 @@ FZF_CTRL_T_OPTS+="--header 'CTRL-N/CTRL-P to view contents, CTRL-/ to change pre
 FZF_CTRL_R_OPTS="${FZF_CTRL_R_OPTS:+$FZF_CTRL_R_OPTS} "
 FZF_CTRL_R_OPTS+="--height '30%' "
 FZF_CTRL_R_OPTS+="--layout=reverse "
-FZF_CTRL_R_OPTS+="--prompt='${PROMPT_STR}' --info=hidden "
 FZF_CTRL_R_OPTS+="--no-border --header-lines-border bottom --no-list-border "
 FZF_CTRL_R_OPTS+="--preview 'echo {}' --preview-window down:5:hidden:wrap "
 FZF_CTRL_R_OPTS+="--bind 'ctrl-\:toggle-preview' "
@@ -62,6 +61,138 @@ export FZF_ALT_C_OPTS="--height 60% --walker-skip .git,node_modules,target --pre
 export FZF_COMPLETION_PATH_COMMANDS="basename bunzip2 bzip2 chmod chown curl cp dirname ls mv rm open tar unzip du sftp rsync"
 export FZF_DEFAULT_OPTS FZF_DEFAULT_COMMAND FZF_CTRL_T_OPTS FZF_CTRL_R_OPTS
 
-export FD_IGNORE_FILE="${HOME}/.fdignore"
+# get dynamic prompt from bind -v
+__get_fzf_dynamic_prompt() {
+  local cgray="\033[38;5;240;1m"
+  local creset="\033[0m"
+
+  if [[ "${PROMPT_MODE}" == "simple" ]]; then
+    printf "${cgray}%s${creset}" '╰╶ $ '
+    return
+  fi
+
+  # get current keymap, with fallback to "emacs" if not found
+  local keymap=$(bind -v | command grep --color=never "keymap" | awk '{print $3}')
+  local mode="emacs-mode-string"
+  case "${keymap}" in
+    vi-insert       ) mode="vi-ins-mode-string" ;;
+    vi-command | vi ) mode="vi-cmd-mode-string" ;;
+  esac
+
+  # extract and clean, and handle \033 directly to avoid quote hell
+  local raw
+  raw=$(bind -v | command grep --color=never "${mode}" | sed "s/^set ${mode} //" | tr -d '\001\002')
+  raw="${raw%\"}"
+  raw="${raw#\"}"
+
+  # escape sequences: handle \e and remove cursor sequences like \x1b[0 q
+  local cleaned="${raw//\\e/$'\e'}"
+  cleaned=$(echo -ne "$cleaned" | sed -E 's/\x1b\[[0-9] q//g')
+
+  # return: icon + gray $
+  printf "%b${cgray}$ ${creset}" "$cleaned"
+}
+
+# hook functions for ctrl-r and ctrl-t
+__fzf_ctrl_r_dynamic() {
+  local currentPrompt=$(__get_fzf_dynamic_prompt)
+  FZF_CTRL_R_OPTS="${FZF_CTRL_R_OPTS} --info=hidden --info-command='' --prompt='${currentPrompt}'" __fzf_history__
+}
+
+__fzf_ctrl_t_dynamic() {
+  local currentPrompt=$(__get_fzf_dynamic_prompt)
+  local selected=$(FZF_CTRL_T_OPTS="${FZF_CTRL_T_OPTS} --info=hidden --info-command='' --prompt='${currentPrompt}'" __fzf_select__)
+
+  if [[ -n "$selected" ]]; then
+    READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}${selected}${READLINE_LINE:$READLINE_POINT}"
+    READLINE_POINT=$(( READLINE_POINT + ${#selected} ))
+  fi
+}
+
+# load fzf bindings first
+if test -f "$HOME"/.fzf.bash; then
+  source "${ENV_HOME}"/fzf.bash
+else
+  # test -f "${FZF_HOME}/shell/key-bindings.bash" && source "${FZF_HOME}/shell/key-bindings.bash"
+  type -P fzf >/dev/null && eval "$(fzf --bash)"
+fi
+
+# custom dynamic prompt and bindings for ctrl-r and ctrl-t
+if type __fzf_history__ >/dev/null 2>&1; then
+  for km in emacs vi-insert vi-command vi; do
+    # unbind
+    bind -m ${km} -r "\C-r"
+    bind -m ${km} -r "\C-t"
+
+    # re-binding to dynamic hook functions
+    bind -m ${km} -x '"\C-r": __fzf_ctrl_r_dynamic'
+    bind -m ${km} -x '"\C-t": __fzf_ctrl_t_dynamic'
+  done
+fi
+
+## preview contents via `$ cd **<tab>` | `$ cd ,,<tab>`: -> FZF_COMPLETION_TRIGGER
+# - https://pragmaticpineapple.com/four-useful-fzf-tricks-for-your-terminal/
+# - https://github.com/junegunn/fzf?tab=readme-ov-file#fuzzy-completion-for-bash-and-zsh
+_fzf_comprun() {
+  local command=$1; shift
+
+  case "${command}" in
+              tree ) fd . --type d --hidden --follow | fzf --height 60% --preview 'tree -C {}' "$@" ;;
+                cd ) fzf --height 60% --preview 'tree -C {} | head -200' "$@" ;;
+    export | unset ) fzf --height 60% --preview "eval 'echo \$'{}"       "$@" ;;
+                 * ) fzf                                                 "$@" ;;
+  esac
+}
+
+_fzf_compgen_path() {
+  fd --hidden --follow --exclude ".git" --exclude "node_modules" . "$1"
+}
+
+_fzf_compgen_dir() {
+  fd --type d --hidden --follow --exclude ".git" --exclude "node_modules" . "$1"
+}
+
+# usage: _fzf_fill "${cmd}" - similar to `Ctrl+R` in bash
+# i.e.:  _fzf_fill seq 10
+_fzf_fill() {
+  local cmd
+
+  if [[ $# -gt 1 ]] || type "$1" &>/dev/null; then
+    cmd=$("$@" | fzf --height 40% --reverse)
+  else
+    cmd="$*"
+  fi
+
+  [ -z "${cmd}" ] && return
+
+  # check count of '\n' in PS1
+  # _rows = number of '\n' + 1 (current input line)
+  local n_count
+  n_count=$(echo -n "$PS1" | grep -o "\\\\n" | wc -l)
+  local _rows=$(( n_count + 1 ))
+
+  # cleanup cursor: move up `_rows` lines, clear to the end of line, and return cursor to the beginning of line
+  tput cuu "${_rows}"
+  tput ed
+  tput cr
+
+  # render PS1 with prompt expansion and handle escape sequences properly
+  local _prompt=$(echo -ne "${PS1@P}")
+  read -re -p "${_prompt}" -i "${cmd}" hisCmd
+
+  # to remove the original command from history - 毁尸灭迹
+  # history -d $((HISTCMD)) 2>/dev/null
+  if [[ -n "${hisCmd}" ]]; then
+    history -a
+    eval "${hisCmd}"
+    # adding timestamp if HISTTIMEFORMAT is set, to keep consistent with the format in HISTFILE
+    {
+      [[ -n "$HISTTIMEFORMAT" ]] && echo "#$(date +%s)"
+      echo "${hisCmd}"
+    } >> "${HISTFILE:-$HOME/.bash_history}"
+    # read all history
+    history -n
+  fi
+}
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
