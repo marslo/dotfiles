@@ -1,4 +1,4 @@
---Enable (broadcasting) snippet capability for completion
+-- enable ( broadcasting ) snippet capability for completion
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities.textDocument.completion.completionItem.snippetSupport = true
 
@@ -23,3 +23,5 @@ require'lspconfig'.gradle_ls.setup{
 --   filetypes = { 'groovy', 'Jenkinsfile' },
 --   cmd = { "java", "-jar", "/Users/marslo/.vim/lsp/lsp-examples/groovy/groovy-language-server/build/libs/groovy-language-server-all.jar" }
 -- }
+
+-- vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=lua:

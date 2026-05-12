@@ -11,6 +11,7 @@ local ts_group = vim.api.nvim_create_augroup( "NativeTreesitterHighlight", { cle
 vim.treesitter.language.register( 'bash', { 'sh', 'zsh' } )
 vim.treesitter.language.register( 'groovy', { 'Jenkinsfile' } )
 
+-- using legacy syntax as fallback
 local ft_ignore = {
   [""] = true,
   ["groovy"] = true,
@@ -43,7 +44,7 @@ local function safe_ts_start(buf)
   if buf_name ~= "" then
     local ok_stat, stats = pcall( vim.uv.fs_stat, buf_name )
     if ok_stat and stats and stats.size > 200 * 1024 then
-      vim.notify( "File too large, Treesitter disabled", vim.log.levels.INFO )
+      vim.notify( "File size too large (> 200KB), Treesitter disabled", vim.log.levels.INFO )
       return
     end
   end
@@ -61,7 +62,9 @@ local function safe_ts_start(buf)
         -- vim.bo[buf].indentexpr = "v:lua.require('nvim-treesitter').indentexpr()"
         vim.bo[buf].indentexpr = "v:lua.require('nvim-treesitter.indent').get_indent(v:lnum)"
       end
-      if ft == 'groovy' or ft == 'Jenkinsfile' then
+      -- groovy: enable legacy syntax as fallback for /** ... **/ blocks
+      -- (the groovy parser produces ERROR nodes for **/ terminators)
+      if ft == 'groovy' or ft == 'Jenkinsfile' or ft == 'jenkinsfile' then
         vim.bo[buf].syntax = 'on'
       end
     end
@@ -118,13 +121,18 @@ pcall(function()
   require('nvim-treesitter.install').prefer_git = true
 end)
 
--- disable conceal for markdown so ``` fences are always visible
-vim.api.nvim_create_autocmd("FileType", {
-  group   = ts_group,
-  pattern = { "markdown", "markdown.mdx" },
-  callback = function()
-    vim.opt_local.conceallevel = 0
-  end,
-})
+-- override treesitter highlights queries for markdown
+-- (sources: after/queries/markdown/highlights.scm, after/queries/markdown_inline/highlights.scm)
+for _, spec in ipairs({
+  { lang = "markdown",        file = "after/queries/markdown/highlights.scm" },
+  { lang = "markdown_inline", file = "after/queries/markdown_inline/highlights.scm" },
+}) do
+  local scm = vim.fn.stdpath("config") .. "/" .. spec.file
+  local f = io.open(scm, "r")
+  if f then
+    vim.treesitter.query.set(spec.lang, "highlights", f:read("*a"))
+    f:close()
+  end
+end
 
 -- vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=lua:foldmethod=indent:

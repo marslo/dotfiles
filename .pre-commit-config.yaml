@@ -1,6 +1,6 @@
 # yamllint disable rule:indentation
 ---
-exclude: '^(.*/screenfetch-dev|.*/gitalias|.*/\.vault/.*|\.signingmanager/.*|.*\.current|.*colors?|.*/set-git-user.sh|.*/renew.sh)$'
+exclude: '^(.*/screenfetch-dev|.*/gitalias|.*/\.vault/.*|\.signingmanager/.*|.*\.current|.*colors?|.*/set-git-user.sh|.*/renew.sh|.*/copilot.pem)$'
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -51,7 +51,7 @@ repos:
         files: '\.py$'
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.45.1
+    rev: v1.46.1
     hooks:
       - id: typos
         name: Typos
