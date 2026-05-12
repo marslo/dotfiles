@@ -35,6 +35,7 @@
   // "java.project.importHint": false,
   // "java.autobuild.enabled": false,
 
+  "diagnostic.locationlistUpdate": false,
   // don't display coc diagnostics by ale
   "diagnostic.displayByAle": false,
   "diagnostic.errorSign": "✘",
@@ -46,7 +47,6 @@
   "diagnostic.checkCurrentLine": false,
   "diagnostic.refreshOnInsertMode": false,
   "diagnostic-languageserver.mergeConfig": true,
-  "diagnostic.locationlistUpdate": false,
    // for : workspace.showOutput → diagnostic-languageserver == groovy.trace.server
   "diagnostic-languageserver.trace.server": "messages",
   "diagnostic-languageserver.linters": {

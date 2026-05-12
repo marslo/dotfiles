@@ -20,6 +20,15 @@ if ok_copilot then
     -- copilot_node_command = "/opt/homebrew/bin/node",
     server_opts_overrides = { strict_ssl = false },
 
+    logger = {
+      -- TRACE/DEBUG/INFO/WARN/ERROR/OFF
+      -- ~/.local/state/nvim/copilot-lua.log
+      file_log_level   = vim.log.levels.DEBUG,
+      print_log_level  = vim.log.levels.OFF,
+      trace_lsp        = "verbose",
+      log_lsp_messages = true,
+    },
+
     suggestion = {
       enabled = true,
       auto_trigger = true,

@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-04-07 01:12:44
+"    LastChange : 2026-05-11 19:34:03
 " =============================================================================
 
 " color table
@@ -22,6 +22,9 @@ highlight! PasteHighlight   ctermfg=67    ctermbg=175   guifg=#282828 guibg=#5f8
 if IsVim()
   highlight! ColumnLimit    guibg=#4e4e4e   ctermbg=240
 endif
+
+" log filetype
+highlight! logLevelInfo ctermfg=175 guifg=#5f87af
 
 " - vim cursor color depends on terminal color
 " - nvim curcor color depends on `set termguicolors`
@@ -135,12 +138,12 @@ highlight! link jenkinsfileCoreStepNew            PurpleItalic
 highlight! link groovyCustomKeywords              AquaItalic
 highlight! link groovyLogicalOperator             OrangeStandard
 highlight! link jenkinsLibraryTarget              AquaItalic
-if IsNvim()
-  highlight! default link @comment.documentation  Comment
-endif
 
-" bash
 if IsNvim()
+  " groovy
+  highlight! default link @comment.documentation  Comment
+
+  " bash
   highlight BashFunction guifg=#ea6962 gui=italic ctermfg=167 cterm=italic
   highlight! link @keyword.function.bash    BashFunction
   highlight! link @keyword.bash             BashFunction

@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-04-30 16:25:07
+"    LastChange : 2026-05-11 19:34:14
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -54,26 +54,40 @@ function! SafeRetab()
 endfunction
 
 let s:ft_settings = {
-      \ 'help': {'foldenable': v:false},
-      \ 'vim-plug': {'foldenable': v:false, 'relativenumber': v:false, 'number': v:false },
-      \ 'markdown': {'spell': 1}
+      \ 'json':         { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'foldmethod': 'indent', 'commentstring': '// %s', 'conceallevel': 1, 'concealcursor': 'c' },
+      \ 'jsonc':        { 'foldmethod': 'indent', 'conceallevel': 1, 'concealcursor': 'c' },
+      \ 'yaml':         { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'foldmethod': 'indent' },
+      \ 'markdown':     { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'foldmethod': 'indent', 'spell': v:true, 'conceallevel': 1, 'concealcursor': 'c' },
+      \ 'sh':           { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'expandtab': v:true, 'foldmethod': 'indent' },
+      \ 'groovy':       { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'foldmethod': 'indent' },
+      \ 'Jenkinsfile':  { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'foldmethod': 'indent', 'commentstring': '// %s' },
+      \ 'java':         { 'foldmarker': '/**,**/', 'foldmethod': 'marker', 'foldcolumn': 1 },
+      \ 'python':       { 'expandtab': v:true, 'tabstop': 4, 'softtabstop': 4, 'shiftwidth': 4, 'autoindent': v:true, 'fileformat': 'unix', 'foldmethod': 'indent' },
+      \ 'make':         { 'tabstop': 4, 'softtabstop': 4, 'shiftwidth': 4 },
+      \ 'snippet':      { 'tabstop': 4, 'softtabstop': 4, 'shiftwidth': 4 },
+      \ 'robot':        { 'tabstop': 4, 'softtabstop': 4, 'shiftwidth': 4 },
+      \ 'snippets':     { 'expandtab': v:true, 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'commentstring': '# %s' },
+      \ 'ignore':       { 'commentstring': '# %s' },
+      \ 'gitconfig':    { 'commentstring': '# %s' },
+      \ 'copilot-chat': { 'modifiable': v:true },
       \ }
 
 function! s:ApplyFTSettings() abort
-  if has_key(s:ft_settings, &filetype)
-    for [opt, val] in items(s:ft_settings[&filetype])
-      let current_val = eval('&l:' . opt)
-      " let current_val = getbufvar('%', '&' . opt)
-      if type(val) == v:t_bool
-        " if `val = v:false`, the option will be `no{opt}`
-        execute 'setlocal' (val ? '' : 'no') . opt
+  if has_key( s:ft_settings, &filetype )
+    for [opt, val] in items( s:ft_settings[&filetype] )
+      let current_val = eval( '&l:' . opt )
+      if type( val ) == v:t_bool
+        execute 'setlocal' ( val ? '' : 'no' ) . opt
+      elseif type( val ) == v:t_string
+        if current_val !=# val | execute 'setlocal ' . opt . '=' . escape( val, '\ ' ) | endif
       else
         if current_val != val | execute 'setlocal ' . opt . '=' . val | endif
       endif
     endfor
-  else
-    " if no foldmethod is set, use indent as default
-    if &l:foldmethod ==# 'manual' | setlocal foldmethod=indent | endif
+  endif
+  if &buftype ==# '' && &l:foldmethod ==# 'manual'
+        \ && ( !has_key(s:ft_settings, &filetype) || !has_key(s:ft_settings[&filetype], 'foldmethod') )
+    setlocal foldmethod=indent
   endif
 endfunction
 
@@ -104,19 +118,14 @@ if has( 'autocmd' )
   augroup DevOps
     autocmd!
     autocmd Filetype           Dockerfile          set filetype=dockerfile  syntax=dockerfile
-    autocmd FileType           json,markdown,yaml  set tabstop=2 softtabstop=2 shiftwidth=2 | setlocal foldmethod=indent
-    autocmd Syntax             json,yaml           normal zM
+    autocmd Syntax             json,yaml           if empty(&buftype) | silent! normal zM | endif
     autocmd FileType           markdown            syntax sync fromstart
     autocmd FileType           markdown            noremap <buffer> <F5> :!"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" %:p "--no-gpu"<CR>
     autocmd BufRead,BufNewFile *.tags,.tags,tags   set filetype=tags
     autocmd BufRead,BufNewFile .*ignore            set filetype=ignore
-    autocmd FileType           ignore,gitconfig    setlocal commentstring=#\ %s
-    autocmd FileType           json                setlocal commentstring=//\ %s
-    " to prevent the json insert "shaking" issue, and show double-quotes in edit mode
     " ALE vscodejson is LSP, so it keeping show publishDiagnostics when insert; and g:ale_open_list=1 will non-stop execute lopen/lclose
     autocmd FileType           json,jsonc,markdown
-            \  setlocal conceallevel=1 concealcursor=c
-            \| let g:indentLine_setConceal   = 0
+            \  let g:indentLine_setConceal   = 0
             \| let g:vim_json_conceal        = 0
             \| let g:vim_json_syntax_conceal = 0
             \| let b:ale_open_list           = 'on_save'
@@ -138,24 +147,22 @@ if has( 'autocmd' )
             \   '<u>':'</u>'
             \ })
     if index( ['project.config', 'groups'], expand('%:r') ) == -1
-      autocmd BufRead,BufNewFile *.config          set syntax=gitconfig noexpandtab
+      autocmd BufRead,BufNewFile *.config set filetype=gitconfig noexpandtab
     endif
-    " git config files
-    autocmd BufNewFile,BufRead
-            \ ,*/.git/config
-            \ ,.gitconfig
-            \ ,.gitmodules
-            \ ,gitconfig
-            \ ,~/.marslo/.gitalias
+
+    autocmd! BufReadPost,BufNewFile
+            \ */gitconfig.d/*
+            \,*/.git/config
+            \,.gitconfig
+            \,.gitmodules
+            \,gitconfig
             \ setfiletype gitconfig
   augroup END
 
   augroup ShellScript
     autocmd!
-    autocmd Syntax       bash                set filetype=sh
-    autocmd FileType     sh,bash,shell
-            \ setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab foldmethod=indent |
-            \ call SafeRetab()
+    autocmd Syntax       bash                 set filetype=sh
+    autocmd FileType     sh,bash,shell        call SafeRetab()
     autocmd BufWritePre  *.sh call SafeRetab()
     " automatic redraw for shellcheck
     autocmd BufWritePost *.sh
@@ -165,17 +172,12 @@ if has( 'autocmd' )
   augroup Groovy
     autocmd!
     autocmd Filetype    Groovy                set filetype=groovy syntax=groovy
-    autocmd FileType    groovy,Jenkinsfile    setlocal foldmethod=indent
-            \| setlocal tabstop=2 softtabstop=2 shiftwidth=2
-            \| let b:ale_open_list = 'on_save'
-    autocmd FileType    Jenkinsfile           setlocal commentstring=//\ %s
+    autocmd FileType    groovy,Jenkinsfile    let b:ale_open_list = 'on_save'
     " FileType: first open (BufWinEnter can run before ft is set). BufWinEnter: switch back to buffer.
     " autocmd FileType  groovy                call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
     autocmd BufWinEnter *                     call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
-    autocmd Syntax      groovy,Jenkinsfile    normal zM
+    autocmd Syntax      groovy,Jenkinsfile    if empty(&buftype) | silent! normal zM | endif
 
-    " https://vim.fandom.com/wiki/Syntax_folding_for_Java
-    autocmd FileType   java                   setlocal foldmarker=/**,**/ foldmethod=marker foldcolumn=1
     if did_filetype()                       | finish             | endif
     " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
     if getline(1) =~# '^#!.*[/\\]groovy\>'  | setfiletype groovy | endif
@@ -183,14 +185,10 @@ if has( 'autocmd' )
 
   augroup Python
     autocmd!
-    autocmd BufNewFile,BufRead *.py
-            \ setlocal expandtab tabstop=4 softtabstop=4 shiftwidth=4 autoindent |
-            \ setlocal fileformat=unix |
-            \ setlocal foldmethod=indent |
-            \ call SafeRetab()
+    autocmd FileType python call SafeRetab()
     autocmd FileType python syntax keyword pythonDecorator print self
     autocmd FileType python set isk-=.
-    autocmd Syntax   python normal zM
+    autocmd Syntax   python if empty(&buftype) | silent! normal zM | endif
     autocmd FileType python map  <buffer> <F9> :w<CR>:exec '!python3' shellescape(@%, 1)<CR>
     autocmd FileType python imap <buffer> <F9> <esc>:w<CR>:exec '!python3' shellescape(@%, 1)<CR>
   augroup END
@@ -230,24 +228,31 @@ if has( 'autocmd' )
     autocmd!
     let s:columnLimit = 80
     let s:pattern     = '\%<' . (s:columnLimit+1) . 'v.\%>' . s:columnLimit . 'v'
-    autocmd VimEnter,BufWinEnter,WinEnter * let w:m1 = matchadd( 'ColumnLimit', s:pattern, -1 )
+    " disable for nofile ( &buftype !=# '' )
+    autocmd VimEnter,BufWinEnter,WinEnter *
+          \ if empty( &buftype )
+          \ |   if !exists( 'w:m1' ) || w:m1 == -1
+          \ |     let w:m1 = matchadd( 'ColumnLimit', s:pattern, -1 )
+          \ |   endif
+          \ | elseif exists( 'w:m1' ) && w:m1 != -1
+          \ |   silent! call matchdelete( w:m1 )
+          \ |   let w:m1 = -1
+          \ | endif
   augroup END
 
   augroup TerminalFormat
     autocmd!
     if IsNvim()
-      " autocmd! TermOpen,TermEnter * :IndentLinesDisable
-      " autocmd! BufWinEnter        * if &l:buftype ==# 'help' | :IndentLinesDisable | endif
-      autocmd! TermOpen             * setlocal nonumber norelativenumber modifiable nospell
-      autocmd  TermClose            * echom 'Terminal exited with status '..v:event.status
+      autocmd! TermOpen   * setlocal modifiable
+      autocmd  TermClose  * echom 'Terminal exited with status '..v:event.status
     endif
   augroup END
 
   augroup AutoSavePos
     autocmd!
     if v:version > 703
-      " autocmd FocusLost   * set norelativenumber
-      " autocmd FocusGained * set relativenumber                              " impacted NerdTree and terminal mode
+      autocmd FocusLost   * set norelativenumber
+      autocmd FocusGained * set relativenumber
       autocmd InsertEnter * set norelativenumber
       autocmd InsertLeave * set relativenumber
       autocmd CmdwinEnter * set norelativenumber
@@ -259,28 +264,20 @@ if has( 'autocmd' )
 
   augroup Defaults
     autocmd!
-    " foldmethod to indent for all filetypes except help and vim-plug
-    autocmd BufWinEnter *
-            \  if empty(&filetype) || (index(['help', 'vim-plug'], &filetype) == -1)
-            \|   if &l:foldmethod ==# 'manual' | setlocal foldmethod=indent | endif
-            \| endif
     " for modeline
     autocmd BufReadPost *
             \  if getline(1) =~# 'vim:.*ft=help' && &filetype !=# 'help'
             \|   doautocmd FileType
             \| endif
-    " autocmd BufRead,BufNewFile *                               if !did_filetype() && &ft ==# '' | set syntax=Jenkinsfile | endif
     autocmd BufRead,BufNewFile *                               if empty( &filetype ) | setfiletype Jenkinsfile | endif
-    " autocmd BufWinEnter      *                               silent! loadview                                     " autocmd BufWinLeave * silent! mkview
-    " autocmd BufReadPost      *                               silent! loadview
     " restore cursor position when reopen file
     autocmd BufReadPost        *
             \ if line("'\"") > 1 && line("'\"") <= line("$") && &filetype !~# 'commit' |
             \   execute "normal! g`\"" |
             \ endif
     autocmd Syntax             *                               syn match ExtraWhitespace /\s\+$\| \+\ze\t/
-    autocmd BufReadPost        *                               if &diff | let g:blamer_enabled=0 | endif            " ╮ disable git blame in diff mode
-    " autocmd BufEnter         *                               if ! empty(&key) | let g:blamer_enabled=0 | endif    " ╯ and encrypt mode
+    " disable git blame in diff mode
+    autocmd BufReadPost        *                               if &diff | let g:blamer_enabled=0 | endif
     " automatic remove trailing space
     autocmd BufWritePre        *
             \ let s:save_pos = winsaveview() |
@@ -292,12 +289,7 @@ if has( 'autocmd' )
     autocmd BufRead,BufNewFile *.ltsv                          set filetype=ltsv syntax=groovy noexpandtab
     autocmd BufRead,BufNewFile *.t                             set filetype=perl
     autocmd QuickFixCmdPost    *grep*                          cwindow
-    autocmd FileType           make,snippet,robot              setlocal tabstop=4 softtabstop=4 shiftwidth=4
-    autocmd FileType           snippets
-            \ setlocal expandtab tabstop=2 softtabstop=2 shiftwidth=2 |
-            \ setlocal commentstring=#\ %s
-    autocmd FileType           help                            setlocal nofoldenable
-    autocmd Syntax             c,cpp,xml,html,xhtml            normal zM
+    autocmd Syntax             c,cpp,xml,html,xhtml            if empty(&buftype) | silent! normal zM | endif
   augroup END
 
   " vim-matchup
@@ -318,23 +310,15 @@ if has( 'autocmd' )
 
   augroup LAST_OVERRIDE
     autocmd!
-    autocmd FileType      *                 ++nested call s:ApplyFTSettings()
-    autocmd BufWinEnter   *                 call s:ApplyFTSettings()
-    " autocmd BufWinEnter __Plug__ setlocal nofoldenable nonumber relativenumber=0
-    " disable for copilot-chat
-    autocmd FileType      copilot-chat      setlocal nonumber norelativenumber modifiable nospell
-
-    autocmd BufWinEnter   copilot:///log    call timer_start(50, {-> execute('resize -5')})
-    autocmd BufEnter      copilot:///log    setlocal nonumber norelativenumber modifiable nospell wrap
-    autocmd BufEnter      copilot:///panel  setlocal nonumber norelativenumber modifiable nospell
+    autocmd FileType    *              ++nested call s:ApplyFTSettings()
+    autocmd BufWinEnter *              call s:ApplyFTSettings()
+    autocmd BufEnter    *              if !empty(&buftype) | setlocal nonumber norelativenumber nospell nofoldenable | endif
+    autocmd BufWinEnter copilot:///log call timer_start(50, {-> execute('resize -5')})
+    autocmd BufEnter    copilot:///*   setlocal modifiable
+    autocmd BufEnter    copilot:///log setlocal wrap filetype=log
     " ctrl+x ctrl+e
-    autocmd BufReadPost   **/T/bash-fc.*    let b:coc_diagnostic_disable = 1
+    autocmd BufReadPost **/T/bash-fc.* let b:coc_diagnostic_disable = 1
   augroup END
-
-  " to fix the <SNR>13_StarSetf issue -- no-augroup
-  autocmd! BufReadPost            */gitconfig.d/*
-  autocmd! BufNewFile             */gitconfig.d/*
-  autocmd! BufReadPost,BufNewFile */gitconfig.d/* setfiletype gitconfig
 
 endif
 

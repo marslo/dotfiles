@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-04-03 21:36:19
+"    LastChange : 2026-05-08 19:16:50
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -231,7 +231,7 @@ let g:indentLine_faster               = 1
 let g:indentLine_concealcursor        = 'inc'
 let g:indentLine_conceallevel         = 2
 let g:indentLine_char                 = '¦'
-let g:indentLine_bufTypeExclude       = ['help', 'terminal']
+let g:indentLine_bufTypeExclude       = ['help', 'terminal', 'nofile']
 let g:indentLine_bufNameExclude       = ['_.*', 'NERD_tree.*']
 
 " LunarWatcher/auto-pairs
@@ -264,7 +264,7 @@ let g:airline_section_z                            = '%3p%% %l/%L:%c [%B]'
 let g:airline_skip_empty_sections                  = 1
 let g:airline_detect_modified                      = 1
 let g:airline_detect_paste                         = 1
-let g:airline_extensions                           = [ 'branch', 'tabline', 'coc', 'fzf', 'wordcount' ]
+let g:airline_extensions                           = [ 'ale', 'branch', 'tabline', 'coc', 'fzf', 'wordcount' ]
 let g:airline#extensions#wordcount#enabled         = 1
 let g:airline#extensions#wordcount#filetypes       = '\vtext|nroff|plaintex|markdown|md'
 let g:airline#extensions#quickfix#enabled          = 0
@@ -288,10 +288,10 @@ let g:airline#extensions#coc#error_symbol          = ' ✗:'          " ├ coc
 let g:airline#extensions#coc#warning_symbol        = ' ⍨:'          " │
 let g:airline#extensions#coc#stl_format_err        = '%C(␊%L)'      " │
 let g:airline#extensions#coc#stl_format_warn       = '%C(␊%L)'      " ╯
-let g:airline#extensions#ale#enabled               = 0              " ╮
-let g:airline#extensions#ale#error_symbol          = ' ᓆ :'         " │
-let g:airline#extensions#ale#warning_symbol        = ' ᣍ :'         " ├ ale
-let g:airline#extensions#ale#show_line_numbers     = 0              " │
+let g:airline#extensions#ale#enabled               = 1              " ╮
+let g:airline#extensions#ale#error_symbol          = ' ✗ :'         " │
+let g:airline#extensions#ale#warning_symbol        = ' ⍨ :'         " ├ ale
+let g:airline#extensions#ale#show_line_numbers     = 1              " │
 let g:airline#extensions#ale#open_lnum_symbol      = '(␊:'          " │
 let g:airline#extensions#ale#close_lnum_symbol     = ')'            " ╯
 " let g:airline_mode_map                           = { '__': '-', 'n' : 'N', 'i' : 'I', 'R' : 'R', 'c' : 'C', 'v' : 'V', 'V' : 'V', '': 'V', 's' : 'S', 'S' : 'S', '': 'S', }
@@ -322,7 +322,6 @@ if ! IsVscodeOrCursor()
   autocmd User CocStatusChange,CocDiagnosticChange call airline#update_statusline()
   autocmd CursorHold,CursorHoldI * call airline#update_statusline()
 endif
-
 
 " scrooloose/nerd utf-8 tree
 " control+option+n in macOS
@@ -555,10 +554,10 @@ let g:ale_sign_info                       = 'ᓆ'
 let g:ale_sign_style_error                = '⍥'
 let g:ale_sign_style_warning              = '⍨'
 
-" performance enhancement
+" lint on enter + save only; no lint on text change or mode switch
+let g:ale_lint_on_enter                   = 1
+let g:ale_lint_on_insert_leave            = 0
 let g:ale_lint_on_text_changed            = 'never'
-let g:ale_lint_on_enter                   = 0
-let g:ale_lint_on_insert_leave            = 1
 let g:ale_fix_on_save                     = 0
 let g:ale_lint_on_save                    = 1
 let g:ale_linters_explicit                = 1
@@ -583,6 +582,7 @@ let g:ale_ansible_language_server_executable = 'ansible-language-server'
 " autocmd FileType sh      let g:ale_virtualtext_prefix = '💡 '
 " vscodejson requires `$ npm install -g vscode-langservers-extracted`
 let g:ale_linters = {
+      \ 'sh'         : ['shellcheck'],
       \ 'c'          : ['clang', 'cppcheck'],
       \ 'cpp'        : ['clang++', 'cppcheck'],
       \ 'json'       : ['vscodejson'],
