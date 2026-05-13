@@ -1,5 +1,8 @@
 # yamllint disable rule:indentation
 ---
+ci:
+  autofix_prs: false
+
 exclude: '^(.*/screenfetch-dev|.*/gitalias|.*/\.vault/.*|\.signingmanager/.*|.*\.current|.*colors?|.*/set-git-user.sh|.*/renew.sh|.*/copilot.pem)$'
 
 repos:

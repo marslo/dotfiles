@@ -190,7 +190,7 @@ _fzf_fill() {
   local cmd
 
   if [[ $# -gt 1 ]] || type "$1" &>/dev/null; then
-    cmd=$("$@" | fzf --height 40% --reverse)
+    cmd=$( "$@" | fzf --height 40% --reverse --no-border )
   else
     cmd="$*"
   fi
