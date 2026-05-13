@@ -16,12 +16,38 @@ local ft_ignore = {
   [""] = true,
   ["groovy"] = true,
   ["Jenkinsfile"] = true,
-  ["jenkinsfile"] = true,
+  ["jenkinsfile"] = true
 }
 
 local indent_bypass = {
-  ["lua"] = true
+  ["lua"] = true,
+  -- using vim_ts_indent() instead of
+  -- ["vim"] = true
 }
+
+-- treesitter indent + augroup awareness for vim filetype
+-- (vim parser treats augroup...END as flat siblings instead of a compound block)
+local function vim_ts_indent(lnum)
+  local ts_indent = require('nvim-treesitter.indent').get_indent(lnum)
+  local cur = vim.fn.getline(lnum):match('^%s*(.*)')
+  if cur:match('^augroup%s+END') then return ts_indent end
+
+  local depth = 0
+  for i = lnum - 1, math.max(1, lnum - 500), -1 do
+    local line = vim.fn.getline(i):match('^%s*(.*)')
+    if line:match('^augroup%s+END') then
+      depth = depth + 1
+    elseif line:match('^augroup%s+%S') then
+      if depth > 0 then
+        depth = depth - 1
+      else
+        return ts_indent + vim.bo.shiftwidth
+      end
+    end
+  end
+  return ts_indent
+end
+_G._vim_ts_indent = vim_ts_indent
 
 local function safe_ts_start(buf)
   if not vim.api.nvim_buf_is_valid(buf) then return end
@@ -57,7 +83,9 @@ local function safe_ts_start(buf)
     local ok, _ = pcall( vim.treesitter.start, buf, lang )
     if ok then
       -- enable indent
-      if not indent_bypass[ft] then
+      if ft == 'vim' then
+        vim.bo[buf].indentexpr = "v:lua._vim_ts_indent(v:lnum)"
+      elseif not indent_bypass[ft] then
         -- vim.bo[buf].indentexpr = "nvim_treesitter#indent()"
         -- vim.bo[buf].indentexpr = "v:lua.require('nvim-treesitter').indentexpr()"
         vim.bo[buf].indentexpr = "v:lua.require('nvim-treesitter.indent').get_indent(v:lnum)"
