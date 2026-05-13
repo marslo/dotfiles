@@ -149,11 +149,12 @@ pcall(function()
   require('nvim-treesitter.install').prefer_git = true
 end)
 
--- override treesitter highlights queries for markdown
--- (sources: after/queries/markdown/highlights.scm, after/queries/markdown_inline/highlights.scm)
+-- override treesitter highlights queries
+-- (sources: after/queries/{markdown,markdown_inline,json}/highlights.scm)
 for _, spec in ipairs({
   { lang = "markdown",        file = "after/queries/markdown/highlights.scm" },
   { lang = "markdown_inline", file = "after/queries/markdown_inline/highlights.scm" },
+  { lang = "json",            file = "after/queries/json/highlights.scm" },
 }) do
   local scm = vim.fn.stdpath("config") .. "/" .. spec.file
   local f = io.open(scm, "r")

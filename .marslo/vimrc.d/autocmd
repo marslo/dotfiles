@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-11 19:34:14
+"    LastChange : 2026-05-12 17:54:20
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -54,10 +54,10 @@ function! SafeRetab()
 endfunction
 
 let s:ft_settings = {
-      \ 'json':         { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'foldmethod': 'indent', 'commentstring': '// %s', 'conceallevel': 1, 'concealcursor': 'c' },
-      \ 'jsonc':        { 'foldmethod': 'indent', 'conceallevel': 1, 'concealcursor': 'c' },
+      \ 'json':         { 'tabstop': 4, 'softtabstop': 4, 'shiftwidth': 4, 'foldmethod': 'indent', 'commentstring': '// %s', 'conceallevel': 2, 'concealcursor': 'c' },
+      \ 'jsonc':        { 'foldmethod': 'indent', 'conceallevel': 2, 'concealcursor': 'c' },
       \ 'yaml':         { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'foldmethod': 'indent' },
-      \ 'markdown':     { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'foldmethod': 'indent', 'spell': v:true, 'conceallevel': 1, 'concealcursor': 'c' },
+      \ 'markdown':     { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'foldmethod': 'indent', 'spell': v:true, 'conceallevel': 2, 'concealcursor': 'c' },
       \ 'sh':           { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'expandtab': v:true, 'foldmethod': 'indent' },
       \ 'groovy':       { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'foldmethod': 'indent' },
       \ 'Jenkinsfile':  { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'foldmethod': 'indent', 'commentstring': '// %s' },
@@ -251,12 +251,14 @@ if has( 'autocmd' )
   augroup AutoSavePos
     autocmd!
     if v:version > 703
-      autocmd FocusLost   * set norelativenumber
-      autocmd FocusGained * set relativenumber
-      autocmd InsertEnter * set norelativenumber
-      autocmd InsertLeave * set relativenumber
-      autocmd CmdwinEnter * set norelativenumber
-      autocmd CmdwinLeave * set relativenumber
+      if ! IsVscodeOrCursor()
+        autocmd FocusLost   * if empty(&buftype) | setlocal norelativenumber | endif
+        autocmd FocusGained * if empty(&buftype) | setlocal relativenumber   | endif
+      endif
+      autocmd InsertEnter * if empty(&buftype) | setlocal norelativenumber | endif
+      autocmd InsertLeave * if empty(&buftype) | setlocal relativenumber   | endif
+      autocmd CmdwinEnter * setlocal norelativenumber
+      autocmd CmdwinLeave * setlocal relativenumber
       autocmd CmdwinEnter * let b:ei_save = &eventignore | set eventignore=CursorHold,InsertEnter
       autocmd CmdwinLeave * let &eventignore = b:ei_save
     endif
@@ -312,7 +314,9 @@ if has( 'autocmd' )
     autocmd!
     autocmd FileType    *              ++nested call s:ApplyFTSettings()
     autocmd BufWinEnter *              call s:ApplyFTSettings()
-    autocmd BufEnter    *              if !empty(&buftype) | setlocal nonumber norelativenumber nospell nofoldenable | endif
+    autocmd BufEnter    *              if !empty(&buftype) | setlocal nonumber norelativenumber nospell nofoldenable signcolumn=no foldcolumn=0 | endif
+    " :InspectTree
+    autocmd FileType    query          setlocal nonumber norelativenumber nospell nofoldenable signcolumn=no foldcolumn=0
     autocmd BufWinEnter copilot:///log call timer_start(50, {-> execute('resize -5')})
     autocmd BufEnter    copilot:///*   setlocal modifiable
     autocmd BufEnter    copilot:///log setlocal wrap filetype=log
