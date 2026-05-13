@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-08 19:16:50
+"    LastChange : 2026-05-12 19:46:30
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -260,7 +260,7 @@ let g:airline_theme                                = 'base16_embers'" 'apprentic
 let g:Powerline_symbols                            = 'fancy'
 let g:airline_section_y                            = ''             " fileencoding
 let g:airline_section_x                            = ''
-let g:airline_section_z                            = '%3p%% %l/%L:%c [%B]'
+let g:airline_section_z                            = '<%{AirlineFileSize()}> %p%% %l/%L:%v [%n]'
 let g:airline_skip_empty_sections                  = 1
 let g:airline_detect_modified                      = 1
 let g:airline_detect_paste                         = 1
@@ -284,13 +284,13 @@ let g:airline#extensions#nerdtree_statusline       = 1
 let g:airline#extensions#syntastic#enabled         = 1
 let g:airline#extensions#coc#enabled               = 1              " ╮
 let g:airline#extensions#coc#show_coc_status       = 1              " │
-let g:airline#extensions#coc#error_symbol          = ' ✗:'          " ├ coc
-let g:airline#extensions#coc#warning_symbol        = ' ⍨:'          " │
+let g:airline#extensions#coc#error_symbol          = '◬:'           " ├ coc
+let g:airline#extensions#coc#warning_symbol        = '➤:'           " │
 let g:airline#extensions#coc#stl_format_err        = '%C(␊%L)'      " │
 let g:airline#extensions#coc#stl_format_warn       = '%C(␊%L)'      " ╯
 let g:airline#extensions#ale#enabled               = 1              " ╮
-let g:airline#extensions#ale#error_symbol          = ' ✗ :'         " │
-let g:airline#extensions#ale#warning_symbol        = ' ⍨ :'         " ├ ale
+let g:airline#extensions#ale#error_symbol          = '✗:'           " │
+let g:airline#extensions#ale#warning_symbol        = '⍨:'           " ├ ale
 let g:airline#extensions#ale#show_line_numbers     = 1              " │
 let g:airline#extensions#ale#open_lnum_symbol      = '(␊:'          " │
 let g:airline#extensions#ale#close_lnum_symbol     = ')'            " ╯
@@ -303,8 +303,25 @@ let g:airline_right_sep                            = ''
 function! CocCurrentFunction()
   return get(b:, 'coc_current_function', '')
 endfunction
+function! AirlineFileSize()
+  let l:bytes = getfsize(expand('%:p'))
+  if l:bytes <= 0 | return '' | endif
+  if l:bytes < 1024 | return l:bytes . 'B' | endif
+  if l:bytes < 1048576 | return (l:bytes / 1024) . 'K' | endif
+  return (l:bytes / 1048576) . 'M'
+endfunction
+function! AirlineGitHunks()
+  let l:summary = get(b:, 'coc_git_status', '')
+  if !empty(l:summary) | return trim(l:summary) | endif
+  if exists('*GitGutterGetHunkSummary')
+    let [a, m, r] = GitGutterGetHunkSummary()
+    if a == 0 && m == 0 && r == 0 | return '' | endif
+    return printf('+%d ~%d -%d', a, m, r)
+  endif
+  return ''
+endfunction
 function! AirlineTimeStamp()
-  return strftime('%H:%M %b-%d %a')
+  return strftime('%H:%M %d/%b %a')
 endfunction
 " +----------------------------------+
 " | A | B | C            | X | Y | Z |
@@ -313,11 +330,11 @@ function! AirlineInit()
   let g:airline_section_a = airline#section#create([ '[', 'mode', ']' ])
   let g:airline_section_y = airline#section#create([ '%{AirlineTimeStamp()}', ' [%{&fileformat}]' ])
   let g:airline_section_c = '%<' . airline#section#create([ '%F' ]) " let g:airline_section_c = '%<' . '%{expand(%:p:~)}'
-  let g:airline_section_x = airline#section#create([ '%{CocCurrentFunction()}' ])
+  let g:airline_section_x = airline#section#create_right([ '%{CocCurrentFunction()}', '%{AirlineGitHunks()}' ])
 endfunction
 
-set updatetime=1000
 if ! IsVscodeOrCursor()
+  set updatetime=300
   autocmd User AirlineAfterInit call AirlineInit()
   autocmd User CocStatusChange,CocDiagnosticChange call airline#update_statusline()
   autocmd CursorHold,CursorHoldI * call airline#update_statusline()
@@ -433,8 +450,7 @@ let g:blamer_prefix               = '  '
 let g:blamer_template             = '<author> • <commit-short> • <summary>'
 
 " airblade/vim-gitgutter
-set updatetime=250
-set signcolumn=yes
+set signcolumn=auto
 let g:gitgutter_enabled                = 0
 let g:gitgutter_terminal_reports_focus = 0
 let g:gitgutter_realtime               = 0
@@ -455,7 +471,7 @@ let g:Hexokinase_optInPatterns = [
 " neoclide/coc.nvim
 if ! IsVscodeOrCursor()
   set updatetime=300
-  set signcolumn=yes
+  set signcolumn=auto
   let g:coc_disable_startup_warning = 1
   let g:coc_default_semantic_highlight_groups = 1
   let g:coc_snippet_next = '<c-j>'
@@ -548,6 +564,7 @@ let g:ale_set_loclist                     = 1
 let g:ale_set_lists_synchronously         = 1
 let g:ale_echo_msg_format                 = '[%linter%] %code%: %s [%severity%]'
 let g:ale_virtualtext_prefix              = '%comment% %type% [%code%]: '
+let g:ale_sign_column_always              = 0
 let g:ale_sign_error                      = '✗'
 let g:ale_sign_warning                    = 'ఠ'
 let g:ale_sign_info                       = 'ᓆ'
@@ -568,7 +585,7 @@ let g:ale_set_balloons                    = 1
 let g:ale_hover_to_preview                = 1
 let g:ale_floating_preview                = 1
 let g:ale_close_preview_on_insert         = 1
-let g:ale_groovy_npmgroovylint_options    = '--noserver --loglevel warning --config ' . expand('~/.groovylintrc.json')
+let g:ale_groovy_npmgroovylint_options    = '--loglevel warning --config ' . expand('~/.groovylintrc.json')
 if executable(expand('~/.npm/bin/npm-groovy-lint'))
   let g:ale_groovy_npmgroovylint_executable = expand('~/.npm/bin/npm-groovy-lint')
 endif
