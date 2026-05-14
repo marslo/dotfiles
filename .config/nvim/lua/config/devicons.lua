@@ -64,7 +64,7 @@ devicons.setup({
   },
 })
 
-devicons.set_default_icon( '' )
+devicons.set_default_icon( '', '#FBF1C7' )
 
 ---------------------------------------------------------------------------- pattern matching
 -- nvim-web-devicons has no pattern support; monkey-patch get_icon to fall

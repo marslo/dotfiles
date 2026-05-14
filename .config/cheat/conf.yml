@@ -38,7 +38,7 @@ pager: 'less -FRX'
 # automatically create cheatsheets on a read-only cheatpath. Instead, when you
 # would like to edit a read-only cheatsheet using 'cheat -e', cheat will
 # perform a copy-on-write of that cheatsheet from a read-only cheatpath to a
-# writeable cheatpath.
+# writable cheatpath.
 #
 # This is very useful when you would like to maintain, for example, a
 # "pristine" repository of community cheatsheets on one cheatpath, and an

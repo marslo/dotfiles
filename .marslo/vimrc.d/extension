@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-12 19:46:30
+"    LastChange : 2026-05-14 02:49:43
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -43,7 +43,7 @@ Plug 'preservim/tagbar'
 Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeToggle', 'NERDTree'] }
 Plug 'tiagofumo/vim-nerdtree-syntax-highlight', { 'on':  ['NERDTreeToggle', 'NERDTree'] }
 Plug 'marslo/vim-devicons', { 'branch': 'sandbox/marslo' }
-Plug 'marslo/authorinfo'
+Plug 'marslo/authorinfo', { 'branch': 'main' }
 Plug 'LunarWatcher/auto-pairs', { 'branch': 'develop' }
 Plug 'tomtom/tlib_vim'
 Plug 'yegappan/mru'

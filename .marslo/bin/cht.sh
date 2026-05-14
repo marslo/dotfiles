@@ -618,7 +618,7 @@ ccopy   - copy the last answer w/o comments (cut comments; aliases: cc, Y, C)
 exit    - exit the cheat shell (aliases: quit, ^D)
 id [ID] - set/show an unique session id ("reset" to reset, "remove" to remove)
 stealth - stealth mode (automatic queries for selected text)
-update  - self update (only if the scriptfile is writeable)
+update  - self update (only if the scriptfile is writable)
 version - show current cht.sh version
 /:help  - service help
 QUERY   - space separated query staring (examples are below)

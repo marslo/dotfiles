@@ -22,6 +22,10 @@ Life is short, make it easier!
 - LastChange: 2024-01-24 00:43:55
 
 ## table of content
+
+> [!TIP]
+> - [click here](./.marslo/vimrc.d/README.md) for vim/vimrc.d details
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
@@ -52,26 +56,27 @@ Life is short, make it easier!
 
 ## folder structure
 ```bash
-dotfiles                   # -> $HOME
-├── .bashrc                # source ~/.marslorc or ~/.marslorc.wsl
-├── .marsorc               # ╮ main entry
-├── .marsorc.wsl           # ╯
-├── .config
-│   ├── nvim               # nvim/init.lua
-│   └── ...
+dotfiles                   # → $HOME
+├── .bashrc/.bash_profile  # ← source .marslo/.marslorc (macos/linux) or .marslo/.marslorc.wsl (wsl)
+├── .marsorc/.marslorc.wsl # main entry
 ├── .marslo
-│   ├── bin                # all tools/bins/scripts
-│   ├── .alias             # entry for alias.d
-│   ├── alias.d
-│   ├── .completion        # entry for bash_completion.d
-│   ├── bash_completion.d
-│   ├── gitconfig.d
-│   ├── inputrc.d
-│   └── vimrc.d
-├── .vimrc                 # source `.marslo/vimrc.d/*`
-├── .inputrc               # include `.marslo/inputrc.d/*`
-├── .gitconfigi            # include `.marslo/gitconfig.d/*`
-└── ...                    # rc/profile/ignore/...
+│   ├── bin/               #                           - all tools/bins/scripts
+│   ├── .alias             # • alias.d entry           - to setup bash alias
+│   ├── alias.d/
+│   ├── .completion        # • bash_completion.d entry - to setup bash completion
+│   ├── bash_completion.d/
+│   ├── .env               # • env.d entry             - to setup environment variables
+│   ├── env.d/
+│   ├── gitconfig.d/
+│   ├── inputrc.d/
+│   └── vimrc.d/
+├── .vimrc                 # → vim entry
+├── .config
+│   ├── nvim               # → nvim entry
+│   └── ...
+├── .inputrc               # → include `.marslo/inputrc.d/*`
+├── .gitconfig             # → include `.marslo/gitconfig.d/*`
+└── ...                    # → rc/profile/ignore/...
 ```
 
 ![bash](https://github.com/marslo/dotfiles/raw/assets/screenshots/shell.png)

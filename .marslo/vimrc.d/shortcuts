@@ -3,7 +3,7 @@
 "        Author : marslo.jiao@gmail.com
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-04-03 21:40:43
+"    LastChange : 2026-05-14 02:50:01
 " =============================================================================
 
 " /**************************************************************
@@ -130,8 +130,8 @@ inoremap <leader>fe  <C-R>=expand("%:t")<CR>
 inoremap <leader>w   <C-O>:w<CR>
 
 nnoremap <leader>zil :g/^/ s//\=line('.').' '/<CR>                  " [i]nsert [l]ine number
-nnoremap <leader>zcm :%s/<C-v><CR>/\r/g<CR>                         " [c]onvert [m] <> to new line
-nnoremap <leader>zdm :%s/<C-v><CR>//ge<CR>                          " [d]elete [m] <>
+nnoremap <leader>zcm :%s/<C-v><CR>/\r/g<CR>                         " [c]onvert [m] <^M> to new line
+nnoremap <leader>zdm :%s/<C-v><CR>//ge<CR>                          " [d]elete [m] <^M>
 nnoremap <leader>zdb :%s/\s\+$//<CR>                                " [d]elete [b]lank <trailing> space
 nnoremap <leader>zd2 :%s/​//g<CR>                              " [d]elete <200b>
 nnoremap <leader>zdd :%s/ / /g<CR>                                  " [d]elete [d]ot -   0xAO
