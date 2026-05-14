@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo.jiao@gmail.com
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-05-11 23:40:26
+#   LastChange : 2026-05-13 16:36:58
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -90,7 +90,6 @@ function _load_fd_context() {
 # |_| /__|_|          \_,_|\__|_|_|_|\__|\_, |
 #                                        |__/
 # **************************************************************/
-
 # smart copy   : using `fzf` to list files and copy the content of selected file
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
@@ -560,6 +559,60 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
   fi
 }
 
+# lsps         : list processes
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+# @version     : 1.0.1
+#                - 1.0.1: https://github.com/junegunn/fzf/releases/tag/v0.59.0
+function lsps() {                          # [l]i[s]t [p]roces[s]
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -p | --pid ) showPid="true" ; shift ;;
+    esac
+  done
+  local cmd=''
+
+  # shellcheck disable=SC2016,SC1078,SC1079
+  #   --header $'Press CTRL-R to reload\n' --header-lines 1 \
+  cmd=""" (date; ps -eof) |
+          fzf --bind 'start,ctrl-r:reload:(date; ps -eof)' \
+              --bind 'ctrl-n:change-nth(8..|1|2|3|4|5|6|7|)' \
+              --bind 'result:transform-prompt:echo \"${FZF_NTH}> \"' \
+              --preview 'echo {}' --preview-window=down,3,wrap \
+              --style full --layout reverse --header-lines 1 --height 80% \
+              --header-lines-border bottom --no-list-border \
+              --color fg:dim,nth:regular \
+              --bind 'click-header:transform-nth(
+                        echo $FZF_CLICK_HEADER_NTH
+                      )+transform-prompt(
+                        echo \"$FZF_CLICK_HEADER_WORD> \"
+                      )'
+  """
+  [[ -z "${showPid:-}" ]] && cmd+=" | awk '{print \$2}'"
+
+  eval "${cmd}"
+}
+
+function killps() {                        # [kill] [p]roces[s]
+  (date; ps -ef) |
+  fzf --bind='ctrl-r:reload(date; ps -ef)' \
+      --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
+      --preview='echo {}' --preview-window=down,3,wrap \
+      --layout=reverse --height=80% |
+  awk '{print $2}' |
+  xargs -r kill -9
+}
+
+# jcli         : execute Jenkins CLI command
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+function jcli() {                          # [j]enkins [cli]
+  domain="$( echo 'jenkins-ip-sw-rel.domain.com' | fmt -1 | fzf --prompt 'domain> ')"
+  cmd="java -jar ~/.jenkins/${domain}/jenkins-cli.jar -auth @$HOME/.jenkins/${domain}/auth -s http://${domain} "
+  # bash -c "osascript -e \"tell application \\\"System Events\\\" to keystroke \\\"${cmd}\\\"\" &"
+  _fzf_fill "${cmd}"
+}
+
 # /**************************************************************
 #   __     __                               __ _ _
 #  / _|___/ _|  ___   ___ _ __  ___ _ _    / _(_) |___
@@ -568,21 +621,21 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
 #                        |_|
 #
 # **************************************************************/
-
 # magic vim    : fzf list in recent modified order
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @description :
 #   - if `nvim` installed using `nvim` instead of `vim`
-#     - using `-v` to force using `vim` instead of `nvim` even if nvim installed
+#     • automatically: if file is vim encrypted, fallback to `vim`
+#     • manually: using `-v` to force using `vim`
 #   - if `vim` commands without parameters, then call fzf and using vim to open selected file
 #   - if `vim` commands with parameters
-#       - if single parameters and parameters is directory, then call fzf in target directory and using vim to open selected file
-#       - otherwise call regular vim to open file(s)
+#       • if single parameters and parameters is directory, then call fzf in target directory and using vim to open selected file
+#       • otherwise call regular vim to open file(s)
 #   - to respect fzf options by: `type -t _fzf_opts_completion >/dev/null 2>&1 && complete -F _fzf_opts_completion -o bashdefault -o default vim`
 # shellcheck disable=SC2155
 function vim() {                           # magic vim - fzf list in most recent modified order
-  local orgv=false                         # force using vim instead of nvim
+  local orgv=false                         # force using vim instead of nvim - false by default
   local -a voption=()
   local -a ignores=(
     '*.pem' '*.p12' '*.tags'
@@ -611,15 +664,21 @@ function vim() {                           # magic vim - fzf list in most recent
   eval "$( _load_fzf_context )"
 
   local VIM="$(type -P vim)"
-  ! "${orgv}" && command -v nvim >/dev/null && VIM="$(type -P nvim)"
+  command -v nvim >/dev/null && local NVIM="$(type -P nvim)"
 
+  local _become="enter:become(if file {+} 2>/dev/null | grep -q 'Vim encrypted'; then ${VIM} {+}; else ${NVIM:-${VIM}} {+}; fi)"
   if [[ 0 -eq "$#" ]] && [[ 0 -eq "${#voption[@]}" ]]; then
-    fd . "${fdopt[@]}" | fzf "${fzfopt[@]}" --bind="enter:become(${VIM} {+})"
+    fd . "${fdopt[@]}" | fzf "${fzfopt[@]}" --bind="${_become}"
   elif [[ 1 -eq "$#" ]] && [[ -d "${1}" ]]; then
     [[ '.' = "${1}" ]] && finalTarget=("${1}") || finalTarget=('.' "${1}")
-    fd "${finalTarget[@]}" "${fdopt[@]}" | fzf "${fzfopt[@]}" --bind="enter:become(${VIM} {+})"
+    fd "${finalTarget[@]}" "${fdopt[@]}" | fzf "${fzfopt[@]}" --bind="${_become}"
   else
-    "${VIM}" "${voption[@]}" "$@"
+    local _v="${VIM}"
+    if ! "${orgv}" && [[ -n "${NVIM:-}" ]]; then
+      _v="${NVIM:-${VIM}}"
+      file "$@" 2>/dev/null | grep -q 'Vim encrypted' && _v="${VIM}"
+    fi
+    "${_v}" "${voption[@]}" "$@"
   fi
 }
 
@@ -758,7 +817,11 @@ function vimdiff() {                       # smart vimdiff
     [[ -d "${*: -1}"   ]] && rFile=$(fzfInPath "${*: -1}")   || rFile="${*: -1}"
   fi
 
-  [[ -f "${lFile}" ]] && [[ -f "${rFile}" ]] && $(type -P vim) -d "${var[@]}" "${lFile}" "${rFile}"
+  if [[ -f "${lFile}" ]] && [[ -f "${rFile}" ]]; then
+    local _v; _v="$(type -P vim)"
+    ! file "${lFile}" "${rFile}" 2>/dev/null | grep -q 'Vim encrypted' && command -v nvim >/dev/null && _v="$(type -P nvim)"
+    "${_v}" -d "${var[@]}" "${lFile}" "${rFile}"
+  fi
 }
 
 # vd           : open vimdiff loaded files from ~/.vim_mru_files
@@ -779,51 +842,13 @@ function vd() {                            # vd - open [v]im[d]iff loaded files 
   [[ ${#files[@]} -lt 2 ]] || vimdiff "${files[@]}"
 }
 
-# lsps         : list processes
-# @author      : marslo
-# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
-# @version     : 1.0.1
-#                - 1.0.1: https://github.com/junegunn/fzf/releases/tag/v0.59.0
-function lsps() {                          # [l]i[s]t [p]roces[s]
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      -p | --pid ) showPid="true" ; shift ;;
-    esac
-  done
-  local cmd=''
-
-  # shellcheck disable=SC2016,SC1078,SC1079
-  #   --header $'Press CTRL-R to reload\n' --header-lines 1 \
-  cmd=""" (date; ps -eof) |
-          fzf --bind 'start,ctrl-r:reload:(date; ps -eof)' \
-              --bind 'ctrl-n:change-nth(8..|1|2|3|4|5|6|7|)' \
-              --bind 'result:transform-prompt:echo \"${FZF_NTH}> \"' \
-              --preview 'echo {}' --preview-window=down,3,wrap \
-              --style full --layout reverse --header-lines 1 --height 80% \
-              --header-lines-border bottom --no-list-border \
-              --color fg:dim,nth:regular \
-              --bind 'click-header:transform-nth(
-                        echo $FZF_CLICK_HEADER_NTH
-                      )+transform-prompt(
-                        echo \"$FZF_CLICK_HEADER_WORD> \"
-                      )'
-  """
-  [[ -z "${showPid:-}" ]] && cmd+=" | awk '{print \$2}'"
-
-  eval "${cmd}"
-}
-
-function killps() {                        # [kill] [p]roces[s]
-  (date; ps -ef) |
-  fzf --bind='ctrl-r:reload(date; ps -ef)' \
-      --header=$'Press CTRL-R to reload\n\n' --header-lines=2 \
-      --preview='echo {}' --preview-window=down,3,wrap \
-      --layout=reverse --height=80% |
-  awk '{print $2}' |
-  xargs -r kill -9
-}
-
+# /**************************************************************
+#   __     __                           _
+#  / _|___/ _|  ___   _ _ ___ _ __  ___| |_ ___   _ _ _  _ _ _
+# |  _|_ /  _| |___| | '_/ -_) '  \/ _ \  _/ -_) | '_| || | ' \
+# |_| /__|_|         |_| \___|_|_|_\___/\__\___| |_|  \_,_|_||_|
+#
+# **************************************************************/
 # knrun        : run shell command/script in k8s nodes
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
@@ -1000,6 +1025,13 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
   fi
 }
 
+# /**************************************************************
+#   __     __                            _
+#  / _|___/ _|  ___   _ __  ___ _  _ _ _| |_
+# |  _|_ /  _| |___| | '  \/ _ \ || | ' \  _|
+# |_| /__|_|         |_|_|_\___/\_,_|_||_\__|
+#
+# **************************************************************/
 # checkMountPoint : check if the mount point is mounted
 # @author         : marslo
 # @source         : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
@@ -1164,17 +1196,6 @@ function inMounted() {
   return 1
 }
 
-# jcli         : execute Jenkins CLI command
-# @author      : marslo
-# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
-function jcli() {                          # [j]enkins [cli]
-  domain="$( echo 'jenkins-1.domain.com' 'jenkins-2.domain.com' | fmt -1 | fzf --prompt 'domain> ')"
-  cmd="java -jar ~/.jenkins/${domain}/jenkins-cli.jar -auth @$HOME/.jenkins/${domain}/auth -s http://${domain} "
-  # bash -c "osascript -e \"tell application \\\"System Events\\\" to keystroke \\\"${cmd}\\\"\" &"
-  _fzf_fill "${cmd}"
-}
-
-
 # /**************************************************************
 #   __     __                    _                    _   _
 #  / _|___/ _|  ___   __ _ ___  | |_ ___   _ __  __ _| |_| |_
@@ -1183,7 +1204,6 @@ function jcli() {                          # [j]enkins [cli]
 #                    |___/                |_|
 #
 # **************************************************************/
-
 # goto         : goto to selected git repo path
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
@@ -2020,4 +2040,4 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
   fi
 }
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ **************************************************************/,#\ /**************************************************************:
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=indent:

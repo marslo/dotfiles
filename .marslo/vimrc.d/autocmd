@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-12 17:54:20
+"    LastChange : 2026-05-13 16:36:55
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -163,10 +163,12 @@ if has( 'autocmd' )
     autocmd!
     autocmd Syntax       bash                 set filetype=sh
     autocmd FileType     sh,bash,shell        call SafeRetab()
-    autocmd BufWritePre  *.sh call SafeRetab()
+    autocmd BufWritePre  *.sh                 call SafeRetab()
     " automatic redraw for shellcheck
-    autocmd BufWritePost *.sh
-            \ if has('syntax') && exists('g:loaded_shellcheck') | silent! redraw! | endif
+    autocmd BufWritePost *.sh                 if has('syntax') && exists('g:loaded_shellcheck') | silent! redraw! | endif
+    " jump between functions in shell script
+    autocmd FileType sh                       nnoremap <buffer> ]] /^\s*\(function\s\+\)\=\w\+\s*()\s*{<CR>:nohlsearch<CR>
+    autocmd FileType sh                       nnoremap <buffer> [[ ?^\s*\(function\s\+\)\=\w\+\s*()\s*{<CR>:nohlsearch<CR>
   augroup END
 
   augroup Groovy
