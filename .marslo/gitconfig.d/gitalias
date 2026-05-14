@@ -57,8 +57,8 @@
   rank        = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git log --format=\"%aN\" --numstat \"$@\" | git_rank_calc' -"
   ls          = log --stat --pretty=short --graph
   ### [p]retty [l]og(s)
-  pl          = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git -c log.decorate=short --no-pager log --color=always --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:\"%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(auto)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" \"$@\" | git_color_gpg' -"
-  pls         = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git -c log.decorate=full log --decorate --color=always --graph --abbrev-commit --date=relative --pretty=tformat:\"%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(auto)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" \"$@\" | git_color_gpg | less -FRX' -"
+  pl          = !git -c log.decorate=short --no-pager log --color --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:"'%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(auto)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) %C(italic #6971a3)(%G?)%C(reset)'"
+  pls         = !git -c log.decorate=full log --decorate --color --graph --abbrev-commit --date=relative --pretty=tformat:"'%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(auto)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset) %C(italic #6971a3)(%G?)%C(reset)'"
   ### [p]revious branch [p]retty [l]og
   ppl         = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git --no-pager log --color=always --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:\"%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" @{-1} \"$@\" | git_color_gpg' -"
   ### [f]ull [p]retty [l]log
@@ -322,7 +322,7 @@
   su          = "!bash -c 'git submodule sync --recursive && git submodule update -f --init --recursive'"
   sub         = submodule
   subpull     = !git pull --rebase && git submodule sync --recursive && git submodule update --init --recursive
-  subupdate   = submodule update --remote --merge
+  subupdate   = submodule update --remote --rebase
   subst       = submodule foreach \"git status\"
   # }}}
 
