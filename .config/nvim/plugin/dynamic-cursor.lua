@@ -93,7 +93,7 @@ local dynamic_cursor_grp = vim.api.nvim_create_augroup( "DynamicCursorShape", { 
 -- check with filetype
 vim.api.nvim_create_autocmd("FileType", {
   group = dynamic_cursor_grp,
-  pattern = { "sh", "python", "groovy", "jenkinsfile", "lua", "markdown" },
+  pattern = { "sh", "vim", "python", "groovy", "jenkinsfile", "lua", "markdown" },
   callback = function(args)
 
     -- to avoid affect other buffers, binding CursorMoved only to the specific Buffer ID that triggered this filetype

@@ -2,7 +2,7 @@
 "      FileName : os
 "        Author : marslo.jiao@gmail.com
 "       Created : 2024-04-18 03:18:08
-"    LastChange : 2026-04-16 16:37:27
+"    LastChange : 2026-05-14 03:18:31
 " =============================================================================
 
 function! IsLinux()
@@ -62,7 +62,7 @@ endfunction
 
 " vscode or cursor
 function! IsVscodeOrCursor()
-  return exists('g:vscode')
+  return exists('g:vscode') || &buftype ==# 'acwrite'
 endfunction
 
 function! IsNvim()

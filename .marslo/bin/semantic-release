@@ -2,9 +2,9 @@
 # shellcheck source=/dev/null disable=SC2155
 #=============================================================================
 #     FileName : semantic-release
-#       Author : marslo.jiao@gmail.com
+#       Author : marslo
 #      Created : 2025-06-17 23:02:43
-#   LastChange : 2026-05-07 03:14:04
+#   LastChange : 2026-05-14 05:37:51
 #=============================================================================
 
 set -euo pipefail
@@ -47,7 +47,7 @@ OPTIONS
 REQUIREMENTS
   • the $(c 0Ci)GITHUB_TOKEN$(c) or $(c 0Ci)GH_TOKEN$(c) or $(c 0Ci)SEMANTIC_RELEASE_TOKEN$(c) environment variable must be set with a valid GitHub token; and
     the $(c 0Ci)GITHUB_USER$(c) environment variable must be set with a valid GitHub username, or the $(c 0Ci)git user.name$(c) must be configured
-  • the $(c Biu).releaserc.json$(c) file must be present in the current directory
+  • the $(c Biu).releaserc.js$(c) or $(c Biu).releaserc.json$(c) file must be present in the current directory
   • $(c Wsu)semantic-release$(c) must be installed globally or available in the PATH. install via $(c 0Mi)\`\$ ${ME} --init\`$(c)
 
 NOTE
@@ -104,7 +104,7 @@ cmd+=( npx semantic-release --branch "${branch}" )
 # fall back to global config when no local .releaserc* / release.config.* is found
 if ! compgen -G ".releaserc*" > /dev/null && ! compgen -G "release.config.*" > /dev/null; then
   # shellcheck disable=SC2015
-  [[ -f "${HOME}/.releaserc.json" ]] && cmd+=( --extends "${HOME}/.releaserc.json" ) || die "no local .releaserc found and \$HOME/.releaserc.json does not exist"
+  [[ -f "${HOME}/.releaserc.js" ]] && cmd+=( --extends "${HOME}/.releaserc.js" ) || die "no local .releaserc found and \$HOME/.releaserc.js does not exist"
 fi
 
 "${debug}"  && cmd+=( --debug )

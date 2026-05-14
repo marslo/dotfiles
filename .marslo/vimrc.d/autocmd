@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-13 16:36:55
+"    LastChange : 2026-05-14 03:44:45
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -313,6 +313,7 @@ if has( 'autocmd' )
 
   " for &buftype in 'help', 'nofile', 'terminal', 'quickfix/locationlist', 'prompt', ...
   function! s:MinimalUI() abort
+    if IsVscodeOrCursor() || empty(&buftype) | return | endif
     setlocal nonumber norelativenumber nospell nofoldenable signcolumn=no foldcolumn=0 colorcolumn=
     let b:coc_diagnostic_disable = 1
   endfunction
@@ -321,7 +322,7 @@ if has( 'autocmd' )
     autocmd!
     autocmd FileType                      *              ++nested call s:ApplyFTSettings()
     autocmd BufWinEnter                   *              call s:ApplyFTSettings()
-    autocmd FileType,BufEnter,BufWinEnter *              if !empty(&buftype) | call s:MinimalUI() | endif
+    autocmd FileType,BufEnter,BufWinEnter *              call s:MinimalUI()
     autocmd BufWinEnter                   copilot:///log call timer_start(50, {-> execute('resize -8')})
     autocmd BufEnter                      copilot:///*   setlocal modifiable
     autocmd BufEnter                      copilot:///log setlocal wrap filetype=log
