@@ -40,8 +40,8 @@ Plug 'junegunn/fzf.vim'
 Plug 'dbeniamine/cheat.sh-vim'
 Plug 'simnalamburt/vim-mundo', { 'on': 'MundoToggle' }
 Plug 'preservim/tagbar'
-Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
-Plug 'tiagofumo/vim-nerdtree-syntax-highlight', { 'on':  'NERDTreeToggle' }
+Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeToggle', 'NERDTree'] }
+Plug 'tiagofumo/vim-nerdtree-syntax-highlight', { 'on':  ['NERDTreeToggle', 'NERDTree'] }
 Plug 'marslo/vim-devicons', { 'branch': 'sandbox/marslo' }
 Plug 'marslo/authorinfo'
 Plug 'LunarWatcher/auto-pairs', { 'branch': 'develop' }
@@ -115,7 +115,11 @@ if IsNvim() || IsVscodeOrCursor()
 
   " treesitter & lint
   Plug 'nvim-treesitter/nvim-treesitter', { 'branch': 'main', 'do': ':TSUpdate' }
+  Plug 'nvim-treesitter/nvim-treesitter-textobjects', {'branch': 'main'}
   Plug 'mfussenegger/nvim-lint'
+
+  " oil
+  Plug 'stevearc/oil.nvim'
 endif
 
 if IsVim()
@@ -260,13 +264,13 @@ let g:airline_theme                                = 'base16_embers'" 'apprentic
 let g:Powerline_symbols                            = 'fancy'
 let g:airline_section_y                            = ''             " fileencoding
 let g:airline_section_x                            = ''
-let g:airline_section_z                            = '<%{AirlineFileSize()}> %p%% %l/%L:%v [%n]'
+let g:airline_section_z                            = '<%{AirlineFileSize()}> %p%% %l/%L:%v [%B]'
 let g:airline_skip_empty_sections                  = 1
 let g:airline_detect_modified                      = 1
 let g:airline_detect_paste                         = 1
 let g:airline_extensions                           = [ 'ale', 'branch', 'tabline', 'coc', 'fzf', 'wordcount' ]
 let g:airline#extensions#wordcount#enabled         = 1
-let g:airline#extensions#wordcount#filetypes       = '\vtext|nroff|plaintex|markdown|md'
+let g:airline#extensions#wordcount#filetypes       = '\vtext|nroff|plaintex|markdown|md|html'
 let g:airline#extensions#quickfix#enabled          = 0
 let g:airline#extensions#quickfix#quickfix_text    = 'Quickfix'
 let g:airline_stl_path_style                       = 'short'
@@ -340,7 +344,20 @@ if ! IsVscodeOrCursor()
   autocmd CursorHold,CursorHoldI * call airline#update_statusline()
 endif
 
-" scrooloose/nerd utf-8 tree
+" scrooloose/nerdtree
+" using NerdTree instead of netrw (native tree view) for directory navigation
+let g:loaded_netrw                = 1
+let g:loaded_netrwPlugin          = 1
+if !has('nvim')
+  function! s:NERDTreeOpenDir() abort
+    if isdirectory( expand('%') )
+      bwipeout
+      NERDTree
+      vertical resize
+    endif
+  endfunction
+  autocmd VimEnter * ++nested call s:NERDTreeOpenDir()
+endif
 " control+option+n in macOS
 map <C-A-n> :NERDTreeToggle<CR>
 nnoremap <silent> <leader>nt :NERDTreeToggle<CR>
@@ -349,7 +366,8 @@ let NERDTreeHighlightCursorline   = 0
 let g:NERDTreeShowLineNumbers     = 0
 let g:NERDTreeQuitOnOpen          = 1
 let g:NERDTreeWinPos              = 'left'
-let g:NERDTreeWinSize             = 22
+" 20% - dynamic, or hardcode - 30
+let g:NERDTreeWinSize             = float2nr(&columns * 0.20)
 " cause devicon color issue
 " let g:NERDTreeFileLines         = 1
 let g:NERDTreeDirArrowExpandable  = '+'
@@ -382,10 +400,9 @@ let g:NERDTreeIgnore              = [
       \ '.gradle.*',
       \ '.gnupg'
       \]
-" autocmd BufEnter * if winnr() == winnr('h') && bufname('#') =~ 'NERD_tree_\d\+' && bufname('%') !~ 'NERD_tree_\d\+' && winnr('$') > 1 |
-"     \ let buf=bufnr() | buffer# | execute "normal! \<C-W>w" | execute 'buffer'.buf | endif
-" autocmd BufEnter * if winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() | quit | endif
+" quit NERDTree if only one tab left
 autocmd BufEnter NERD_tree_* if winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() | quit | endif
+" open file in right split window if it's a NERDTree buffer - prevent file opening in nerdtree window
 autocmd BufEnter *           if winnr() == winnr('h') && bufname('#') =~# 'NERD_tree_' && bufname('%') !~# 'NERD_tree_' && winnr('$') > 1 |
     \ let buf=bufnr() | buffer# | execute "normal! \<C-W>w" | execute 'buffer'.buf | endif
 " autocmd VimEnter *  NERDTree
@@ -577,7 +594,8 @@ let g:ale_lint_on_insert_leave            = 0
 let g:ale_lint_on_text_changed            = 'never'
 let g:ale_fix_on_save                     = 0
 let g:ale_lint_on_save                    = 1
-let g:ale_linters_explicit                = 1
+" enable ale for all filetypes: 1 -> read g:ale_linters only; 0 -> auto-detect linters based on filetype
+let g:ale_linters_explicit                = 0
 
 let g:ale_warn_about_trailing_blank_lines = 1
 let g:ale_warn_about_trailing_whitespace  = 1
@@ -681,7 +699,8 @@ let g:syntastic_dockerfile_checkers      = [ 'hadolint' ]
 
 " github/copilot.vim
 if IsVim()
-  " let g:copilot_proxy          = 'http://ipamunix.domain.com:8080'
+  " -- setup environment variable PROXY_URL first -- "
+  " let g:copilot_proxy          = !empty($PROXY_URL) ? $PROXY_URL : 'http://proxy.domain.com:8080'
   let g:copilot_proxy_strict_ssl = v:false
   let g:copilot_filetypes        = {
       \ '*': v:true,

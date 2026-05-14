@@ -27,7 +27,8 @@ else
   set mousemodel=extend
 endif
 
-set colorcolumn=80
+set colorcolumn=80                                                  " highlight the 80th column background - :highlight ColorColumn
+" set textwidth=80                                                  " auto break line when exceed 80 characters
 set lazyredraw
 set fileformat=unix
 set fileformats=unix

@@ -35,6 +35,12 @@ if not ok_ts then
   vim.notify(err_ts, vim.log.levels.WARN)
 end
 
+-- treesitter-textobjects
+pcall( require, 'config.nvim-treesitter-textobjects' )
+
+-- oil.nvim
+pcall( require, 'config.oil' )
+
 -- nvim-cmp
 pcall( require, 'config.cmp' )
 

@@ -73,4 +73,4 @@ function! IsVim()
   return ! ( has('nvim') || exists('g:vscode') )
 endfunction
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=viml
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:

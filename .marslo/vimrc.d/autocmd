@@ -226,19 +226,17 @@ if has( 'autocmd' )
     autocmd VimEnter * if exists(":Tabularize") | exe ":AddTabularPattern 1== /^[^=]*\zs=/r1c1l0" | endif
   augroup END
 
+  " different:
+  " - ColumnLimit can highlight fg color
+  " - ColorColumn only for bg (set colorcolumn=80)
   augroup ColumnLimit
-    autocmd!
     let s:columnLimit = 80
     let s:pattern     = '\%<' . (s:columnLimit+1) . 'v.\%>' . s:columnLimit . 'v'
-    " disable for nofile ( &buftype !=# '' )
+    highlight! link ColumnLimit ColorColumn
+    autocmd!
     autocmd VimEnter,BufWinEnter,WinEnter *
-          \ if empty( &buftype )
-          \ |   if !exists( 'w:m1' ) || w:m1 == -1
-          \ |     let w:m1 = matchadd( 'ColumnLimit', s:pattern, -1 )
-          \ |   endif
-          \ | elseif exists( 'w:m1' ) && w:m1 != -1
-          \ |   silent! call matchdelete( w:m1 )
-          \ |   let w:m1 = -1
+          \ if empty( &buftype ) && ( !exists( 'w:m1' ) || w:m1 == -1 )
+          \ |   let w:m1 = matchadd( 'ColumnLimit', s:pattern, -1 )
           \ | endif
   augroup END
 
@@ -273,7 +271,8 @@ if has( 'autocmd' )
             \  if getline(1) =~# 'vim:.*ft=help' && &filetype !=# 'help'
             \|   doautocmd FileType
             \| endif
-    autocmd BufRead,BufNewFile *                               if empty( &filetype ) | setfiletype Jenkinsfile | endif
+    " set syntax instead of filetype will avoid lint analysis
+    autocmd BufEnter           *                               if empty( &filetype ) && empty( &buftype ) | setlocal syntax=groovy nospell | endif
     " restore cursor position when reopen file
     autocmd BufReadPost        *
             \ if line("'\"") > 1 && line("'\"") <= line("$") && &filetype !~# 'commit' |
@@ -312,18 +311,22 @@ if has( 'autocmd' )
   augroup END
 
 
+  " for &buftype in 'help', 'nofile', 'terminal', 'quickfix/locationlist', 'prompt', ...
+  function! s:MinimalUI() abort
+    setlocal nonumber norelativenumber nospell nofoldenable signcolumn=no foldcolumn=0 colorcolumn=
+    let b:coc_diagnostic_disable = 1
+  endfunction
+
   augroup LAST_OVERRIDE
     autocmd!
-    autocmd FileType    *              ++nested call s:ApplyFTSettings()
-    autocmd BufWinEnter *              call s:ApplyFTSettings()
-    autocmd BufEnter    *              if !empty(&buftype) | setlocal nonumber norelativenumber nospell nofoldenable signcolumn=no foldcolumn=0 | endif
-    " :InspectTree
-    autocmd FileType    query          setlocal nonumber norelativenumber nospell nofoldenable signcolumn=no foldcolumn=0
-    autocmd BufWinEnter copilot:///log call timer_start(50, {-> execute('resize -5')})
-    autocmd BufEnter    copilot:///*   setlocal modifiable
-    autocmd BufEnter    copilot:///log setlocal wrap filetype=log
+    autocmd FileType                      *              ++nested call s:ApplyFTSettings()
+    autocmd BufWinEnter                   *              call s:ApplyFTSettings()
+    autocmd FileType,BufEnter,BufWinEnter *              if !empty(&buftype) | call s:MinimalUI() | endif
+    autocmd BufWinEnter                   copilot:///log call timer_start(50, {-> execute('resize -8')})
+    autocmd BufEnter                      copilot:///*   setlocal modifiable
+    autocmd BufEnter                      copilot:///log setlocal wrap filetype=log
     " ctrl+x ctrl+e
-    autocmd BufReadPost **/T/bash-fc.* let b:coc_diagnostic_disable = 1
+    autocmd BufReadPost                   **/T/bash-fc.* let b:coc_diagnostic_disable = 1
   augroup END
 
 endif

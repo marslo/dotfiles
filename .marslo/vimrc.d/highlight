@@ -18,11 +18,6 @@ highlight! SpellBad         term=underline cterm=underline ctermbg=NONE    guibg
 " highlight! PasteHighlight ctermfg=235   ctermbg=175   guifg=#282828 guibg=#d3869b
 highlight! PasteHighlight   ctermfg=67    ctermbg=175   guifg=#282828 guibg=#5f87af
 
-" let s:columnLimit = 80
-if IsVim()
-  highlight! ColumnLimit    guibg=#4e4e4e   ctermbg=240
-endif
-
 " log filetype
 highlight! logLevelInfo ctermfg=175 guifg=#5f87af
 

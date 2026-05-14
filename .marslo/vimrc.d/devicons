@@ -29,14 +29,17 @@ let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['devops']               = 
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['vars']                 = '󱆃'
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['src']                  = '󰵮'
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['snips']                = '󰷺'
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['.vimrc']               = ''
+let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['COPYRIGHT']            = '󰗦'
 
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols                       = {}
-let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*marslo.*$']        = '󰮯' " 🇨🇳
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*marslo.*$']        = '󰁥' "'󰮯' 🇨🇳
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*ignore$']          = ''
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*rc$']              = '󱍢'
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*git.*$']           = ''
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*profile$']         = '󰙄'
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*[Jj]enkinsfile.*'] = ''
+let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*[Pp]ipeline.*']    = ''
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^candidate$']        = '󰷺' " ''
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^doxygen$']          = '󰷺' " ''
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^internal$']         = '󰷺' " ''
@@ -65,7 +68,6 @@ endif
 if stridx(expand('%:p:h'), '.marslo/vimrc.d') >= 0
   let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*']               = ''
 endif
-let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['.vimrc']               = ''
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*vimrc.*']          = ''
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^autocmd$']          = ''
 let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['^cmds$']             = ''
@@ -92,6 +94,7 @@ let g:NERDTreeExtensionHighlightColor['css']              = 'fd7e14'       " #fd
 let g:NERDTreeExtensionHighlightColor['snippets']         = 'fd7e14'       " #4682b4
 let g:NERDTreeExactMatchHighlightColor                    = {}
 let g:NERDTreeExactMatchHighlightColor['README']          = '0099BD'       " #0099BD
+let g:NERDTreeExactMatchHighlightColor['COPYRIGHT']       = 'ba55d3'       " #ba55d3
 let g:NERDTreePatternMatchHighlightColor                  = {}
 let g:NERDTreePatternMatchHighlightColor['.*rc$']         = '616E88'       " #616E88
 let g:NERDTreePatternMatchHighlightColor['.*git.*$']      = '6c71c4'       " #6c71c4
