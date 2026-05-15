@@ -57,6 +57,9 @@ module.exports = {
       }
     }],
     ["@semantic-release/changelog", { "changelogFile": "CHANGELOG.md" }],
+    ["@semantic-release/exec", {
+      "prepareCmd": "pre-commit run --files CHANGELOG.md || true"
+    }],
     ["@semantic-release/git", {
       "assets": ["CHANGELOG.md"],
       "message": "chore(release): v${nextRelease.version}"

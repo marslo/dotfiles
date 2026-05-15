@@ -4,7 +4,7 @@
 #     FileName : semantic-release
 #       Author : marslo
 #      Created : 2025-06-17 23:02:43
-#   LastChange : 2026-05-14 05:37:51
+#   LastChange : 2026-05-14 18:57:01
 #=============================================================================
 
 set -euo pipefail
@@ -25,6 +25,7 @@ declare -r ACCOUNT="${GITHUB_USER:-${GIT_USER:-marslo}}"
 declare -r TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-${SEMANTIC_RELEASE_TOKEN:-}}}"
 
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
+declare -a DEFAULT_RCS=( "${HOME}/.releaserc.js" "${HOME}/.releaserc.json" )
 declare init=false
 declare debug=false
 declare dryrun=false
@@ -101,10 +102,13 @@ cmd+=( GIT_BRANCH="${branch}" )
 [[ -n "${NPM_GLOBAL_ROOT}" ]] && cmd+=( NODE_PATH="${NPM_GLOBAL_ROOT}" )
 cmd+=( npx semantic-release --branch "${branch}" )
 
-# fall back to global config when no local .releaserc* / release.config.* is found
+# rc lookup: cwd → repo root → default (~/.releaserc.{js,json})
 if ! compgen -G ".releaserc*" > /dev/null && ! compgen -G "release.config.*" > /dev/null; then
-  # shellcheck disable=SC2015
-  [[ -f "${HOME}/.releaserc.js" ]] && cmd+=( --extends "${HOME}/.releaserc.js" ) || die "no local .releaserc found and \$HOME/.releaserc.js does not exist"
+  declare _root; _root="$(git rev-parse --show-toplevel 2>/dev/null)"
+  for _rc in ${_root:+"${_root}"/.releaserc* "${_root}"/release.config.*} "${DEFAULT_RCS[@]}"; do
+    [[ -f "${_rc}" ]] && { cmd+=( --extends "${_rc}" ); break; }
+  done
+  [[ "${cmd[*]}" != *'--extends'* ]] && die "no rc found in: ${_root:+${_root}, }${DEFAULT_RCS[*]}"
 fi
 
 "${debug}"  && cmd+=( --debug )

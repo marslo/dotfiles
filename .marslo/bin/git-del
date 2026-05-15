@@ -4,8 +4,8 @@
 #     FileName : git-del
 #       Author : marslo
 #      Created : 2023-12-14 17:55:55
-#   LastChange : 2026-04-21 18:15:38
-#  Description : delete branch or tag from remote and local
+#   LastChange : 2026-05-14 18:56:12
+#  Description : delete branch or tag from remote and/or local
 #                -  - E0A0/E725
 #=============================================================================
 
@@ -14,8 +14,7 @@ declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
-# shellcheck disable=SC2015
-test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
+source "${HERE}/bash-colors.sh" 2>/dev/null || { c() { :; }; }
 
 declare BRANCHES=''
 declare TAGS=''
@@ -45,24 +44,29 @@ EXAMPLES
   $(c Ys)\$ ${ME} $(c 0Gi)-r $(c 0Mi)feature/foo$(c)     $(c Wdi)# delete remote branch 'feature/foo'$(c)
 """
 
-function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
+function die()      { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
 function showHelp() { echo -e "${USAGE}"; exit 0; }
-function info()    { echo -e "$(c Wd)>>$(c) $*$(c)"; }
-function success() { info "$(c Wdi)$1 :$(c) $(c Mis)$2$(c) $(c Wdi)$3$(c)"; }
-function warn()    { info "$(c Mis)$1$(c) $(c Wdi)$2$(c)"; }
+function info()     { echo -e "$(c Wd)>>$(c) $*$(c)"; }
+function success()  { info "$(c Wdi)$1 :$(c) $(c Mis)$2$(c) $(c Wdi)$3$(c)"; }
+function warn()     { info "$(c Mis)$1$(c) $(c Wdi)$2$(c)"; }
+# shellcheck disable=SC2001,SC2016
+function es()       { sed -e 's/[]\.|$(){}?+*^[\&]/\\&/g' <<< "$1"; }
+function pure()     { sed -re 's:^(refs/)?(heads/)?(tags/)?(remotes/)?(origin/)?(.*)$:\6:' <<< "$1"; }
 
 function deleteRemote() {
-  local name="$1"
+  local name="${1:?name is required}"
   if [[ -n "${REMOTE_REF}" ]]; then
-    git push origin --delete "${name}"
-    success "${REMOTE_REF}" "origin/${name}" "removed from remote ..."
+    # shellcheck disable=SC2015
+    git push origin --delete "${name}" \
+      && success "${REMOTE_REF}" "origin/${name}" "removed from remote ..." \
+      || warn "failed to delete ${REMOTE_REF} origin/${name} ..."
   else
     warn "origin/${name}" "cannot be found in remote ..."
   fi
 }
 
 function deleteLocal() {
-  local name="$1"
+  local name="${1:?name is required}"
   if   [[ 1 = "${BRANCH_FOUND}" ]]; then git branch -D "${name}" && success "branch " "${name}" "removed from local ..."
   elif [[ 1 = "${TAG_FOUND}"    ]]; then git tag    -d "${name}" && success "tag    " "${name}" "removed from local ..."
   else warn "${name}" "cannot be found in local ..."
@@ -84,7 +88,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "fatal: not a git repository" >&2; exit 128; }
-git remote | grep -q . && git fetch --tags --prune --prune-tags --quiet
+declare -r CURRENT_BRANCH="$(es "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)")"
+git remote | grep --color=never -q . && git fetch --tags --prune --prune-tags --quiet
 
 # build refs based on the MODE
 declare -a refs=()
@@ -98,9 +103,11 @@ BRANCHES="$( git for-each-ref "${refs[@]}" --sort=-committerdate --format='%(ref
 TAGS=$(git for-each-ref refs/tags --sort=-committerdate --format='%(refname:lstrip=1)')
 
 if [[ -n "${refname:-}" ]]; then
+  # normalize user-supplied refname: refs/remotes/origin/foo, refs/heads/foo, origin/foo, refs/tags/v1 → bare name
+  refname="$(pure "${refname}")"
   refname=$( { echo "${BRANCHES}"; echo "${TAGS}"; } | fmt -1 |
-             grep --color=never -vE '^[[:space:]]*$|origin$' |
-             grep --color=never -E "${refname}$" |
+             grep --color=never -vE "^[[:space:]]*$|origin$|^(origin/)?${CURRENT_BRANCH}$" |
+             grep --color=never -E "$(es "${refname}")$" |
              sed -rn "s:\s*(origin/)?(.*)$:\2:p" |
              uniq
            )
@@ -108,7 +115,7 @@ else
   declare plogs="git --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative {-1}"
   declare gpreview="git show --color=always {-1}"
   refname=$( { echo "${BRANCHES}"; echo "${TAGS}"; } | fmt -1 |
-               grep --color=never -vE '^[[:space:]]*$|origin$' |
+             grep --color=never -vE "^[[:space:]]*$|origin$|^(origin/)?${CURRENT_BRANCH}$" |
                fzf -0 +m --prompt=' ' \
                    --preview "${plogs}" \
                    --height 50% --min-height 10+ \
@@ -121,16 +128,15 @@ else
 fi
 [[ -z "${refname}" ]] && exit;
 
-declare name=''
-name=$(sed -re 's:^(refs/)?(heads/)?(tags/)?(remotes/)?(origin/)?(.*)$:\6:' <<< "${refname}");
+declare name="$(pure "${refname}")"
 
 # check remote ref type
-echo "${BRANCHES}"    | grep --color=never -qE "^origin/${name}$" && REMOTE_REF='branch'
-echo "${TAGS}"        | grep --color=never -qE "^tags/${name}$"   && REMOTE_REF='tag'
+echo "${BRANCHES}"    | grep --color=never -qE "^origin/$(es "${name}")$" && REMOTE_REF='branch'
+echo "${TAGS}"        | grep --color=never -qE "^tags/$(es "${name}")$"   && REMOTE_REF='tag'
 
 # check local ref status
-echo "${BRANCHES}"    | grep --color=never -qE "^${name}$"        && BRANCH_FOUND=1
-git --no-pager tag -l | grep --color=never -qxF "${name}"         && TAG_FOUND=1
+echo "${BRANCHES}"    | grep --color=never -qE "^$(es "${name}")$"        && BRANCH_FOUND=1
+git --no-pager tag -l | grep --color=never -qxF "${name}"                 && TAG_FOUND=1
 
 test 'local'  != "${MODE}" && deleteRemote "${name}"
 test 'remote' != "${MODE}" && deleteLocal  "${name}"
