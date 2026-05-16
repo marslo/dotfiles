@@ -21,7 +21,14 @@ repos:
         args: ["--unsafe"]
       - id: check-json
         name: Check JSON
-        exclude: ^\.config/nvim/coc-settings\.json$
+        exclude: (?x)^(
+            .*rc.*\.json|
+            .*config.*\.json|
+            .*[Ss]ettings.*\.json|
+            .*keybindings\.json|
+            .*\.code-workspace|
+            \.vscode/.*\.json
+          )$
       - id: check-merge-conflict
         name: Check Merge Conflict
       - id: check-case-conflict
@@ -52,6 +59,20 @@ repos:
         name: Remove Tabs (4 spaces)
         args: [--whitespaces-count, '4']
         files: '\.py$'
+
+  - repo: https://gitlab.com/bmares/check-json5
+    rev: v1.0.1
+    hooks:
+      - id: check-json5
+        name: Check JSONC
+        files: (?x)(
+            .*rc.*\.json|
+            .*config.*\.json|
+            .*[Ss]ettings.*\.json|
+            .*keybindings\.json|
+            .*\.code-workspace|
+            \.vscode/.*\.json
+          )$
 
   - repo: https://github.com/crate-ci/typos
     rev: v1.46.1

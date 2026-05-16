@@ -24,7 +24,18 @@
 #
 # Online reference: https://github.com/SirVer/ultisnips/blob/master/doc/UltiSnips.txt
 
-snippet #!! "shebang" b
+# snippet #!! "shebang" b
+# #!/usr/bin/env groovy
+#
+# @Library( 'sdk-release-libs@${1:sdk-release-automation-devel}' ) _
+#
+# import groovy.transform.Field
+# ${2}
+#
+# // vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=Jenkinsfile:
+# endsnippet
+
+snippet #!! "shebang dropdown" rb
 #!/usr/bin/env groovy
 
 @Library( 'sdk-release-libs@${1:sdk-release-automation-devel}' ) _
@@ -58,6 +69,26 @@ snippet /** "block comments"
 /**
  * ${1}
 **/
+endsnippet
+
+snippet /*glint "insert groovylint-disable"
+/* groovylint-disable ${1} */
+endsnippet
+
+snippet /*lint "insert groovylint-disable"
+/* groovylint-disable ${1} */
+endsnippet
+
+snippet //lint "insert groovylint-disable-line"
+// groovylint-disable-line ${1}
+endsnippet
+
+snippet //glint "insert groovylint-disable-line"
+// groovylint-disable-line ${1}
+endsnippet
+
+snippet //lint-next "insert groovylint-disable-next-line"
+// groovylint-disable-next-line ${1}
 endsnippet
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=snippets:

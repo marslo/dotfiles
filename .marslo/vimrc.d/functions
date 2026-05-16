@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-04-21 16:49:03
+"    LastChange : 2026-05-15 17:25:52
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -296,7 +296,38 @@ function! PlugUpdateHTTPS()
     let $GIT_CONFIG_GLOBAL = l:old_global
     let $GIT_CONFIG_SYSTEM = l:old_system
 endfunction
-
 command! PlugUpdateHTTPS call PlugUpdateHTTPS()
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
+" ,cy: copy lint message on current line to clipboard (for ALE plugin)
+function! CopyLintMessage() abort
+  let l:buf = bufnr('%')
+  let l:line = line('.')
+  let l:msgs = []
+  for l:item in ale#engine#GetLoclist(l:buf)
+    if l:item.lnum == l:line
+      call add(l:msgs, l:item.text)
+    endif
+  endfor
+  if empty(l:msgs)
+    echo 'No lint message on current line'
+    return
+  endif
+  let l:text = join(l:msgs, "\n")
+  call system('pbcopy', l:text)
+  echo 'Copied: ' . l:text[:80] . (len(l:text) > 80 ? '...' : '')
+endfunction
+nnoremap <silent> <Leader>cy :call CopyLintMessage()<CR>
+
+" :Iname [-p] : echo current file path, and copy to clipboard if `-p` is provided
+function! s:Iname(args) abort
+  let l:path = expand('%:p')
+  if a:args =~# '\v-?p'
+    call system('pbcopy', l:path)
+    echo l:path . '  [copied]'
+  else
+    echo l:path
+  endif
+endfunction
+command! -nargs=? Iname call s:Iname(<q-args>)
+
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:

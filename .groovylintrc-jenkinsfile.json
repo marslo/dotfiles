@@ -1,0 +1,17 @@
+// recommended-jenkinsfile: https://github.com/nvuillam/npm-groovy-lint/blob/main/lib/.groovylintrc-recommended-jenkinsfile.json
+{
+  "extends": "recommended-jenkinsfile",
+  "rules": {
+    "basic.IfStatementBraces": "info",
+    "basic.LineLength": "off",
+    "groovyism.ExplicitCallToMinusMethod": "info"
+    // "basic.ParameterCount": "info",
+    // "dry.DuplicateListLiteral": "info",
+    // "dry.DuplicateMapLiteral": "warning",
+    // "dry.DuplicateStringLiteral": "info",
+    // "unused.UnusedArray": "error",
+    // "unused.UnusedObject": "error",
+    // "unused.UnusedPrivateField": "error",
+    // "unused.UnusedPrivateMethod": "error"
+  }
+}

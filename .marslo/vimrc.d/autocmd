@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-14 03:44:45
+"    LastChange : 2026-05-15 17:28:24
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -55,7 +55,7 @@ endfunction
 
 let s:ft_settings = {
       \ 'json':         { 'tabstop': 4, 'softtabstop': 4, 'shiftwidth': 4, 'foldmethod': 'indent', 'commentstring': '// %s', 'conceallevel': 2, 'concealcursor': 'c' },
-      \ 'jsonc':        { 'foldmethod': 'indent', 'conceallevel': 2, 'concealcursor': 'c' },
+      \ 'jsonc':        { 'foldmethod': 'indent', 'conceallevel': 2, 'concealcursor': 'c', 'commentstring': '// %s' },
       \ 'yaml':         { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'foldmethod': 'indent' },
       \ 'markdown':     { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'foldmethod': 'indent', 'spell': v:true, 'conceallevel': 2, 'concealcursor': 'c' },
       \ 'sh':           { 'tabstop': 2, 'softtabstop': 2, 'shiftwidth': 2, 'expandtab': v:true, 'foldmethod': 'indent' },
@@ -130,12 +130,11 @@ if has( 'autocmd' )
             \| let g:vim_json_syntax_conceal = 0
             \| let b:ale_open_list           = 'on_save'
     " force set jsonc for json with comments: $ npm i -g vscode-langservers-extracted
-    autocmd BufNewFile,BufRead *tsconfig*.json,
-            \ ,*eslintrc*.json
-            \ ,*babelrc*.json
-            \ ,*.code-workspace
-            \ ,.vscode/*.json
-            \ ,*[Ss]ettings*.json,*.json.current,*keybindings.json
+    autocmd BufNewFile,BufRead *rc*.json,*config*.json,*[Ss]ettings*.json,*.json.current,*keybindings.json
+            \,*tsconfig*.json
+            \,*eslintrc*.json,*babelrc*.json,*.groovylintrc*.json
+            \,*.code-workspace
+            \,.vscode/*.json
             \ set filetype=jsonc
     autocmd FileType           markdown,html
             \ let g:AutoPairsCompleteOnlyOnSpace = 1 |
@@ -161,7 +160,7 @@ if has( 'autocmd' )
 
   augroup ShellScript
     autocmd!
-    autocmd Syntax       bash                 set filetype=sh
+    autocmd Syntax       bash                 setlocal filetype=sh
     autocmd FileType     sh,bash,shell        call SafeRetab()
     autocmd BufWritePre  *.sh                 call SafeRetab()
     " automatic redraw for shellcheck
@@ -173,12 +172,13 @@ if has( 'autocmd' )
 
   augroup Groovy
     autocmd!
-    autocmd Filetype    Groovy                set filetype=groovy syntax=groovy
-    autocmd FileType    groovy,Jenkinsfile    let b:ale_open_list = 'on_save'
+    autocmd Filetype    Groovy                setlocal filetype=groovy syntax=groovy
+    " autocmd FileType  groovy,Jenkinsfile    let b:ale_open_list = 'on_save'
     " FileType: first open (BufWinEnter can run before ft is set). BufWinEnter: switch back to buffer.
     " autocmd FileType  groovy                call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
     autocmd BufWinEnter *                     call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
     autocmd Syntax      groovy,Jenkinsfile    if empty(&buftype) | silent! normal zM | endif
+    autocmd FileType   Jenkinsfile            let b:ale_groovy_npmgroovylint_options = '--loglevel warning --config ' . expand( '~/.groovylintrc-jenkinsfile.json' )
 
     if did_filetype()                       | finish             | endif
     " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
@@ -294,6 +294,22 @@ if has( 'autocmd' )
     autocmd QuickFixCmdPost    *grep*                          cwindow
     autocmd Syntax             c,cpp,xml,html,xhtml            if empty(&buftype) | silent! normal zM | endif
   augroup END
+
+  " force set input method
+  if executable('macime')
+    let g:ime_en = 'com.apple.keylayout.US'
+    function! s:SwitchToEN() abort
+      if trim( system('macime get') ) !=# g:ime_en
+        call system( 'macime set ' . g:ime_en . ' &>/dev/null &' )
+      endif
+    endfunction
+    augroup Ime_Switch
+      autocmd!
+      autocmd WinEnter     * silent! call <SID>SwitchToEN()
+      autocmd InsertLeave  * silent! call <SID>SwitchToEN()
+      autocmd CmdlineLeave * silent! call <SID>SwitchToEN()
+    augroup END
+  endif
 
   " vim-matchup
   augroup MatchupTripleQuotes
