@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-05-15 19:46:13
+#   LastChange : 2026-05-16 01:13:54
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1569,6 +1569,30 @@ function avpw() {                          # [a]nsible [v]ault [p]ass[w]ord
     export ANSIBLE_VAULT_PASSWORD_FILE="$HOME/.marslo/.vault/${_file}.txt" &&
     echo -e "$(c Wd)>>$(c) $(c Gis)${_file}$(c) $(c Wdi)has been exported ..$(c)" &&
     penv -q ANSIBLE_VAULT_PASSWORD_FILE
+}
+
+# etheme       : to set the eza theme
+# @author      : marslo
+# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
+function etheme() {                        # [e]za [theme]
+  local _eza_themes="$HOME/.config/eza/eza-themes/themes"
+  # clone if necessary
+  test -d "${_eza_themes}" || {
+    echo -e "\033[0;3;36mdownloading eza themes...\033[0m"
+    mkdir -p "$(dirname ${_eza_themes})" || { echo "Failed to create directory '${_eza_themes}'"; return 1; }
+    git clone https://github.com/eza-community/eza-themes.git "$(dirname ${_eza_themes})"
+  }
+
+  # shellcheck disable=SC2016
+  local _theme=$(
+    fd -e yml --base-directory "${_eza_themes}" -t f -x basename {} .yml |
+    fzf --no-multi --cycle --height 50% --preview '$HOME/.marslo/bin/fzf-preview.sh '"${_eza_themes}"'/{}.yml' --preview-window 'right:70%,rounded'
+  )
+
+  test -n "${_theme:-}" && {
+    ln -sf "${_eza_themes}/${_theme}.yml" "${EZA_CONFIG_DIR}/theme.yml"
+    echo -e "$(c Wd)>>$(c) $(c Gis)${_theme}$(c) $(c Wdi)has been set as eza theme ..$(c)"
+  }
 }
 
 # /**************************************************************

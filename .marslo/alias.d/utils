@@ -2,14 +2,10 @@
 # shellcheck source=/dev/null disable=SC2015,SC2290,SC2139
 # =============================================================================
 #   FileName: utils
-#     Author: marslo.jiao@gmail.com
+#     Author: marslo
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2026-04-30 18:31:33
+# LastChange: 2026-05-15 22:45:46
 # =============================================================================
-
-# using source instead of alias in ~/.marslo/.marslorc
-# [[ -f "$HOME/.marslo/bin/help"    ]] && alias help='$HOME/.marslo/bin/help'
-# [[ -f "$HOME/.marslo/bin/history" ]] && eval "$(cat "$HOME/.marslo/bin/history")"
 
 if [[ 'Darwin' = $(uname --operating-system) ]]; then
   # requires gnu-which
@@ -17,6 +13,10 @@ if [[ 'Darwin' = $(uname --operating-system) ]]; then
   alias ping='/sbin/ping --apple-time -v'
   alias sping='/sbin/ping -c1 -t1 -W0'
   alias dropcache='sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
+  alias more='more -r'
+  alias man='man 2>/dev/null'
+  alias apropos='apropos 2>/dev/null'
+  alias makewhatis='/usr/libexec/makewhatis'
 else
   alias lvim="vim -c \"normal '0\""
   alias lgvim="gvim -c \"normal '0\""
@@ -24,10 +24,9 @@ else
   alias flushdns="sudo /etc/init.d/nscd restart"
   # shellcheck disable=SC2162
   alias howold="sudo tune2fs -l $(df -h / |(read; awk '{print $1; exit}')) | grep -i created"
+  # alias updatedb='sudo updatedb'
+  alias locate='sudo locate'
 fi
-
-type -P trash >/dev/null      && alias rm='trash' || alias rm='rm -i'
-test -x "$HOME/.npm/bin/tldr" && alias ntldr='$HOME/.npm/bin/tldr -t ocean'
 
 # https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#Aliases
 # https://askubuntu.com/a/22043/92979
@@ -56,9 +55,9 @@ alias decolorize='sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[mGKHfJ]//g"'
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
+alias .....='cd ../../../..'
 alias dc='cd'
 alias sl='ls'
-# alias cdl='cd $@ && ls -Altrh'
 
 alias :q='exit'
 alias :x='exit'
@@ -77,25 +76,24 @@ alias grep='command grep -i --color=always'
 alias lgrep='command grep -i -n --color=always'
 alias egrep='command egrep -i -n --color=always'
 alias egp='command egrep -v "(#|^$)"'
-alias h='history | grep -i --color=always'
-alias his='history'
+alias h='command history | grep -i --color=always'
+alias his='command history'
 
-alias diff='diff --color=auto'
+alias diff='command diff --color=auto'
 # left - right
-alias diff-left="diff --color=auto --old-line-format='%L' --new-line-format='' --unchanged-line-format=''"
+alias diff-left="command diff --color=auto --old-line-format='%L' --new-line-format='' --unchanged-line-format=''"
 # right - left
-alias diff-right="diff --color=auto --old-line-format='' --new-line-format='%L' --unchanged-line-format=''"
+alias diff-right="command diff --color=auto --old-line-format='' --new-line-format='%L' --unchanged-line-format=''"
 
-if isOSX; then alias more='more -r'                ; fi
-if isOSX; then alias man='man 2>/dev/null'         ; fi
-if isOSX; then alias apropos='apropos 2>/dev/null' ; fi
-alias makewhatis='/usr/libexec/makewhatis'
-
+if type -P eza >/dev/null; then
+  alias la='eza -Alg --icons --links --time-style="+%b %d %H:%M" -s modified --ignore-glob=".git"'
+else
+  alias la='ls -Alhtr --color=always'
+fi
 alias ld='\ls -alvd --color=always */'
 alias ls='ls --color=always'
 alias ll='\ls -lvhtr --color=always'
 alias l='ls -Alvhtr --color=always'
-alias la='eza -Alg --links --time-style="+%b %d %H:%M" -s modified --ignore-glob=".git"'
 alias l.='ls -dv .* --color=always'
 alias LS='find -mount -maxdepth 1 -printf "%.5m %10M %#9u:%-9g %#5U:%-5G %TF_%TR %CF_%CR %AF_%AR %#15s [%Y] %p\n" 2>/dev/null'
 alias els='eza -al --group-directories-first --sort=modified --tree --ignore-glob=".git"'
@@ -106,13 +104,7 @@ alias ta='tmux at -t '
 alias tls="tmux list-sessions -F '#{session_created} (created #{t/f/%y-%m-%d %H#:%M#:%S:window_activity}) - #{session_name}: #{session_windows} windows#{?session_grouped - (group ,}#{session_group}#{?session_grouped,),}#{?session_attached, [attached],}' | sort -Vr | sed 's/\S*\s//'"
 alias tmuxls='tmux ls -F "#{session_created} #{session_name}: #{session_windows} windows (created #{t/f/%y-%m-%d %H#:%M#:%S:window_activity})#{?session_grouped, (group ,}#{session_group}#{?session_grouped,),}#{?session_attached, [attached],}" | sort -Vr | sed "s/\S*\s//"'
 
-# alias polipo='polipo -c $HOME/.marslo/polipo/config daemonise=true >/dev/null 2>&1 &'
-alias polipo='polipo -c $HOME/.marslo/polipo/config >/dev/null 2>&1 &'
-alias myaws='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.marslo/Marslo/Tools/Softwares/sshkey/marslo-aws.pem ec2-user@ec2-54-193-78-97.us-west-1.compute.amazonaws.com'
-alias sshmarslo='ssh marslo@118.193.233.78'
 alias nd='npm run deploy'
-# alias rg='rg --hidden --follow --smart-case --vimgrep --ignore-file=$HOME/.rgignore --color=always'
-alias rg='rg --hidden --follow --smart-case --ignore-file=$HOME/.rgignore --color=always'
 alias as-tree='tree --fromfile'
 # tree -F -> to show the `/` for directory
 alias utree='tree -h --du'
@@ -123,14 +115,11 @@ alias udf='du -skh'
 alias uds='du --block-size=MiB --max-depth=1 --exclude="\./\.*" | sort -nr'
 alias uds.='du --block-size=MiB --max-depth=1 | sort -nr'
 alias df='df -kTh'
-alias gerrit='ssh -p 29418 sample.gerrit.com gerrit'
 
 alias chown='sudo chown'
 alias chmod='sudo chmod'
 alias service='sudo service'
 alias systemctl='sudo systemctl'
-# alias updatedb='sudo updatedb'
-alias locate='sudo locate'
 alias ports='sudo netstat -tunplea | grep'
 alias reboot='sudo shutdown -r now'
 alias lgout='read ans; kill -HUP $PPID'
@@ -142,7 +131,7 @@ alias showfonts="fc-list | sed -re 's/^.+\/([^:]+):\s?([^,:]+),?:?.*$/\1 : \2/g'
 
 alias cmount='mount | column -t'
 alias dstat='dstat -cdgilmnprsy'
-alias wget='wget --no-cookies --no-check-certificate --timeout=1 --tries=3 --retry-connrefused'
+alias wget='command wget --no-cookies --no-check-certificate --timeout=1 --tries=3 --retry-connrefused'
 alias curl='command curl --insecure --globoff --netrc-file ~/.marslo/.netrc'
 alias gcurl="command curl --insecure --globoff -H \"Accept: application/vnd.github+json\" -H \"User-Agent: curl\" -H \"Authorization: Bearer $(gh auth token)\""
 alias myip='command curl --insecure --globoff -sS https://ipecho.net/plain'
@@ -153,19 +142,29 @@ alias lsockT='sudo /usr/sbin/lsof -nP | grep TCP'   # lsockT:       Display only
 alias openPorts='sudo lsof -i | grep LISTEN'        # openPorts:    All listening connections
 alias allowedports='sudo /sbin/iptables -L -n'
 
-alias scp='scp -O -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '
+alias scp='scp -O -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+alias gerrit='ssh -p 29418 vgitcentral.marvell.com gerrit'
 alias sshrsa="ssh -i ${MY_WORKSPACE}/tools/remoteaccess/rsa/marslo@devops/marslo@devops"
 alias sshpw='ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no'
+alias myaws='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.marslo/Marslo/Tools/Softwares/sshkey/marslo-aws.pem ec2-user@ec2-54-193-78-97.us-west-1.compute.amazonaws.com'
+alias sshmarslo='ssh marslo@118.193.233.78'
 alias rsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '"
 alias sudorsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' --rsync-path='sudo rsync'"
 
-alias imbusy='cat /dev/urandom | hexdump -C | grep "ca fe"'
-
+alias imbusy='command cat /dev/urandom | /usr/bin/hexdump -C | command grep --color=always "ca fe"'
 alias weekno='date +"%V"'
 alias daysleft='echo "There are $(($(date +%j -d"Dec 31, $(date +%Y)")-$(date +%j))) left in year $(date +%Y)."'
 alias weather='curl wttr.in/sanjose?mMFn'
 
-type -P sslocal >/dev/null         && alias startsslocal='sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_env/ubuntu/backups/ss/sslocal-config.json  -d start --log=/Users/marslo/.marslo/log/sslocal.log'
+test -x "$HOME/.npm/bin/tldr"      && alias ntldr='$HOME/.npm/bin/tldr -t ocean'
+# ~/.marslo/bin/batcolor
+type -P batcolor >/dev/null        && alias bat='batcolor'
+# alias rg='rg --hidden --follow --smart-case --vimgrep --ignore-file=$HOME/.rgignore --color=always'
+type -P rg       >/dev/null        && alias rg='rg --hidden --follow --smart-case --ignore-file=$HOME/.rgignore --color=always'
+# alias polipo='polipo -c $HOME/.marslo/polipo/config daemonise=true >/dev/null 2>&1 &'
+type -P polipo >/dev/null          && alias polipo='polipo -c $HOME/.marslo/polipo/config >/dev/null 2>&1 &'
+type -P trash >/dev/null           && alias rm='trash' || alias rm='rm -i'
+type -P sslocal >/dev/null         && alias startsslocal="sudo sslocal -c ~/mywork/job/code/marslo/backups/1.marslo_env/ubuntu/backups/ss/sslocal-config.json  -d start --log=$HOME/.marslo/log/sslocal.log"
 type -P npm-groovy-lint >/dev/null && alias npm-groovy-lint="$(type -P npm-groovy-lint) --failon warning --noserver"
 type -P difft >/dev/null           && alias difft='difft --override="*.csv:LaTeX"'
 

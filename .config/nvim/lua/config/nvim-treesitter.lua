@@ -23,6 +23,9 @@ local indent_bypass = {
   ["lua"] = true,
   -- using vim_ts_indent() instead of
   -- ["vim"] = true
+  ["sh"] = true,
+  ["bash"] = true,
+  ["zsh"] = true
 }
 
 -- treesitter indent + augroup awareness for vim filetype

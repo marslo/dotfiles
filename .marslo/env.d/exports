@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2154
 # =============================================================================
-#     FileName : fzf
+#     FileName : exports
 #       Author : marslo
 #      Created : 2020-08-25 15:26:55
-#   LastChange : 2026-05-11 15:00:06
+#   LastChange : 2026-05-15 22:46:55
 # =============================================================================
 
 # bat
@@ -12,6 +12,7 @@ export BAT_PAGER="less -RFX"
 # bat cache --build
 export BAT_THEME='gruvbox-dark-marslo'
 export FD_IGNORE_FILE="${HOME}/.fdignore"
+export EZA_CONFIG_DIR="${HOME}/.marslo/.config/eza"
 # colors
 export CLICOLOR=1
 # default: dircolors -b
@@ -257,9 +258,9 @@ type -P cht.sh &>/dev/null && export CHTSH_USE_BAT=true
 export CS_CACHE_DIR="$HOME/.config/cht.sh"
 
 # for git ops
-export GH_OPS_REPOS_FILE="$HOME"/.marslo/gh.d/repos
+export GH_OPS_REPOS_FILE="$HOME"/.marslo/.config/gh.d/repos
 # for ghperm.sh
-export GH_OWNER_LIST="$HOME"/.marslo/gh.d/owners
+export GH_OWNER_LIST="$HOME"/.marslo/.config/gh.d/owners
 # for git nb
 export GIT_NB_INTERACTIVE=false
 # for _load_fzf_context
@@ -269,5 +270,8 @@ export FZF_TOILET_FONT=bfraktur
 # for git mcx
 # using --body or --no-body to enable/disable the body insert
 # export MCX_ENABLE_BODY=true
+
+# for batcolor
+export COLOR_NAMES_JSON="$HOME/.marslo/.config/css-color-names.json"
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

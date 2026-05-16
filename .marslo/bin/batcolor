@@ -3,7 +3,7 @@
 #      FileName : batcolor
 #        Author : marslo
 #       Created : 2026-05-15 19:34:29
-#    LastChange : 2026-05-15 21:48:56
+#    LastChange : 2026-05-15 22:22:23
 #   Description : A wrapper around `bat` that colorizes hex color codes in the output. support:
 #                 - Hex: #fff, #ffffff, 'ffffff'
 #                 - RGB/RGBA: rgb(74, 242, 161), rgba(74, 242, 161, 0.3)
@@ -20,7 +20,10 @@ declare -r JSON_URL='https://github.com/bahamas10/css-color-names/raw/master/css
 function check() {
   [[ -f "${COLOR_NAMES_JSON}" ]] && return 0
 
-  test -f "${COLOR_NAMES_JSON}" || command curl -fsSL --create-dirs -o "${COLOR_NAMES_JSON}" "${JSON_URL}" || {
+  test -f "${COLOR_NAMES_JSON}" || {
+    echo -e "\033[0;3mdownloading color names JSON to \033[0;3;35m'${COLOR_NAMES_JSON}'\033[0m from \033[0;3;36m'${JSON_URL}'\033[0;3m ...\033[0m" >&2
+    command curl -fsSL --create-dirs -o "${COLOR_NAMES_JSON}" "${JSON_URL}"
+  } || {
     echo "Failed to download '${COLOR_NAMES_JSON}', try manual download from '${JSON_URL}'" >&2
     exit 1
   }
@@ -170,24 +173,32 @@ function _color_filter() {
 
 # main
 function batcolor() {
+  local dopage=true
+  [[ -t 1 ]] || dopage=false
+
   # intercept certain arguments that should bypass the colorization logic
   for arg in "$@"; do
-    case "$arg" in
-      --list-*|-h|--help|-V|--version|--diagnostics|--cache-dir)
-        command bat "$@"
-        return
-        ;;
+    case "${arg}" in
+      --list-*|-h|--help|-V|--version|--diagnostics|--cache-dir ) exec command bat "$@" ;;
+      --paging=never|-P                                         ) dopage=false          ;;
+      --paging=always                                           ) dopage=true           ;;
     esac
   done
 
-  # dynamically determine pager and theme
-  local pager theme
-  [[ -t 1 ]] && pager="${BAT_PAGER:-less -R -F -X}" || pager="cat"
-  theme="${BAT_THEME:-TwoDark}"
-
   # main
   check
-  command bat --color=always --paging=never --theme="${theme}" "$@" | _color_filter | ${pager}
+
+  if [[ "${dopage}" == true ]]; then
+    local pager="${BAT_PAGER:-${PAGER:-less -R -F -X}}"
+    command bat --color=always --paging=never "$@" | _color_filter | ${pager}
+  else
+    command bat --color=always --paging=never "$@" | _color_filter
+  fi
+}
+
+type -P bat >/dev/null || {
+  echo "Error: 'bat' command not found. Please install 'bat' first." >&2
+  exit 1
 }
 
 batcolor "$@"
