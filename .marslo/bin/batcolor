@@ -3,20 +3,34 @@
 #      FileName : batcolor
 #        Author : marslo
 #       Created : 2026-05-15 19:34:29
-#    LastChange : 2026-05-15 20:26:55
+#    LastChange : 2026-05-15 21:48:56
 #   Description : A wrapper around `bat` that colorizes hex color codes in the output. support:
-#                 - Hex: #fff, #ffffff, 'fff', "ffffff"
-#                 - RGB/RGBA: rgb(255, 255, 255), rgba(255, 255, 255, 0.5)
+#                 - Hex: #fff, #ffffff, 'ffffff'
+#                 - RGB/RGBA: rgb(74, 242, 161), rgba(74, 242, 161, 0.3)
 #                 - HSL/HSLA: hsl(120, 100%, 50%), hsla(120, 100%, 50%, 0.5)
-#                 - Bare RGB tuples: 255,255,255 or 255, 255, 255
+#                 - Bare RGB tuples: 255, 50, 127 or 218,112,214
+#                 - Named colors: slateblue, olivedrab
 # =============================================================================
 
 set -euo pipefail
 
+declare COLOR_NAMES_JSON="${COLOR_NAMES_JSON:-$HOME/.config/css-color-names.json}"
+declare -r JSON_URL='https://github.com/bahamas10/css-color-names/raw/master/css-color-names.json'
+
+function check() {
+  [[ -f "${COLOR_NAMES_JSON}" ]] && return 0
+
+  test -f "${COLOR_NAMES_JSON}" || command curl -fsSL --create-dirs -o "${COLOR_NAMES_JSON}" "${JSON_URL}" || {
+    echo "Failed to download '${COLOR_NAMES_JSON}', try manual download from '${JSON_URL}'" >&2
+    exit 1
+  }
+}
+
 function _color_filter() {
-  perl -pe '
+  COLOR_JSON_PATH="${COLOR_NAMES_JSON}" perl -pe '
       BEGIN {
-        # HSL to RGB conversion helper
+        use JSON::PP;
+
         sub h2r {
           my ($p, $q, $t) = @_;
           $t += 1 if $t < 0;
@@ -34,10 +48,33 @@ function _color_filter() {
           my $fg = (0.299*$r + 0.587*$g + 0.114*$b) > 128 ? "30" : "97";
           return "\033[${fg};48;2;${r};${g};${b}m${match}\033[39;49m";
         }
+
+        %COLOR_NAMES = ();
+        my $file = $ENV{COLOR_JSON_PATH};
+
+        if (defined $file && -e $file) {
+          if (open(my $fh, "<", $file)) {
+            local $/;
+            my $json_text = <$fh>;
+            close($fh);
+
+            eval {
+              my $data = decode_json($json_text);
+              while (my ($name, $hex) = each %$data) {
+                next if $name =~ m/^(red|blue|gold|tan|navy|lime|aqua|gray|grey)$/;
+                $hex =~ s/#//;
+                if (length($hex) == 6) {
+                  my @rgb = map { hex($_) } ($hex =~ m{..}g);
+                  $COLOR_NAMES{lc($name)} = \@rgb;
+                }
+              }
+            };
+          }
+        }
       }
 
       # ==========================================
-      # HEX COLOR
+      # HEX COLOR: #78ab37
       # ==========================================
       s{(#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})(?![0-9a-fA-F]))}{
         my $match = $1;
@@ -48,21 +85,27 @@ function _color_filter() {
       }gie;
 
       # ==========================================
-      # RGB / RGBA
+      # RGB / RGBA: rgb(49, 130, 201), rgba(49, 130, 201, 0.5)
       # ==========================================
-      s{(rgba?\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*[0-9.]+%?)?\s*\))}{
+      s{(rgba?\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*([0-9.]+)(%?))?\s*\))}{
         my ($match, $r, $g, $b) = ($1, $2, $3, $4);
-        $r = $r > 255 ? 255 : $r;
-        $g = $g > 255 ? 255 : $g;
-        $b = $b > 255 ? 255 : $b;
+        my $a = defined($5) ? $5 + 0 : 1;
+        $a = $a / 100 if defined($6) && $6 eq "%";
+        $a = $a > 1 ? 1 : ($a < 0 ? 0 : $a);
+        $r = ($r > 255 ? 255 : $r) * $a + 255 * (1 - $a);
+        $g = ($g > 255 ? 255 : $g) * $a + 255 * (1 - $a);
+        $b = ($b > 255 ? 255 : $b) * $a + 255 * (1 - $a);
         colorize($match, $r, $g, $b);
       }gie;
 
       # ==========================================
-      # HSL / HSLA
+      # HSL / HSLA: hsl(266, 70%, 53%), hsla(266, 70%, 53%, 0.6)
       # ==========================================
-      s{(hsla?\s*\(\s*(\d{1,3}(?:\.\d+)?)(?:deg)?\s*,\s*(\d{1,3}(?:\.\d+)?)%?\s*,\s*(\d{1,3}(?:\.\d+)?)%?(?:\s*,\s*[0-9.]+%?)?\s*\))}{
+      s{(hsla?\s*\(\s*(\d{1,3}(?:\.\d+)?)(?:deg)?\s*,\s*(\d{1,3}(?:\.\d+)?)%?\s*,\s*(\d{1,3}(?:\.\d+)?)%?(?:\s*,\s*([0-9.]+)(%?))?\s*\))}{
         my ($match, $h_val, $s_val, $l_val) = ($1, $2 % 360, ($3 > 100 ? 100 : $3) / 100, ($4 > 100 ? 100 : $4) / 100);
+        my $a = defined($5) ? $5 + 0 : 1;
+        $a = $a / 100 if defined($6) && $6 eq "%";
+        $a = $a > 1 ? 1 : ($a < 0 ? 0 : $a);
         my ($r, $g, $b);
 
         if ($s_val == 0) {
@@ -74,25 +117,26 @@ function _color_filter() {
           $g = h2r($p, $q, $h_val/360) * 255;
           $b = h2r($p, $q, $h_val/360 - 1/3) * 255;
         }
+        $r = $r * $a + 255 * (1 - $a);
+        $g = $g * $a + 255 * (1 - $a);
+        $b = $b * $a + 255 * (1 - $a);
         colorize($match, $r, $g, $b);
       }gie;
 
       # ==========================================
-      # BARE RGB TUPLES (i.e.: 119,136,153 or 119, 136, 153)
+      # BARE RGB TUPLES - 223,174,45
       # ==========================================
-      s{(\e\[[\d;]+m.*?\e\[39;49m)(*SKIP)(*FAIL)|\b(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\b}{
+      s{(\033\[[\d;]+m.*?\033\[39;49m)(*SKIP)(*FAIL)|\b(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\b}{
         my ($match, $r, $g, $b) = ($&, $2, $3, $4);
-
-        # all three digits must be within the range of 0-255 to be considered a color
         if ($r <= 255 && $g <= 255 && $b <= 255) {
           colorize($match, $r, $g, $b);
         } else {
-          $match; # return it as plain text if any value is out of range
+          $match;
         }
       }gie;
 
       # ==========================================
-      # QUOTED BARE HEX (i.e.: "ffffff" or 2aa198 in single quotes)
+      # QUOTED BARE HEX - "A0CC2F"
       # ==========================================
       s{([\x27\x22])([0-9a-fA-F]{6})\1}{
         my $match = $&;
@@ -102,6 +146,24 @@ function _color_filter() {
         $r = int($r + 0.5); $g = int($g + 0.5); $b = int($b + 0.5);
         my $fg = (0.299*$r + 0.587*$g + 0.114*$b) > 128 ? "30" : "97";
         $quote . "\033[${fg};48;2;${r};${g};${b}m${h}\033[39;49m" . $quote;
+      }gie;
+
+      # ==========================================
+      # NAMED COLORS - mediumslateblue
+      # ==========================================
+      s{(\033\[[\d;]+m.*?\033\[39;49m)(*SKIP)(*FAIL)|(\b|m)([a-zA-Z\-]{3,20})\b}{
+        my $full_match = $&;
+        # a prefix like m (for class names) or just a word boundary
+        my $prefix = $2;
+        my $word = lc($3);
+
+        if (exists $COLOR_NAMES{$word}) {
+          my ($r, $g, $b) = @{$COLOR_NAMES{$word}};
+          # highlight for word only, and preserve the prefix (like m) if it exists
+          $prefix . colorize($word, $r, $g, $b);
+        } else {
+          $full_match;
+        }
       }gie;
     '
 }
@@ -124,6 +186,7 @@ function batcolor() {
   theme="${BAT_THEME:-TwoDark}"
 
   # main
+  check
   command bat --color=always --paging=never --theme="${theme}" "$@" | _color_filter | ${pager}
 }
 
