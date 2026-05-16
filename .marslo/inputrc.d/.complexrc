@@ -1,0 +1,8 @@
+# segregate *-mode-string from .inputrc for pstoggle switch
+# pstoggle only load *-mode-string, so fzf keybindings and other inputrc settings won't be affected
+
+# load with bash start and pstoggle
+$include ~/.marslo/inputrc.d/.complex
+
+# load with bash start only
+$include ~/.inputrc

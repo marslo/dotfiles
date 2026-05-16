@@ -6,7 +6,7 @@
 #        Usage : - "\C-x\C-r": re-read-init-file
 #                - `bind -f ~/.inputrc`: reload the file
 #=============================================================================
-$include ~/.marslo/inputrc.d/.complex
+# $include ~/.marslo/inputrc.d/.complex
 
 ####################
 # \e : Meta        #

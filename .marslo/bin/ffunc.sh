@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-05-16 01:13:54
+#   LastChange : 2026-05-16 01:20:56
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1584,9 +1584,20 @@ function etheme() {                        # [e]za [theme]
   }
 
   # shellcheck disable=SC2016
+  local _BAT_CMD=$(type -P batcolor || type -P batcat || type -P bat)
+  # shellcheck disable=SC2016
   local _theme=$(
     fd -e yml --base-directory "${_eza_themes}" -t f -x basename {} .yml |
-    fzf --no-multi --cycle --height 50% --preview '$HOME/.marslo/bin/fzf-preview.sh '"${_eza_themes}"'/{}.yml' --preview-window 'right:70%,rounded'
+    fzf --no-multi --cycle --height 50% \
+        --preview "$HOME/.marslo/bin/fzf-preview.sh ${_eza_themes}/{}.yml" \
+        --preview-window 'right:70%,rounded' \
+        --bind "ctrl-o:execute(${_BAT_CMD:-bat} --theme='Nord' --style=numbers '${_eza_themes}/{}.yml')" \
+        --footer 'Ctrl-O: view contents' \
+        --bind 'ctrl-k:execute-silent(
+                  id=$(echo {2} | grep -oE "([a-zA-Z]+-[0-9]+)" | head -n1 | tr "[:lower:]" "[:upper:]")
+                  if [[ -n "${id}" ]]; then open "https://essjira.marvell.com/browse/${id}"; fi
+                )'
+        # --header 'CTRL-O to view contents' --header-first --header-border=inline \
   )
 
   test -n "${_theme:-}" && {

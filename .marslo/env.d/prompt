@@ -4,7 +4,7 @@
 #     FileName : prompt
 #       Author : marslo
 #      Created : 2020-08-25 15:26:55
-#   LastChange : 2026-05-11 22:40:28
+#   LastChange : 2026-05-16 05:20:29
 # =============================================================================
 
 # complex mode
@@ -129,25 +129,32 @@ COL_NONE='\[\033[0m\]'                            # COL_NONE='\[\033[38;5;3m\]'
 # |  _/\__ \ |
 # |_|  |___/_|
 #
-# **************************************************************/
 # PROMPT_START="\\n${COL_DEFAULT}╭╶ (\\u@\\h ${COL_RED}\\w${COL_DEFAULT}) "
 # PROMPT_NEXT="\$(__git_ps1 \"- (${COL_BD_GREEN}%s${COL_NONE}${COL_DEFAULT}) \")"
 # PROMPT_NEXT+="\$(__venv_info \"- (${COL_BD_MAGENTA}%s${COL_NONE}${COL_DEFAULT}) \")"
 # PROMPT_NEXT+="${COL_DEFAULT}\`if [ \$? = 0 ]; then echo ${COL_IF_DEFAULT}\-\>; else echo ${COL_IF_RED}\↯; fi\`"
 # PROMPT_END="\\n${COL_DEFAULT}\$ ${COL_NONE}"
+# **************************************************************/
 export PROMPT_MODE="${PROMPT_MODE:-complex}"
+if [[ "${PROMPT_MODE}" == "simple" ]]; then
+  export INPUTRC="${iRCHOME:-${HOME}/.marslo}/inputrc.d/.simplerc"
+else
+  export INPUTRC="${iRCHOME:-${HOME}/.marslo}/inputrc.d/.complexrc"
+fi
+
 # simple / complex: bind -f only these fragments (not ~/.inputrc — avoids resetting \C-r / fzf).
 function pstoggle() {
-  local _complexrc="${iRCHOME:-${HOME}/.marslo}/inputrc.d/.complex"
-  local _simplerc="${iRCHOME:-${HOME}/.marslo}/inputrc.d/.simple"
+  local _INPUTRC_COMPLEX="${iRCHOME:-${HOME}/.marslo}/inputrc.d/.complex"
+  local _INPUTRC_SIMPLE="${iRCHOME:-${HOME}/.marslo}/inputrc.d/.simple"
+
   if [[ "${PROMPT_MODE}" == "complex" ]]; then
     export PROMPT_MODE="simple"
     export PS2="${COL_DEFAULT}   > ${COL_NONE}"
-    [[ -r "${_simplerc}" ]] && bind -f "${_simplerc}"
+    [[ -r "${_INPUTRC_SIMPLE}" ]] && bind -f "${_INPUTRC_SIMPLE}"
   else
     export PROMPT_MODE="complex"
-    export PS2="> "
-    [[ -r "${_complexrc}" ]] && bind -f "${_complexrc}"
+    export PS2='\[\e[G\e[K\]       '
+    [[ -r "${_INPUTRC_COMPLEX}" ]] && bind -f "${_INPUTRC_COMPLEX}"
   fi
 }
 
@@ -189,6 +196,7 @@ _build_prompt() {
     PROMPT_NEXT="${PS1_GIT}${PS1_VENV}${PS1_STATUS}"
     PROMPT_END="\n${COL_DEFAULT}╰╶ \$ ${COL_NONE}"
     PS1="${PROMPT_START}${PROMPT_NEXT}${PROMPT_END}"
+    export PS2="${COL_DEFAULT}   > ${COL_NONE}"
   else
     # $COLUMNS requires: shopt -s checkwinsize
     local cols="${COLUMNS:-$(tput cols 2>/dev/null || printf '%s' 80)}"
@@ -209,12 +217,12 @@ _build_prompt() {
     PROMPT_NEXT="${PS1_GIT}${PS1_VENV}${PS1_STATUS}"
     PROMPT_END="\n${COL_DEFAULT}\$ ${COL_NONE}"
     PS1="${PROMPT_START}${PROMPT_NEXT}${PROMPT_END}"
+    export PS2='\[\e[G\e[K\]       '
   fi
 }
 
 # PS1
 PROMPT_COMMAND=_build_prompt
-PS2="${COL_DEFAULT}> ${COL_NONE}"
 
 # /**************************************************************
 #  ___  ___ _ _
