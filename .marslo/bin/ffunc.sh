@@ -2,9 +2,9 @@
 # shellcheck source=/dev/null disable=SC2086
 #=============================================================================
 #     FileName : ffunc.sh
-#       Author : marslo.jiao@gmail.com
+#       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-05-13 16:36:58
+#   LastChange : 2026-05-15 19:46:13
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -216,8 +216,11 @@ function open() {                          # smart open
 #   - otherwise respect `bat` options, and shows via `bat`
 # shellcheck disable=SC2046,SC2155
 function cat() {                           # smart cat
-  local -a CAT=( "$(type -P cat)" )
-  command -v bat >/dev/null && CAT=( "$(type -P bat)" --theme='Nord' --color=always )
+  local -a CAT=()
+  # shellcheck disable=SC2015
+  command -v batcolor >/dev/null && CAT=( "$(type -P batcolor)" --theme='Nord' --color=always ) || {
+    command -v bat >/dev/null    && CAT=( "$(type -P bat)" --theme='Nord' --color=always ) || CAT=( "$(type -P cat)" )
+  }
 
   # reading from pipe == [[ -p /dev/stdin ]]
   [[ ! -t 0      ]] && { "${CAT[@]}" "$@"; return; }

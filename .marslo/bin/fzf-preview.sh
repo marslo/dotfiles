@@ -2,9 +2,9 @@
 # shellcheck disable=SC2086,SC2155
 # =============================================================================
 #     FileName : fzf-preview.sh
-#       Author : marslo.jiao@gmail.com
+#       Author : marslo
 #      Created : 2026-05-11 22:50:00
-#   LastChange : 2026-05-12 01:15:35
+#   LastChange : 2026-05-15 20:06:56
 #  Description : unified fzf preview command for files and directories
 #                used by: FZF_CTRL_T_OPTS (env.d/fzf), _load_fzf_context() (ffunc.sh)
 #       Syntax : fzf-preview.sh FILENAME[:LINENO][:IGNORED]
@@ -49,6 +49,8 @@ declare -a CAT=( "$(type -P cat)" )
 if type -P batcat >/dev/null; then
   CAT=( "$(type -P batcat)" --style="${BAT_STYLE:-numbers}" --theme='Nord' --color=always --pager=never --line-range :500 )
 # bat - macOS
+elif type -P batcolor >/dev/null; then
+  CAT=( "$(type -P batcolor)" --style="${BAT_STYLE:-numbers}" --theme='Nord' --color=always --pager=never --line-range :500 )
 elif type -P bat >/dev/null; then
   CAT=( "$(type -P bat)" --style="${BAT_STYLE:-numbers}" --theme='Nord' --color=always --pager=never --line-range :500 )
 fi

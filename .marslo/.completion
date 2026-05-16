@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2026-05-12 17:30:36
+#   LastChange : 2026-05-15 20:17:49
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -56,8 +56,9 @@ test -L "${COMPLETION_DIR}/gh-arsenal-completion.sh" && source "${COMPLETION_DIR
 # via `vault -autocomplete-install`
 type -P vault      >/dev/null                        && complete -C "$(type -P vault)" vault
 type -t _fd        >/dev/null 2>&1                   && complete -F _fd -o nosort -o bashdefault -o default ff ffs
-type -t _comp_cmd_chromium_browser >/dev/null 2>&1   && complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome
-complete -o default -o bashdefault chrome
+# shellcheck disable=SC2015
+type -t _comp_cmd_chromium_browser >/dev/null 2>&1   && complete -F _comp_cmd_chromium_browser -o nosort -o bashdefault -o default chrome || complete -o default -o bashdefault chrome
+type -P batcolor   >/dev/null                        && complete -o default -o bashdefault -F _bat batcolor
 
 # instead of eval "$(/bin/cat "${ANSIBLE_COMPLETION_PATH}"/*.bash)" -- for fcf
 if compgen -G "${ANSIBLE_COMPLETION_PATH}/*.bash" >/dev/null; then

@@ -4,7 +4,7 @@
 #     FileName : fzf
 #       Author : marslo
 #      Created : 2023-10-06 00:47:47
-#   LastChange : 2026-05-12 01:41:12
+#   LastChange : 2026-05-15 18:38:22
 # =============================================================================
 
 # shellcheck disable=SC2155
@@ -51,6 +51,7 @@ FZF_CTRL_T_OPTS="${FZF_CTRL_T_OPTS:+$FZF_CTRL_T_OPTS} "
 FZF_CTRL_T_OPTS+="--height 80% "
 FZF_CTRL_T_OPTS+="--layout=reverse "
 FZF_CTRL_T_OPTS+="--no-border --no-input-border --header-lines-border bottom "
+FZF_CTRL_T_OPTS+="--info=inline-right --info-command='' "
 FZF_CTRL_T_OPTS+="--preview '${HOME}/.marslo/bin/fzf-preview.sh {}' "
 FZF_CTRL_T_OPTS+="--bind 'enter:become:command nvim {} >/dev/tty' "
 FZF_CTRL_T_OPTS+="--preview-window 'right,60%,nowrap,rounded' "
@@ -58,7 +59,7 @@ FZF_CTRL_T_OPTS+="--bind 'ctrl-\:change-preview-window(down,70%,nowrap,rounded|h
 FZF_CTRL_T_OPTS+="--bind 'ctrl-p:preview-up,ctrl-n:preview-down' "
 FZF_CTRL_T_OPTS+="--bind 'ctrl-y:execute-silent(/bin/echo -n {+} | ${COPY})' "
 FZF_CTRL_T_OPTS+="--bind '${FZF_FOCUS_OFFSET}' "
-FZF_CTRL_T_OPTS+="--header 'CTRL-N/CTRL-P to view contents, CTRL-/ to change previous window'"
+FZF_CTRL_T_OPTS+="--header 'CTRL-N/CTRL-P to view contents, CTRL-\ to change previous window'"
 # FZF_CTRL_T_OPTS+=" --bind 'ctrl-e:become:command cd {} >/dev/tty'"
 
 # ctrl-r for filter history
@@ -66,18 +67,19 @@ FZF_CTRL_R_OPTS="${FZF_CTRL_R_OPTS:+$FZF_CTRL_R_OPTS} "
 FZF_CTRL_R_OPTS+="--height '30%' "
 FZF_CTRL_R_OPTS+="--layout=reverse "
 FZF_CTRL_R_OPTS+="--no-border --header-lines-border bottom --no-list-border "
+FZF_CTRL_R_OPTS+="--info=inline-right --info-command='' "
 FZF_CTRL_R_OPTS+="--preview 'echo {}' --preview-window down:5:hidden:wrap "
 FZF_CTRL_R_OPTS+="--bind 'ctrl-\:toggle-preview' "
 FZF_CTRL_R_OPTS+="--bind 'ctrl-y:execute-silent(echo {2..} | ${COPY})+abort' "
 FZF_CTRL_R_OPTS+="--color header:italic "
-FZF_CTRL_R_OPTS+="--header 'CTRL-Y to copy command into clipboard'"
+FZF_CTRL_R_OPTS+="--header 'CTRL-Y to copy command into clipboard; CTRL-\ to toggle preview; CTRL-/ to unwrap'"
 
 export FZF_COMPLETION_TRIGGER=',,'
 export FZF_COMPLETION_DIR_COMMANDS="cd pushd rmdir tree"
 export FZF_COMPLETION_OPTS='--border --info=inline'
 export FZF_COMPLETION_DIR_OPTS='--walker dir,follow'
 export FZF_COMPLETION_PATH_OPTS='--walker file,dir,follow,hidden'
-export FZF_ALT_C_OPTS="--height 60% --walker-skip .git,node_modules,target --preview 'tree -C {}'"       # print tree structure in the preview window
+export FZF_ALT_C_OPTS="--height 60% --walker-skip .git,node_modules,target --preview-window 'right,70%,nowrap,rounded' --preview '~/.marslo/bin/fzf-preview.sh {}'"
 export FZF_COMPLETION_PATH_COMMANDS="basename bunzip2 bzip2 chmod chown curl cp dirname ls mv rm open tar unzip du sftp rsync"
 export FZF_DEFAULT_OPTS FZF_DEFAULT_COMMAND FZF_CTRL_T_OPTS FZF_CTRL_R_OPTS
 
@@ -116,12 +118,12 @@ __get_fzf_dynamic_prompt() {
 # hook functions for ctrl-r and ctrl-t
 __fzf_ctrl_r_dynamic() {
   local currentPrompt=$(__get_fzf_dynamic_prompt)
-  FZF_CTRL_R_OPTS="${FZF_CTRL_R_OPTS} --info=hidden --info-command='' --prompt='${currentPrompt}'" __fzf_history__
+  FZF_CTRL_R_OPTS="${FZF_CTRL_R_OPTS} --prompt='${currentPrompt}'" __fzf_history__
 }
 
 __fzf_ctrl_t_dynamic() {
   local currentPrompt=$(__get_fzf_dynamic_prompt)
-  local selected=$(FZF_CTRL_T_OPTS="${FZF_CTRL_T_OPTS} --info=hidden --info-command='' --prompt='${currentPrompt}'" __fzf_select__)
+  local selected=$(FZF_CTRL_T_OPTS="${FZF_CTRL_T_OPTS} --prompt='${currentPrompt}'" __fzf_select__)
 
   if [[ -n "$selected" ]]; then
     READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}${selected}${READLINE_LINE:$READLINE_POINT}"

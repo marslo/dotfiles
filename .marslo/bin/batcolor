@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# =============================================================================
+#      FileName : batcolor
+#        Author : marslo
+#       Created : 2026-05-15 19:34:29
+#    LastChange : 2026-05-15 20:18:14
+#   Description : A wrapper around `bat` that colorizes hex color codes in the output.
+#                 It detects hex color codes (e.g., #ff0000) and applies the corresponding background color to the text, while ensuring that the text remains readable by adjusting the foreground color based on the brightness of the background color.
+# =============================================================================
+
+set -euo pipefail
+
+function batcolor() {
+  for arg in "$@"; do
+    case "$arg" in
+      --list-*|-h|--help|-V|--version|--diagnostics|--cache-dir)
+        command bat "$@"
+        return
+        ;;
+    esac
+  done
+
+  local pager theme
+
+  # if terminal (-t 1), use pager; else, use cat
+  [[ -t 1 ]] && pager="${BAT_PAGER:-less -R -F -X}" || pager="cat"
+  theme="${BAT_THEME:-Nord}"
+
+  # --paging=never: explicitly tell bat not to take over paging, and to hand over the original color text to Perl.
+  command bat --color=always --paging=never --theme="${theme}" "$@" | perl -pe '
+    s/(#([0-9a-fA-F]{6}|[0-9a-fA-F]{3}))(?![0-9a-fA-F])/
+      my $match = $1;
+      my $h = $2;
+      if (length($h) == 3) {
+        $h = join "", map { $_ x 2 } split "", $h;
+      }
+      my ($r,$g,$b) = map { hex } ($h =~ m{..}g);
+      my $fg = (0.299*$r + 0.587*$g + 0.114*$b) > 128 ? "30" : "97";
+      "\033[${fg};48;2;${r};${g};${b}m${match}\033[39;49m"
+    /ge
+  ' | ${pager}
+}
+
+batcolor "$@"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
