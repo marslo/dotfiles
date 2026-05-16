@@ -3,7 +3,7 @@
 #      FileName : batcolor
 #        Author : marslo
 #       Created : 2026-05-15 19:34:29
-#    LastChange : 2026-05-16 06:39:11
+#    LastChange : 2026-05-16 14:28:19
 #   Description : A wrapper around `bat` that colorizes hex color codes in the output. support:
 #                 - Hex: #fff, #ffffff, 'ffffff'
 #                 - RGB/RGBA: rgb(74, 242, 161), rgba(74, 242, 161, 0.3)
@@ -46,16 +46,24 @@ function _color_filter() {
 
       # common function to generate ANSI escape codes for background and foreground colors
       sub colorize {
-        my ($match, $r, $g, $b) = @_;
-        $r = int($r + 0.5); $g = int($g + 0.5); $b = int($b + 0.5);
-        my $fg = (0.299*$r + 0.587*$g + 0.114*$b) > 128 ? "30" : "97";
+          my ($match, $r, $g, $b) = @_;
+          $r = int($r + 0.5); $g = int($g + 0.5); $b = int($b + 0.5);
+          $r = $r > 255 ? 255 : ($r < 0 ? 0 : $r);
+          $g = $g > 255 ? 255 : ($g < 0 ? 0 : $g);
+          $b = $b > 255 ? 255 : ($b < 0 ? 0 : $b);
 
-        # trim ANSI color codes from the original match to prevent nesting
-        my $clean = $match;
-        $clean =~ s/\033\[[\d;]*m//g;
+          # determining foreground color
+          # -- yiq formula / itu-r rec. 601 standard
+          # my $fg = (0.299*$r + 0.587*$g + 0.114*$b) > 175 ? "38;2;0;0;0" : "38;2;255;255;255";
+          # -- rec. 709 luma coefficients (emphasizing green for human eye sensitivity)
+          my $fg = (0.2126*$r + 0.7152*$g + 0.0722*$b) > 175 ? "38;2;0;0;0" : "38;2;255;255;255";
 
-        return "\033[${fg};48;2;${r};${g};${b}m${clean}\033[39;49m";
-      }
+          # filter out ANSI codes from the original match
+          my $clean = $match;
+          $clean =~ s/\033\[[\d;]*m//g;
+
+          return "\033[0m\033[${fg};48;2;${r};${g};${b}m${clean}\033[39;49m\033[38;2;251;241;199m";
+        }
 
       %COLOR_NAMES = ();
       my $file = $ENV{COLOR_JSON_PATH};
@@ -69,7 +77,8 @@ function _color_filter() {
           eval {
             my $data = decode_json($json_text);
             while (my ($name, $hex) = each %$data) {
-              next if $name =~ m/^(red|blue|gray|grey)$/;
+              # skip basic color names - if needed
+              # next if $name =~ m/^(red|blue|gray|grey)$/;
               $hex =~ s/#//;
               if (length($hex) == 6) {
                 my @rgb = map { hex($_) } ($hex =~ m{..}g);
@@ -128,13 +137,24 @@ function _color_filter() {
     # ==========================================
     # HEX COLOR: #78ab37, #0FF
     # ==========================================
-    s{(#(?:\033\[[\d;]*m|\s)*(?:[0-9a-fA-F](?:\033\[[\d;]*m|\s)*){3,6}(?![0-9a-fA-F]))}{
+    s{(#(?:\033\[[\d;]*m)*(?:[0-9a-fA-F](?:\033\[[\d;]*m)*){3,8}(?![0-9a-fA-F]))}{
       my $match = $1;
-      my $h = $match; $h =~ s/\033\[[\d;]*m//g; $h =~ s/\s//g; $h =~ s/#//;
+      my $h = $match; $h =~ s/\033\[[\d;]*m//g; $h =~ s/#//;
+      my $len = length($h);
 
-      if (length($h) == 6 || length($h) == 3) {
-        $h = join "", map { $_ x 2 } split "", $h if length($h) == 3;
-        my ($r,$g,$b) = map { hex } ($h =~ m{..}g);
+      # CSS supports 3, 4, 6, or 8 hex digits
+      if ($len == 3 || $len == 4 || $len == 6 || $len == 8) {
+        $h = join "", map { $_ x 2 } split "", $h if $len == 3 || $len == 4;
+        my ($r, $g, $b, $a_hex) = map { hex } ($h =~ m{..}g);
+
+        my $a = defined($a_hex) ? $a_hex / 255 : 1;
+        # alpha blending, using 40 instead of 255 to blend with a white background
+        my $bg_r = 40; my $bg_g = 40; my $bg_b = 40;
+
+        $r = $r * $a + $bg_r * (1 - $a);
+        $g = $g * $a + $bg_g * (1 - $a);
+        $b = $b * $a + $bg_b * (1 - $a);
+
         colorize($match, $r, $g, $b);
       } else {
         $match;
@@ -144,7 +164,7 @@ function _color_filter() {
     # ==========================================
     # BARE RGB TUPLES - 223,174,45
     # ==========================================
-    s{(\033\[[\d;]+m.*?\033\[39;49m)(*SKIP)(*FAIL)|(?<![\d\033\]])(\d{1,3}(?:\033\[[\d;]*m|\s)*,(?:\033\[[\d;]*m|\s)*\d{1,3}(?:\033\[[\d;]*m|\s)*,(?:\033\[[\d;]*m|\s)*\d{1,3})(?![\d\033\[])}{
+    s{(\033\[[\d;]+m.*?\033\[39;49m)(*SKIP)(*FAIL)|(?<!\d)(\d{1,3}(?:\033\[[\d;]*m|\s)*,(?:\033\[[\d;]*m|\s)*\d{1,3}(?:\033\[[\d;]*m|\s)*,(?:\033\[[\d;]*m|\s)*\d{1,3})(?!\d)}{
       my $match = $&;
       my $clean = $match; $clean =~ s/\033\[[\d;]*m//g; $clean =~ s/\s//g;
       my ($r, $g, $b) = split /,/, $clean;
@@ -158,20 +178,38 @@ function _color_filter() {
     # ==========================================
     # QUOTED BARE HEX - "A0CC2F"
     # ==========================================
-    s{([\x27\x22])(?:\033\[[\d;]*m|\s)*((?:(?:\033\[[\d;]*m|\s)*[0-9a-fA-F]){6})(?:\033\[[\d;]*m|\s)*\1}{
+    s{([\x27\x22])(?:\033\[[\d;]*m)*((?:(?:\033\[[\d;]*m)*[0-9a-fA-F]){3,8})(?:\033\[[\d;]*m)*\1}{
       my $match = $&;
       my $quote = $1;
-      my $h = $2; $h =~ s/\033\[[\d;]*m//g; $h =~ s/\s//g;
-      my ($r,$g,$b) = map { hex } ($h =~ m{..}g);
-      $r = int($r + 0.5); $g = int($g + 0.5); $b = int($b + 0.5);
-      my $fg = (0.299*$r + 0.587*$g + 0.114*$b) > 128 ? "30" : "97";
-      $quote . "\033[${fg};48;2;${r};${g};${b}m${h}\033[39;49m" . $quote;
+      my $h = $2;
+      # trim bat highlight ANSI codes
+      $h =~ s/\033\[[\d;]*m//g;
+      my $len = length($h);
+
+      # valid hex lengths are 3 (RGB), 4 (RGBA), 6 (RRGGBB), or 8 (RRGGBBAA)
+      if ($len == 3 || $len == 4 || $len == 6 || $len == 8) {
+        my $calc_h = ($len == 3 || $len == 4) ? join("", map { $_ x 2 } split "", $h) : $h;
+
+        my ($r, $g, $b, $a_hex) = map { hex } ($calc_h =~ m{..}g);
+        my $a = defined($a_hex) ? $a_hex / 255 : 1;
+        my $bg_r = 40; my $bg_g = 40; my $bg_b = 40;
+
+        $r = $r * $a + $bg_r * (1 - $a);
+        $g = $g * $a + $bg_g * (1 - $a);
+        $b = $b * $a + $bg_b * (1 - $a);
+
+        # rec. 709 luma coefficients
+        my $fg = (0.2126*$r + 0.7152*$g + 0.0722*$b) > 175 ? "38;2;0;0;0" : "38;2;255;255;255";
+        $quote . "\033[${fg};48;2;${r};${g};${b}m${h}\033[39;49m" . $quote;
+      } else {
+        $match;
+      }
     }gie;
 
     # ==========================================
     # NAMED COLORS - mediumslateblue
     # ==========================================
-    s{(?<![a-zA-Z\-\033\]])(m?(?:\033\[[\d;]*m|\s)*)([a-zA-Z\-]{3,20})(?![a-zA-Z\-\033\[])}{
+    s{(?<![a-zA-Z\-])(m?(?:\033\[[\d;]*m|\s)*)([a-zA-Z\-]{3,20})(?![a-zA-Z\-])}{
       my $full_match = $&;
       my $prefix = $1;
       my $word = $2;
