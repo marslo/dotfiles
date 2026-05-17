@@ -3,7 +3,7 @@
 #      FileName : batcolor
 #        Author : marslo
 #       Created : 2026-05-15 19:34:29
-#    LastChange : 2026-05-16 14:28:19
+#    LastChange : 2026-05-17 14:48:39
 #   Description : A wrapper around `bat` that colorizes hex color codes in the output. support:
 #                 - Hex: #fff, #ffffff, 'ffffff'
 #                 - RGB/RGBA: rgb(74, 242, 161), rgba(74, 242, 161, 0.3)
@@ -17,7 +17,7 @@ set -euo pipefail
 declare COLOR_NAMES_JSON="${COLOR_NAMES_JSON:-$HOME/.config/css-color-names.json}"
 declare -r JSON_URL='https://github.com/bahamas10/css-color-names/raw/master/css-color-names.json'
 
-function check() {
+function _checkjson() {
   [[ -f "${COLOR_NAMES_JSON}" ]] && return 0
 
   test -f "${COLOR_NAMES_JSON}" || {
@@ -28,6 +28,14 @@ function check() {
     exit 1
   }
 }
+
+function _checkbat() {
+  type -P bat >/dev/null || {
+    echo "Error: 'bat' command not found. Please install 'bat' first." >&2
+    exit 1
+  }
+}
+
 
 function _color_filter() {
   COLOR_JSON_PATH="${COLOR_NAMES_JSON}" perl -pe '
@@ -44,7 +52,7 @@ function _color_filter() {
         return $p;
       }
 
-      # common function to generate ANSI escape codes for background and foreground colors
+      # ONLY apply background color, keep original bat foreground color intact
       sub colorize {
           my ($match, $r, $g, $b) = @_;
           $r = int($r + 0.5); $g = int($g + 0.5); $b = int($b + 0.5);
@@ -58,11 +66,12 @@ function _color_filter() {
           # -- rec. 709 luma coefficients (emphasizing green for human eye sensitivity)
           my $fg = (0.2126*$r + 0.7152*$g + 0.0722*$b) > 175 ? "38;2;0;0;0" : "38;2;255;255;255";
 
-          # filter out ANSI codes from the original match
+          # strip out original ANSI codes from the match to get a clean color string for parsing
           my $clean = $match;
           $clean =~ s/\033\[[\d;]*m//g;
 
-          return "\033[0m\033[${fg};48;2;${r};${g};${b}m${clean}\033[39;49m\033[38;2;251;241;199m";
+          # get original color string without ANSI codes for parsing, but use the original $match for output to preserve any existing formatting
+          return "\033[${fg};48;2;${r};${g};${b}m${clean}\033[39;49m";
         }
 
       %COLOR_NAMES = ();
@@ -100,9 +109,16 @@ function _color_filter() {
       my $clean = $match; $clean =~ s/\033\[[^\x40-\x7E]*[\x40-\x7E]//g; $clean =~ s/\s//g;
       if ($clean =~ m{^rgba?\((\d{1,3}),(\d{1,3}),(\d{1,3})(?:,([0-9.]+)(%?))?\)}i) {
         my ($r, $g, $b, $av, $ps) = ($1, $2, $3, $4, $5);
-        my $a = defined($av) ? $av + 0 : 1; $a = $a / 100 if defined($ps) && length($ps) > 0; $a = $a > 1 ? 1 : ($a < 0 ? 0 : $a);
-        $r = ($r > 255 ? 255 : $r) * $a + 255 * (1 - $a); $g = ($g > 255 ? 255 : $g) * $a + 255 * (1 - $a); $b = ($b > 255 ? 255 : $b) * $a + 255 * (1 - $a);
-        colorize($clean, $r, $g, $b);
+
+        my $a = defined($av) ? $av + 0 : 1;
+        $a = $a / 100 if defined($ps) && length($ps) > 0;
+        $a = $a > 1 ? 1 : ($a < 0 ? 0 : $a);
+
+        $r = ($r > 255 ? 255 : $r) * $a + 255 * (1 - $a);
+        $g = ($g > 255 ? 255 : $g) * $a + 255 * (1 - $a);
+        $b = ($b > 255 ? 255 : $b) * $a + 255 * (1 - $a);
+        # using `$match` to preserve any existing ANSI codes in the original string
+        colorize($match, $r, $g, $b);
       } else {
         $match;
       }
@@ -128,7 +144,8 @@ function _color_filter() {
           $b = h2r($p, $q, $h_val/360 - 1/3) * 255;
         }
         $r = $r * $a + 255 * (1 - $a); $g = $g * $a + 255 * (1 - $a); $b = $b * $a + 255 * (1 - $a);
-        colorize($clean, $r, $g, $b);
+        # using `$match` to preserve any existing ANSI codes in the original string
+        colorize($match, $r, $g, $b);
       } else {
         $match;
       }
@@ -180,7 +197,6 @@ function _color_filter() {
     # ==========================================
     s{([\x27\x22])(?:\033\[[\d;]*m)*((?:(?:\033\[[\d;]*m)*[0-9a-fA-F]){3,8})(?:\033\[[\d;]*m)*\1}{
       my $match = $&;
-      my $quote = $1;
       my $h = $2;
       # trim bat highlight ANSI codes
       $h =~ s/\033\[[\d;]*m//g;
@@ -189,7 +205,6 @@ function _color_filter() {
       # valid hex lengths are 3 (RGB), 4 (RGBA), 6 (RRGGBB), or 8 (RRGGBBAA)
       if ($len == 3 || $len == 4 || $len == 6 || $len == 8) {
         my $calc_h = ($len == 3 || $len == 4) ? join("", map { $_ x 2 } split "", $h) : $h;
-
         my ($r, $g, $b, $a_hex) = map { hex } ($calc_h =~ m{..}g);
         my $a = defined($a_hex) ? $a_hex / 255 : 1;
         my $bg_r = 40; my $bg_g = 40; my $bg_b = 40;
@@ -198,9 +213,7 @@ function _color_filter() {
         $g = $g * $a + $bg_g * (1 - $a);
         $b = $b * $a + $bg_b * (1 - $a);
 
-        # rec. 709 luma coefficients
-        my $fg = (0.2126*$r + 0.7152*$g + 0.0722*$b) > 175 ? "38;2;0;0;0" : "38;2;255;255;255";
-        $quote . "\033[${fg};48;2;${r};${g};${b}m${h}\033[39;49m" . $quote;
+        colorize($match, $r, $g, $b);
       } else {
         $match;
       }
@@ -227,32 +240,46 @@ function _color_filter() {
 
 # main
 function batcolor() {
-  local dopage=true
-  [[ -t 1 ]] || dopage=false
+  local _dopage=true
+  local _envcmd=()
 
-  # intercept certain arguments that should bypass the colorization logic
+  # intercept parameters - need bat
   for arg in "$@"; do
     case "${arg}" in
-      --list-*|-h|--help|-V|--version|--diagnostics|--cache-dir ) exec command bat "$@" ;;
-      --paging=never|-P                                         ) dopage=false          ;;
-      --paging=always                                           ) dopage=true           ;;
+      --list-*|-h|--help|-V|--version|--diagnostics|--cache-dir ) _checkbat; exec command bat "$@" ;;
+      --paging=never|-P ) _dopage=false ;;
+      --paging=always   ) _dopage=true  ;;
     esac
   done
 
-  # main
-  check
-
-  if [[ "${dopage}" == true ]]; then
-    local pager="${BAT_PAGER:-${PAGER:-less -R -F -X}}"
-    command bat --color=always --paging=never "$@" | _color_filter | ${pager}
-  else
-    command bat --color=always --paging=never "$@" | _color_filter
+  # filter mode: no args && stdin is not a TTY then not invoking `bat`
+  if [[ ! -t 0 && $# -eq 0 ]]; then
+    _checkjson
+    if [[ "${_dopage}" == true && -t 1 ]]; then
+      local pager="${BAT_PAGER:-${PAGER:-less -R -F -X}}"
+      _color_filter | ${pager}
+    else
+      _color_filter
+    fi
+    return
   fi
-}
 
-type -P bat >/dev/null || {
-  echo "Error: 'bat' command not found. Please install 'bat' first." >&2
-  exit 1
+  # wrapper mode: if there are args or stdin is a TTY, invoke `bat` to leverage its syntax highlighting and paging capabilities, then pipe through our color filter for additional colorization of color codes.
+  _checkbat
+  _checkjson
+
+  # strip BAT_OPTS and set BAT_STYLE=plain to avoid interference with our colorization logic
+  [[ -t 0 ]] || {
+    _dopage=false
+    _envcmd=(env -u BAT_OPTS BAT_STYLE=plain)
+  }
+
+  if [[ "${_dopage}" == true ]]; then
+    local pager="${BAT_PAGER:-${PAGER:-less -R -F -X}}"
+    "${_envcmd[@]}" command bat --color=always --paging=never "$@" | _color_filter | ${pager}
+  else
+    "${_envcmd[@]}" command bat --color=always --paging=never "$@" | _color_filter
+  fi
 }
 
 batcolor "$@"
