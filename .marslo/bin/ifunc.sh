@@ -34,7 +34,10 @@ function getsum    { awk '{ sum += $1 } END { print sum }' "$1"; }
 function hmdays()  { usage="SYNOPSIS:\t\$ hmdays YYYY-MM-DD"; [[ 1 -ne $# ]] && echo -e "${usage}" || echo $(( ( $(date -d "$1" +%s) - $(date +%s))/(3600*24))) days; }
 # https://serverfault.com/a/906310/129815
 function ssl_expiry() { echo | openssl s_client -connect "${1}":443 2> /dev/null | openssl x509 -noout -enddate; }
+# convert2av "input.move" "audio.m4a" "output.mp4"
 function convert2av() { ffmpeg -i "$1" -i "$2" -c copy -map 0:0 -map 1:0 -shortest -strict -2 "$3"; }
+# convermov "input.mov" "output.mp4"
+function convermov()  { ffmpeg -i "$1" -c:v libx264 -crf 20 -an "${2}"; }
 function ipshow() {
   ip -c addr show 2>/dev/null |
   awk '

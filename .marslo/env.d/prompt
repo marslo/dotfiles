@@ -4,7 +4,7 @@
 #     FileName : prompt
 #       Author : marslo
 #      Created : 2020-08-25 15:26:55
-#   LastChange : 2026-05-16 05:20:29
+#   LastChange : 2026-05-16 15:28:40
 # =============================================================================
 
 # complex mode
@@ -192,7 +192,7 @@ _build_prompt() {
   [[ ${status} -eq 0       ]] && PS1_STATUS="${COL_DEFAULT} ->${COL_DEFAULT}" || PS1_STATUS="${COL_RED} ↯${COL_DEFAULT}"
 
   if [[ "${PROMPT_MODE}" = 'simple' ]]; then
-    PROMPT_START="\n${COL_DEFAULT}╭╶ (\u${COL_DEFAULT})"
+    PROMPT_START="\n${COL_DEFAULT}╭╶ (\u${COL_DEFAULT} ${COL_RED}\W${COL_DEFAULT})"
     PROMPT_NEXT="${PS1_GIT}${PS1_VENV}${PS1_STATUS}"
     PROMPT_END="\n${COL_DEFAULT}╰╶ \$ ${COL_NONE}"
     PS1="${PROMPT_START}${PROMPT_NEXT}${PROMPT_END}"
@@ -213,7 +213,7 @@ _build_prompt() {
       smartPath="...${p: -$((maxlength - 3))}"
     fi
 
-    PROMPT_START="\n${COL_DEFAULT}╭╶ (\u@\h ${COL_RED}${smartPath}${COL_DEFAULT})"
+    PROMPT_START="\n${COL_DEFAULT}╭╶ (\u@${HOST_RAW} ${COL_RED}${smartPath}${COL_DEFAULT})"
     PROMPT_NEXT="${PS1_GIT}${PS1_VENV}${PS1_STATUS}"
     PROMPT_END="\n${COL_DEFAULT}\$ ${COL_NONE}"
     PS1="${PROMPT_START}${PROMPT_NEXT}${PROMPT_END}"
