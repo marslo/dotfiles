@@ -4,7 +4,7 @@
 #     FileName : fzf-preview.sh
 #       Author : marslo
 #      Created : 2026-05-11 22:50:00
-#   LastChange : 2026-05-16 00:54:22
+#   LastChange : 2026-05-18 17:00:58
 #  Description : unified fzf preview command for files and directories
 #                used by: FZF_CTRL_T_OPTS (env.d/fzf), _load_fzf_context() (ffunc.sh)
 #       Syntax : fzf-preview.sh FILENAME[:LINENO][:IGNORED]
@@ -41,18 +41,18 @@ if [[ ! -r "${file}" ]]; then
   fi
 fi
 
-# MIME type for fallback detection
-# i.e.: $ file --brief --dereference --mime -- <name>.png
+# MIME type for fallback detection. i.e.:
+# $ file --brief --dereference --mime -- <name>.png
 # image/png; charset=binary
 declare mime
 mime="$(file --brief --dereference --mime -- "${file}" 2>/dev/null)"
 
 # =========================================================================== #
-# document preview: prefer `batcolor` > `bat` > `cat`                         #
+# document preview: prefer `batchip` > `bat` > `cat`                         #
 # =========================================================================== #
 declare -a CAT=( "$(type -P cat)" )
-# batcolor - ~/.marslo/bin/batcolor > batcat - /usr/bin/batcat (Debian/Ubuntu) > bat - /usr/local/bin/bat (macOS)
-declare _BAT_CMD=$(type -P batcolor || type -P batcat || type -P bat)
+# batchip (~/.marslo/bin/batchip) > batcat (/usr/bin/batcat - Debian/Ubuntu) > bat (/usr/local/bin/bat - macOS)
+declare _BAT_CMD=$(type -P batchip || type -P batcat || type -P bat)
 if [[ -n "${_BAT_CMD}" ]]; then
   CAT=( "${_BAT_CMD}" --style="${BAT_STYLE:-numbers}" --theme='Nord' --color=always --pager=never --line-range :500 )
   [[ "${center}" -gt 0 ]] && CAT+=( --highlight-line="${center}" )

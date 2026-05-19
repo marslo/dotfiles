@@ -321,9 +321,9 @@
                 "
   su          = "!bash -c 'git submodule sync --recursive && git submodule update -f --init --recursive'"
   sub         = submodule
-  subpull     = !git pull --rebase && git submodule sync --recursive && git submodule update --init --recursive
-  subupdate   = submodule update --remote --rebase
-  subst       = submodule foreach \"git status\"
+  sub-pull    = !git pull --rebase && git submodule sync --recursive && git submodule update --init --recursive
+  sub-update  = submodule update --remote --rebase
+  sub-st      = submodule foreach \"git status\"
   # }}}
 
   #-----------------------#

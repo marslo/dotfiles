@@ -1,0 +1,482 @@
+%YAML 1.2
+---
+# Enhanced VimL / VimScript syntax for bat
+# Replaces the basic built-in VimL with comprehensive keyword & highlight support
+name: VimL
+file_extensions:
+  - vim
+  - vimrc
+  - gvimrc
+  - .vimrc
+  - .gvimrc
+  - .exrc
+  - .nvimrc
+  - _vimrc
+  - _gvimrc
+  - _exrc
+  - ideavimrc
+  - .ideavimrc
+first_line_match: '^\s*".*[Vv]im|^vim9script'
+scope: source.viml
+
+contexts:
+  # ════════════════════════════════════════════════════════════════
+  # Main
+  # ════════════════════════════════════════════════════════════════
+  main:
+    - include: line_continuation
+    - include: comment_line
+    - include: heredoc
+    - include: highlight_cmd
+    - include: syntax_cmd
+    - include: sign_cmd
+    - include: augroup_block
+    - include: autocmd_cmd
+    - include: map_cmd
+    - include: command_cmd
+    - include: function_def
+    - include: control_flow
+    - include: let_cmd
+    - include: set_cmd
+    - include: echo_cmd
+    - include: common_ex_cmd
+    - include: expressions
+
+  # ════════════════════════════════════════════════════════════════
+  # Shared expression patterns
+  # ════════════════════════════════════════════════════════════════
+  expressions:
+    - include: string_double
+    - include: string_single
+    - include: regex_pattern
+    - include: hex_color
+    - include: number
+    - include: boolean_special
+    - include: builtin_function
+    - include: user_func_call
+    - include: variable
+    - include: special_key
+    - include: operator
+    - include: inline_comment
+
+  # ════════════════════════════════════════════════════════════════
+  # Line continuation  ( \ at the start of a continuation line )
+  # ════════════════════════════════════════════════════════════════
+  line_continuation:
+    - match: '^\s*\\'
+      scope: punctuation.separator.continuation.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # Comments
+  # ════════════════════════════════════════════════════════════════
+  comment_line:
+    - match: '^\s*".*$'
+      scope: comment.line.quotes.viml
+    - match: '^\s*#(?!\{).*$'
+      scope: comment.line.number-sign.viml
+
+  inline_comment:
+    - match: '\s+"[^"]*$'
+      scope: comment.line.quotes.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # Strings
+  # ════════════════════════════════════════════════════════════════
+  string_double:
+    - match: '"'
+      scope: punctuation.definition.string.begin.viml
+      push:
+        - meta_scope: string.quoted.double.viml
+        - match: '\\[\\\"abefnrt<>]|\\x[0-9a-fA-F]{1,2}|\\u[0-9a-fA-F]{1,4}|\\U[0-9a-fA-F]{1,8}|\\[0-7]{1,3}'
+          scope: constant.character.escape.viml
+        - match: '"'
+          scope: punctuation.definition.string.end.viml
+          pop: true
+        - match: '$'
+          pop: true
+
+  string_single:
+    - match: "'"
+      scope: punctuation.definition.string.begin.viml
+      push:
+        - meta_scope: string.quoted.single.viml
+        - match: "''"
+          scope: constant.character.escape.viml
+        - match: "'"
+          scope: punctuation.definition.string.end.viml
+          pop: true
+        - match: '$'
+          pop: true
+
+  # ════════════════════════════════════════════════════════════════
+  # Regex  ( /pattern/ after =~ !~ or substitute )
+  # ════════════════════════════════════════════════════════════════
+  regex_pattern:
+    - match: '(?<=[=!~\s])/(?!/)'
+      scope: punctuation.definition.string.begin.viml
+      push:
+        - meta_scope: string.regexp.viml
+        - match: '\\/'
+          scope: constant.character.escape.viml
+        - match: '/'
+          scope: punctuation.definition.string.end.viml
+          pop: true
+        - match: '$'
+          pop: true
+
+  # ════════════════════════════════════════════════════════════════
+  # Heredoc   ( let x =<< [trim] END … END )
+  # ════════════════════════════════════════════════════════════════
+  heredoc:
+    - match: '=<<\s*(trim\s+)?(\w+)\s*$'
+      captures:
+        1: storage.modifier.viml
+        2: entity.name.tag.viml
+      push:
+        - meta_content_scope: string.unquoted.heredoc.viml
+        - match: '^\s*(\2)\s*$'
+          captures:
+            1: entity.name.tag.viml
+          pop: true
+
+  # ════════════════════════════════════════════════════════════════
+  # Numbers & Colors
+  # ════════════════════════════════════════════════════════════════
+  hex_color:
+    - match: '#[0-9a-fA-F]{6}\b'
+      scope: constant.numeric.color.viml
+
+  number:
+    - match: '\b0[xX][0-9a-fA-F_]+\b'
+      scope: constant.numeric.hex.viml
+    - match: '\b0[bB][01_]+\b'
+      scope: constant.numeric.binary.viml
+    - match: '\b0[oO][0-7_]+\b'
+      scope: constant.numeric.octal.viml
+    - match: '\b\d+\.\d+([eE][+-]?\d+)?\b'
+      scope: constant.numeric.float.viml
+    - match: '-?\b\d+\b'
+      scope: constant.numeric.integer.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # Boolean & special constants
+  # ════════════════════════════════════════════════════════════════
+  boolean_special:
+    - match: '\bv:(true|false|null|none|t_bool|t_number|t_string|t_float|t_list|t_dict|t_func|t_job|t_channel|t_blob)\b'
+      scope: constant.language.viml
+    - match: '\b(true|false|null|none)\b'
+      scope: constant.language.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # Variables
+  # ════════════════════════════════════════════════════════════════
+  variable:
+    - match: '\bv:\w+\b'
+      scope: variable.language.viml
+    - match: '\b[sgbwtla]:\w+\b'
+      scope: variable.other.viml
+    - match: '\$\w+'
+      scope: variable.other.env.viml
+    - match: '@[a-zA-Z0-9"*+\-/:.%#=]'
+      scope: variable.other.register.viml
+    - match: '&(?:l:|g:)?\w+'
+      scope: variable.other.option.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # Special key notation   <CR>  <C-x>  <Leader>  …
+  # ════════════════════════════════════════════════════════════════
+  special_key:
+    - match: '<(?:buffer|nowait|silent|special|script|expr|unique)>'
+      scope: storage.modifier.viml
+    - match: '<(?:[CSMA]-)(?:[CSMA]-)*\w+>'
+      scope: constant.character.key.viml
+    - match: '(?i)<(?:CR|NL|Esc|Tab|BS|Del|Up|Down|Left|Right|Home|End|PageUp|PageDown|Insert|F\d{1,2}|Space|Nul|Bar|Bslash|lt|gt|Leader|LocalLeader|Plug|SID|SNR|Cmd)>'
+      scope: constant.character.key.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # Operators
+  # ════════════════════════════════════════════════════════════════
+  operator:
+    - match: '==[#?]?|!=[#?]?|>[=#?]?|<[=#?]?|[=!]~[#?]?'
+      scope: keyword.operator.comparison.viml
+    - match: '&&|\|\|'
+      scope: keyword.operator.logical.viml
+    - match: '\b(?:is|isnot)\b'
+      scope: keyword.operator.word.viml
+    - match: '\.\.'
+      scope: keyword.operator.concatenation.viml
+    - match: '[-+.]='
+      scope: keyword.operator.assignment.compound.viml
+    - match: '[+\-*/%]'
+      scope: keyword.operator.arithmetic.viml
+    - match: '='
+      scope: keyword.operator.assignment.viml
+    - match: '[?:]'
+      scope: keyword.operator.ternary.viml
+
+  # ════════════════════════════════════════════════════════════════
+  #   H I G H L I G H T   command
+  # ════════════════════════════════════════════════════════════════
+  highlight_cmd:
+    - match: '^\s*(hi(?:ghlight)?)\s*(!)?'
+      captures:
+        1: keyword.other.viml
+        2: keyword.operator.viml
+      push: highlight_args
+
+  highlight_args:
+    - match: '$'
+      pop: true
+    - match: '".*$'
+      scope: comment.line.quotes.viml
+    - match: '\b(default)\b'
+      scope: storage.modifier.viml
+    - match: '\b(link|clear)\b'
+      scope: keyword.other.viml
+    - match: '\bNONE\b'
+      scope: constant.language.viml
+    - match: '\b(term|cterm|ctermfg|ctermbg|ctermul|gui|guifg|guibg|guisp|font|blend|start|stop)(=)'
+      captures:
+        1: entity.other.attribute-name.viml
+        2: keyword.operator.assignment.viml
+      push: highlight_value
+    - match: '\b([A-Z]\w*)\b'
+      scope: entity.name.type.viml
+    - match: '@\w+'
+      scope: entity.name.type.viml
+
+  highlight_value:
+    - match: '(?=\s|$)'
+      pop: true
+    - match: '#[0-9a-fA-F]{6}\b'
+      scope: constant.numeric.color.viml
+    - match: '\b(bold|italic|underline|undercurl|underdouble|underdotted|underdashed|strikethrough|reverse|inverse|standout|nocombine|NONE)\b'
+      scope: constant.language.viml
+    - match: '\b(none|fg|bg|foreground|background)\b'
+      scope: constant.language.viml
+    - match: '\b(black|blue|brown|cyan|darkblue|darkcyan|darkgray|darkgreen|darkgrey|darkmagenta|darkred|darkyellow|gray|green|grey|grey40|grey50|grey90|lightblue|lightcyan|lightgray|lightgreen|lightgrey|lightmagenta|lightred|lightyellow|magenta|red|seagreen|white|yellow)\b'
+      scope: support.constant.color.viml
+    - match: '\b\d+\b'
+      scope: constant.numeric.integer.viml
+    - match: ','
+      scope: punctuation.separator.viml
+    - match: '[^,\s]+'
+      scope: support.constant.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # syntax command
+  # ════════════════════════════════════════════════════════════════
+  syntax_cmd:
+    - match: '^\s*(syn(?:tax)?)\s+(match|region|keyword|cluster|include|sync|case|spell|conceal|clear|on|off|enable|reset)\b'
+      captures:
+        1: keyword.other.viml
+        2: storage.type.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # sign command
+  # ════════════════════════════════════════════════════════════════
+  sign_cmd:
+    - match: '^\s*(sign)\s+(define|place|undefine|unplace|list|jump)\b'
+      captures:
+        1: keyword.other.viml
+        2: storage.type.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # augroup … augroup END
+  # ════════════════════════════════════════════════════════════════
+  augroup_block:
+    - match: '^\s*(aug(?:roup)?)\s+(END|end)\b'
+      captures:
+        1: keyword.other.viml
+        2: keyword.other.viml
+    - match: '^\s*(aug(?:roup)?)\s+(!?\s*)(\S+)'
+      captures:
+        1: keyword.other.viml
+        2: keyword.operator.viml
+        3: entity.name.section.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # autocmd
+  # ════════════════════════════════════════════════════════════════
+  autocmd_cmd:
+    - match: '^\s*(au(?:tocmd)?)\s*(!)?'
+      captures:
+        1: keyword.other.viml
+        2: keyword.operator.viml
+      push: autocmd_args
+
+  autocmd_args:
+    - match: '$'
+      pop: true
+    - match: '\b(BufAdd|BufCreate|BufDelete|BufEnter|BufFilePost|BufFilePre|BufHidden|BufLeave|BufNew|BufNewFile|BufRead|BufReadCmd|BufReadPost|BufReadPre|BufUnload|BufWinEnter|BufWinLeave|BufWipeout|BufWrite|BufWriteCmd|BufWritePost|BufWritePre|CmdlineChanged|CmdlineEnter|CmdlineLeave|CmdlineLeavePre|CmdUndefined|CmdwinEnter|CmdwinLeave|ColorScheme|ColorSchemePre|CompleteChanged|CompleteDone|CompleteDonePre|CursorHold|CursorHoldI|CursorMoved|CursorMovedC|CursorMovedI|DiffUpdated|DirChanged|DirChangedPre|EncodingChanged|ExitPre|FileAppendCmd|FileAppendPost|FileAppendPre|FileChangedRO|FileChangedShell|FileChangedShellPost|FileEncoding|FileReadCmd|FileReadPost|FileReadPre|FileType|FileWriteCmd|FileWritePost|FileWritePre|FilterReadPost|FilterReadPre|FilterWritePost|FilterWritePre|FocusGained|FocusLost|FuncUndefined|GUIEnter|GUIFailed|InsertChange|InsertCharPre|InsertEnter|InsertLeave|InsertLeavePre|KeyInputPre|MenuPopup|ModeChanged|OptionSet|QuickFixCmdPost|QuickFixCmdPre|QuitPre|RemoteReply|SafeState|SafeStateAgain|SessionLoadPost|SessionLoadPre|SessionWritePost|ShellCmdPost|ShellFilterPost|SigUSR1|SourceCmd|SourcePost|SourcePre|SpellFileMissing|StdinReadPost|StdinReadPre|SwapExists|Syntax|TabClosed|TabClosedPre|TabEnter|TabLeave|TabNew|TermChanged|TermResponse|TermResponseAll|TerminalOpen|TerminalWinOpen|TextChanged|TextChangedI|TextChangedP|TextChangedT|TextPutPost|TextPutPre|TextYankPost|User|VimEnter|VimLeave|VimLeavePre|VimResized|VimResume|VimSuspend|WinClosed|WinEnter|WinLeave|WinNew|WinNewPre|WinResized|WinScrolled)\b'
+      scope: support.constant.event.viml
+    - match: '[*?]\S*'
+      scope: string.unquoted.pattern.viml
+    - include: expressions
+
+  # ════════════════════════════════════════════════════════════════
+  # map / noremap / …
+  # ════════════════════════════════════════════════════════════════
+  map_cmd:
+    - match: '^\s*([nvxsoilct]?(?:nore)?map|map!|[nvxsoilct]?unmap|unmap!|[nvxsoilct]?mapclear|mapclear!)\b'
+      captures:
+        1: keyword.other.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # command / delcommand
+  # ════════════════════════════════════════════════════════════════
+  command_cmd:
+    - match: '^\s*(com(?:mand)?)\s*(!)?'
+      captures:
+        1: keyword.other.viml
+        2: keyword.operator.viml
+      push: command_def_args
+    - match: '^\s*(delc(?:ommand)?)\s+(\w+)'
+      captures:
+        1: keyword.other.viml
+        2: entity.name.function.viml
+
+  command_def_args:
+    - match: '$'
+      pop: true
+    - match: '-\w+(?:=\S+)?'
+      scope: storage.modifier.viml
+    - match: '\b[A-Z]\w+\b'
+      scope: entity.name.function.viml
+    - include: expressions
+
+  # ════════════════════════════════════════════════════════════════
+  # function / endfunction / def / enddef
+  # ════════════════════════════════════════════════════════════════
+  function_def:
+    - match: '^\s*(fu(?:n(?:ction)?)?|def)\s*(!)?'
+      captures:
+        1: storage.type.function.viml
+        2: keyword.operator.viml
+      push: function_name
+    - match: '^\s*(end(?:f(?:u(?:n(?:ction)?)?)?)?|enddef)\b'
+      scope: storage.type.function.viml
+
+  function_name:
+    - match: '$'
+      pop: true
+    - match: '((?:[sgbwtl]:)?[A-Za-z_#][A-Za-z0-9_#]*)\s*(\()'
+      captures:
+        1: entity.name.function.viml
+        2: punctuation.section.parens.begin.viml
+      push: function_params
+    - match: '\b(abort|range|dict|closure)\b'
+      scope: storage.modifier.viml
+
+  function_params:
+    - match: '\)'
+      scope: punctuation.section.parens.end.viml
+      pop: 2
+    - match: '\.\.\.'
+      scope: keyword.operator.viml
+    - match: '\b\w+\b'
+      scope: variable.parameter.viml
+    - match: ','
+      scope: punctuation.separator.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # Control flow
+  # ════════════════════════════════════════════════════════════════
+  control_flow:
+    - match: '\b(if|else|elseif|endif|while|endwhile|for|endfor|in|try|catch|finally|endtry|throw|return|break|continue|finish)\b'
+      scope: keyword.control.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # let / const / var / unlet
+  # ════════════════════════════════════════════════════════════════
+  let_cmd:
+    - match: '^\s*(let|const|var|unlet)\s*(!)?'
+      captures:
+        1: storage.type.viml
+        2: keyword.operator.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # set / setlocal / setglobal
+  # ════════════════════════════════════════════════════════════════
+  set_cmd:
+    - match: '^\s*(setl(?:ocal)?|setg(?:lobal)?|se(?:t)?)\b'
+      captures:
+        1: support.function.viml
+      push: set_args
+
+  set_args:
+    - match: '$'
+      pop: true
+    - match: '".*$'
+      scope: comment.line.quotes.viml
+    - match: '\b(no|inv)(?=[a-z])'
+      scope: keyword.operator.viml
+    - match: '[+^-]?='
+      scope: keyword.operator.assignment.viml
+    - include: number
+    - include: variable
+    - match: '\w+'
+      scope: variable.parameter.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # echo / echomsg / echoerr / execute  …
+  # ════════════════════════════════════════════════════════════════
+  echo_cmd:
+    - match: '^\s*(ec(?:ho)?|echom(?:sg)?|echohl|echoerr|echon|exe(?:cute)?)\b'
+      captures:
+        1: support.function.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # Common ex commands
+  # ════════════════════════════════════════════════════════════════
+  common_ex_cmd:
+    - match: '^\s*(vim9script|import|export)\b'
+      captures:
+        1: keyword.control.import.viml
+    - match: '^\s*(filetype|filet)\s+'
+      captures:
+        1: keyword.other.viml
+      push:
+        - match: '$'
+          pop: true
+        - match: '\b(plugin|indent|on|off|detect)\b'
+          scope: constant.language.viml
+    - match: '^\s*(colorscheme|colo)\s+(\S+)'
+      captures:
+        1: keyword.other.viml
+        2: string.unquoted.viml
+    - match: '^\s*(source|so|runtime|ru|packadd|pa)\s*(!)?'
+      captures:
+        1: keyword.other.viml
+        2: keyword.operator.viml
+    - match: '^\s*(normal|norm|silent|redraw|wincmd)\s*(!)?'
+      captures:
+        1: keyword.other.viml
+        2: keyword.operator.viml
+    - match: '^\s*(call|verbose|debug|lockvar|unlockvar|scriptencoding|scriptversion)\b'
+      captures:
+        1: keyword.other.viml
+    - match: '^\s*(edit|split|vsplit|tabnew|tabedit|tabclose|tabonly|enew|new|vnew|close|hide|only|quit|qall|write|wall|wq|wqa|saveas|update|bdelete|bwipeout|bnext|bprev|bfirst|blast|buffer|sbuffer|ls|buffers|files)\s*(!)?'
+      captures:
+        1: keyword.other.viml
+        2: keyword.operator.viml
+    - match: '^\s*(cd|chdir|lcd|tcd|pwd)\b'
+      captures:
+        1: keyword.other.viml
+    - match: '^\s*(marks|jumps|changes|registers|digraphs|abbreviate|abclear|unabbreviate|menu|unmenu|amenu|popup)\b'
+      captures:
+        1: keyword.other.viml
+    - match: '^\s*(lua|python3?|ruby|perl|tcl)\s*'
+      captures:
+        1: keyword.other.viml
+
+  # ════════════════════════════════════════════════════════════════
+  # Built-in functions  ( matched only when followed by '(' )
+  # ════════════════════════════════════════════════════════════════
+  builtin_function:
+    - match: '\b(abs|acos|add|and|append|appendbufline|argc|argidx|arglistid|argv|asin|atan|atan2|blob2list|browse|browsedir|bufadd|bufexists|buflisted|bufload|bufloaded|bufname|bufnr|bufwinid|bufwinnr|byte2line|byteidx|byteidxcomp|call|ceil|ch_close|ch_evalexpr|ch_evalraw|ch_getbufnr|ch_info|ch_log|ch_open|ch_read|ch_sendexpr|ch_sendraw|ch_setoptions|ch_status|changenr|char2nr|charcol|charidx|chdir|cindent|clearmatches|col|complete|complete_add|complete_check|complete_info|confirm|copy|cos|cosh|count|cscope_connection|cursor|debugbreak|deepcopy|delete|deletebufline|did_filetype|diff_filler|diff_hlID|digraph_get|digraph_set|empty|environ|escape|eval|eventhandler|executable|execute|exepath|exists|exp|expand|expandcmd|extend|extendnew|feedkeys|filereadable|filewritable|filter|finddir|findfile|flatten|flattennew|float2nr|floor|fmod|fnameescape|fnamemodify|foldclosed|foldclosedend|foldlevel|foldtext|foldtextresult|foreach|fullcommand|funcref|function|garbagecollect|get|getbufinfo|getbufline|getbufvar|getchangelist|getchar|getcharmod|getcharpos|getcharsearch|getcharstr|getcmdcompltype|getcmdline|getcmdpos|getcmdscreenpos|getcmdtype|getcompletion|getcurpos|getcursorcharpos|getcwd|getenv|getfontname|getfperm|getfsize|getftime|getftype|getimstatus|getjumplist|getline|getloclist|getmarklist|getmatches|getmousepos|getpid|getpos|getqflist|getreg|getreginfo|getregtype|getscriptinfo|gettabinfo|gettabvar|gettabwinvar|gettagstack|gettext|getwininfo|getwinpos|getwinposx|getwinposy|getwinvar|glob|glob2regpat|globpath|has|has_key|haslocaldir|hasmapto|histadd|histdel|histget|histnr|hlID|hlexists|hlget|hlset|hostname|iconv|indent|index|indexof|input|inputdialog|inputlist|inputrestore|inputsave|inputsecret|insert|interrupt|invert|isdirectory|isinf|islocked|isnan|items|job_getchannel|job_info|job_setoptions|job_start|job_status|job_stop|join|json_decode|json_encode|keys|keytrans|len|libcall|libcallnr|line|line2byte|lispindent|list2blob|list2str|listener_add|listener_flush|listener_remove|localtime|log|log10|luaeval|map|maparg|mapcheck|maplist|mapnew|mapset|match|matchadd|matchaddpos|matcharg|matchdelete|matchend|matchfuzzy|matchfuzzypos|matchlist|matchstr|matchstrpos|max|menu_get|menu_info|min|mkdir|mode|nextnonblank|nr2char|or|pathshorten|perleval|popup_atcursor|popup_beval|popup_clear|popup_close|popup_create|popup_dialog|popup_filter_menu|popup_filter_yesno|popup_findinfo|popup_getoptions|popup_getpos|popup_hide|popup_list|popup_locate|popup_menu|popup_move|popup_notification|popup_setoptions|popup_settext|popup_show|pow|prevnonblank|printf|prompt_getprompt|prompt_setcallback|prompt_setinterrupt|prompt_setprompt|prop_add|prop_add_list|prop_clear|prop_find|prop_list|prop_remove|prop_type_add|prop_type_change|prop_type_delete|prop_type_get|prop_type_list|pum_getpos|pumvisible|py3eval|pyeval|pyxeval|rand|range|readblob|readdir|readdirex|readfile|reduce|reg_executing|reg_recording|reltime|reltimefloat|reltimestr|remote_expr|remote_foreground|remote_peek|remote_read|remote_send|remote_startserver|remove|rename|repeat|resolve|reverse|round|rubyeval|screenattr|screenchar|screenchars|screencol|screenpos|screenrow|screenstring|search|searchcount|searchdecl|searchpair|searchpairpos|searchpos|server2client|serverlist|setbufline|setbufvar|setcellwidths|setcharpos|setcharsearch|setcmdline|setcmdpos|setcursorcharpos|setenv|setfperm|setline|setloclist|setmatches|setpos|setqflist|setreg|settabvar|settabwinvar|settagstack|setwinvar|sha256|shellescape|shiftwidth|sign_define|sign_getdefined|sign_getplaced|sign_jump|sign_place|sign_placelist|sign_undefine|sign_unplace|sign_unplacelist|simplify|sin|sinh|slice|sort|sound_clear|sound_playevent|sound_playfile|sound_stop|soundfold|spellbadword|spellsuggest|split|sqrt|srand|state|str2float|str2list|str2nr|strcharlen|strcharpart|strchars|strdisplaywidth|strftime|strgetchar|stridx|string|strlen|strpart|strptime|strridx|strtrans|strwidth|submatch|substitute|swapfilelist|swapinfo|swapname|synID|synIDattr|synIDtrans|synconcealed|synstack|system|systemlist|tabpagebuflist|tabpagenr|tabpagewinnr|tagfiles|taglist|tan|tanh|tempname|term_dumpdiff|term_dumpload|term_dumpwrite|term_getaltscreen|term_getansicolors|term_getattr|term_getcursor|term_getjob|term_getline|term_getscroll|term_getsize|term_getstatus|term_gettitle|term_gettty|term_list|term_scrape|term_sendkeys|term_setansicolors|term_setapi|term_setkill|term_setrestore|term_setsize|term_start|term_wait|timer_info|timer_pause|timer_start|timer_stop|timer_stopall|tolower|toupper|tr|trim|trunc|type|typename|undofile|undotree|uniq|utf16idx|values|virtcol|virtcol2col|visualmode|wildmenumode|win_execute|win_findbuf|win_getid|win_gettype|win_gotoid|win_id2tabwin|win_id2win|win_move_separator|win_move_statusline|win_screenpos|win_splitmove|winbufnr|wincol|windowsversion|winheight|winlayout|winline|winnr|winrestcmd|winrestview|winsaveview|winwidth|wordcount|writefile|xor)(?=\s*\()'
+      scope: support.function.builtin.viml
+
+  user_func_call:
+    - match: '((?:[sgbwtl]:)?[A-Za-z_][A-Za-z0-9_#]*)(?=\s*\()'
+      scope: variable.function.viml

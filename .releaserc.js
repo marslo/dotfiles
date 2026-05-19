@@ -36,17 +36,27 @@ module.exports = {
             'ci': 'CI/CD'
           };
 
-          // change type: this directly determines the ## header in CHANGELOG
-          if (sectionMap[clonedCommit.type]) {
-            clonedCommit.type = sectionMap[clonedCommit.type];
+          const isSignoff = (line) => /^\s*Signed-off-by:/i.test(line);
+
+          // commit body
+          if (clonedCommit.body) {
+            const cleanedBodyLines = clonedCommit.body.split('\n').filter(line => !isSignoff(line));
+            clonedCommit.body = cleanedBodyLines.length > 0
+              ? cleanedBodyLines.map(line => '  ' + line).join('\n')
+              : null;
           }
 
-          // body indentation (keep two spaces for sub-list alignment)
-          if (clonedCommit.body) {
-            clonedCommit.body = clonedCommit.body
+          // footer
+          if (clonedCommit.footer) {
+            clonedCommit.footer = clonedCommit.footer
               .split('\n')
-              .map(line => '  ' + line)
-              .join('\n');
+              .filter(line => !isSignoff(line))
+              .join('\n').trim() || null;
+          }
+
+          // notes
+          if (Array.isArray(clonedCommit.notes)) {
+            clonedCommit.notes = clonedCommit.notes.filter(n => !isSignoff(n.text || n.title || ''));
           }
 
           // return the modified commit object, note: we did not change the subject,

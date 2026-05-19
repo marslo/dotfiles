@@ -2,9 +2,9 @@
 # shellcheck source=/dev/null
 #=============================================================================
 #     FileName : git-mcx
-#       Author : marslo.jiao@gmail.com
+#       Author : marslo
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2026-02-26 14:30:36
+#   LastChange : 2026-05-18 23:41:09
 #        Usage : git-mcx [OPTION]             # call getCommitMessage to set commit message
 #                git-mcx [OPTION] [message]   # using `[message]` as commit message
 #=============================================================================
@@ -30,17 +30,17 @@ declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # shellcheck disable=SC2015
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
+if [[ -f "${HERE}"/getCommitMessage.sh ]]; then
+  source "${HERE}"/getCommitMessage.sh
+else
+  die "$(c Cs)'getCommitMessage.sh'$(c 0i) not found. download from https://github.com/marslo/dotfiles/raw/main/.marslo/bin/getCommitMessage.sh first. $(c)"
+fi
+
 function showHelp() { echo -e "${USAGE}"; }
 function die() { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
 
-if [[ -f "$(dirname "${BASH_SOURCE[0]:-$0}")"/getCommitMessage.sh ]]; then
-  source "$(dirname "${BASH_SOURCE[0]:-$0}")"/getCommitMessage.sh
-else
-  die "$(c M)'getCommitMessage.sh'$(c 0i) not found. download from https://github.com/marslo/dotfiles/raw/main/.marslo/bin/getCommitMessage.sh first. $(c)"
-fi
-
 # shellcheck source=/dev/null disable=SC2155
-declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /g')"
+declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /')"
 # flag
 declare MCX_ENABLE_SCOPE="${MCX_ENABLE_SCOPE:-true}"
 declare MCX_LINT_ENABLE="${MCX_LINT_ENABLE:-true}"
@@ -50,6 +50,7 @@ declare MCX_SHOW_PREVIEW="${MCX_SHOW_PREVIEW:-false}"
 declare MCX_SHOW_DIFF="${MCX_SHOW_DIFF:-false}"
 declare MCX_GLOBAL_LINTRC="${MCX_GLOBAL_LINTRC:-false}"
 declare MCX_ENABLE_JIRA="${MCX_ENABLE_JIRA:-false}"
+declare _MCX_FOOTER_ACTION=''
 declare MCX_BREAKING_CHANGE="${MCX_BREAKING_CHANGE:-false}"
 declare LINTRC_FILE="${HOME}/.commitlintrc.js"
 # shellcheck source=/dev/null disable=SC2155
@@ -61,23 +62,26 @@ USAGE
   $(c Ys)\$ ${ME} $(c 0Wdi)[$(c 0Gi)options$(c 0Wdi)] $(c 0Wdi)[$(c 0Mi)'message'$(c 0Wdi)]$(c)
 
 OPTIONS
-  $(c Gi)--body$(c), $(c Gi)--no-body$(c 0Y)*$(c)                   enable/disable the commit message body section
-  $(c Gi)--footer$(c), $(c Gi)--no-footer$(c 0Y)*$(c)               enable/disable the footer section $(c i)(e.g.: $(c W)issue refs, $(c 0Wi)breaking changes$(c 0i))$(c)
-  $(c Gi)--diff$(c), $(c Gi)--no-diff$(c 0Y)*$(c)                   show/suppress Git diff preview $(c i)(if applicable)$(c)
-  $(c Gi)--preview$(c), $(c Gi)--no-preview$(c 0Y)*$(c)             enable/disable full preview of the final commit message
-  $(c Gi)--scope$(c 0Y)*$(c), $(c Gi)--no-scope$(c)                 prompt/skip for Conventional Commit 'scope' input
-  $(c Gi)--lint$(c 0Y)*$(c), $(c Gi)--no-lint$(c)                   enable/disable commit message linting $(c i)(via commitlint - if applicable)$(c)
+  $(c Gi)--body$(c), $(c Gi)--no-body$(c 0Y)*$(c)                          enable/disable the commit message body section
+  $(c Gi)--diff$(c), $(c Gi)--no-diff$(c 0Y)*$(c)                          show/suppress Git diff preview $(c i)(if applicable)$(c)
+  $(c Gi)--preview$(c), $(c Gi)--no-preview$(c 0Y)*$(c)                    enable/disable full preview of the final commit message
+  $(c Gi)--scope$(c 0Y)*$(c), $(c Gi)--no-scope$(c)                        prompt/skip for Conventional Commit 'scope' input
+  $(c Gi)--lint$(c 0Y)*$(c), $(c Gi)--no-lint$(c)                          enable/disable commit message linting $(c i)(via commitlint - if applicable)$(c)
 
-  $(c Gi)--global-lintrc$(c), $(c Gi)--no-global-lintrc$(c 0Y)*$(c) force use/disable global commitlint configuration ($(c i)default: $(c M)~/.commitlintrc$(c))
-  $(c Gi)--lintrc $(c 0Wi)<file>$(c)                      specify a custom commitlint configuration file
-                                       example: $(c Gi)--lintrc $(c 0Wi)\"\$HOME/path/to/.commitlintrc.json\"$(c)
+  $(c Gi)--global-lintrc$(c), $(c Gi)--no-global-lintrc$(c 0Y)*$(c)        force use/disable global commitlint configuration ($(c i)default: $(c M)~/.commitlintrc$(c))
+  $(c Gi)--lintrc $(c 0Wi)<file>$(c)                             specify a custom commitlint configuration file
+                                              example: $(c Gi)--lintrc $(c 0Wi)\"\$HOME/path/to/.commitlintrc.json\"$(c)
 
-  $(c Gi)--breaking$(c), $(c Gi)--breaking-change$(c)        enable breaking change section $(c i)(e.g.: $(c W)BREAKING CHANGE: $(c 0Wi)description$(c 0i))$(c)
-  $(c Gi)-h$(c), $(c Gi)--help$(c)                           show this help message and exit
+  $(c Gi)--footer$(c) $(c Wi)[fix|close|resolve]$(c), $(c Gi)--no-footer$(c 0Y)*$(c)  enable/disable the footer section $(c i)(e.g.: $(c W)issue refs, $(c 0Wi)breaking changes$(c 0i))$(c)
+                                              without argument: manual input via $(c Wi)gum$(c)
+  $(c Gi)--fix$(c), $(c Gi)--close$(c), $(c Gi)--resolve$(c)                   select a GitHub issue via $(c Wi)gh$(c) + $(c Wi)fzf$(c) and add $(c iC)Fixed/Closed/Resolved #<id>$(c) to footer $(c Wdi)(== --footer fix/close/resolve)$(c)
+  $(c Gi)--breaking$(c), $(c Gi)--breaking-change$(c)               enable breaking change section $(c i)(e.g.: $(c W)BREAKING CHANGE: $(c 0Wi)description$(c 0i))$(c)
+  $(c Gi)-h$(c), $(c Gi)--help$(c)                                  show this help message and exit
 
 EXAMPLES
   $(c Ys)\$ ${ME} $(c 0Mi)'message'$(c 0Gi)            $(c 0Wdi)# commit directly$(c)
   $(c Ys)\$ ${ME} $(c 0Bi)--$(c 0Gi) --help            $(c 0Wdi)# show help$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--footer $(c 0Mi)fix$(c)         $(c 0Wdi)# select issue ID via $(c 0Ci)fzf+gh$(c 0Wdi), and add $(c 0Ci)Fixed #<id>$(c 0Wdi) to footer$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--body --footer --diff --lint$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--no-preview --no-scope --lintrc $(c 0Wi)./custom-lintrc.json$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--no-lint --no-footer --no-body$(c)
@@ -87,8 +91,6 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     --no-body                      ) MCX_ENABLE_BODY=false   ; shift     ;;
     --body                         ) MCX_ENABLE_BODY=true    ; shift     ;;
-    --no-footer                    ) MCX_ENABLE_FOOTER=false ; shift     ;;
-    --footer                       ) MCX_ENABLE_FOOTER=true  ; shift     ;;
     --diff                         ) MCX_SHOW_DIFF=true      ; shift     ;;
     --no-diff                      ) MCX_SHOW_DIFF=false     ; shift     ;;
     --preview                      ) MCX_SHOW_PREVIEW=true   ; shift     ;;
@@ -102,6 +104,12 @@ while [[ $# -gt 0 ]]; do
     --no-global-lintrc             ) MCX_GLOBAL_LINTRC=false ; shift     ;;
     --breaking | --breaking-change ) MCX_BREAKING_CHANGE=true; shift     ;;
     -j | --jira                    ) MCX_ENABLE_JIRA=true    ; shift     ;;
+    --no-footer                    ) MCX_ENABLE_FOOTER=false ; shift     ;;
+    --footer                       ) MCX_ENABLE_FOOTER=true  ; shift     ;
+                                     case "${1:-}" in
+                                       fix|close|resolve) _MCX_FOOTER_ACTION="$1"; shift ;;
+                                     esac                                ;;
+    --fix | --close | --resolve    ) MCX_ENABLE_FOOTER=true; _MCX_FOOTER_ACTION="${1#--}"; shift ;;
     --                             ) shift                               ;;
     -h | --help                    ) showHelp                ; exit 0    ;;
     -*                             ) die "$(c i)Unknown option: $(c M)'$1'$(c 0i). try$(c) $(c Gi)\`\$ ${ME} -- --help\`$(c)" ;;
@@ -118,8 +126,8 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
 function msgPreview() {
   echo -e "\n$(c Wdi)--------------- git message preview ---------------$(c)"
   printf  "%s\n" "${1}" | command bat --plain --language COMMIT_EDITMSG --theme gruvbox-dark-marslo
-  printf  "%s\n" "${1}" | pbcopy && printf "$(c Cdi)%b$(c)\n" "(the commit message has been copied to clipboard)"
   echo -e "$(c Wdi)---------------------------------------------------$(c)"
+  printf  "%s\n" "${1}" | pbcopy && printf "$(c Cdi)%b$(c)\n" "(the commit message has been copied to clipboard)"
 }
 
 function changeDiff() {

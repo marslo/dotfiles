@@ -71,7 +71,7 @@ Plug 'sainnhe/gruvbox-material'                                     " │
 Plug 'luisiacc/gruvbox-baby', { 'branch': 'main' }                  " ├ theme
 Plug 'sainnhe/everforest'                                           " │
 Plug 'marslo/marslo.vim'                                            " ╯ t_Co=16
-Plug 'sheerun/vim-polyglot'                                         " highlight
+Plug 'sheerun/vim-polyglot'                                         " syntax highlight
 Plug 'luochen1990/rainbow'
 Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }           " color show
 Plug 'amadeus/vim-css'

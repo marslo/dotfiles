@@ -24,9 +24,7 @@ check-file = true
 unicode=true
 locale = "en"
 extend-ignore-re = [
-  "(?m)^\\s*bind.*$",
-  "(?m)^\\s*alias.*$",
-  "(?m)^\\s*snip.*$",
+  "(?m)^\\s*(?:bind|alias|snip).*$",
   # [c]ommit, d[i]ff, ...
   "\\w*\\[\\w\\]\\w*",
   # ansicolor
@@ -36,7 +34,15 @@ extend-ignore-re = [
   "\\$\\([cC][^)]+\\)\\S*",
   "\\S+\\$\\([cC][^)]+\\)\\S*",
   # vim modeline
-  "(?m)^.*\\bvim:.*$"
+  "(?m)^.*\\bvim:.*$",
+  # regex: (?:xxx)
+  '\(\?:.*?\)',
+  # regex: ^\s*(...)
+  '\^\\s\*\(.*?\)',
+  # regex: \b(...)
+  '\\b\(.*?\)',
+  # regex: (?=\s*
+  '\(\?=\\s\*'
 ]
 
 [default.extend-words]

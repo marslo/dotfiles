@@ -3,7 +3,7 @@
 #     FileName : pre-commit-autoupdate
 #       Author : marslo
 #      Created : 2026-05-13 14:15:00
-#   LastChange : 2026-05-13 15:37:19
+#   LastChange : 2026-05-18 23:26:05
 #  Description : `pre-commit autoupdate` — runs real autoupdate → fixes repos that use rolling major-version tags
 #                e.g. crate-ci/typos publishes "v1"
 #=============================================================================
@@ -42,7 +42,7 @@ for repo in "${ROLLING_REPOS[@]}"; do
 
   if [[ "${current}" != "${latest}" ]]; then
     sed -i.bak "/${escaped}/{n;s/rev:.*/rev: ${latest}/;}" "${CFG}"
-    printf "[https://github.com/%s] \033[0;1;36mfixed rev\033[0m: \033[0;1;3;34m%s\033[0m -> \033[0;1;3;35m%s\033[0m\n" "${repo}" "${current}" "${latest}"
+    printf "\033[0;2;3;37m[https://github.com/%s]\033[0m \033[0;1;36mfixed rev\033[0m: \033[0;1;3;34m%s\033[0m -> \033[0;1;3;35m%s\033[0m\n" "${repo}" "${current}" "${latest}"
   fi
 done
 

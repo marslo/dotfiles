@@ -4,7 +4,7 @@
 #     FileName : git-customize.sh
 #       Author : marslo
 #      Created : 2025-12-11 21:28:56
-#   LastChange : 2026-05-04 19:38:38
+#   LastChange : 2026-05-18 23:42:18
 #=============================================================================
 
 function _git_ca()     { _git_mcx;      }
@@ -41,6 +41,7 @@ function _git_nb() {
 function _git_mcx() {
   local cur prev opts
   COMPREPLY=()
+  compopt +o nospace 2>/dev/null
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
@@ -62,10 +63,12 @@ function _git_mcx() {
   opts="--body --no-body --footer --no-footer --diff --no-diff \
         --preview --no-preview --scope --no-scope --lint --no-lint \
         --global-lintrc --no-global-lintrc --lintrc \
-        --breaking --breaking-change -h"
+        --breaking --breaking-change \
+        --fix --close --resolve -h"
 
   case "${prev}" in
-    --lintrc) COMPREPLY=( $(compgen -f -- "${cur}") ); return 0 ;;
+    --lintrc ) COMPREPLY=( $(compgen -f -- "${cur}") )                     ; return 0 ;;
+    --footer ) COMPREPLY=( $(compgen -W "fix close resolve" -- "${cur}") ) ; return 0 ;;
   esac
 
   if [[ ${cur} == -* ]]; then

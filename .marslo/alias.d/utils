@@ -4,7 +4,7 @@
 #   FileName: utils
 #     Author: marslo
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2026-05-15 22:45:46
+# LastChange: 2026-05-18 17:02:37
 # =============================================================================
 
 if [[ 'Darwin' = $(uname --operating-system) ]]; then
@@ -157,8 +157,8 @@ alias daysleft='echo "There are $(($(date +%j -d"Dec 31, $(date +%Y)")-$(date +%
 alias weather='curl wttr.in/sanjose?mMFn'
 
 test -x "$HOME/.npm/bin/tldr"      && alias ntldr='$HOME/.npm/bin/tldr -t ocean'
-# ~/.marslo/bin/batcolor
-type -P batcolor >/dev/null        && alias bat='batcolor'
+# ~/.marslo/bin/batchip
+type -P batchip >/dev/null         && alias bat='batchip'
 # alias rg='rg --hidden --follow --smart-case --vimgrep --ignore-file=$HOME/.rgignore --color=always'
 type -P rg       >/dev/null        && alias rg='rg --hidden --follow --smart-case --ignore-file=$HOME/.rgignore --color=always'
 # alias polipo='polipo -c $HOME/.marslo/polipo/config daemonise=true >/dev/null 2>&1 &'

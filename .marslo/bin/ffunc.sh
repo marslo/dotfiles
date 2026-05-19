@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-05-16 01:20:56
+#   LastChange : 2026-05-18 23:26:12
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -218,14 +218,14 @@ function open() {                          # smart open
 function cat() {                           # smart cat
   local -a CAT=()
   # shellcheck disable=SC2015
-  command -v batcolor >/dev/null && CAT=( "$(type -P batcolor)" --theme='Nord' --color=always ) || {
+  command -v batchip >/dev/null && CAT=( "$(type -P batchip)" --theme='Nord' --color=always ) || {
     command -v bat >/dev/null    && CAT=( "$(type -P bat)" --theme='Nord' --color=always ) || CAT=( "$(type -P cat)" )
   }
 
+  # force use cat
+  [[ '-c' = "$1" ]] && { shift; $(type -P cat) "$@"; return; }
   # reading from pipe == [[ -p /dev/stdin ]]
   [[ ! -t 0      ]] && { "${CAT[@]}" "$@"; return; }
-  # force use cat
-  [[ '-c' = "$1" ]] && { $(type -P cat) "${@:2}"; return; }
 
   eval "$( _load_fd_context "$@" )"
   eval "$( _load_fzf_context     )"
@@ -1584,15 +1584,15 @@ function etheme() {                        # [e]za [theme]
   }
 
   # shellcheck disable=SC2016
-  local _BAT_CMD=$(type -P batcolor || type -P batcat || type -P bat)
+  local _BAT_CMD=$(type -P batchip || type -P batcat || type -P bat)
   # shellcheck disable=SC2016
   local _theme=$(
     fd -e yml --base-directory "${_eza_themes}" -t f -x basename {} .yml |
-    fzf --no-multi --cycle --height 50% \
+    fzf --no-multi --cycle --height 60% \
         --preview "$HOME/.marslo/bin/fzf-preview.sh ${_eza_themes}/{}.yml" \
-        --preview-window 'right:70%,rounded' \
-        --bind "ctrl-o:execute(${_BAT_CMD:-bat} --theme='Nord' --style=numbers '${_eza_themes}/{}.yml')" \
+        --preview-window 'right:65%,rounded' \
         --footer 'Ctrl-O: view contents' \
+        --bind "ctrl-o:execute(${_BAT_CMD:-bat} --theme='Nord' --style=numbers '${_eza_themes}/{}.yml')" \
         --bind 'ctrl-k:execute-silent(
                   id=$(echo {2} | grep -oE "([a-zA-Z]+-[0-9]+)" | head -n1 | tr "[:lower:]" "[:upper:]")
                   if [[ -n "${id}" ]]; then open "https://essjira.marvell.com/browse/${id}"; fi

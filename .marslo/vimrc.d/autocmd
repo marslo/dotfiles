@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-15 17:28:24
+"    LastChange : 2026-05-15 17:25:02
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -28,6 +28,11 @@ function! s:AleLintOnGroovy(bufnr) abort
     return
   endif
   call ale#Queue( 0, 'lint_file', a:bufnr )
+endfunction
+
+function! s:FindJenkinsfileLintRC() abort
+  let l:found = findfile('.groovylintrc-jenkinsfile.json', '.;')
+  return fnamemodify(!empty(l:found) ? l:found : '~/.groovylintrc-jenkinsfile.json', ':p')
 endfunction
 
 function! SafeRetab()
@@ -178,7 +183,8 @@ if has( 'autocmd' )
     " autocmd FileType  groovy                call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
     autocmd BufWinEnter *                     call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
     autocmd Syntax      groovy,Jenkinsfile    if empty(&buftype) | silent! normal zM | endif
-    autocmd FileType   Jenkinsfile            let b:ale_groovy_npmgroovylint_options = '--loglevel warning --config ' . expand( '~/.groovylintrc-jenkinsfile.json' )
+    autocmd FileType   Jenkinsfile
+          \ let b:ale_groovy_npmgroovylint_options = '--loglevel warning --config ' . s:FindJenkinsfileLintRC()
 
     if did_filetype()                       | finish             | endif
     " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
@@ -296,20 +302,20 @@ if has( 'autocmd' )
   augroup END
 
   " force set input method
-  if executable('macime')
-    let g:ime_en = 'com.apple.keylayout.US'
-    function! s:SwitchToEN() abort
-      if trim( system('macime get') ) !=# g:ime_en
-        call system( 'macime set ' . g:ime_en . ' &>/dev/null &' )
-      endif
-    endfunction
-    augroup Ime_Switch
-      autocmd!
-      autocmd WinEnter     * silent! call <SID>SwitchToEN()
-      autocmd InsertLeave  * silent! call <SID>SwitchToEN()
-      autocmd CmdlineLeave * silent! call <SID>SwitchToEN()
-    augroup END
-  endif
+  " if executable('macime')
+  "   let g:ime_en = 'com.apple.keylayout.US'
+  "   function! s:SwitchToEN() abort
+  "     if trim( system('macime get') ) !=# g:ime_en
+  "       call system( 'macime set ' . g:ime_en . ' &>/dev/null &' )
+  "     endif
+  "   endfunction
+  "   augroup Ime_Switch
+  "     autocmd!
+  "     autocmd WinEnter     * silent! call <SID>SwitchToEN()
+  "     autocmd InsertLeave  * silent! call <SID>SwitchToEN()
+  "     autocmd CmdlineLeave * silent! call <SID>SwitchToEN()
+  "   augroup END
+  " endif
 
   " vim-matchup
   augroup MatchupTripleQuotes

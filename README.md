@@ -85,6 +85,9 @@ dotfiles                   # → $HOME
 ### dotfiles
 ```bash
 $ bash install.sh
+
+# cli
+$ curl -fsSL -o ~/.marslo/bin/batchip https://github.com/marslo/batchip/raw/main/batchip
 ```
 
 ### gh extensions
