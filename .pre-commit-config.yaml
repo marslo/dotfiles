@@ -40,7 +40,7 @@ repos:
         exclude: ^(.*/merge\.sh|\.marslo/gitconfig.*|.*/vimrc.d/shortcuts)$
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 26.3.1
+    rev: 26.5.1
     hooks:
       - id: black
         name: Python Black
@@ -75,7 +75,7 @@ repos:
           )$
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.46.1
+    rev: v1.46.2
     hooks:
       - id: typos
         name: Typos
