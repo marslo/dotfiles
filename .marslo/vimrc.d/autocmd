@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-15 17:25:02
+"    LastChange : 2026-05-20 15:59:08
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -123,7 +123,7 @@ if has( 'autocmd' )
   augroup DevOps
     autocmd!
     autocmd Filetype           Dockerfile          set filetype=dockerfile  syntax=dockerfile
-    autocmd Syntax             json,yaml           if empty(&buftype) | silent! normal zM | endif
+    autocmd Syntax             json,yaml           if empty(&buftype) | setlocal foldlevel=0 | endif
     autocmd FileType           markdown            syntax sync fromstart
     autocmd FileType           markdown            noremap <buffer> <F5> :!"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" %:p "--no-gpu"<CR>
     autocmd BufRead,BufNewFile *.tags,.tags,tags   set filetype=tags
@@ -182,7 +182,7 @@ if has( 'autocmd' )
     " FileType: first open (BufWinEnter can run before ft is set). BufWinEnter: switch back to buffer.
     " autocmd FileType  groovy                call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
     autocmd BufWinEnter *                     call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
-    autocmd Syntax      groovy,Jenkinsfile    if empty(&buftype) | silent! normal zM | endif
+    autocmd Syntax      groovy,Jenkinsfile    if empty(&buftype) | setlocal foldlevel=0 | endif
     autocmd FileType   Jenkinsfile
           \ let b:ale_groovy_npmgroovylint_options = '--loglevel warning --config ' . s:FindJenkinsfileLintRC()
 
@@ -196,7 +196,8 @@ if has( 'autocmd' )
     autocmd FileType python call SafeRetab()
     autocmd FileType python syntax keyword pythonDecorator print self
     autocmd FileType python set isk-=.
-    autocmd Syntax   python if empty(&buftype) | silent! normal zM | endif
+    " `silent! normal! zM` or `execute 'normal! zM'`
+    autocmd Syntax   python if empty(&buftype) | setlocal foldlevel=0 | endif
     autocmd FileType python map  <buffer> <F9> :w<CR>:exec '!python3' shellescape(@%, 1)<CR>
     autocmd FileType python imap <buffer> <F9> <esc>:w<CR>:exec '!python3' shellescape(@%, 1)<CR>
   augroup END
@@ -298,7 +299,7 @@ if has( 'autocmd' )
     autocmd BufRead,BufNewFile *.ltsv                          set filetype=ltsv syntax=groovy noexpandtab
     autocmd BufRead,BufNewFile *.t                             set filetype=perl
     autocmd QuickFixCmdPost    *grep*                          cwindow
-    autocmd Syntax             c,cpp,xml,html,xhtml            if empty(&buftype) | silent! normal zM | endif
+    autocmd Syntax             c,cpp,xml,html,xhtml            if empty(&buftype) | setlocal foldlevel=0 | endif
   augroup END
 
   " force set input method
