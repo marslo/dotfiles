@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-20 15:59:08
+"    LastChange : 2026-05-20 17:29:24
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -34,6 +34,13 @@ function! s:FindJenkinsfileLintRC() abort
   let l:found = findfile('.groovylintrc-jenkinsfile.json', '.;')
   return fnamemodify(!empty(l:found) ? l:found : '~/.groovylintrc-jenkinsfile.json', ':p')
 endfunction
+
+" restore cursor position, inspired from http://vim.wikia.com/wiki/VimTip80
+" function! RestoreCursor() abort
+"   if line("'\"") >= 1 && line("'\"") <= line('$') && &filetype !~# 'gitcommit'
+"     exe "normal! g`\""
+"   endif
+" endfunction
 
 function! SafeRetab()
   if expand('%:e') =~# '^\(ltsv\|config\|diffs\)$' | return | endif
@@ -141,15 +148,6 @@ if has( 'autocmd' )
             \,*.code-workspace
             \,.vscode/*.json
             \ set filetype=jsonc
-    autocmd FileType           markdown,html
-            \ let g:AutoPairsCompleteOnlyOnSpace = 1 |
-            \ let b:AutoPairs = autopairs#AutoPairsDefine({
-            \   '<div>':'</div>', '<font>':'</font>', '<a>':'</a>', '<p>':'</p>',
-            \   '<table>':'</table>', '<tbody>':'</tbody>',
-            \   '<thread>':'</thread>', '<th>':'</th>', '<td>':'</td>',
-            \   '<kbd>':'</kbd>',
-            \   '<u>':'</u>'
-            \ })
     if index( ['project.config', 'groups'], expand('%:r') ) == -1
       autocmd BufRead,BufNewFile *.config set filetype=gitconfig noexpandtab
     endif
@@ -282,18 +280,18 @@ if has( 'autocmd' )
     autocmd BufEnter           *                               if empty( &filetype ) && empty( &buftype ) | setlocal syntax=groovy nospell | endif
     " restore cursor position when reopen file
     autocmd BufReadPost        *
-            \ if line("'\"") > 1 && line("'\"") <= line("$") && &filetype !~# 'commit' |
-            \   execute "normal! g`\"" |
-            \ endif
+            \ if line("'\"") > 1 && line("'\"") <= line('$') && &filetype !~# 'gitcommit'
+            \|   execute "normal! g`\""
+            \| endif
     autocmd Syntax             *                               syn match ExtraWhitespace /\s\+$\| \+\ze\t/
     " disable git blame in diff mode
     autocmd BufReadPost        *                               if &diff | let g:blamer_enabled=0 | endif
     " automatic remove trailing space
     autocmd BufWritePre        *
-            \ let s:save_pos = winsaveview() |
-            \ silent! %s/\s\+$//e |
-            \ silent! %s/\r$//e |
-            \ call winrestview(s:save_pos)
+            \ let s:save_pos = winsaveview()
+            \| silent! %s/\s\+$//e
+            \| silent! %s/\r$//e
+            \| call winrestview(s:save_pos)
     " automatic retab: https://vim.fandom.com/wiki/Remove_unwanted_spaces
     autocmd BufWritePre        *                               call SafeRetab()
     autocmd BufRead,BufNewFile *.ltsv                          set filetype=ltsv syntax=groovy noexpandtab
@@ -322,17 +320,16 @@ if has( 'autocmd' )
   augroup MatchupTripleQuotes
     autocmd!
     autocmd FileType  python,groovy,Jenkinsfile
-            \ if exists('b:match_words') |
-            \   if b:match_words !~# '""":"""' |
-            \     let b:match_words .= ',""":""",' . "'''" . ':' . "'''" |
-            \   endif |
-            \ else |
-            \   let b:match_words = '""":""",' . "'''" . ':' . "'''" |
-            \ endif
+            \ if exists('b:match_words')
+            \|   if b:match_words !~# '""":"""'
+            \|     let b:match_words .= ',""":""",' . "'''" . ':' . "'''"
+            \|   endif
+            \| else
+            \|   let b:match_words = '""":""",' . "'''" . ':' . "'''"
+            \| endif
     autocmd FileType markdown nnoremap <silent><buffer> [% :call search('^```', 'bW')<CR>
     autocmd FileType markdown nnoremap <silent><buffer> ]% :call search('^```', 'W')<CR>
   augroup END
-
 
   " for &buftype in 'help', 'nofile', 'terminal', 'quickfix/locationlist', 'prompt', ...
   function! s:MinimalUI() abort
