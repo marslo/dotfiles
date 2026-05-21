@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-04-09 22:17:43
+"    LastChange : 2026-05-20 17:04:09
 " =============================================================================
 
 " /**************************************************************
@@ -136,5 +136,8 @@ endif
 " set binary
 
 if has('persistent_undo') | set noundofile | endif
+
+" setup digraph: == → ⩵
+digraph == 10869
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

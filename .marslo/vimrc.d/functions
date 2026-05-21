@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-05-15 17:25:52
+"    LastChange : 2026-05-20 17:32:24
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -31,20 +31,31 @@ function! GetPlug()                                                 " GetPlug() 
 endfunction
 command! GetPlug :call GetPlug()
 
-if isdirectory( expand(pluginHome . 'MarsloFunc') )
-  command! GetVim :call marslofunc#GetVim()<CR>
-  xnoremap *         :<C-u>call marslofunc#VSetSearch()<CR>/<C-R>=@/<CR><CR>:normal! N<CR>
-  xnoremap #         :<C-u>call marslofunc#VSetSearch()<CR>?<C-R>=@/<CR><CR>:normal! n<CR>
-  nnoremap <F12>     :call marslofunc#UpdateTags()<CR>
-
-  augroup resCur
-    autocmd!
-    autocmd BufWinEnter * call marslofunc#ResCur()
-  augroup END
-
-  set foldtext=v:folddashes.substitute(getline(v:foldstart),'/\\*\\\|\\*/\\\|{{{\\d\\=','','g')
-  set foldtext=marslofund#MyFoldText()<CR>
-endif
+" * and # for search
+function! VSetSearch()
+  " backup register `s` to temp
+  let temp = @s
+  " gv: virtual mode selection; "s: register name is `s`; y: yank;
+  normal! gv"sy
+  let @/ = '\V' . substitute( escape(@s, '\/|'), '\n', '\\n', 'g' )
+  " restore register `s` from temp
+  let @s = temp
+endfunction
+xnoremap * :<C-u>call VSetSearch()<CR>/<C-R>=@/<CR><CR>:normal! N<CR>
+xnoremap # :<C-u>call VSetSearch()<CR>?<C-R>=@/<CR><CR>:normal! n<CR>
+"                                     +----+--+---+
+"                                       |   |   + `<CR>` ⩵  Enter
+"                                       |   + `@/` ⩵  @/
+"                                       + `?<C-R>=` ⩵  ? → Ctrl+R → =
+" g* and g# for regex search
+function! VSetRegexSearch()
+  let temp = @s
+  normal! gv"sy
+  let @/ = '\v' . substitute( escape(@s, '/'), '\n', '\\n', 'g' )
+  let @s = temp
+endfunction
+xnoremap g* :<C-u>call VSetRegexSearch()<CR>/<C-R>=@/<CR><CR>:normal! N<CR>
+xnoremap g# :<C-u>call VSetRegexSearch()<CR>?<C-R>=@/<CR><CR>:normal! n<CR>
 
 " twiddle case : https://vim.fandom.com/wiki/Switching_case_of_characters#Twiddle_case
 function! TwiddleCase(str)
@@ -152,8 +163,9 @@ function! TabMessage(cmd)
   if empty( message )
     echoerr 'no output'
   else
-    tabnew                                                          " use `new` instead of `tabnew` below if you prefer split windows instead of tabs
-    setlocal buftype=nofile bufhidden=wipe noswapfile nobuflisted nomodified
+    " use `new` instead of `tabnew` below if you prefer split windows instead of tabs
+    tabnew
+    setlocal buftype=nofile bufhidden=wipe noswapfile nobuflisted nomodified filetype=
     silent put=message
   endif
 endfunction

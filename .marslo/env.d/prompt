@@ -185,6 +185,7 @@ _build_prompt() {
   local PS1_STATUS=''
 
   # one-arg __git_ps1: pcmode=no → gitstring is printf'd to stdout (see git-prompt.sh).
+  # add 127.0.0.1 localhost <HOSTNAME> and ::1 localhost <HOSTNAME> to /etc/hosts for better performance (avoid getent hosts <HOSTNAME>).
   GIT_RAW="$(__git_ps1 '%s' 2>/dev/null || true)"
   [[ -n "${GIT_RAW}"       ]] && PS1_GIT=" - (${COL_BD_GREEN}${GIT_RAW}${COL_NONE}${COL_DEFAULT})"
   [[ -n "${VIRTUAL_ENV:-}" ]] && VENV_RAW="${VIRTUAL_ENV##*/}"

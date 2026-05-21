@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-20 16:22:51
+"    LastChange : 2026-05-20 17:32:30
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -53,7 +53,6 @@ Plug 'kana/vim-textobj-user'
 Plug 'kana/vim-textobj-fold'
 Plug 'dhruvasagar/vim-table-mode'
 Plug 'vim-autoformat/vim-autoformat'
-Plug 'marslo/MarsloFunc'
 Plug 'honza/vim-snippets'                                           " coc-snippets
 Plug 'tomtom/tcomment_vim'
 Plug 'preservim/vim-markdown'                                       " markdown
