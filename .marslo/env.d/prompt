@@ -197,7 +197,7 @@ _build_prompt() {
     PROMPT_NEXT="${PS1_GIT}${PS1_VENV}${PS1_STATUS}"
     PROMPT_END="\n${COL_DEFAULT}╰╶ \$ ${COL_NONE}"
     PS1="${PROMPT_START}${PROMPT_NEXT}${PROMPT_END}"
-    export PS2="${COL_DEFAULT}   > ${COL_NONE}"
+    PS2="${COL_DEFAULT}   > ${COL_NONE}"
   else
     # $COLUMNS requires: shopt -s checkwinsize
     local cols="${COLUMNS:-$(tput cols 2>/dev/null || printf '%s' 80)}"
@@ -218,12 +218,13 @@ _build_prompt() {
     PROMPT_NEXT="${PS1_GIT}${PS1_VENV}${PS1_STATUS}"
     PROMPT_END="\n${COL_DEFAULT}\$ ${COL_NONE}"
     PS1="${PROMPT_START}${PROMPT_NEXT}${PROMPT_END}"
-    export PS2='\[\e[G\e[K\]       '
+    PS2='\[\e[G\e[K\]       '
   fi
 }
 
 # PS1
 PROMPT_COMMAND=_build_prompt
+export PS2
 
 # /**************************************************************
 #  ___  ___ _ _

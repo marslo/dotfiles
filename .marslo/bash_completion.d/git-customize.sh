@@ -4,7 +4,7 @@
 #     FileName : git-customize.sh
 #       Author : marslo
 #      Created : 2025-12-11 21:28:56
-#   LastChange : 2026-05-18 23:42:18
+#   LastChange : 2026-05-20 22:14:18
 #=============================================================================
 
 function _git_ca()     { _git_mcx;      }
@@ -23,10 +23,9 @@ function _git_nb() {
   local i
   for (( i=1; i < COMP_CWORD; i++ )); do
     if [[ "${COMP_WORDS[i]}" == "--" ]]; then
-      declare -F _jira_ls_logic >/dev/null 2>&1 && {
-        _jira_ls_logic
-        [[ ${#COMPREPLY[@]} -eq 0 && -z "${cur}" ]] && COMPREPLY=( $(compgen -W "${_JIRA_LS_OPTS}" -- "") )
-      }
+      declare -F _jira_ls_logic >/dev/null 2>&1 && _jira_ls_logic
+      [[ ${#COMPREPLY[@]} -eq 0 && -z "${cur}" ]] && COMPREPLY=( $(compgen -W "${_JIRA_LS_OPTS:-}" -- "") )
+      COMPREPLY+=( $(compgen -W "-h --help" -- "${cur}") )
       return 0
     fi
   done
@@ -54,9 +53,9 @@ function _git_mcx() {
   done
 
   if ${longOpt}; then
-    if [[ ${cur} == -* ]] || [[ -z ${cur} ]]; then
-      COMPREPLY=( $(compgen -W "--help" -- "${cur}") )
-    fi
+    declare -F _jira_ls_logic >/dev/null 2>&1 && _jira_ls_logic
+    [[ ${#COMPREPLY[@]} -eq 0 && -z "${cur}" ]] && COMPREPLY=( $(compgen -W "${_JIRA_LS_OPTS:-}" -- "") )
+    COMPREPLY+=( $(compgen -W "-h --help" -- "${cur}") )
     return 0
   fi
 
@@ -64,7 +63,7 @@ function _git_mcx() {
         --preview --no-preview --scope --no-scope --lint --no-lint \
         --global-lintrc --no-global-lintrc --lintrc \
         --breaking --breaking-change \
-        --fix --close --resolve -h"
+        --fix --close --resolve -j --jira -h --"
 
   case "${prev}" in
     --lintrc ) COMPREPLY=( $(compgen -f -- "${cur}") )                     ; return 0 ;;

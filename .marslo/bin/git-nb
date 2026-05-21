@@ -122,14 +122,18 @@ declare INTERACTIVE="${GIT_NB_INTERACTIVE:-true}"
 declare -a JIRA_OPTS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -c | --checkout    ) CHECKOUT=true              ; shift  ;;
-    -C | --no-checkout ) CHECKOUT=false             ; shift  ;;
-    -y | --yes         ) INTERACTIVE=false          ; shift  ;;
-    -i | --interactive ) INTERACTIVE=true           ; shift  ;;
-    -v | -vv           ) VERBOSE=$(( ${#1} - 1 ))   ; shift  ;;
-    -h                 ) echo -e "${USAGE}" >&2     ; exit 0 ;;
-    --                 ) shift; JIRA_OPTS+=( "$@" ) ; break  ;;
-    *                  ) die "unknown option '$1'"           ;;
+    -c | --checkout    ) CHECKOUT=true              ; shift   ;;
+    -C | --no-checkout ) CHECKOUT=false             ; shift   ;;
+    -y | --yes         ) INTERACTIVE=false          ; shift   ;;
+    -i | --interactive ) INTERACTIVE=true           ; shift   ;;
+    -v | -vv           ) VERBOSE=$(( ${#1} - 1 ))   ; shift   ;;
+    -h                 ) echo -e "${USAGE}" >&2     ; exit 0  ;;
+    --                 ) shift
+                         if [[ "${1:-}" == '--help' || "${1:-}" == '-h' ]]; then
+                           echo -e "${USAGE}" >&2   ; exit 0  ;
+                         fi
+                         JIRA_OPTS+=( "$@" ); shift $#; break ;;
+    *                  ) die "unknown option '$1'"            ;;
   esac
 done
 

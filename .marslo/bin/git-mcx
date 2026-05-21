@@ -4,7 +4,7 @@
 #     FileName : git-mcx
 #       Author : marslo
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2026-05-18 23:41:09
+#   LastChange : 2026-05-20 21:34:06
 #        Usage : git-mcx [OPTION]             # call getCommitMessage to set commit message
 #                git-mcx [OPTION] [message]   # using `[message]` as commit message
 #=============================================================================
@@ -52,6 +52,7 @@ declare MCX_GLOBAL_LINTRC="${MCX_GLOBAL_LINTRC:-false}"
 declare MCX_ENABLE_JIRA="${MCX_ENABLE_JIRA:-false}"
 declare _MCX_FOOTER_ACTION=''
 declare MCX_BREAKING_CHANGE="${MCX_BREAKING_CHANGE:-false}"
+declare -a JIRA_OPTS=()
 declare LINTRC_FILE="${HOME}/.commitlintrc.js"
 # shellcheck source=/dev/null disable=SC2155
 declare -r USAGE="""
@@ -77,14 +78,16 @@ OPTIONS
   $(c Gi)--fix$(c), $(c Gi)--close$(c), $(c Gi)--resolve$(c)                   select a GitHub issue via $(c Wi)gh$(c) + $(c Wi)fzf$(c) and add $(c iC)Fixed/Closed/Resolved #<id>$(c) to footer $(c Wdi)(== --footer fix/close/resolve)$(c)
   $(c Gi)--breaking$(c), $(c Gi)--breaking-change$(c)               enable breaking change section $(c i)(e.g.: $(c W)BREAKING CHANGE: $(c 0Wi)description$(c 0i))$(c)
   $(c Gi)-h$(c), $(c Gi)--help$(c)                                  show this help message and exit
+  $(c iC)-- $(c 0Bi)[JIRA OPTIONS]$(c)                           options for \`jira ls\` command, e.g. $(c 0Bi)--project $(c 0Mi)PROJECT_ID$(c)
 
 EXAMPLES
-  $(c Ys)\$ ${ME} $(c 0Mi)'message'$(c 0Gi)            $(c 0Wdi)# commit directly$(c)
-  $(c Ys)\$ ${ME} $(c 0Bi)--$(c 0Gi) --help            $(c 0Wdi)# show help$(c)
-  $(c Ys)\$ ${ME} $(c 0Gi)--footer $(c 0Mi)fix$(c)         $(c 0Wdi)# select issue ID via $(c 0Ci)fzf+gh$(c 0Wdi), and add $(c 0Ci)Fixed #<id>$(c 0Wdi) to footer$(c)
+  $(c Ys)\$ ${ME} $(c 0Mi)'message'$(c 0Gi)                       $(c 0Wdi)# commit directly$(c)
+  $(c Ys)\$ ${ME} $(c 0Bi)--$(c 0Gi) --help                       $(c 0Wdi)# show help$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--footer $(c 0Mi)fix$(c)                    $(c 0Wdi)# select issue ID via $(c 0Ci)fzf+gh$(c 0Wdi), and add $(c 0Ci)Fixed #<id>$(c 0Wdi) to footer$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--body --footer --diff --lint$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--no-preview --no-scope --lintrc $(c 0Wi)./custom-lintrc.json$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--no-lint --no-footer --no-body$(c)
+  $(c Ys)\$ ${ME}C$(c 0Gi)--jira$(c 0Cs) -- $(c 0Bi)--project $(c 0Mi)PROJECT_ID$(c)  $(c 0Wdi)# filter JIRA_ID via $(c 0Ci)jira ls$(c 0Wdi) command$(c)
 """
 
 while [[ $# -gt 0 ]]; do
@@ -110,12 +113,19 @@ while [[ $# -gt 0 ]]; do
                                        fix|close|resolve) _MCX_FOOTER_ACTION="$1"; shift ;;
                                      esac                                ;;
     --fix | --close | --resolve    ) MCX_ENABLE_FOOTER=true; _MCX_FOOTER_ACTION="${1#--}"; shift ;;
-    --                             ) shift                               ;;
+    --                             ) shift
+                                     if [[ "${1:-}" == '--help' || "${1:-}" == '-h' ]]; then
+                                       showHelp; exit 0
+                                     fi
+                                     JIRA_OPTS+=( "$@" ); shift $#; break ;;
     -h | --help                    ) showHelp                ; exit 0    ;;
     -*                             ) die "$(c i)Unknown option: $(c M)'$1'$(c 0i). try$(c) $(c Gi)\`\$ ${ME} -- --help\`$(c)" ;;
     *                              ) break ;;
   esac
 done
+
+[[ " ${JIRA_OPTS[*]} " != *' --project '* ]] && JIRA_OPTS+=( --project 'IPBUSW' )
+[[ " ${JIRA_OPTS[*]} " != *' --return '*  ]] && JIRA_OPTS+=( --return 'short'   )
 
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   echo "fatal: not a git repository (or any of the parent directories): .git" >&2;

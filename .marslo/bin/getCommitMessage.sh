@@ -2,9 +2,9 @@
 # shellcheck source=/dev/null
 #=============================================================================
 #     FileName : getCommitMessage.sh
-#       Author : marslo.jiao@gmail.com
+#       Author : marslo
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2026-03-16 18:17:32
+#   LastChange : 2026-05-20 22:03:33
 #   references : https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit?tab=t.0
 #=============================================================================
 
@@ -68,14 +68,45 @@ function runInteractive() {
   printf -v "${__varname}" "%s" "${output}"
 }
 
-# SOH: `\001` - Start of Heading
-# STX: `\002` - Start of Text
-# have `\001` and `\002` surrounding the colorized string to handle multiple lines input
+# @usage       : _rl_read <varname> <prompt>
+# @description : readline-safe `read -e` that temporarily disables show-mode-in-prompt
+#                so the emacs/vi mode-string won't break multi-line wrapping.
+# @explain     : SOH: `\001` - Start of Heading
+#                STX: `\002` - Start of Text
+#                have `\001` and `\002` surrounding the colorized string to handle multiple lines input
+function _rl_read() {
+  local __varname="$1"
+  local __prompt="$2"
+  local __orig
+  __orig="$(bind -v 2>/dev/null | command grep 'show-mode-in-prompt')"
+  bind 'set show-mode-in-prompt off' 2>/dev/null
+  # shellcheck disable=SC2229
+  read -rep "$(printf "     \001$(c 0Wdi)\002> \001$(c 0Mi)\002%s\001$(c)\002" "${__prompt}")" "${__varname}"
+  bind "${__orig}" 2>/dev/null
+}
+
+function selectIssue() {
+  local action="${1:-fix}"
+  command -v gh >/dev/null 2>&1 || { echo "gh cli not found" >&2; return 1; }
+  local issues
+  issues=$( gh issue list --state open --limit 100 --json number,title \
+              --template '{{range .}}#{{.number}} - {{.title}}{{"\n"}}{{end}}' |
+            fzf --multi \
+                --ansi \
+                --color=fg+:#979736,hl+:#979736 \
+                --border \
+                --height=15 \
+                --prompt="${action} issue > " \
+                --info='inline-right: '
+          ) || return 130
+  [[ -z "${issues}" ]] && return 130
+  while IFS= read -r line; do
+    echo "${line%% -*}"
+  done <<< "${issues}"
+}
+
 function getCommitMessage() {
   local jiraId=''
-  if "${MCX_ENABLE_JIRA:-false}"; then
-    read -rep "$(printf "\001$(c Mi)\002%s\001$(c)\002" 'JIRA ID: ')" jiraId
-  fi
 
   selected=$( printf "%b\n" "${types[@]}" |
               fzf --no-multi \
@@ -83,48 +114,67 @@ function getCommitMessage() {
                   --color=fg+:#979736,hl+:#979736 \
                   --border \
                   --height=12 \
-                  --prompt='commit type >' \
+                  --prompt='commit type > ' \
                   --info='inline-right: '
             )
   test -n "${selected}" || exit 1
   type=$(echo "${selected}" | awk -F: '{print $1}')
 
+  if "${MCX_ENABLE_JIRA:-false}"; then
+    type -P jira-ls >/dev/null 2>&1 && jiraId=$( jira ls "${JIRA_OPTS[@]}" 2>/dev/null ) || true
+    [[ -z "${jiraId}" ]] && _rl_read jiraId 'JIRA ID: '
+
+    jiraId="${jiraId#"${jiraId%%[![:space:]]*}"}"
+    jiraId="${jiraId%"${jiraId##*[![:space:]]}"}"
+  fi
+
   if [[ 'true' = "${MCX_ENABLE_SCOPE:-true}" ]]; then
-    read -rep "$(printf "\001$(c Mi)\002%s\001$(c)\002" 'scope (optional): ')" scope
+    _rl_read scope 'scope (optional): '
     local -a parts=()
     [[ -n "${jiraId}"     ]] && parts+=("${jiraId}")
     [[ -n "${scope}"      ]] && parts+=("${scope}")
     [[ ${#parts[@]} -gt 0 ]] && scope="($(IFS=,; echo "${parts[*]}"))"
   fi
 
-  read -rep "$(printf "\001$(c Mi)\002%s\001$(c)\002" 'commit message subject: ')" subject
-  test -z "${subject}" && exit 1
+  _rl_read subject 'commit message subject: '
+  test -z "${subject:-}" && exit 1
 
   if [[ 'true' = "${MCX_ENABLE_BODY:-false}" ]]; then
     runInteractive body gum write --placeholder="commit body (optional)" || return 1
   fi
 
-  local breaking=''
-  local bfooter=''
+  local -a footers=()
   if "${MCX_BREAKING_CHANGE:-false}"; then
     if gum confirm "Is this a BREAKING CHANGE?"; then
+      local breaking
       runInteractive breaking gum write --placeholder="describe the BREAKING CHANGE" || return 1
-      bfooter="BREAKING CHANGE: ${breaking}"
+      footers+=("BREAKING CHANGE: ${breaking}")
     fi
   fi
-
-  declare footer=''
   if [[ 'true' = "${MCX_ENABLE_FOOTER:-false}" ]]; then
-    runInteractive footer gum input --placeholder="footer (optional -- i.e.: Closes #123)" || return 1
+    case "${_MCX_FOOTER_ACTION:-}" in
+      fix | close | resolve )
+        local issueIds
+        issueIds="$(selectIssue "${_MCX_FOOTER_ACTION}")" || return 1
+        local label="${_MCX_FOOTER_ACTION^}ed"
+        local ids
+        ids="$(paste -sd', ' <<< "${issueIds}")"
+        [[ -n "${ids}" ]] && footers+=("${label} ${ids}")
+        ;;
+      *)
+        local _footer
+        runInteractive _footer gum input --placeholder="footer (optional -- i.e.: Closes #123)" || return 1
+        [[ -n "${_footer}" ]] && footers+=("${_footer}")
+        ;;
+    esac
   fi
 
   message="${type}${scope}"
   "${MCX_BREAKING_CHANGE:-false}" && message+='!'
   message+=": ${subject}"
-  [[ -n "${body:-}"    ]] && message+=$'\n\n'"${body}"
-  [[ -n "${bfooter}" || "${footer:-}" ]] && message+=$'\n'
-  [[ -n "${bfooter:-}" ]] && message+=$'\n'"${bfooter}"
-  [[ -n "${footer:-}"  ]] && message+=$'\n'"${footer}"
+  [[ -n "${body:-}"       ]] && message+=$'\n\n'"${body}"
+  [[ ${#footers[@]} -gt 0 ]] && message+=$'\n'
+  for f in "${footers[@]}"; do message+=$'\n'"${f}"; done
 
   echo "${message}"
 }
