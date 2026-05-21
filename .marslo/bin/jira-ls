@@ -4,7 +4,7 @@
 #     FileName : jira-ls
 #       Author : marslo
 #      Created : 2026-01-21 20:57:09
-#   LastChange : 2026-05-12 00:14:09
+#   LastChange : 2026-05-20 19:11:02
 #=============================================================================
 
 set -euo pipefail
@@ -170,6 +170,18 @@ TEMPLATE+='"'
 
 declare GET_ID="echo {1} | awk -F: '{printf \"%s\", \$1}'"
 declare FORMAT_CONTENT="echo {1} | tr -d '\n'"
+# shellcheck disable=SC2016
+declare TRANSFORMER='
+  default_preview=$(( FZF_LINES * 70 / 100 ))
+  available=$(( FZF_LINES - FZF_MATCH_COUNT - 4 ))
+  if [[ $FZF_MATCH_COUNT -eq 0 ]]; then
+    echo "change-preview-window:hidden"
+  elif [[ ${available} -gt ${default_preview} ]]; then
+    [[ $available -gt 3 ]] && echo "change-preview-window:${available}"
+  elif [[ $FZF_PREVIEW_LINES -ne ${default_preview} ]]; then
+    echo "change-preview-window:${default_preview}"
+  fi
+'
 declare jira=''
 jira="$(
   echo "${json}" | jq ".issues[] | ${TEMPLATE}" |
@@ -177,7 +189,9 @@ jira="$(
   fzf --with-nth=1 --ansi \
       --delimiter='\t' \
       --preview='printf "%b" {2}' \
-      --preview-window=top:70%:wrap \
+      --preview-window='top,70%,border-bottom,wrap' \
+      --bind "result:transform:${TRANSFORMER}" \
+      --bind "resize:transform:${TRANSFORMER}" \
       --bind "ctrl-k:execute-silent(${GET_ID} | pbcopy)" \
       --bind "ctrl-y:execute-silent(${FORMAT_CONTENT} | pbcopy)" \
       --bind "ctrl-o:execute(${GET_ID} | xargs -I {} open ${JIRA_URL:-https://jira.domain.com}/browse/{})" |

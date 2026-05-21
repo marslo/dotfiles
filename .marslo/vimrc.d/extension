@@ -239,6 +239,8 @@ let g:indentLine_bufNameExclude       = ['_.*', 'NERD_tree.*']
 
 " cohama/lexima.vim
 let g:lexima_enable_basic_rules = 1
+let s:block_chars = ['(', '[', '{', '"', "'", '`', '<']
+for s:char in s:block_chars | call lexima#add_rule({ 'char': s:char, 'at': '\%#\w' }) | endfor
 " \%# : after-cursor position
 " - < rule - \%(\w\|\s\|$\) : char,number,underscore,space,eof
 call lexima#add_rule({ 'char': '<', 'input_after': '>', 'at': '\%#\%(\w\|\s\|$\)' })
