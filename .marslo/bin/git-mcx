@@ -4,7 +4,7 @@
 #     FileName : git-mcx
 #       Author : marslo
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2026-05-20 21:34:06
+#   LastChange : 2026-05-20 23:03:25
 #        Usage : git-mcx [OPTION]             # call getCommitMessage to set commit message
 #                git-mcx [OPTION] [message]   # using `[message]` as commit message
 #=============================================================================
@@ -133,6 +133,30 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
 }
 
 # requires bat cache --build
+# @description : center text within a fixed-width line filled with a pad character
+# @usage       : _center <text> [width] [pad_char]
+function _center() {
+  local text=" $1 " width="${2:-51}" pad_char="${3:--}"
+  local remaining=$(( width - ${#text} ))
+  local left=$(( remaining / 2 ))
+  local right=$(( remaining - left ))
+  local lpad rpad
+  printf -v lpad '%*s' "${left}" ''
+  printf -v rpad '%*s' "${right}" ''
+  printf '%s%s%s' "${lpad// /${pad_char}}" "${text}" "${rpad// /${pad_char}}"
+}
+
+# @description : print a centered banner with lolcat (if available) or fallback to $(c)
+# @usage       : _banner <text> <color> [lolcat_seed]
+function _banner() {
+  local text="$1" color="$2" seed="${3:-196}"
+  if command -v lolcat >/dev/null 2>&1; then
+    _center "${text}" | lolcat --force --seed="${seed}" --freq=0.03 --spread=1.1 --truecolor
+  else
+    printf "%b%s%b" "$(c "${color}")" "$(_center "${text}")" "$(c)"
+  fi
+}
+
 function msgPreview() {
   echo -e "\n$(c Wdi)--------------- git message preview ---------------$(c)"
   printf  "%s\n" "${1}" | command bat --plain --language COMMIT_EDITMSG --theme gruvbox-dark-marslo
@@ -196,11 +220,11 @@ function commitlintCheck() {
 
   # show commitlint result
   if [[ "${status}" -eq 0 ]]; then
-    printf "%b\n%s\n" "$(c Gi)-- commitlint checked (succeed) --$(c)" "${out}"
+    printf "%s\n%s\n" "$(_banner 'commitlint checked (succeed)' '0Gi' 196)" "${out}"
   elif [[ "${status}" -eq 124 ]]; then
-    printf "%b\n%s\n" "$(c Ri)-- commitlint timeout --$(c)" "${out}"
+    printf "%s\n%s\n" "$(_banner 'commitlint timeout'           '0Mi' 16)"  "${out}"
   else
-    printf "%b\n%s\n" "$(c Ri)-- commitlint checked (failed) --$(c)" "${out}"
+    printf "%s\n%s\n" "$(_banner 'commitlint checked (failed)'  '0Ri' 36)"  "${out}"
   fi
 }
 
