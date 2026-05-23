@@ -191,26 +191,6 @@ let g:matchup_delim_stopline           = 4000
 let g:matchup_matchparen_timeout       = 500
 let g:matchup_matchparen_hi_background = 0
 
-function! s:JumpMatchingQuote()
-  let c = getline('.')[col('.') - 1]
-  if index(["'", '"', '`'], c) < 0
-    execute "normal \<Plug>(matchup-%)"
-    return
-  endif
-  let line = getline('.')
-  let col = col('.') - 1
-  let next = stridx(line, c, col + 1)
-  if next >= 0
-    call cursor(line('.'), next + 1)
-  else
-    let prev = strridx(line, c, col - 1)
-    if prev >= 0
-      call cursor(line('.'), prev + 1)
-    endif
-  endif
-endfunction
-nmap <silent> % :call <SID>JumpMatchingQuote()<CR>
-
 " luochen1990/rainbow
 " $ for i in '75' '147' '108' '196' '208' '66' '106' '172' '115' '129'; do echo -e "\e[38;05;${i}m${i}"; done | column -c 250 -s ' '; echo -e "\e[m"
 "IsNvim $ color '75' '176' '108' '167' '208' '66' '106' '172' '115' '142'

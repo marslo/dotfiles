@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-05-20 17:32:24
+"    LastChange : 2026-05-22 22:23:30
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -341,5 +341,84 @@ function! s:Iname(args) abort
   endif
 endfunction
 command! -nargs=? Iname call s:Iname(<q-args>)
+
+" andymass/vim-matchup - to handle `%` jump between matching quotes and markdown code fences
+nmap <silent> % :call <SID>JumpMatchingQuote()<CR>
+function! s:JumpMatchingQuote()
+  let line = getline('.')
+  " markdown code fence: % on a ``` line jumps to matching fence
+  if &filetype ==# 'markdown' && line =~# '^\s*```'
+    let lnum = line('.')
+    let l:cnt = 0
+    for i in range(1, lnum)
+      if getline(i) =~# '^\s*```'
+        let l:cnt += 1
+      endif
+    endfor
+    if l:cnt % 2 == 1
+      call search('^\s*```', 'W')
+    else
+      call search('^\s*```', 'bW')
+    endif
+    return
+  endif
+
+  let c = line[col('.') - 1]
+  if index(["'", '"', '`'], c) < 0
+    execute "normal \<Plug>(matchup-%)"
+    return
+  endif
+
+  let lnum = line('.')
+  let cnum = col('.')
+  let syn_here = synIDattr(synID(lnum, cnum, 1), 'name')
+
+  if empty(syn_here)
+    execute "normal \<Plug>(matchup-%)"
+    return
+  endif
+
+  let syn_before = (cnum > 1) ? synIDattr(synID(lnum, cnum - 1, 1), 'name') : ''
+  let at_start = (syn_here !=# syn_before)
+
+  let syn_after = synIDattr(synID(lnum, cnum + 1, 1), 'name')
+  let at_end = (syn_here !=# syn_after)
+
+  if at_start && !at_end
+    call s:ScanToEdge(lnum, cnum, syn_here, 1)
+  elseif at_end
+    call s:ScanToEdge(lnum, cnum, syn_here, -1)
+  else
+    execute "normal \<Plug>(matchup-%)"
+  endif
+endfunction
+
+function! s:ScanToEdge( lnum, col, syn_name, direction )
+  let [l, c] = [a:lnum, a:col]
+  let lastline = line('$')
+  let max_lines = 200
+  let scanned = 0
+  while scanned < max_lines
+    let next_c = c + a:direction
+    let line_len = col([l, '$'])
+    if next_c < 1 || next_c >= line_len
+      let l += a:direction
+      let scanned += 1
+      if l < 1 || l > lastline | break | endif
+      let next_c = ( a:direction > 0 ) ? 1 : col([ l, '$' ]) - 1
+      if next_c < 1 | break | endif
+    endif
+    let c = next_c
+    if synIDattr( synID(l, c, 1), 'name' ) !=# a:syn_name
+      let c -= a:direction
+      if c < 1
+        let l -= a:direction
+        let c = col([l, '$']) - 1
+      endif
+      call cursor(l, c)
+      return
+    endif
+  endwhile
+endfunction
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:

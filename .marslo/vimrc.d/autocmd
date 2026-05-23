@@ -316,21 +316,6 @@ if has( 'autocmd' )
   "   augroup END
   " endif
 
-  " vim-matchup
-  augroup MatchupTripleQuotes
-    autocmd!
-    autocmd FileType  python,groovy,Jenkinsfile
-            \ if exists('b:match_words')
-            \|   if b:match_words !~# '""":"""'
-            \|     let b:match_words .= ',""":""",' . "'''" . ':' . "'''"
-            \|   endif
-            \| else
-            \|   let b:match_words = '""":""",' . "'''" . ':' . "'''"
-            \| endif
-    autocmd FileType markdown nnoremap <silent><buffer> [% :call search('^```', 'bW')<CR>
-    autocmd FileType markdown nnoremap <silent><buffer> ]% :call search('^```', 'W')<CR>
-  augroup END
-
   " for &buftype in 'help', 'nofile', 'terminal', 'quickfix/locationlist', 'prompt', ...
   function! s:MinimalUI() abort
     if IsVscodeOrCursor() || empty(&buftype) | return | endif
