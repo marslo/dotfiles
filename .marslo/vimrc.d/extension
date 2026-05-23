@@ -95,15 +95,18 @@ endif
 
 if IsNvim() || IsVscodeOrCursor()
   Plug 'zbirenbaum/copilot-cmp'
-  Plug 'zbirenbaum/copilot.lua'                                     " check via `:verbose command Copilot`
-  Plug 'CopilotC-Nvim/CopilotChat.nvim' , { 'branch': 'main' }      " check via `:verbose command CopilotChat`
+  " check via `:verbose command Copilot`
+  Plug 'zbirenbaum/copilot.lua'
+  " check via `:verbose command CopilotChat`
+  Plug 'CopilotC-Nvim/CopilotChat.nvim' , { 'branch': 'main' }
   Plug 'nvim-lua/plenary.nvim'
   Plug 'ibhagwan/fzf-lua'
-  " brew install --HEAD viu; brew install chafa
-  Plug 'nvim-tree/nvim-web-devicons'                                " fzf-lua required
+  " brew install --HEAD viu; brew install chafa - fzf-lua required
+  Plug 'nvim-tree/nvim-web-devicons'
 
   " nvim-cmp
-  Plug 'hrsh7th/nvim-cmp'                                           " check via `:verbose command CmpStatus`
+  " check via `:verbose command CmpStatus`
+  Plug 'hrsh7th/nvim-cmp'
   Plug 'hrsh7th/cmp-nvim-lsp'
   Plug 'hrsh7th/cmp-buffer'
   Plug 'hrsh7th/cmp-path'
@@ -335,16 +338,12 @@ endfunction
 " +----------------------------------+
 " | A | B | C            | X | Y | Z |
 " +----------------------------------+
-" register new function
-call airline#parts#define_function('cocfunc', 'CocCurrentFunction')
-call airline#parts#define_function('githunks', 'AirlineGitHunks')
 function! AirlineInit()
   let g:airline_section_a = airline#section#create([ '[', 'mode', ']' ])
-  let g:airline_section_b = airline#section#create(['branch', 'githunks'])
-  let g:airline_section_y = airline#section#create([ '%{AirlineTimeStamp()}', ' [%{&fileformat}]' ])
+  let g:airline_section_b = airline#section#create([ 'branch', '%{AirlineGitHunks()}' ])
   let g:airline_section_c = '%<' . airline#section#create([ '%F' ]) " let g:airline_section_c = '%<' . '%{expand(%:p:~)}'
-  " let g:airline_section_x = airline#section#create_right([ '%{CocCurrentFunction()}', '%{AirlineGitHunks()}' ])
-  let g:airline_section_x = airline#section#create_right(['cocfunc'])
+  let g:airline_section_x = airline#section#create_right([ '%{CocCurrentFunction()}' ])
+  let g:airline_section_y = airline#section#create([ '%{AirlineTimeStamp()}', ' [%{&fileformat}]' ])
 endfunction
 
 if ! IsVscodeOrCursor()

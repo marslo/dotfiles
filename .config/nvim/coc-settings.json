@@ -112,6 +112,7 @@
   "html-css-support.enabledLanguages": [ "html", "markdown" ],
 
   "extensions.updateCheck": "daily",
+  // :echo coc_git_status OR :echo get(b:, 'coc_git_status', '')
   "git.enableGutters": true,
 
   "python.formatting.provider": "black",
@@ -123,10 +124,15 @@
   "pyright.inlayHints.variableTypes": false,
   "pyright.inlayHints.parameterTypes": false,
 
+  // :echo b:coc_current_function or :echo CocCurrentFunction()
   "coc.preferences.currentFunctionSymbolAutoUpdate": true,
+
   "coc.source.file.ignoreHidden": false,
   "coc.source.around.priority": 85,
   "coc.source.file.priority": 80,
+  "coc.source.tag.priority": 75,
+  "coc.source.tag.shortcut": "Tag",
+  "coc.source.emoji.shortcut": "E",
   "coc.source.buffer.priority": 70,
   "coc.source.word.priority": 1,
   "coc.source.dictionary.priority": 1
