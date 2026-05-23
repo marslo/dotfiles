@@ -4,7 +4,7 @@
 #     FileName : git-del
 #       Author : marslo
 #      Created : 2023-12-14 17:55:55
-#   LastChange : 2026-05-22 17:52:02
+#   LastChange : 2026-05-22 18:15:00
 #  Description : delete branch or tag from remote and/or local
 #                -  - E0A0/E725
 #=============================================================================
@@ -111,12 +111,12 @@ function getRefname() {
   # shellcheck disable=SC2016
   rname=$( { echo "${BRANCHES}"; echo "${TAGS}"; } | fmt -1 |
              grep --color=never -vE "^[[:space:]]*$|origin$|^(origin/)?${CURRENT_BRANCH}$" |
-             fzf --exit-0 --no-multi --prompt=' ' \
+             fzf --ansi --exit-0 --no-multi --prompt=' ' --marker=''  \
                  --preview "${plogs}" --preview-label='[ log ]' \
                  --height 50% --min-height 10+ \
                  --style full --no-border --no-input-border \
-                 --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
-                 --footer='Ctrl-O: view commit / Alt-j: open jira / Ctrl-/: change preview' \
+                 --preview-window=right,60%,nofollow --preview-label-pos='bottom' \
+                 --footer=$'Ctrl-O: view commit / Ctrl-\: change preview\nCtrl-Y: copy branch / Alt-j: open jira' \
                  --bind "ctrl-o:execute(${gpreview})+change-preview(${gpreviewS})+change-prompt( )" \
                  --bind 'alt-j:execute-silent(
                            id=$(echo {} | grep -oE "([a-zA-Z]+-[0-9]+)" | head -n1 | tr "[:lower:]" "[:upper:]")

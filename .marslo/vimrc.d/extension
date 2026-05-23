@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-20 17:32:30
+"    LastChange : 2026-05-22 20:08:14
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -256,8 +256,8 @@ call lexima#add_rule({ 'char': '"', 'input_after': '"', 'at': '\%#\%(\s\|$\)' })
 " rule for html tags
 let s:html_tags = ['div', 'font', 'span', 'code', 'pre', 'table', 'tbody', 'thread', 'th', 'td', 'kbd', 'a', 'p', 'u', 'i']
 for s:tag in s:html_tags
-  call lexima#add_rule({ 'char': '>', 'at': '<' . s:tag . '\%#>', 'leave': 1, 'input_after': '</' . s:tag . '>', 'filetype': ['markdown', 'html'] })
-  call lexima#add_rule({ 'char': '>', 'at': '<' . s:tag . '\%#\%(\s\|$\)'   , 'input_after': '</' . s:tag . '>', 'filetype': ['markdown', 'html'] })
+  call lexima#add_rule({ 'char': '>', 'at': '<' . s:tag . '\%#>', 'leave': 1, 'input_after': '</' . s:tag . '>', 'filetype': ['markdown', 'html', 'groovy', 'Jenkinsfile'] })
+  call lexima#add_rule({ 'char': '>', 'at': '<' . s:tag . '\%#\%(\s\|$\)'   , 'input_after': '</' . s:tag . '>', 'filetype': ['markdown', 'html', 'groovy', 'Jenkinsfile'] })
 endfor
 
 " vim-airline/vim-airline (skip in VS Code: g:loaded_airline=1 before plug#end above)
@@ -305,41 +305,46 @@ let g:airline#extensions#ale#open_lnum_symbol      = '(␊:'           " │
 let g:airline#extensions#ale#close_lnum_symbol     = ')'             " ╯
 " let g:airline_mode_map                           = { '__': '-', 'n' : 'N', 'i' : 'I', 'R' : 'R', 'c' : 'C', 'v' : 'V', 'V' : 'V', '': 'V', 's' : 'S', 'S' : 'S', '': 'S', }
 if !exists('g:airline_symbols') | let g:airline_symbols = {} | endif
-let g:airline_symbols.dirty                        = ' ♪'
+let g:airline_symbols.dirty                        = ' 󱓉 '
 let g:airline_left_sep                             = ''
 let g:airline_right_sep                            = ''
 
-function! CocCurrentFunction()
-  return get(b:, 'coc_current_function', '')
-endfunction
 function! AirlineFileSize()
-  let l:bytes = getfsize(expand('%:p'))
-  if l:bytes <= 0 | return '' | endif
-  if l:bytes < 1024 | return l:bytes . 'B' | endif
-  if l:bytes < 1048576 | return (l:bytes / 1024) . 'K' | endif
-  return (l:bytes / 1048576) . 'M'
+  let l:bytes = getfsize( expand('%:p') )
+  if l:bytes <= 0      | return ''                       | endif
+  if l:bytes < 1024    | return l:bytes . 'B'            | endif
+  if l:bytes < 1048576 | return ( l:bytes / 1024 ) . 'K' | endif
+  return ( l:bytes / 1048576 ) . 'M'
+endfunction
+function! AirlineTimeStamp()
+  return strftime( '%H:%M %d/%b %a' )
+endfunction
+function! CocCurrentFunction()
+  return get( b:, 'coc_current_function', '' )
 endfunction
 function! AirlineGitHunks()
-  let l:summary = get(b:, 'coc_git_status', '')
-  if !empty(l:summary) | return trim(l:summary) | endif
+  let l:summary = get( b:, 'coc_git_status', '' )
+  if !empty( l:summary ) | return trim( l:summary ) | endif
   if exists('*GitGutterGetHunkSummary')
     let [a, m, r] = GitGutterGetHunkSummary()
     if a == 0 && m == 0 && r == 0 | return '' | endif
-    return printf('+%d ~%d -%d', a, m, r)
+    return printf( '+%d ~%d -%d', a, m, r )
   endif
   return ''
-endfunction
-function! AirlineTimeStamp()
-  return strftime('%H:%M %d/%b %a')
 endfunction
 " +----------------------------------+
 " | A | B | C            | X | Y | Z |
 " +----------------------------------+
+" register new function
+call airline#parts#define_function('cocfunc', 'CocCurrentFunction')
+call airline#parts#define_function('githunks', 'AirlineGitHunks')
 function! AirlineInit()
   let g:airline_section_a = airline#section#create([ '[', 'mode', ']' ])
+  let g:airline_section_b = airline#section#create(['branch', 'githunks'])
   let g:airline_section_y = airline#section#create([ '%{AirlineTimeStamp()}', ' [%{&fileformat}]' ])
   let g:airline_section_c = '%<' . airline#section#create([ '%F' ]) " let g:airline_section_c = '%<' . '%{expand(%:p:~)}'
-  let g:airline_section_x = airline#section#create_right([ '%{CocCurrentFunction()}', '%{AirlineGitHunks()}' ])
+  " let g:airline_section_x = airline#section#create_right([ '%{CocCurrentFunction()}', '%{AirlineGitHunks()}' ])
+  let g:airline_section_x = airline#section#create_right(['cocfunc'])
 endfunction
 
 if ! IsVscodeOrCursor()
@@ -456,7 +461,7 @@ endif
 nnoremap <leader>mp  :execute 'silent !git mp'    \| redraw! \| echohl Function \| echo 'change committed !!'<CR>
 nnoremap <leader>pmp :execute 'silent !git mp -r' \| redraw! \| echohl Function \| echo 'change force committed !!'<CR>
 " zivyangll/git-blame.vim
-nnoremap <Leader>ebb :<C-u>call gitblame#echo()<CR>
+nnoremap <Leader>ebb :<C-u>set mouse=<CR>:call gitblame#echo()<CR>
 " APZelos/blamer.nvim
 nnoremap <Leader>bb  :BlamerToggle<CR>
 if IsNvim() && has('unix')

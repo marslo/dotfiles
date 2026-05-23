@@ -3,7 +3,7 @@
 #     FileName : git-bb
 #       Author : marslo
 #      Created : 2023-12-11 21:39:58
-#   LastChange : 2026-05-22 17:51:28
+#   LastChange : 2026-05-22 18:13:47
 #  Description : git branch switcher
 #                 - init : [a83a0ec](https://github.com/marslo/dotfiles/commit/a83a0ec625f154dc096750b777cb39108e50e5f9)
 #                 - `ctrl-/` and `ctrl-o` to modify view and `ctrl-y` copy commit hash
@@ -67,15 +67,14 @@ function getBranch() {
                      }
                    }
                  ' |
-                 fzf --no-multi --ansi --prompt=' ' --exit-0 \
+                 fzf --no-multi --ansi --prompt=' ' --exit-0 --marker='' --reverse \
                      --with-shell 'bash -c' \
-                     --reverse \
                      --delimiter '\t' --with-nth 2 \
                      --height 50% --min-height 10+ \
                      --style full --no-border --no-input-border \
                      --preview "${gpreviewS}" --preview-label='[ show ]' \
-                     --info='inline-right' \
-                     --footer="Ctrl-O: view commit / Ctrl-Y: copy hash / Ctrl-K: open jira" \
+                     --info='inline-right: ' \
+                     --footer='Ctrl-O: view commit / Ctrl-Y: copy hash / Ctrl-K: open jira' \
                      --preview-window=right,60%,nofollow --preview-label-pos='bottom' \
                      --bind "ctrl-o:execute(${gpreview})+change-preview(${gpreviewS})+change-prompt( )" \
                      --bind 'ctrl-y:execute-silent(git log {1} -1 --pretty=format:"%H" | pbcopy)' \
