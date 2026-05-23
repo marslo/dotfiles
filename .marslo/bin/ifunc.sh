@@ -2,9 +2,9 @@
 # shellcheck disable=SC1078,SC1079,SC2086
 # =============================================================================
 #    FileName : ifunc.sh
-#      Author : marslo.jiao@gmail.com
+#      Author : marslo
 #     Created : 2012
-#  LastChange : 2026-05-05 00:07:22
+#  LastChange : 2026-05-22 16:17:50
 #  Description : ifunctions
 # =============================================================================
 
@@ -20,7 +20,6 @@
 # shellcheck disable=SC2154,SC2086,SC1091
 function mrc()     { source "${iRCHOME}"/.marslorc; }
 function erc()     { command nvim "${iRCHOME}/.marslorc"; }
-function take()    { if test -d "$1"; then cd "$1" || return; else mkdir -p "$1" && cd "$1" || return; fi; }
 function getperm() { find "$1" -printf '%m\t%u\t%g\t%p\n'; }
 function rdiff()   { rsync -rv --size-only --dry-run "$1" "$2"; }
 function rget()    { route -nv get "$@"; }
@@ -39,13 +38,26 @@ function convert2av() { ffmpeg -i "$1" -i "$2" -c copy -map 0:0 -map 1:0 -shorte
 # convermov "input.mov" "output.mp4"
 function convermov()  { ffmpeg -i "$1" -c:v libx264 -crf 20 -an "${2}"; }
 function ipshow() {
-  ip -c addr show 2>/dev/null |
+  command ip -c addr show 2>/dev/null |
   awk '
         /^[0-9]+: / { iface=$2; sub(/:$/, "", iface) }
         /^[[:space:]]+inet[[:space:]]/ && $2 !~ /^127\./ {
           print iface, $2
         }
       ' | column -t -s' ' -o' => '
+}
+
+# intelligently create or enter a directory
+# usage:  $ take a/b/{x..z} → create folders only ( no cd )
+#         $ take a/b/c      → create 'a/b/c' if not exist and enter 'a/b/c'
+function take() {
+  if [[ $# -gt 1 ]]; then
+    mkdir -p "$@"
+  elif test -d "$1"; then
+    cd "$1" || return;
+  else
+    mkdir -p "$1" && cd "$1" || return;
+  fi;
 }
 
 # /**************************************************************

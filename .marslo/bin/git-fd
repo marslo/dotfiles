@@ -2,9 +2,9 @@
 # shellcheck source=/dev/null
 #=============================================================================
 #     FileName : git-fd
-#       Author : marslo.jiao@gmail.com
+#       Author : marslo
 #      Created : 2025-04-10 19:59:15
-#   LastChange : 2026-04-29 20:33:43
+#   LastChange : 2026-05-22 13:12:09
 #=============================================================================
 
 set -euo pipefail
@@ -299,7 +299,7 @@ if [[ -n "${FILE_PATTERN}" ]]; then
       # glob pattern (e.g. vars/*.groovy): use bash [[ == ]] matching (set -f to avoid pathname expansion)
       filteredFiles=()
       for f in "${matchesFiles[@]}"; do
-        ( set -f; [[ "$f" == ${FILE_PATTERN} ]] ) && filteredFiles+=( "$f" )
+        ( set -f; [[ "$f" == "${FILE_PATTERN}" ]] ) && filteredFiles+=( "$f" )
       done
     else
       mapfile -t filteredFiles < <( printf '%s\n' "${matchesFiles[@]}" | grep -i --color=never "${FILE_PATTERN}" )

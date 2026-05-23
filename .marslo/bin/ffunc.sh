@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-05-18 23:26:12
+#   LastChange : 2026-05-22 17:17:20
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1222,25 +1222,40 @@ function goto() {
   # shellcheck disable=SC2155
   local showPager=$(git config pager.show || echo "cat")
   local gheader="printf \"\033[0;3;37m\$ git -C %s show -s\033[0m\n\n\" \"\$(echo {2} | sed \"s|${path}/||\")\""
-  local gpreview="git -C {2} show --color=always --date=local -m HEAD ${showPager:+| ${showPager} --color=always}"
-  local gpreviewS="git -C {2} show --color=always --date=local -s HEAD ${showPager:+| ${showPager} --color=always}"
+  local gpreview="git -C {2} show --color=always --date=local -m HEAD ${showPager:+| ${showPager} --color=always} | less -+F -R"
+
+  local -x gpreviewS="git -C {2} show --color=always --date=local -s HEAD ${showPager:+| ${showPager} --color=always}"
+  local -x plogs="git -C {2} --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative"
+  # shellcheck disable=SC2016
+  local -x openWebUrl='
+    url=$(git -C "$1" config --get remote.origin.url)
+    if [[ -n "$url" ]]; then
+      web=$(echo "$url" | sed -E "s|^git@([^:]+):|https://\1/|; s|^ssh://git@([^/]+)/|https://\1/|; s|\.git$||")
+      open "${web}"
+    fi
+  '
 
   # requires setup environment variable `GHE_LAB_OWNER` to filter repos by owner
   repo=$(
-    fd -H -I -t f -E '*sandbox*' -E '*archive*' -E '*poc*' -p '\.git/config$' "${path}" --exec-batch rg -l "${GHE_LAB_OWNER:-OWNER}" 2>/dev/null |
+    fd --color=never -H -I -t f -E '*sandbox*' -E '*archive*' -E '*poc*' -p '\.git/config$' "${path}" --exec-batch rg --color=never -l "${GHE_LAB_OWNER:-OWNER}" 2>/dev/null |
     xargs ls -t |
     sed 's|/\.git/config$||' |
     awk -F/ '{printf "%s\t%s\n", $NF, $0}'  |
     fzf --delimiter '\t' \
         --with-nth=1 \
         --height 50% \
-        --prompt='repo> ' \
+        --prompt='folder> ' \
         --preview "${gheader}; ${gpreviewS}" \
         --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
+        --footer="Ctrl-O: view commit / Ctrl-]: change preview / Alt-u: open github / Ctrl-Y: copy hash" \
         --bind "ctrl-o:execute(bash -c \"${gpreview}\")+change-preview(${gpreviewS})+change-prompt(repo> )" \
         --bind "ctrl-y:execute-silent(printf \"%s\" {2} | eval ${CLIPBOARD})" \
         --bind 'ctrl-\:change-preview-window:up,60%|hidden|right,55%' \
-        --bind "ctrl-o:execute(open https://github.com/${GHE_LAB_OWNER:-OWNER}/{1})" |
+        --bind "alt-u:execute-silent(bash -c \"\${openWebUrl}\" _ {2})" \
+        --bind "ctrl-]:transform:[[ \$FZF_PREVIEW_LABEL == *log* ]] \
+                  && echo \"change-preview[\${gpreviewS}]+change-preview-label([ show ])\" \
+                  || echo \"change-preview[\${plogs}]+change-preview-label([ log ])\"
+               " |
     cut -f2
   )
 

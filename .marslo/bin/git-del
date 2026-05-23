@@ -4,7 +4,7 @@
 #     FileName : git-del
 #       Author : marslo
 #      Created : 2023-12-14 17:55:55
-#   LastChange : 2026-05-14 18:56:12
+#   LastChange : 2026-05-22 17:52:02
 #  Description : delete branch or tag from remote and/or local
 #                -  - E0A0/E725
 #=============================================================================
@@ -99,35 +99,55 @@ case "${MODE}" in
   both   ) refs=( refs/heads refs/remotes ) ;;
 esac
 
-BRANCHES="$( git for-each-ref "${refs[@]}" --sort=-committerdate --format='%(refname:short)' )"
-TAGS=$(git for-each-ref refs/tags --sort=-committerdate --format='%(refname:lstrip=1)')
+declare BRANCHES="$( git for-each-ref "${refs[@]}" --sort=-committerdate --format='%(refname:short)' )"
+declare TAGS=$(git for-each-ref refs/tags --sort=-committerdate --format='%(refname:lstrip=1)')
+
+function getRefname() {
+  local showPager=$(git config pager.show)
+  local gpreview="git show --color=always --date=local -m {-1} ${showPager:+| ${showPager} --color=always} | less -+F -R"
+  local -x gpreviewS="git show --color=always --date=local -s {1} ${showPager:+| ${showPager} --color=always}"
+  local -x plogs="git --no-pager log --decorate --color --graph --abbrev-commit --date=relative --pretty=tformat:'%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(auto)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset)' {1}"
+
+  # shellcheck disable=SC2016
+  rname=$( { echo "${BRANCHES}"; echo "${TAGS}"; } | fmt -1 |
+             grep --color=never -vE "^[[:space:]]*$|origin$|^(origin/)?${CURRENT_BRANCH}$" |
+             fzf --exit-0 --no-multi --prompt=' ' \
+                 --preview "${plogs}" --preview-label='[ log ]' \
+                 --height 50% --min-height 10+ \
+                 --style full --no-border --no-input-border \
+                 --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
+                 --footer='Ctrl-O: view commit / Alt-j: open jira / Ctrl-/: change preview' \
+                 --bind "ctrl-o:execute(${gpreview})+change-preview(${gpreviewS})+change-prompt( )" \
+                 --bind 'alt-j:execute-silent(
+                           id=$(echo {} | grep -oE "([a-zA-Z]+-[0-9]+)" | head -n1 | tr "[:lower:]" "[:upper:]")
+                           if [[ -n "${id}" ]]; then open "${JIRA_URL:-https://jira.domain.com}/browse/${id}"; fi
+                         )' \
+                 --bind 'ctrl-\:transform:[[ $FZF_PREVIEW_LABEL == *log* ]] \
+                           && echo "change-preview[${gpreviewS}]+change-preview-label([ show ])" \
+                           || echo "change-preview[${plogs}]+change-preview-label([ log ])"
+                        ' \
+                 --bind 'click-footer:transform:[[ $FZF_CLICK_FOOTER_WORD =~ Ctrl ]] && echo "trigger(${FZF_CLICK_FOOTER_WORD%:})"' \
+                 --bind 'ctrl-]:change-preview-window:up,60%|hidden|right,65%' |
+             sed -rn "s:\s*(origin/)?(.*)$:\2:p"
+         );
+  [[ -n "${rname}" ]] && echo "${rname}" || exit 1
+}
+
 
 if [[ -n "${refname:-}" ]]; then
   # normalize user-supplied refname: refs/remotes/origin/foo, refs/heads/foo, origin/foo, refs/tags/v1 → bare name
   refname="$(pure "${refname}")"
-  refname=$( { echo "${BRANCHES}"; echo "${TAGS}"; } | fmt -1 |
-             grep --color=never -vE "^[[:space:]]*$|origin$|^(origin/)?${CURRENT_BRANCH}$" |
-             grep --color=never -E "$(es "${refname}")$" |
-             sed -rn "s:\s*(origin/)?(.*)$:\2:p" |
-             uniq
+  refname=$({ echo "${BRANCHES}"; echo "${TAGS}"; } | fmt -1 |
+              grep --color=never -vE "^[[:space:]]*$|origin$|^(origin/)?${CURRENT_BRANCH}$" |
+              grep --color=never -E "$(es "${refname}")$" |
+              sed -rn "s:\s*(origin/)?(.*)$:\2:p" |
+              uniq
            )
 else
-  declare plogs="git --no-pager log --color --graph --pretty=tformat:'%C(6)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr) %C(blue)<%an>%C(reset)' --abbrev-commit --date=relative {-1}"
-  declare gpreview="git show --color=always {-1}"
-  refname=$( { echo "${BRANCHES}"; echo "${TAGS}"; } | fmt -1 |
-             grep --color=never -vE "^[[:space:]]*$|origin$|^(origin/)?${CURRENT_BRANCH}$" |
-               fzf -0 +m --prompt=' ' \
-                   --preview "${plogs}" \
-                   --height 50% --min-height 10+ \
-                   --style full --no-input-border \
-                   --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
-                   --bind "ctrl-o:execute(${gpreview})+change-preview(${gpreview} -s)+change-prompt( )" \
-                   --bind 'ctrl-/:change-preview-window:up,60%|hidden|right,65%' |
-               sed -rn "s:\s*(origin/)?(.*)$:\2:p"
-          );
+  refname="$(getRefname)"
 fi
-[[ -z "${refname}" ]] && exit;
 
+[[ -z "${refname}" ]] && exit;
 declare name="$(pure "${refname}")"
 
 # check remote ref type
