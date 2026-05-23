@@ -179,7 +179,7 @@ if has( 'autocmd' )
     " autocmd FileType  groovy,Jenkinsfile    let b:ale_open_list = 'on_save'
     " FileType: first open (BufWinEnter can run before ft is set). BufWinEnter: switch back to buffer.
     " autocmd FileType  groovy                call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
-    autocmd BufWinEnter *                     call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
+    " autocmd BufWinEnter *                   call s:AleLintOnGroovy( str2nr(expand('<abuf>')) )
     autocmd Syntax      groovy,Jenkinsfile    if empty(&buftype) | setlocal foldlevel=0 | endif
     autocmd FileType   Jenkinsfile
           \ let b:ale_groovy_npmgroovylint_options = '--loglevel warning --config ' . s:FindJenkinsfileLintRC()

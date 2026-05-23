@@ -4,7 +4,7 @@
 #     FileName : fzf
 #       Author : marslo
 #      Created : 2023-10-06 00:47:47
-#   LastChange : 2026-05-16 05:06:56
+#   LastChange : 2026-05-22 20:28:37
 # =============================================================================
 
 # shellcheck disable=SC2155
@@ -69,7 +69,7 @@ FZF_CTRL_R_OPTS+="--height '40%' "
 FZF_CTRL_R_OPTS+="--layout=reverse "
 FZF_CTRL_R_OPTS+="--no-border --header-lines-border bottom --no-list-border "
 FZF_CTRL_R_OPTS+="--info=inline-right "
-FZF_CTRL_R_OPTS+="--preview 'echo {2..}' --preview-window down:5:hidden:wrap "
+FZF_CTRL_R_OPTS+="--preview 'echo {2..}' --preview-window next:5:hidden:wrap "
 FZF_CTRL_R_OPTS+="--bind 'ctrl-\:toggle-preview' "
 FZF_CTRL_R_OPTS+="--bind 'ctrl-y:execute-silent(echo {2..} | ${COPY})+abort' "
 FZF_CTRL_R_OPTS+="--footer 'Ctrl-Y: copy command  Ctrl-\: toggle preview' "
