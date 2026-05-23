@@ -93,11 +93,6 @@ local function safe_ts_start(buf)
         -- vim.bo[buf].indentexpr = "v:lua.require('nvim-treesitter').indentexpr()"
         vim.bo[buf].indentexpr = "v:lua.require('nvim-treesitter.indent').get_indent(v:lnum)"
       end
-      -- groovy: enable legacy syntax as fallback for /** ... **/ blocks
-      -- (the groovy parser produces ERROR nodes for **/ terminators)
-      if ft == 'groovy' or ft == 'Jenkinsfile' or ft == 'jenkinsfile' then
-        vim.bo[buf].syntax = 'on'
-      end
     end
   end)
 end

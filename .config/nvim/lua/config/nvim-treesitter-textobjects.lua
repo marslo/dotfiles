@@ -69,8 +69,43 @@ local move_maps = {
   { '[M', move.goto_previous_end,   '@function.outer' },
   { '[]', move.goto_previous_end,   '@class.outer'    },
 }
+
+-- groovy/Jenkinsfile: regex fallback when parser produces an ERROR tree
+-- matches: `def foo(`, `void foo(`, `String foo(`, `List<String> foo(`, etc.
+local groovy_fn_pattern = [[\v^\s*%(%(public|private|protected|static|final|abstract|synchronized|def)\s+)*%(def|void|boolean|int|long|float|double|char|\u\w*%([<][^>]*[>])?)\s+\w+\s*\(]]
+
+local groovy_ft = { groovy = true, Jenkinsfile = true, jenkinsfile = true }
+
+local function groovy_move_fn(forward, to_end)
+  local flags = "W" .. (not forward and "b" or "")
+  if not to_end then
+    vim.fn.search(groovy_fn_pattern, flags)
+  else
+    local found = vim.fn.search(groovy_fn_pattern, flags)
+    if found > 0 then
+      if vim.fn.search("{", "W") > 0 then
+        vim.cmd("normal! %")
+      end
+    end
+  end
+end
+
 for _, m in ipairs( move_maps ) do
   vim.keymap.set( { "n", "x", "o" }, m[1], function()
+    if groovy_ft[vim.bo.filetype] and m[3] == "@function.outer" then
+      local ok, parser = pcall(vim.treesitter.get_parser, 0)
+      local use_regex = not ok or not parser
+      if not use_regex then
+        local tree = parser:parse()[1]
+        use_regex = not tree or tree:root():type() == "ERROR"
+      end
+      if use_regex then
+        local forward = m[1]:sub(1, 1) == "]"
+        local to_end  = m[1]:sub(2, 2):match("%u") ~= nil
+        groovy_move_fn(forward, to_end)
+        return
+      end
+    end
     m[2]( m[3], "textobjects" )
   end, { desc = "TS " .. m[1] .. " " .. m[3] } )
 end
