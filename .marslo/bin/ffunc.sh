@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-05-22 17:17:20
+#   LastChange : 2026-05-26 17:39:34
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1237,22 +1237,24 @@ function goto() {
 
   # requires setup environment variable `GHE_LAB_OWNER` to filter repos by owner
   repo=$(
-    fd --color=never -H -I -t f -E '*sandbox*' -E '*archive*' -E '*poc*' -p '\.git/config$' "${path}" --exec-batch rg --color=never -l "${GHE_LAB_OWNER:-OWNER}" 2>/dev/null |
+    fd --color=never --hidden --no-ignore --type f --exclude '*sandbox*' --exclude '*archive*' --exclude '*poc*' --full-path '\.git/config$' "${path}" \
+       --exec-batch rg --color=never -l -e "${GHE_LAB_OWNER:-OWNER}" -e 'marslo_' 2>/dev/null |
     xargs ls -t |
     sed 's|/\.git/config$||' |
     awk -F/ '{printf "%s\t%s\n", $NF, $0}'  |
     fzf --delimiter '\t' \
         --with-nth=1 \
         --height 50% \
+        --no-multi \
         --prompt='folder> ' \
         --preview "${gheader}; ${gpreviewS}" \
         --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
-        --footer="Ctrl-O: view commit / Ctrl-]: change preview / Alt-u: open github / Ctrl-Y: copy hash" \
+        --footer=$'Ctrl-O: view commit / Ctrl-\: change preview\nAlt-u: open github  / Ctrl-Y: copy path' \
         --bind "ctrl-o:execute(bash -c \"${gpreview}\")+change-preview(${gpreviewS})+change-prompt(repo> )" \
         --bind "ctrl-y:execute-silent(printf \"%s\" {2} | eval ${CLIPBOARD})" \
-        --bind 'ctrl-\:change-preview-window:up,60%|hidden|right,55%' \
+        --bind 'ctrl-]:change-preview-window:up,60%|hidden|right,55%' \
         --bind "alt-u:execute-silent(bash -c \"\${openWebUrl}\" _ {2})" \
-        --bind "ctrl-]:transform:[[ \$FZF_PREVIEW_LABEL == *log* ]] \
+        --bind "ctrl-\:transform:[[ \$FZF_PREVIEW_LABEL == *log* ]] \
                   && echo \"change-preview[\${gpreviewS}]+change-preview-label([ show ])\" \
                   || echo \"change-preview[\${plogs}]+change-preview-label([ log ])\"
                " |
@@ -1608,16 +1610,23 @@ function etheme() {                        # [e]za [theme]
         --preview-window 'right:65%,rounded' \
         --footer 'Ctrl-O: view contents' \
         --bind "ctrl-o:execute(${_BAT_CMD:-bat} --theme='Nord' --style=numbers '${_eza_themes}/{}.yml')" \
-        --bind 'ctrl-k:execute-silent(
-                  id=$(echo {2} | grep -oE "([a-zA-Z]+-[0-9]+)" | head -n1 | tr "[:lower:]" "[:upper:]")
-                  if [[ -n "${id}" ]]; then open "https://essjira.marvell.com/browse/${id}"; fi
-                )'
+        --bind 'click-footer:transform:
+                 [[ $FZF_CLICK_FOOTER_WORD =~ Ctrl ]] && echo "trigger(${FZF_CLICK_FOOTER_WORD%:})"
+               '
         # --header 'CTRL-O to view contents' --header-first --header-border=inline \
   )
 
-  test -n "${_theme:-}" && {
+  test -z "${_theme:-}" && return 1
+
+  # shellcheck disable=SC2016
+  {
+    test -f "${EZA_CONFIG_DIR}/custom.yml" && type -P yq >/dev/null 2>&1 && \
+    yq eval-all '. as $item ireduce ({}; . * $item)' "${_eza_themes}/${_theme}.yml" "${EZA_CONFIG_DIR}/custom.yml" > "${EZA_CONFIG_DIR}/theme.yml" && \
+    echo -e "$(c Wd)>>$(c) $(c Gis)${_theme}$(c) and $(c Mis)custom.yml$(c) have been merged and set as eza theme ..$(c)"
+  } || {
+    test -f "${EZA_CONFIG_DIR}/custom.yml" && echo -e "$(c Wdi)[WARN]>>$(c) \`yq\` is not installed, custom configuration will be ignored ...$(c)"
     ln -sf "${_eza_themes}/${_theme}.yml" "${EZA_CONFIG_DIR}/theme.yml"
-    echo -e "$(c Wd)>>$(c) $(c Gis)${_theme}$(c) $(c Wdi)has been set as eza theme ..$(c)"
+    echo -e "$(c Wd)>>$(c) $(c Gis)${_theme}$(c) $(c Wdi)has been linked as eza theme ..$(c)"
   }
 }
 

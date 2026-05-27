@@ -546,10 +546,10 @@ function clean() {
   \nOPTIONS
     • $(c G)-p <path>$(c), $(c G)--path <path>$(c) : specify path to clean $(c Wi)(default: current path)$(c)
     • $(c G)-a$(c), $(c G)--all$(c)                : clean from home directory
-    • $(c G)--dot$(c)                     : clean '._*' files
-    • $(c G)--ds$(c)                      : clean '.DS_*' files
-    • $(c G)--lg$(c)                      : clean 'logback.log' files
-    • $(c G)--dryrun$(c)                  : show files to be deleted without deleting them
+    • $(c G)--dot$(c)                    : clean '._*' files
+    • $(c G)--ds$(c)                     : clean '.DS_*' files
+    • $(c G)--lg$(c)                     : clean 'logback.log' files
+    • $(c G)--dryrun$(c)                 : show files to be deleted without deleting them
     • $(c G)-v$(c), $(c G)--verbose$(c)            : enable verbose output
     • $(c G)-h$(c), $(c G)--help$(c)               : show this help message
   """

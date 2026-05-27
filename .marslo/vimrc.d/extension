@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-22 20:08:14
+"    LastChange : 2026-05-26 17:00:23
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -252,10 +252,9 @@ call lexima#add_rule({ 'char': '<', 'input_after': '>', 'at': '\%#\%(\w\|\s\|$\)
 " - > rule
 " keep original
 call lexima#add_rule({ 'char': '>', 'at': '\%#>', 'leave': 1 })
-" "><"
-call lexima#add_rule({ 'char': '>', 'input_after': '<', 'at': '\("\|''\)\%#' })
-" ">>><<<"
-call lexima#add_rule({ 'char': '>', 'input_after': '<', 'at': '\("\|''\)>\+\%#' })
+" "><"/ ">>><<<"
+" call lexima#add_rule({ 'char': '>', 'input_after': '<', 'at': '\("\|''\)\%#' })
+" call lexima#add_rule({ 'char': '>', 'input_after': '<', 'at': '\("\|''\)>\+\%#' })
 " - " rule - \%(\s\|$\) : space or eof
 call lexima#add_rule({ 'char': '"', 'input_after': '"', 'at': '\%#\%(\s\|$\)' })
 " rule for html tags
@@ -459,7 +458,7 @@ if exists( ':Tabularize' )
 endif
 
 " git
-nnoremap <leader>mp  :execute 'silent !git mp'    \| redraw! \| echohl Function \| echo 'change committed !!'<CR>
+nnoremap <leader>mp  :execute 'silent !git mp' \| redraw! \| echohl Function \| echo 'change committed !!'<CR>
 nnoremap <leader>pmp :execute 'silent !git mp -r' \| redraw! \| echohl Function \| echo 'change force committed !!'<CR>
 " zivyangll/git-blame.vim
 nnoremap <Leader>ebb :<C-u>set mouse=<CR>:call gitblame#echo()<CR>

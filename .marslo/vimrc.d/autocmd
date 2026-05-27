@@ -35,13 +35,6 @@ function! s:FindJenkinsfileLintRC() abort
   return fnamemodify(!empty(l:found) ? l:found : '~/.groovylintrc-jenkinsfile.json', ':p')
 endfunction
 
-" restore cursor position, inspired from http://vim.wikia.com/wiki/VimTip80
-" function! RestoreCursor() abort
-"   if line("'\"") >= 1 && line("'\"") <= line('$') && &filetype !~# 'gitcommit'
-"     exe "normal! g`\""
-"   endif
-" endfunction
-
 function! SafeRetab()
   if expand('%:e') =~# '^\(ltsv\|config\|diffs\)$' | return | endif
 

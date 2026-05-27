@@ -1,0 +1,10 @@
+---
+filenames:
+  ".tags": { icon: { glyph: "\U000F0DFA" } }
+  ".vim_mru_files": { icon: { glyph: "\uE7C5" } }
+  ".git-stats": { icon: { glyph: "\U000F04C1" } }
+  ".bashrc": { icon: { glyph: "\U000F0628" } }
+  ".bash_profile": { icon: { glyph: "\U000F0628" } }
+  ".gitignore": { icon: { glyph: "\uF1D3" } }
+  ".gitconfig": { icon: { glyph: "\uF1D3" } }
+  "vars": { icon: { glyph: "\U000F0D6E" } }
