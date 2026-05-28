@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-20 17:29:24
+"    LastChange : 2026-05-27 17:59:00
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -33,6 +33,22 @@ endfunction
 function! s:FindJenkinsfileLintRC() abort
   let l:found = findfile('.groovylintrc-jenkinsfile.json', '.;')
   return fnamemodify(!empty(l:found) ? l:found : '~/.groovylintrc-jenkinsfile.json', ':p')
+endfunction
+
+" disable groovy language server for large files (> 512KB) while keeping diagnostic-languageserver (npm-groovy-lint)
+let s:groovy_ls_filesize_limit = 512 * 1024
+function! s:ToggleGroovyLSByFileSize() abort
+  if !exists('*coc#config') | return | endif
+  let l:size = getfsize(expand('%'))
+  if l:size > s:groovy_ls_filesize_limit
+    call coc#config('groovy.enable', v:false)
+    if !get(b:, '_groovy_ls_disabled_notified', 0)
+      echohl WarningMsg | echom '[coc] groovy LS disabled (file size: ' . (l:size / 1024) . 'KB)' | echohl None
+      let b:_groovy_ls_disabled_notified = 1
+    endif
+  else
+    call coc#config('groovy.enable', v:true)
+  endif
 endfunction
 
 function! SafeRetab()
@@ -176,6 +192,8 @@ if has( 'autocmd' )
     autocmd Syntax      groovy,Jenkinsfile    if empty(&buftype) | setlocal foldlevel=0 | endif
     autocmd FileType   Jenkinsfile
           \ let b:ale_groovy_npmgroovylint_options = '--loglevel warning --config ' . s:FindJenkinsfileLintRC()
+    autocmd BufAdd      *.groovy,*.gradle,Jenkinsfile  call s:ToggleGroovyLSByFileSize()
+    autocmd BufEnter    *.groovy,*.gradle,Jenkinsfile  call s:ToggleGroovyLSByFileSize()
 
     if did_filetype()                       | finish             | endif
     " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`

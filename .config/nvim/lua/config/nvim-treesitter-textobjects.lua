@@ -16,7 +16,7 @@
 -- │    <leader>a    │ swap current parameter with next                             │
 -- │    <leader>A    │ swap current parameter with previous                         │
 -- ├─────────────────┼──────────────────────────────────────────────────────────────┤
--- │      ; / ,      │ repeat last move forward / backward                          │
+-- │      ; / ,      │ repeat last move same direction / opposite direction          │
 -- │  f / F / t / T  │ builtin motions (repeatable with ; and ,)                    │
 -- └─────────────────┴──────────────────────────────────────────────────────────────┘
 
@@ -119,8 +119,8 @@ vim.keymap.set( "n", "<leader>A", function() swap.swap_previous( "@parameter.inn
 
 ---------------------------------------------------------------------------- repeatable moves
 local ts_repeat = require( "nvim-treesitter-textobjects.repeatable_move" )
-vim.keymap.set( { "n", "x", "o" }, ";", ts_repeat.repeat_last_move_next )
-vim.keymap.set( { "n", "x", "o" }, ",", ts_repeat.repeat_last_move_previous )
+vim.keymap.set( { "n", "x", "o" }, ";", ts_repeat.repeat_last_move )
+vim.keymap.set( { "n", "x", "o" }, ",", ts_repeat.repeat_last_move_opposite )
 vim.keymap.set( { "n", "x", "o" }, "f", ts_repeat.builtin_f_expr, { expr = true } )
 vim.keymap.set( { "n", "x", "o" }, "F", ts_repeat.builtin_F_expr, { expr = true } )
 vim.keymap.set( { "n", "x", "o" }, "t", ts_repeat.builtin_t_expr, { expr = true } )

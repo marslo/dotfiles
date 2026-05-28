@@ -440,8 +440,8 @@ vimrc.d/
 
 | SHORTCUT              | MODE  | COMMENTS                                      |
 |-----------------------|-------|-----------------------------------------------|
-| `;`                   | n/x/o | repeat last textobject move forward           |
-| `,`                   | n/x/o | repeat last textobject move backward          |
+| `;`                   | n/x/o | repeat last move (same direction)             |
+| `,`                   | n/x/o | repeat last move (opposite direction)         |
 | `f` / `F` / `t` / `T` | n/x/o | builtin motions (repeatable with `;` and `,`) |
 
 ---
