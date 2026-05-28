@@ -140,4 +140,24 @@ if has('persistent_undo') | set noundofile | endif
 " setup digraph: == → ⩵
 digraph == 10869
 
+function! CoolFoldText()
+  let line = getline(v:foldstart)
+  let clean_line = substitute(line, '/\*\|\*/\|{{{\d\=\|\s*"\?\s*$', '', 'g')
+  let clean_line = substitute(clean_line, '^\s*', '', '')
+  let indent = repeat(' ', indent(v:foldstart))
+  let folded_line_count = v:foldend - v:foldstart + 1
+  " 󰁂 (\uF0042) /  (\uF48C)
+  let right_text = '  ' . folded_line_count . ' lines '
+  " ▸ / ▾ /  /  /  
+  let left_text = indent . ' ' . clean_line . ' '
+  let win_width = winwidth(0) - &foldcolumn - (&number ? &numberwidth : 0) - 4
+  let fillcharcount = win_width - strdisplaywidth(left_text) - strdisplaywidth(right_text)
+  if fillcharcount < 0
+    let fillcharcount = 0
+  endif
+  let fill = repeat('·', fillcharcount)
+  return left_text . fill . right_text
+endfunction
+set foldtext=CoolFoldText()
+
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

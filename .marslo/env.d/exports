@@ -24,7 +24,7 @@ LS_COLORS+='*.enc=38;5;69;3:*.gpg=38;5;69;3:*.p12=38;5;69;3:*.p7s=38;5;69;3:*.pe
 # packages
 LS_COLORS+='*.apk=38;5;215:*.deb=38;5;215:*.dll=38;5;241:*.dmg=38;5;215:*.rpm=38;5;215:*.war=38;5;215:*.bin=38;5;202:*.iso=38;5;202:*.jar=38;5;215:*.out=38;5;242;3:'
 # dump/log
-LS_COLORS+='*.bak=38;5;241;3:*.dump=38;5;241;3:*.mdump=38;5;241;3:*.stackdump=38;5;241;3:*.zcompdump=38;5;241;3:*.snapshot=38;5;45:*.swap=38;5;241;3:*.swp=38;5;241;3:*.tmp=38;5;239;3:*.viminfo=38;5;242;3:*vim_mru_files=38;5;242;3:*.wget-hsts=38;5;239;3:*.DS_Store=38;5;239;3:*.old=38;5;239;3:*.org=38;5;241;3:*.norg=38;5;241;3:*.orig=38;5;241;3:*.sav=38;5;241;3:*.log=38;5;241;3:*.un~=38;5;241;3:'
+LS_COLORS+='*.bak=38;5;241;3:*.backup=38;5;241;3:*.dump=38;5;241;3:*.mdump=38;5;241;3:*.stackdump=38;5;241;3:*.zcompdump=38;5;241;3:*.snapshot=38;5;45:*.swap=38;5;241;3:*.swp=38;5;241;3:*.tmp=38;5;239;3:*.viminfo=38;5;242;3:*vim_mru_files=38;5;242;3:*.wget-hsts=38;5;239;3:*.DS_Store=38;5;239;3:*.old=38;5;239;3:*.org=38;5;241;3:*.norg=38;5;241;3:*.orig=38;5;241;3:*.sav=38;5;241;3:*.log=38;5;241;3:*.un~=38;5;241;3:'
 # audio/video
 LS_COLORS+='*.wma=38;5;137;1:*.wmv=38;5;114:*.JPG=38;5;97:*.MOV=38;5;114:*.ape=38;5;136;1:*.avi=38;5;114:*.bmp=38;5;97:*.gif=38;5;97:*.icns=38;5;97:*.ico=38;5;97:*.ics=38;5;7:*.img=38;5;202:*.jpeg=38;5;97:*.jpg=38;5;97:*.mov=38;5;114:*.mp3=38;5;137;1:*.mp4=38;5;114:*.mp4a=38;5;137;1:*.mpeg=38;5;114:*.torrent=38;5;116:*.ts=38;5;074;1:'
 # docs
@@ -96,7 +96,8 @@ test -f "$HOME/.config/nvim/certs/copilot.pem" && export NODE_EXTRA_CA_CERTS="$H
 export NODE_NO_WARNINGS=1
 # for v25.2.0+: https://github.com/nodejs/node/pull/60351
 if type -P node >/dev/null 2>&1 && [ "$(node -v | cut -d'.' -f1 | tr -d 'v')" -ge 25 ]; then
-  export NODE_OPTIONS="--no-webstorage"
+  # disable for cursor agent CLI
+  # export NODE_OPTIONS="--no-webstorage"
   export UNDICI_NO_NATIVE_HINTS=1
 fi
 

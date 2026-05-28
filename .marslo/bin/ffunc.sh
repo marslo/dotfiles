@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-05-26 17:39:34
+#   LastChange : 2026-05-27 18:14:36
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1621,6 +1621,7 @@ function etheme() {                        # [e]za [theme]
   # shellcheck disable=SC2016
   {
     test -f "${EZA_CONFIG_DIR}/custom.yml" && type -P yq >/dev/null 2>&1 && \
+    test -L "${EZA_CONFIG_DIR}/theme.yml"  && unlink "${EZA_CONFIG_DIR}/theme.yml"
     yq eval-all '. as $item ireduce ({}; . * $item)' "${_eza_themes}/${_theme}.yml" "${EZA_CONFIG_DIR}/custom.yml" > "${EZA_CONFIG_DIR}/theme.yml" && \
     echo -e "$(c Wd)>>$(c) $(c Gis)${_theme}$(c) and $(c Mis)custom.yml$(c) have been merged and set as eza theme ..$(c)"
   } || {

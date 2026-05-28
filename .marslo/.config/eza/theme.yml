@@ -172,11 +172,63 @@ broken_symlink:
 broken_path_overlay:
   foreground: "#5C6370"
 filenames:
-  ".tags": {icon: {glyph: "\U000F0DFA"}}
-  ".vim_mru_files": {icon: {glyph: ""}}
-  ".git-stats": {icon: {glyph: "\U000F04C1"}}
-  ".bashrc": {icon: {glyph: "\U000F0628"}}
-  ".bash_profile": {icon: {glyph: "\U000F0628"}}
-  ".gitignore": {icon: {glyph: ""}}
-  ".gitconfig": {icon: {glyph: ""}}
-  "vars": {icon: {glyph: "\U000F0D6E"}}
+  ".tags":
+    icon:
+      glyph: "\U000F0DFA"
+  ".vim_mru_files":
+    icon:
+      glyph: ""
+  ".git-stats":
+    icon:
+      glyph: "\U000F04C1"
+  ".bashrc":
+    icon:
+      glyph: "\U000F0628"
+  ".bash_profile":
+    icon:
+      glyph: "\U000F0628"
+  ".gitignore":
+    icon:
+      glyph: ""
+  ".gitconfig":
+    icon:
+      glyph: ""
+  "LICENSE":
+    icon:
+      glyph: "\U000F05E6"
+  "COPYRIGHT":
+    icon:
+      glyph: "\U000F05E6"
+  ".copilot":
+    icon:
+      glyph: ""
+  "install":
+    icon:
+      glyph: "\U000F1183"
+  "uninstall":
+    icon:
+      glyph: "\U000F1183"
+  "kubeadm-cfg.yml":
+    icon:
+      glyph: ""
+  ".github":
+    icon:
+      glyph: ""
+  ".git":
+    icon:
+      glyph: ""
+  ".kube":
+    icon:
+      glyph: ""
+  "jenkinsfile":
+    icon:
+      glyph: ""
+  "pipeline":
+    icon:
+      glyph: ""
+  "pipelines":
+    icon:
+      glyph: ""
+  "vars":
+    icon:
+      glyph: "\U000F0424"

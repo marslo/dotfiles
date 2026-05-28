@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-26 17:00:23
+"    LastChange : 2026-05-27 00:11:15
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -245,7 +245,10 @@ let g:lexima_enable_basic_rules = 1
 let s:block_chars = ['(', '[', '{', '"', "'", '`', '<']
 for s:char in s:block_chars | call lexima#add_rule({ 'char': s:char, 'at': '\%#\w' }) | endfor
 " suppress auto-pair for quotes/backtick when cursor is right after a word
-for s:char in ['"', "'", '`'] | call lexima#add_rule({ 'char': s:char, 'at': '\w\%#' }) | endfor
+for s:char in ['"', "'", '`']
+    let s:regex = '^\([^' . s:char . ']*' . s:char . '[^' . s:char . ']*' . s:char . '\)*[^' . s:char . ']*' . s:char . '[^' . s:char . ']*\%#\(' . s:char . '\)\@!'
+    call lexima#add_rule({ 'char': s:char, 'at': s:regex })
+endfor
 " \%# : after-cursor position
 " - < rule - \%(\w\|\s\|$\) : char,number,underscore,space,eof
 call lexima#add_rule({ 'char': '<', 'input_after': '>', 'at': '\%#\%(\w\|\s\|$\)' })

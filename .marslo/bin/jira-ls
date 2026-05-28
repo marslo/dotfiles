@@ -4,7 +4,7 @@
 #     FileName : jira-ls
 #       Author : marslo
 #      Created : 2026-01-21 20:57:09
-#   LastChange : 2026-05-20 21:27:32
+#   LastChange : 2026-05-27 16:51:00
 #=============================================================================
 
 set -euo pipefail
@@ -29,10 +29,10 @@ declare REPORTER=''
 declare -a KEYS=()
 declare -a CURRENT_STATUS=()
 declare -A JQL_MAP=(
-  ['new']='status in (New)'
-  ['in-progress']='status in (Active, "In Progress")'
+  ['new']='status in (New, Open)'
+  ['in-progress']='status in (Active, "In Progress", "In Review")'
   ['todo']='status in ("To Do")'
-  ['open']='status in (New, Active, "To Do", "In Progress")'
+  ['open']='status in (Open, New, Active, "To Do", "In Progress", "In Review")'
   ['closed']='status = Closed OR resolution in (Done, Fixed)'
 )
 

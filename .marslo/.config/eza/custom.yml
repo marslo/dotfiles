@@ -7,4 +7,16 @@ filenames:
   ".bash_profile": { icon: { glyph: "\U000F0628" } }
   ".gitignore": { icon: { glyph: "\uF1D3" } }
   ".gitconfig": { icon: { glyph: "\uF1D3" } }
-  "vars": { icon: { glyph: "\U000F0D6E" } }
+  "LICENSE": { icon: { glyph: "\U000F05E6" } }
+  "COPYRIGHT": { icon: { glyph: "\U000F05E6" } }
+  ".copilot": { icon: { glyph: "\uF4B8" } }
+  "install": { icon: { glyph: "\U000F1183" } }
+  "uninstall": { icon: { glyph: "\U000F1183" } }
+  "kubeadm-cfg.yml": { icon: { glyph: "\uE81D" } }
+  ".github": { icon: { glyph: "\uF470" } }
+  ".git": { icon: { glyph: "\uF1D2" } }
+  ".kube": { icon: { glyph: "\uE81D" } }
+  "jenkinsfile": { icon: { glyph: "\uF2EC" } }
+  "pipeline": { icon: { glyph: "\uF2EC" } }
+  "pipelines": { icon: { glyph: "\uF2EC" } }
+  "vars": { icon: { glyph: "\U000F0424" } }

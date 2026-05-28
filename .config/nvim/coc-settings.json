@@ -16,7 +16,9 @@
     "/opt/jenkins/plugins/git/latest/WEB-INF/lib/*",
     "/opt/jenkins/plugins/pipeline-job/latest/WEB-INF/lib/*"
   ],
-  "groovy.trace.server": "verbose",
+  "groovy.ls.vmargs": "-noverify -Xmx2G -XX:+UseG1GC -XX:+UseStringDeduplication",
+  // "verbose" / "message" / "off"
+  "groovy.trace.server": "off",
   "java.referencesCodeLens.enabled": true,
   "java.implementationsCodeLens.enabled": true,
   "java.signatureHelp.enabled": true,
