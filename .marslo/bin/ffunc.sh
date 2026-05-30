@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-05-27 18:14:36
+#   LastChange : 2026-05-30 02:03:50
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -247,7 +247,7 @@ function cat() {                           # smart cat
 function fdInRC() {                        # [f]in[d] [in] [rc] files
   local -A ignoreList=(
     [rc]='ss/ log*/ backup*/ ansible-completion/ .archive/ *.png *.pem *.p12 *.pub *.lst *.log'
-    [config]='*.bak *.log *backup backup*/'
+    [config]='*.bak *.log *backup backup*/ auth.db-* versions.json'
     [extra]='*.pem *.p12 *.png *.jpg *.jpeg *.gif *.svg *.zip *.tar *.gz *.bz2 *.xz *.7z *.rar'
   )
 
@@ -300,6 +300,8 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
     statCmd=( stat -f '%Sm | %N' -t '%Y-%m-%d %H:%M:%S' )
   fi
 
+  local -a extraFiles=( "${HOME}"/.gradle/gradle.properties )
+
   {
     # top-level rc-like files under $HOME
     fd --max-depth 1 "${base}" "${HOME}" --exclude '*archive*' "${fdopt[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
@@ -309,6 +311,8 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
     if (( ${#cfgRoots[@]} > 0 )); then
       fd . "${cfgRoots[@]}" --max-depth 1 "${fdopt[@]}" "${exCfg[@]}" "${exExtra[@]}" --exec-batch "${statCmd[@]}";
     fi;
+    # standalone files outside top-level/rc/config dirs
+    local f; for f in "${extraFiles[@]}"; do [[ -f "${f}" ]] && "${statCmd[@]}" "${f}"; done;
   } |
   sort -ru
 }

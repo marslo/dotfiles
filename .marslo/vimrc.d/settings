@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-29 22:55:22
+"    LastChange : 2026-05-30 02:04:52
 " =============================================================================
 
 " /**************************************************************
@@ -25,6 +25,10 @@ if has('gui_running') || exists('g:loaded_nerdtree')
   set mousemodel=popup_setpos
 else
   set mousemodel=extend
+endif
+
+if IsNvim()
+  set laststatus=3                                                  " set status bar
 endif
 
 set colorcolumn=80                                                  " highlight the 80th column background - :highlight ColorColumn
@@ -116,7 +120,6 @@ if has('cmdline_info')
   set ruler                                                         " ruler: show line and column number
   set showcmd                                                       " show (partial) command in status line
 endif
-set laststatus=3                                                    " set status bar
 set exrc
 set secure
 set splitright
@@ -125,6 +128,7 @@ set modelines=5
 
 " disabled in nvim since v0.11.0-dev-1417+g487c48ec86
 if IsVim()
+  set laststatus=2                                                  " set status bar
   set termencoding=UTF-8
   let &termencoding=&encoding
   set imcmdline                                                     " fix context menu messing

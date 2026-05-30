@@ -211,6 +211,12 @@ filenames:
   "kubeadm-cfg.yml":
     icon:
       glyph: ""
+  "README.md":
+    icon:
+      glyph: ""
+  "SUMMARY.md":
+    icon:
+      glyph: "λ"
   ".github":
     icon:
       glyph: ""
@@ -220,6 +226,9 @@ filenames:
   ".kube":
     icon:
       glyph: ""
+  "log":
+    icon:
+      glyph: "\U000F1362"
   "jenkinsfile":
     icon:
       glyph: ""

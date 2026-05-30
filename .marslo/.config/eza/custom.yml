@@ -13,9 +13,12 @@ filenames:
   "install": { icon: { glyph: "\U000F1183" } }
   "uninstall": { icon: { glyph: "\U000F1183" } }
   "kubeadm-cfg.yml": { icon: { glyph: "\uE81D" } }
+  "README.md": { icon: { glyph: "\uF486" } }
+  "SUMMARY.md": { icon: { glyph: "\u03BB" } }
   ".github": { icon: { glyph: "\uF470" } }
   ".git": { icon: { glyph: "\uF1D2" } }
   ".kube": { icon: { glyph: "\uE81D" } }
+  "log": { icon: { glyph: "\U000F1362" } }
   "jenkinsfile": { icon: { glyph: "\uF2EC" } }
   "pipeline": { icon: { glyph: "\uF2EC" } }
   "pipelines": { icon: { glyph: "\uF2EC" } }
