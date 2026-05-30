@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-20 17:04:09
+"    LastChange : 2026-05-29 22:55:22
 " =============================================================================
 
 " /**************************************************************
@@ -116,7 +116,7 @@ if has('cmdline_info')
   set ruler                                                         " ruler: show line and column number
   set showcmd                                                       " show (partial) command in status line
 endif
-set laststatus=2                                                    " set status bar
+set laststatus=3                                                    " set status bar
 set exrc
 set secure
 set splitright
