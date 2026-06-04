@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-29 00:38:28
+"    LastChange : 2026-05-29 22:56:25
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -242,9 +242,9 @@ let g:indentLine_bufNameExclude       = ['_.*', 'NERD_tree.*']
 
 " cohama/lexima.vim
 let g:lexima_enable_basic_rules = 1
-" suppress auto-pair unless next char is whitespace, closing bracket, or EOL (priority 1)
+" suppress auto-pair unless next char is whitespace, closing bracket/quote, or EOL (priority 1)
 let s:block_chars = ['(', '[', '{', '"', "'", '`', '<']
-let s:suppress_regex = '\%#[^ \t)}\]>]'
+let s:suppress_regex = '\%#\%(\\["''`]\)\@![^ \t)}\]>"''`/]'
 for s:char in s:block_chars
   call lexima#add_rule({ 'char': s:char, 'at': s:suppress_regex, 'priority': 1 })
 endfor
@@ -258,8 +258,8 @@ call lexima#add_rule({ 'char': '"', 'at': '\%#"',  'leave': 1, 'priority': 2 })
 call lexima#add_rule({ 'char': "'", 'at': "\\%#'", 'leave': 1, 'priority': 2 })
 call lexima#add_rule({ 'char': '`', 'at': '\%#`',  'leave': 1, 'priority': 2 })
 " \%# : after-cursor position
-" - < rule - \%(\w\|\s\|$\) : char,number,underscore,space,eof
-call lexima#add_rule({ 'char': '<', 'input_after': '>', 'at': '\%#\%(\w\|\s\|$\)' })
+" - < rule
+call lexima#add_rule({ 'char': '<', 'input_after': '>', 'at': '\%#\%(\w\|\s\|$\|)\|}\|]\|"\|''\|`\)' })
 " - > rule
 call lexima#add_rule({ 'char': '>', 'at': '\%#>', 'leave': 1 })
 " " "><"/ ">>><<<"
@@ -274,6 +274,27 @@ call lexima#add_rule({ 'char': "'", 'at': "''\\%#\\%(\\s\\|$\\)", 'input_after':
 call lexima#add_rule({ 'char': "'", 'at': "''\\%#'",              'input_after': "''",  'priority': 3 })
 call lexima#add_rule({ 'char': '`', 'at': '``\%#\%(\s\|$\)',      'input_after': '```', 'priority': 3 })
 call lexima#add_rule({ 'char': '`', 'at': '``\%#`',               'input_after': '``',  'priority': 3 })
+" escaped quote pairs \" \' \` — priority 3
+call lexima#add_rule({ 'char': '"', 'at': '\\\%#\%(\s\|$\)',          'input_after': '\"',  'priority': 3 })
+call lexima#add_rule({ 'char': "'", 'at': "\\\\\\%#\\%(\\s\\|$\\)",   'input_after': "\\'", 'priority': 3 })
+call lexima#add_rule({ 'char': '`', 'at': '\\\%#\%(\s\|$\)',          'input_after': '\`',  'priority': 3 })
+call lexima#add_rule({ 'char': '\', 'at': '\%#\\"',  'leave': 1, 'priority': 3 })
+call lexima#add_rule({ 'char': '\', 'at': '\%#\\''', 'leave': 1, 'priority': 3 })
+call lexima#add_rule({ 'char': '\', 'at': '\%#\\`',  'leave': 1, 'priority': 3 })
+function! s:EscapedQuoteBS() abort
+  let l = getline('.')
+  let c = col('.') - 1
+  if c >= 2
+    let after = c + 2 <= len(l) ? l[c : c+1] : ''
+    for q in ['"', "'", '`']
+      if l[c-2 : c-1] ==# '\' . q && after ==# '\' . q
+        return repeat("\<Del>", 2) . repeat("\<BS>", 2)
+      endif
+    endfor
+  endif
+  return lexima#expand('<BS>', 'i')
+endfunction
+inoremap <silent><expr> <BS> <SID>EscapedQuoteBS()
 " rule for html tags
 let s:html_tags = ['div', 'font', 'span', 'code', 'pre', 'table', 'tbody', 'thread', 'th', 'td', 'kbd', 'a', 'p', 'u', 'i']
 for s:tag in s:html_tags

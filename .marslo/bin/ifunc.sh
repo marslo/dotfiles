@@ -951,10 +951,10 @@ function tmux-tail() {
 
 # to switch profile in iTerm2 when running agent command
 # to install cursor agent via: `$ curl https://cursor.com/install -fsS | bash`
-function agent() {
-  printf "\033]50;SetProfile=everforest\a"
-  command agent "$@"
-  printf "\033]50;SetProfile=gruvbox\a"
-}
+# function agent() {
+#   printf "\033]50;SetProfile=everforest\a"
+#   command agent "$@"
+#   printf "\033]50;SetProfile=gruvbox\a"
+# }
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
