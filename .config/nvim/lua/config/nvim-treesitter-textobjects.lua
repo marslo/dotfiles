@@ -76,6 +76,23 @@ local groovy_fn_pattern = [[\v^\s*%(%(public|private|protected|static|final|abst
 
 local groovy_ft = { groovy = true, Jenkinsfile = true, jenkinsfile = true }
 
+local function groovy_has_fatal_error(parser)
+  local trees = parser:parse()
+  local tree = trees and trees[1]
+  if not tree then return true end
+  local root = tree:root()
+  if root:type() == "ERROR" then return true end
+  if not root:has_error() then return false end
+  local line_count = vim.api.nvim_buf_line_count(0)
+  for child in root:iter_children() do
+    if child:type() == "ERROR" then
+      local sr, _, er, _ = child:range()
+      if (er - sr) >= line_count * 0.5 then return true end
+    end
+  end
+  return false
+end
+
 local function groovy_move_fn(forward, to_end)
   local flags = "W" .. (not forward and "b" or "")
   if not to_end then
@@ -90,19 +107,23 @@ local function groovy_move_fn(forward, to_end)
   end
 end
 
+local ts_repeat = require( "nvim-treesitter-textobjects.repeatable_move" )
+local groovy_repeatable = ts_repeat.make_repeatable_move(function(opts, to_end)
+  groovy_move_fn(opts.forward, to_end)
+end)
+
 for _, m in ipairs( move_maps ) do
   vim.keymap.set( { "n", "x", "o" }, m[1], function()
     if groovy_ft[vim.bo.filetype] and m[3] == "@function.outer" then
       local ok, parser = pcall(vim.treesitter.get_parser, 0)
       local use_regex = not ok or not parser
       if not use_regex then
-        local tree = parser:parse()[1]
-        use_regex = not tree or tree:root():type() == "ERROR"
+        use_regex = groovy_has_fatal_error(parser)
       end
       if use_regex then
         local forward = m[1]:sub(1, 1) == "]"
         local to_end  = m[1]:sub(2, 2):match("%u") ~= nil
-        groovy_move_fn(forward, to_end)
+        groovy_repeatable({ forward = forward }, to_end)
         return
       end
     end
@@ -118,7 +139,6 @@ vim.keymap.set( "n", "<leader>A", function() swap.swap_previous( "@parameter.inn
   { desc = "TS swap prev parameter" } )
 
 ---------------------------------------------------------------------------- repeatable moves
-local ts_repeat = require( "nvim-treesitter-textobjects.repeatable_move" )
 vim.keymap.set( { "n", "x", "o" }, ";", ts_repeat.repeat_last_move )
 vim.keymap.set( { "n", "x", "o" }, ",", ts_repeat.repeat_last_move_opposite )
 vim.keymap.set( { "n", "x", "o" }, "f", ts_repeat.builtin_f_expr, { expr = true } )
