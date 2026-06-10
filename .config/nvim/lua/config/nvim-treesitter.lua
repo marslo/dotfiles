@@ -7,6 +7,20 @@
 
 local ts_group = vim.api.nvim_create_augroup( "NativeTreesitterHighlight", { clear = true } )
 
+-- use a local fork for the groovy parser (instead of the upstream one), so
+-- :TSInstall/:TSUpdate build from this path rather than downloading.
+-- NOTE: nvim-treesitter builds with `tree-sitter build` which produces a
+-- linker-signed parser; on macOS re-sign after install or nvim will crash:
+--   codesign --force --sign - ~/.local/share/nvim/site/parser/groovy.so
+pcall(function()
+  require('nvim-treesitter.parsers').groovy = {
+    install_info = {
+      path    = '/opt/groovy/tree-sitter-groovy',
+      queries = 'queries',
+    },
+  }
+end)
+
 -- register language aliases
 vim.treesitter.language.register( 'bash', { 'sh', 'zsh' } )
 vim.treesitter.language.register( 'groovy', { 'Jenkinsfile' } )
@@ -128,6 +142,33 @@ local function install_all_parsers()
 end
 -- register the command :TSInstallAll
 vim.api.nvim_create_user_command( 'TSInstallAll', install_all_parsers, {} )
+
+-- for :TSUpdateAll command
+--   -> run a full async update, then (once it finishes) rebuild + re-sign the local groovy parser via :TSGroovyRebuild.
+--      nvim-treesitter builds groovy linker-signed (would crash nvim on macOS), so TSGroovyRebuild must run last.
+--      uses the install task's completion callback so the timing is reliable.
+vim.api.nvim_create_user_command('TSUpdateAll', function()
+  local ok, install = pcall(require, 'nvim-treesitter.install')
+  if not ok then
+    vim.notify('nvim-treesitter.install not available', vim.log.levels.ERROR)
+    return
+  end
+  vim.notify('TSUpdate: updating parsers ...', vim.log.levels.INFO)
+  local task = install.update(nil, { summary = true })
+  task:await(function(err)
+    vim.schedule(function()
+      if err then
+        vim.notify('TSUpdate failed: ' .. tostring(err), vim.log.levels.ERROR)
+        return
+      end
+      if vim.fn.exists(':TSGroovyRebuild') == 2 then
+        vim.cmd('TSGroovyRebuild')
+      else
+        vim.notify('TSGroovyRebuild command not found (is ~/.marslo/vimrc.d/functions sourced?)', vim.log.levels.WARN)
+      end
+    end)
+  end)
+end, { desc = 'Update all parsers, then rebuild + re-sign the local groovy parser' })
 
 -- autocmd
 vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter" }, {
