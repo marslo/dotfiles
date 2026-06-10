@@ -4,7 +4,7 @@
 #     FileName : git-mcx
 #       Author : marslo
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2026-05-20 23:03:25
+#   LastChange : 2026-06-09 17:12:32
 #        Usage : git-mcx [OPTION]             # call getCommitMessage to set commit message
 #                git-mcx [OPTION] [message]   # using `[message]` as commit message
 #=============================================================================
@@ -171,12 +171,41 @@ function changeDiff() {
   echo -e "$(c Wdi)---------------------------------------------------$(c)"
 }
 
+# detect a repo-local commitlint config by walking up to the git root. the same files cosmiconfig looks for.
+function findLintrc() {
+  local dir top n
+  dir="$(pwd)"
+  top="$(git rev-parse --show-toplevel 2>/dev/null)"
+  local -a names=(
+    .commitlintrc .commitlintrc.json .commitlintrc.yaml .commitlintrc.yml
+    .commitlintrc.js .commitlintrc.cjs .commitlintrc.mjs .commitlintrc.ts
+    commitlint.config.js commitlint.config.cjs commitlint.config.mjs commitlint.config.ts
+  )
+  while :; do
+    for n in "${names[@]}"; do
+      [[ -f "${dir}/${n}" ]] && return 0
+    done
+    [[ -f "${dir}/package.json" ]] && grep -q '"commitlint"' "${dir}/package.json" && return 0
+    [[ -n "${top}" && "${dir}" == "${top}" ]] && break
+    [[ "${dir}" == "/" || "${dir}" != */* ]]  && break
+    dir="${dir%/*}"            # fork-free dirname
+    [[ -z "${dir}" ]] && dir="/"
+  done
+  return 1
+}
+
 function commitlintCheck() {
   declare -a CONFIG_OPT=(--color)
 
   [[ 'true' = "${MCX_ENABLE_JIRA:-false}"   ]] && [[ -f "${HOME}/.jira.commitlintrc.js" ]] && \
     CONFIG_OPT+=(--config "${HOME}/.jira.commitlintrc.js")
   [[ 'true' = "${MCX_GLOBAL_LINTRC:-false}" ]] && CONFIG_OPT+=(--config "${LINTRC_FILE}")
+
+  # fallback: when no --config has been chosen and the repo has no local commitlint config, use the global ${LINTRC_FILE}.
+  # cosmiconfig only searches upward to $HOME
+  if [[ ! " ${CONFIG_OPT[*]} " == *" --config "* ]] && [[ -f "${LINTRC_FILE}" ]] && ! findLintrc; then
+    CONFIG_OPT+=(--config "${LINTRC_FILE}")
+  fi
 
   local message="$1"
   local spinner="commitlint checking .."

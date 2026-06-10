@@ -1,10 +1,11 @@
 {
   "extends": "all",
   "filesClasspath": [
+    "/opt/groovy/global-libs/groovy/*",
+    "/opt/groovy/global-libs/jenkins/*",
     "/opt/homebrew/opt/groovy/libexec/lib/*",
     "/opt/jenkins/latest/WEB-INF/lib/*",
-    "/opt/jenkins/plugins/*/latest/WEB-INF/lib/*",
-    "/opt/jenkins/plugins/credentials/latest/WEB-INF/lib/credentials.jar"
+    "/opt/jenkins/plugins/*/latest/WEB-INF/lib/*"
   ],
   "rules": {
     "basic.DeadCode": "error",
