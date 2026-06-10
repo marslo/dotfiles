@@ -144,8 +144,8 @@ end
 vim.api.nvim_create_user_command( 'TSInstallAll', install_all_parsers, {} )
 
 -- for :TSUpdateAll command
---   -> run a full async update, then (once it finishes) rebuild + re-sign the local groovy parser via :TSGroovyRebuild.
---      nvim-treesitter builds groovy linker-signed (would crash nvim on macOS), so TSGroovyRebuild must run last.
+--   -> run a full async update, then (once it finishes) rebuild + re-sign the local groovy parser via :TSUpdateGroovy.
+--      nvim-treesitter builds groovy linker-signed (would crash nvim on macOS), so TSUpdateGroovy must run last.
 --      uses the install task's completion callback so the timing is reliable.
 vim.api.nvim_create_user_command('TSUpdateAll', function()
   local ok, install = pcall(require, 'nvim-treesitter.install')
@@ -161,10 +161,10 @@ vim.api.nvim_create_user_command('TSUpdateAll', function()
         vim.notify('TSUpdate failed: ' .. tostring(err), vim.log.levels.ERROR)
         return
       end
-      if vim.fn.exists(':TSGroovyRebuild') == 2 then
-        vim.cmd('TSGroovyRebuild')
+      if vim.fn.exists(':TSUpdateGroovy') == 2 then
+        vim.cmd('TSUpdateGroovy')
       else
-        vim.notify('TSGroovyRebuild command not found (is ~/.marslo/vimrc.d/functions sourced?)', vim.log.levels.WARN)
+        vim.notify('TSUpdateGroovy command not found (is ~/.marslo/vimrc.d/functions sourced?)', vim.log.levels.WARN)
       end
     end)
   end)

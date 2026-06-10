@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-06-09 17:30:36
+"    LastChange : 2026-06-09 18:39:41
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -421,8 +421,8 @@ function! s:ScanToEdge( lnum, col, syn_name, direction )
   endwhile
 endfunction
 
-" :TSGroovyRebuild → rebuild + re-sign the local groovy tree-sitter parser
-function! TSGroovyRebuild() abort
+" :TSUpdateGroovy → rebuild + re-sign the local groovy tree-sitter parser
+function! TSUpdateGroovy() abort
   let l:repo = get(g:, 'groovy_ts_repo', '/opt/groovy/tree-sitter-groovy')
   if !isdirectory(l:repo)
     echohl ErrorMsg | echo 'groovy-ts: repo not found: ' . l:repo | echohl NONE
@@ -436,6 +436,6 @@ function! TSGroovyRebuild() abort
   endif
   echohl MoreMsg | echo 'groovy-ts: rebuilt + signed (restart nvim for the new parser binary)' | echohl NONE
 endfunction
-command! TSGroovyRebuild call TSGroovyRebuild()
+command! TSUpdateGroovy call TSUpdateGroovy()
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:
