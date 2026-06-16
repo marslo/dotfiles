@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-06-09 17:59:13
+#   LastChange : 2026-06-10 23:00:17
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -219,7 +219,7 @@ function cat() {                           # smart cat
   local -a CAT=()
   # shellcheck disable=SC2015
   command -v batchip >/dev/null && CAT=( "$(type -P batchip)" --theme='Nord' --color=always ) || {
-    command -v bat >/dev/null    && CAT=( "$(type -P bat)" --theme='Nord' --color=always ) || CAT=( "$(type -P cat)" )
+    command -v bat >/dev/null   && CAT=( "$(type -P bat)" --theme='Nord' --color=always ) || CAT=( "$(type -P cat)" )
   }
 
   # force use cat

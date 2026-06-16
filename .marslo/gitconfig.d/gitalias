@@ -571,7 +571,8 @@
   diffbranch  = log --left-right --graph --cherry-pick --oneline
   sortdiff    = !sh -c 'git diff "$@" | grep "^[+-]" | sort --key=1.2 | uniq -u -s1'
   # requires difftastic tool installed
-  dft         = -c diff.external=difft diff
+  # dft       = -c diff.external=difft diff
+  dft         = diff --no-ext-diff
   ds          = -c diff.external=difft show --ext-diff
   # }}}
 

@@ -18,6 +18,7 @@
   submodule         = log
   wsErrorHighlight  = all
   renamelimit       = 10000
+  external          = difft
 # inspired from tpope: https://github.com/tpope/tpope/blob/master/.gitconfig
 [diff "ruby"]
   funcname          = "^ *\\(\\(def\\) .*\\)"

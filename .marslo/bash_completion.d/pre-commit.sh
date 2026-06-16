@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034,SC2155,SC2207
+#=============================================================================
+#     FileName : pre-commit.sh
+#       Author : marslo
+#      Created : 2025-11-07 11:40:52
+#   LastChange : 2026-05-13 14:45:06
+#=============================================================================
 
-# ~/.local/share/bash-completion/completions/pre-commit  or  ~/.bash_completion.d/pre-commit
+# ~/.local/share/bash-completion/completions/pre-commit or ~/.bash_completion.d/pre-commit
 # bash completion for pre-commit
 _pre_commit() {
   local cur prev words cword
@@ -13,25 +19,26 @@ _pre_commit() {
     prev="${COMP_WORDS[COMP_CWORD-1]}"
   fi
 
-  local subcmds="autoupdate clean gc init-templatedir install install-hooks migrate-config run sample-config try-repo uninstall validate-config validate-manifest help hook-impl"
-  local global_opts="-h --help -V --version"
+  local subcmds='autoupdate clean gc init-templatedir install install-hooks migrate-config run sample-config try-repo uninstall validate-config validate-manifest help hook-impl'
+  local global_opts='-h --help -V --version'
 
   __pc_hook_ids() {
     local cfg
-    for cfg in ".pre-commit-config.yaml" ".pre-commit-config.yml" \
-               "../.pre-commit-config.yaml" "../.pre-commit-config.yml" \
-               "../../.pre-commit-config.yaml" "../../.pre-commit-config.yml"
+    for cfg in '.pre-commit-config.yaml' '.pre-commit-config.yml' \
+               '../.pre-commit-config.yaml' '../.pre-commit-config.yml' \
+               '../../.pre-commit-config.yaml' '../../.pre-commit-config.yml'
     do
-      [[ -f "$cfg" ]] || continue
+      [[ -f "${cfg}" ]] || continue
       awk '
-        $1 ~ /^id:/ {
-          sub(/^id:[[:space:]]*/, "", $0)
-          gsub(/#.*/, "", $0)
-          gsub(/["'\'']/, "", $0)
-          gsub(/[[:space:]]+$/, "", $0)
-          if (length($0) > 0) print $0
+        /^[[:space:]]*-?[[:space:]]*id:[[:space:]]*/ {
+          line = $0
+          sub(/^[[:space:]]*-?[[:space:]]*id:[[:space:]]*/, "", line)
+          gsub(/#.*/, "", line)
+          gsub(/["'\'']/, "", line)
+          gsub(/[[:space:]]+$/, "", line)
+          if (length(line) > 0) print line
         }
-      ' "$cfg" | sort -u
+      ' "${cfg}" | sort -u
       return 0
     done
   }

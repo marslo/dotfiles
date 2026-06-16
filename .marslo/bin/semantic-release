@@ -94,7 +94,7 @@ fi
 declare -r NPM_GLOBAL_ROOT="$(npm root -g 2>/dev/null)"
 declare -a cmd=( env )
 [[ -t 0 ]] && cmd+=( "GPG_TTY=$(tty)" )
-# cmd+=( CI=true )
+cmd+=( CI=true )
 cmd+=( GIT_CONFIG_PARAMETERS="'commit.gpgsign=false' 'tag.gpgsign=false'" )
 [[ -n "${TOKEN}" ]] && cmd+=( "GH_TOKEN=${TOKEN}" )
 [[ -n "${TOKEN}" ]] && cmd+=( "GITHUB_TOKEN=${TOKEN}" )
