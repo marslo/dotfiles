@@ -5,12 +5,9 @@
 --regex-groovy=/^[ \t]*(private|public)?[ \t]*interface[ \t]+([A-Za-z0-9_]+)/\2/i,interface/
 --regex-groovy=/^[ \t]*(private|public)?[ \t]*trait[ \t]+([A-Za-z0-9_]+)/\2/t,trait/
 --regex-groovy=/^[ \t]*(private|public)?[ \t]*enum[ \t]+([A-Za-z0-9_]+)/\2/e,enum/
---regex-groovy=/^[ \t]*[(abstract|final|static) \t]*((def|void|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*)[ \t]+)?([a-zA-Z0-9_]+)\(([^)]*)\)[ \t]+/\3/m,packagemethod/
---regex-groovy=/^[ \t]*public[ \t]+[(abstract|final|static) \t]*((def|void|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*)[ \t]+)?([a-zA-Z0-9_]+)\(([^)]*)\)[ \t]+/\3/u,publicmethod/
---regex-groovy=/^[ \t]*protected[ \t]+[(abstract|final|static) \t]*((def|void|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*)[ \t]+)?([a-zA-Z0-9_]+)\(([^)]*)\)[ \t]+/\3/n,protectedmethod/
---regex-groovy=/^[ \t]*private[ \t]+[(abstract|final|static) \t]*((def|void|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*)[ \t]+)?([a-zA-Z0-9_]+)\(([^)]*)\)[ \t]+/\3/o,privatemethod/
---regex-groovy=/^[ \t]*[(final|static|synchronized) \t]*(def|byte|int|short|long|float|double|boolean|char|[A-Z][A-Za-z0-9_]*)[ \t]+([a-zA-Z0-9_]+)([ \t]*[\/]+.*)?/\2/f,property/
---regex-groovy=/^[ \t]*public[ \t]+[(final|static|synchronized) \t]*(def|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*)[ \t]+([a-zA-Z0-9_]+)([ \t]*[\/]+.*)?/\2/j,publicfield/
---regex-groovy=/^[ \t]*protected[ \t]+[(final|static|synchronized) \t]*(def|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*)[ \t]+([a-zA-Z0-9_]+)([ \t]*[\/]+.*)?/\2/g,protectedfield/
---regex-groovy=/^[ \t]*private[ \t]+[(final|static|synchronized) \t]*(def|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*)[ \t]+([a-zA-Z0-9_]+)([ \t]*[\/]+.*)?/\2/h,privatefield/
---regex-groovy=/^[ \t]*[(abstract|final|static) \t]*((def|void|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*)[ \t]+)?([a-zA-Z0-9_]+)\(([^)]*)\)[ \t]+/\3/b,method/
+--regex-groovy=/^[ \t]*(@Field[ \t]+)?(static[ \t]+)?final[ \t]+(static[ \t]+)?((def|void|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*(<[^(]*>)?)[ \t]+)?([A-Z][A-Z0-9_]*)[ \t]*=/\7/C,constant/
+--regex-groovy=/^[ \t]*((abstract|final|static)[ \t]+)*(def|void|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*(<[^(]*>)?)[ \t]+([a-zA-Z0-9_]+)[ \t]*\(([^)]*)\)/\5/m,packagemethod/
+--regex-groovy=/^[ \t]*public[ \t]+((abstract|final|static)[ \t]+)*(def|void|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*(<[^(]*>)?)[ \t]+([a-zA-Z0-9_]+)[ \t]*\(([^)]*)\)/\5/u,publicmethod/
+--regex-groovy=/^[ \t]*protected[ \t]+((abstract|final|static)[ \t]+)*(def|void|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*(<[^(]*>)?)[ \t]+([a-zA-Z0-9_]+)[ \t]*\(([^)]*)\)/\5/n,protectedmethod/
+--regex-groovy=/^[ \t]*private[ \t]+((abstract|final|static)[ \t]+)*(def|void|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*(<[^(]*>)?)[ \t]+([a-zA-Z0-9_]+)[ \t]*\(([^)]*)\)/\5/o,privatemethod/
+--regex-groovy=/^[ \t]*((abstract|final|static)[ \t]+)*(def|void|byte|int|short|long|float|double|boolean|char|[A-Z][a-zA-Z0-9_]*(<[^(]*>)?)[ \t]+([a-zA-Z0-9_]+)[ \t]*\(([^)]*)\)/\5/b,method/
