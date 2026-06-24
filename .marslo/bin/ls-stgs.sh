@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # =============================================================================
-#      FileName : jstg.sh
+#      FileName : ls-stgs.sh
 #        Author : marslo
 #       Created : 2026-06-02 17:03:32
-#    LastChange : 2026-06-03 19:16:59
+#    LastChange : 2026-06-23 23:09:41
 # =============================================================================
 
 set -euo pipefail
@@ -19,6 +19,8 @@ declare JOB_NAME='release'
 declare BUILD_NUMBER=''
 declare SHOW_MODE='failure'
 declare VERBOSE=0
+# results treated as "interesting" in --failure mode (add UNSTABLE|ABORTED if needed)
+declare BAD_RESULTS='FAILURE|NOT_BUILT'
 # shellcheck disable=SC2155
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
 # shellcheck disable=SC2155
@@ -32,35 +34,97 @@ OPTIONS
   $(c 0G)-d$(c), $(c 0G)--domain $(c 0Mi)<JENKINS_HOST>$(c) jenkins host $(c 0i)(default: $(c 0Ci)${JENKINS_HOST:-}$(c 0i))$(c)
   $(c 0G)-j$(c), $(c 0G)--job $(c 0Mi)<JOB_NAME>$(c)        jenkins job name $(c 0i)(default: $(c 0Ci)${JOB_NAME}$(c 0i))$(c)
   $(c 0G)-b$(c), $(c 0G)--build $(c 0Mi)<BUILD_NUMBER>$(c)  jenkins build number
+  $(c 0G)-u$(c), $(c 0G)--url $(c 0Mi)<BUILD_URL>$(c)       full jenkins build url (classic/blueocean); parses host, job and build
   $(c 0G)-f$(c), $(c 0G)--failure$(c)               show only stages on paths containing FAILURE $(c 0i)($(c 0Ci)default$(c 0i))$(c)
   $(c 0G)-a$(c), $(c 0G)--all$(c)                   show all stages
   $(c G)-v$(c)                          multiple $(c 0Gi)-v$(c) options increase verbosity $(c 0i)(max: $(c 0Yi)1$(c))$(c)
   $(c 0G)-h$(c), $(c 0G)--help$(c)                  show this help message and exit
 "
 
+# parse a full jenkins build url and populate JENKINS_HOST / JOB_NAME / BUILD_NUMBER.
+# supported formats:
+#   with view : https://<host>/view/<v>/job/<A>/job/<B>/<build>/
+#   classic   : https://<host>/job/<A>/job/<B>/<build>/
+#   blueocean : https://<host>/blue/organizations/jenkins/<A%2FB>/detail/<name>/<build>/pipeline
+# exits if no build number can be found.
+function parseUrl() {
+  local url="${1:?the build url is required}"
+  local proto='' rest host path job='' build='' i
+
+  # shellcheck disable=SC2015
+  [[ "${url}" =~ ^(https?://) ]] && { proto="${BASH_REMATCH[1]}"; rest="${url#"${proto}"}"; } || rest="${url}"
+  host="${rest%%/*}"                 # <host>[:port]
+  path="/${rest#*/}"                 # path with leading slash
+  [[ "${rest}" == "${host}" ]] && path=''
+
+  if [[ "${path}" == /blue/* ]]; then
+    # /blue/organizations/<org>/<PIPELINE>/detail/<name>/<build>/pipeline
+    local pipeline tail
+    pipeline="${path#/blue/organizations/*/}"   # <PIPELINE>/detail/...
+    pipeline="${pipeline%%/detail/*}"           # url-encoded job, e.g. UnifiedSDK%2Frelease
+    job="$( printf '%b' "${pipeline//%/\\x}" )" # url-decode (%2F -> /)
+    tail="${path#*/detail/}"                    # <name>/<build>/pipeline...
+    local -a _p; IFS='/' read -ra _p <<< "${tail}"
+    build="${_p[1]:-}"
+  else
+    # classic (with or without /view/...): collect each segment following 'job'
+    local -a seg job_parts=()
+    IFS='/' read -ra seg <<< "${path}"
+    for (( i=0; i<${#seg[@]}; i++ )); do
+      if [[ "${seg[i]}" == 'job' ]]; then
+        job_parts+=( "${seg[i+1]:-}" )
+        i=$(( i + 1 ))
+      fi
+    done
+    job="$( IFS='/'; echo "${job_parts[*]}" )"
+    # build = last purely-numeric path segment
+    for (( i=${#seg[@]}-1; i>=0; i-- )); do
+      [[ "${seg[i]}" =~ ^[0-9]+$ ]] && { build="${seg[i]}"; break; }
+    done
+  fi
+
+  [[ "${build}" =~ ^[0-9]+$ ]] || { echo "ERROR: no build number found in url: ${url}" >&2; exit 1; }
+  [[ -n "${job}" ]] || { echo "ERROR: cannot parse job name from url: ${url}" >&2; exit 1; }
+
+  JENKINS_HOST="${proto}${host}"
+  JOB_NAME="${job}"
+  BUILD_NUMBER="${build}"
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -d | --domain  ) JENKINS_HOST="$2"   ; shift 2  ;;
-    -j | --job     ) JOB_NAME="$2"       ; shift 2  ;;
-    -b | --build   ) BUILD_NUMBER="$2"   ; shift 2  ;;
-    -f | --failure ) SHOW_MODE='failure' ; shift    ;;
-    -a | --all     ) SHOW_MODE='all'     ; shift    ;;
-    -v | -vv       ) VERBOSE=$(( ${#1} - 1 ))   ; shift   ;;
-    -h | --help    ) echo -e "${USAGE}" >&2; exit 0 ;;
+    -d | --domain  ) JENKINS_HOST="$2"        ; shift 2 ;;
+    -j | --job     ) JOB_NAME="$2"            ; shift 2 ;;
+    -b | --build   ) BUILD_NUMBER="$2"        ; shift 2 ;;
+    -u | --url     ) parseUrl "$2"            ; shift 2 ;;
+    -f | --failure ) SHOW_MODE='failure'      ; shift   ;;
+    -a | --all     ) SHOW_MODE='all'          ; shift   ;;
+    -v | -vv       ) VERBOSE=$(( ${#1} - 1 )) ; shift   ;;
+    -h | --help    ) echo -e "${USAGE}" >&2   ; exit 0  ;;
     *              ) echo "ERROR: unknown option '$1'" >&2; exit 1;;
   esac
 done
 
 test -n "${JENKINS_HOST:-}" || JENKINS_HOST="${JENKINS_HOST:-}"
 test -z "${JENKINS_HOST:-}" && { echo "ERROR: Jenkins host is not specified. Use -d or set JENKINS_HOST environment variable." >&2; exit 1; }
-declare JENKINS_URL="https://${JENKINS_HOST}"
+# shellcheck disable=SC2015
+[[ "${JENKINS_HOST}" =~ ^https?:// ]] && declare JENKINS_URL="${JENKINS_HOST%/}" || declare JENKINS_URL="https://${JENKINS_HOST}"
+
+# derive pass entry from hostname: <2nd-label>/jenkins/apikey/<1st-label>
+# e.g. jenkins.domain.com -> domain/jenkins/apikey/jenkins
+declare _host="${JENKINS_HOST#http*://}"; _host="${_host%%/*}"; _host="${_host%%:*}"
+declare _first="${_host%%.*}"
+declare _org="${_host#*.}"; _org="${_org%%.*}"
+# shellcheck disable=SC2155
+declare API_KEY="$( pass show "${_org}/jenkins/apikey/${_first}" 2>/dev/null | head -1 )"
+test -n "${API_KEY}" || { echo "ERROR: failed to get API key from pass '${_org}/jenkins/apikey/${_first}'." >&2; exit 1; }
+
 # shellcheck disable=SC2155
 declare UI_URL="${JENKINS_URL}/blue/organizations/jenkins/$(echo -n "${JOB_NAME}" | jq -sRr @uri)/detail/$(basename "${JOB_NAME}")/${BUILD_NUMBER}/pipeline"
 declare API_URL="${JENKINS_URL}/blue/rest/organizations/jenkins/pipelines/${JOB_NAME//\//\/pipelines\/}/runs/${BUILD_NUMBER}"
-declare -a CURL_CMD=( curl -s --netrc-file "$HOME/.marslo/.netrc" )
+declare -a CURL_CMD=( command curl -s -H "X-API-Key: ${API_KEY}" )
 
 # shellcheck disable=SC2155
-# declare NODES_JSON="$( "${CURL_CMD[@]}" "${API_URL}/nodes/" || { echo "Error fetching nodes from API" >&2; exit 1; } )"
 declare NODES_JSON="$( "${CURL_CMD[@]}" "${API_URL}/nodes/?limit=10000" || { echo "Error fetching nodes from API" >&2; exit 1; } )"
 
 declare -A NODE_NAME NODE_STATE NODE_RESULT NODE_TYPE NODE_CHILDREN NODE_LEVEL
@@ -113,7 +177,7 @@ function hasFailure() {
   if [[ -n "${HAS_FAILURE_CACHE[${_node}]+x}" ]]; then
     return "${HAS_FAILURE_CACHE[${_node}]}"
   fi
-  if [[ "${NODE_RESULT[${_node}]^^}" == "FAILURE" ]]; then
+  if [[ "${NODE_RESULT[${_node}]^^}" =~ ^(${BAD_RESULTS})$ ]]; then
     HAS_FAILURE_CACHE["${_node}"]=0; return 0
   fi
   if [[ -n "${NODE_CHILDREN[${_node}]:-}" ]]; then
@@ -168,6 +232,8 @@ function printTree() {
   fi
 
   if [[ -n "${NODE_CHILDREN[${_node}]:-}" ]]; then
+    local -a children=()
+    local cid
     read -ra children <<< "${NODE_CHILDREN[${_node}]}"
 
     local -a visible=()
@@ -178,6 +244,7 @@ function printTree() {
     done
 
     local vcount=${#visible[@]}
+    local i
     for (( i=0; i<vcount; i++ )); do
       local child_id=${visible[i]}
       local _lastchild="false"
