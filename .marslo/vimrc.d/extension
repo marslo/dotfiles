@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-29 22:56:25
+"    LastChange : 2026-06-23 23:58:53
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -560,6 +560,10 @@ if ! IsVscodeOrCursor()
     let col = col('.') - 1
     return !col || getline('.')[col - 1]  =~# '\s'
   endfunction
+  " trailing non-blank token before the cursor contains a `/` -> looks like a path
+  function! IsPathContext() abort
+    return matchstr(strpart(getline('.'), 0, col('.') - 1), '\S*$') =~# '/'
+  endfunction
   function! ShowDocumentation()
     if CocAction( 'hasProvider', 'hover' )
       call CocActionAsync( 'doHover' )
@@ -576,15 +580,23 @@ if ! IsVscodeOrCursor()
   inoremap <silent><expr> <UP> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
   inoremap <silent><expr> <C-M>
         \ coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
-  command! -nargs=0 OR  :call CocActionAsync('runCommand', 'editor.action.organizeImport')
-  imap <C-j> <Plug>(coc-snippets-expand-jump)
+  command! -nargs=0 OR  :call CocActionAsync( 'runCommand', 'editor.action.organizeImport' )
+  " <c-j> priority:
+  " 1. inside a snippet, jump > expand            ( coc#jumpable() -> coc#snippet#jump(1,0) )
+  " 2. coc pum visible, confirm (auto-pick 1st)   ( coc#pum#visible() -> coc#pum#select_confirm() )
+  " 3. else expandable or jumpable, expand > jump ( coc#expandableOrJumpable() )
+  " 4. else after a blank / line start, plain Tab ( CheckBackSpace() )
+  " 5. else in a path context, re-trigger path    ( IsPathContext() -> file source, like typing `/` )
+  " 6. else (re)trigger general completion        ( coc#refresh(); NOT trigger-char sources )
+  " imap <C-j> <Plug>(coc-snippets-expand-jump)  " shadowed by the inoremap below
   inoremap <silent><expr> <C-j>
-        \ pumvisible() ? coc#_select_confirm() :
+        \ coc#jumpable() ? "\<C-r>=coc#snippet#jump(1, 0)\<CR>" :
+        \ coc#pum#visible() ? coc#pum#select_confirm() :
         \ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump',''])\<CR>" :
         \ CheckBackSpace() ? "\<TAB>" :
+        \ IsPathContext() ? "\<C-r>=coc#start({'source': 'file'})\<CR>" :
         \ coc#refresh()
-  " inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() :
-  "       \ "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+  " inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() : "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 endif
 
 " Konfekt/FastFold

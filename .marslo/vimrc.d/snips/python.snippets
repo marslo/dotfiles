@@ -28,7 +28,9 @@ snippet #!! "shebnag" b
 #!/usr/bin/env ${1:python3}
 # -*- coding: utf-8 -*-
 
-${2}
+""" ${2:docstring} """
+
+${3}
 
 # vim:tabstop=4:softtabstop=4:shiftwidth=4:expandtab:filetype=${1/(.*)[0-9]+/$1/}:
 endsnippet
@@ -36,6 +38,7 @@ endsnippet
 snippet shebang "shebnag" b
 #!/usr/bin/env ${1:python3}
 # -*- coding: utf-8 -*-
+""" ${2:docstring} """
 
 import sys
 ${3}

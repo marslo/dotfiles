@@ -1,10 +1,10 @@
 {
-  //  "suppress the python not valid/found issue when open nvim",
+  // suppress the python not valid/found issue when open nvim
   "snippets.ultisnips.pythonPrompt": false,
   "snippets.userSnippetsDirectory": "~/.marslo/vimrc.d/snips",
   "codeLens.enable": true,
   "groovy.enable": true,
-  //: "$ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk",
+  // $ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk,
   // "groovy.java.home": "/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home",
   "groovy.java.home": "/opt/homebrew/Cellar/openjdk@21/21.0.11/libexec/openjdk.jdk/Contents/Home",
   "groovy.project.referencedLibraries": [
@@ -124,7 +124,7 @@
     "borderhighlight": "FloatBorder"
   },
   "suggest.pumFloatConfig": {
-    "border": true,
+    "border": false,
     "rounded": true,
     "highlight": "NormalFloat",
     "borderhighlight": "FloatBorder"
@@ -165,7 +165,7 @@
   "python.analysis.useLibraryCodeForTypes": false,
   "python.analysis.typeCheckingMode": "off",
   "pyright.inlayHints.functionReturnTypes" : true,
-  "pyright.inlayHints.variableTypes": false,
+  "pyright.inlayHints.variableTypes": true,
   "pyright.inlayHints.parameterTypes": false,
 
   // :echo b:coc_current_function or :echo CocCurrentFunction()
