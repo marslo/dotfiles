@@ -74,6 +74,10 @@ snippet /*ngl "insert groovylint-disable"
 /* groovylint-disable ${1} */
 endsnippet
 
+snippet /*lint-global "insert groovylint-disable"
+/* groovylint-disable ${1} */
+endsnippet
+
 snippet //gld "insert groovylint-disable-line"
 // groovylint-disable-line ${1}
 endsnippet
@@ -82,7 +86,15 @@ snippet //ngl "insert groovylint-disable-line"
 // groovylint-disable-line ${1}
 endsnippet
 
+snippet //lint "insert groovylint-disable-line"
+// groovylint-disable-line ${1}
+endsnippet
+
 snippet //ngln "insert groovylint-disable-next-line"
+// groovylint-disable-next-line ${1}
+endsnippet
+
+snippet //lint-next "insert groovylint-disable-next-line"
 // groovylint-disable-next-line ${1}
 endsnippet
 

@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-05-30 02:04:52
+"    LastChange : 2026-06-22 22:39:50
 " =============================================================================
 
 " /**************************************************************
@@ -163,5 +163,8 @@ function! CoolFoldText()
   return left_text . fill . right_text
 endfunction
 set foldtext=CoolFoldText()
+
+" pum - popup-menu
+set pumheight=16
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

@@ -1,9 +1,9 @@
 " =============================================================================
 "      FileName : highlight
-"        Author : marslo.jiao@gmail.com
+"        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-05-11 19:34:03
+"    LastChange : 2026-06-23 03:59:30
 " =============================================================================
 
 " color table
@@ -167,5 +167,13 @@ augroup MatchUpHighlight
   autocmd FileType sh highlight! link MatchWord Normal
   autocmd FileType sh highlight! MatchWord cterm=NONE gui=NONE guifg=NONE guibg=NONE
 augroup END
+
+" pum -> popup menu
+highlight CocMenuSel      guibg=#3e4452              " selected raw
+highlight CocPumSearch    guifg=#e5c07b gui=bold     " fuzzy-find matched text
+highlight CocPumMenu      guifg=#5c6370              " menu (filename)
+highlight CocPumShortcut  guifg=#4b5263              " right-side [GT]
+highlight PmenuThumb      guibg=#5c6370              " scroll bar
+highlight PmenuSbar       guibg=NONE                 " scroll bar background
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

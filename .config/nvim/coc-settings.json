@@ -107,7 +107,7 @@
   "json.trace.server": "off",
   "json.maxItemsComputed": 1000,
 
-  "suggest.maxCompleteItemCount": 16,
+  "suggest.maxCompleteItemCount": 100,
   "suggest.enablePreselect": true,
   "suggest.labelMaxLength": 666,
   "suggest.detailField": "preview",
@@ -124,7 +124,10 @@
     "borderhighlight": "FloatBorder"
   },
   "suggest.pumFloatConfig": {
-    "border": false
+    "border": true,
+    "rounded": true,
+    "highlight": "NormalFloat",
+    "borderhighlight": "FloatBorder"
   },
   "signature.target": "float",
   "signature.floatConfig": {
@@ -140,6 +143,10 @@
     "rounded": true,
     "winblend": 20
   },
+
+  // keep coc-css validation on, but allowlist props it doesn't know yet so they
+  // aren't flagged as unknown: text-box* = modern CSS; x/y = SVG geometry props used as CSS
+  "css.lint.validProperties": [ "x", "y", "text-box", "text-box-trim", "text-box-edge" ],
 
   "html-css-support.styleSheets": [
       "https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css",

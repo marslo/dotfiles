@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-06-09 18:39:41
+"    LastChange : 2026-06-23 03:57:41
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -75,6 +75,8 @@ function! IgnoreSpells()                                            " ignore Cam
   syntax      cluster Spell add=CamelCase
   syntax      match   mixedCase /\<[a-z]\+[A-Z].\{-}\>/      contains=@NoSpell transparent
   syntax      cluster Spell add=mixedCase
+  syntax      match   UpperCase /\<[A-Z0-9_]\{2,}\>/         contains=@NoSpell transparent
+  syntax      cluster Spell add=UpperCase
   " or syntax match   myExNonWords +\<\p*[^A-Za-z \t]\p*\>+  contains=@NoSpell
   " or syntax match   myExCapitalWords +\<\w*[A-Z]\K*\>\|'s+ contains=@NoSpell
   " syntax    match   Url "\w\+:\/\/[:/?#[\]@!$&'()*+,;=0-9[:lower:][:upper:]_\-.~]\+" contains=@NoSpell containedin=@AllSpell transparent
@@ -87,11 +89,13 @@ autocmd Syntax  * :call IgnoreSpells()
 set spellcapcheck=                                                  " ignore capital check
 
 " set spellcamelcase=1
-fun! IgnoreCamelCaseSpell()                                         " Ignore CamelCase words when spell checking
+function! IgnoreCamelCaseSpell()                                         " Ignore CamelCase words when spell checking
   syn match CamelCase /\<[A-Z][a-z]\+[A-Z].\{-}\>/ contains=@NoSpell transparent
   syn match mixedCase /\<[a-z]\+[A-Z].\{-}\>/ contains=@NoSpell transparent
+  syn match UpperCase /\<[A-Z0-9_]\{2,}\>/   contains=@NoSpell transparent
   syn cluster Spell add=CamelCase
   syn cluster Spell add=mixedCase
+  syn cluster Spell add=UpperCase
 endfun
 autocmd BufRead,BufNewFile * :call IgnoreCamelCaseSpell()
 autocmd Syntax *             :call IgnoreCamelCaseSpell()

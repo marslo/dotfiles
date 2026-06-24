@@ -35,10 +35,11 @@ function! coc#source#groovy_tags#complete(opt, cb) abort
       let name = fields[0]
       let file = fields[1]
       let kind = matchstr(fields[-1], '^\w')
-      if kind !~# '[bmuf]' | continue | endif
+      if kind !~# '[bmufnoC]' | continue | endif
       if has_key(seen, name) | continue | endif
       let seen[name] = 1
-      call add(items, { 'word': name, 'menu': file, 'dup': 0 })
+      let label = kind ==# 'C' ? '[C] ' . file : '[F] ' . file
+      call add(items, { 'word': name, 'menu': label, 'sortText': tolower(name), 'dup': 0 })
     endfor
   endfor
 
