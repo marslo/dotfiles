@@ -3,7 +3,7 @@
 #      FileName : ls-stgs.sh
 #        Author : marslo
 #       Created : 2026-06-02 17:03:32
-#    LastChange : 2026-06-23 23:09:41
+#    LastChange : 2026-06-26 03:02:13
 # =============================================================================
 
 set -euo pipefail
@@ -19,8 +19,10 @@ declare JOB_NAME='release'
 declare BUILD_NUMBER=''
 declare SHOW_MODE='failure'
 declare VERBOSE=0
+declare STEPS=0
 # results treated as "interesting" in --failure mode (add UNSTABLE|ABORTED if needed)
 declare BAD_RESULTS='FAILURE|NOT_BUILT'
+declare STEP_IGNORE='^Print Message$'
 # shellcheck disable=SC2155
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
 # shellcheck disable=SC2155
@@ -37,6 +39,7 @@ OPTIONS
   $(c 0G)-u$(c), $(c 0G)--url $(c 0Mi)<BUILD_URL>$(c)       full jenkins build url (classic/blueocean); parses host, job and build
   $(c 0G)-f$(c), $(c 0G)--failure$(c)               show only stages on paths containing FAILURE $(c 0i)($(c 0Ci)default$(c 0i))$(c)
   $(c 0G)-a$(c), $(c 0G)--all$(c)                   show all stages
+  $(c 0G)-s$(c), $(c 0G)--steps$(c)                 print sub-steps under each FAILURE/NOT_BUILT node $(c 0i)(via $(c 0Ci)/steps/$(c 0i) API)$(c)
   $(c G)-v$(c)                          multiple $(c 0Gi)-v$(c) options increase verbosity $(c 0i)(max: $(c 0Yi)1$(c))$(c)
   $(c 0G)-h$(c), $(c 0G)--help$(c)                  show this help message and exit
 "
@@ -99,6 +102,7 @@ while [[ $# -gt 0 ]]; do
     -u | --url     ) parseUrl "$2"            ; shift 2 ;;
     -f | --failure ) SHOW_MODE='failure'      ; shift   ;;
     -a | --all     ) SHOW_MODE='all'          ; shift   ;;
+    -s | --steps   ) STEPS=1                   ; shift   ;;
     -v | -vv       ) VERBOSE=$(( ${#1} - 1 )) ; shift   ;;
     -h | --help    ) echo -e "${USAGE}" >&2   ; exit 0  ;;
     *              ) echo "ERROR: unknown option '$1'" >&2; exit 1;;
@@ -110,7 +114,6 @@ test -z "${JENKINS_HOST:-}" && { echo "ERROR: Jenkins host is not specified. Use
 # shellcheck disable=SC2015
 [[ "${JENKINS_HOST}" =~ ^https?:// ]] && declare JENKINS_URL="${JENKINS_HOST%/}" || declare JENKINS_URL="https://${JENKINS_HOST}"
 
-# derive pass entry from hostname: <2nd-label>/jenkins/apikey/<1st-label>
 # e.g. jenkins.domain.com -> domain/jenkins/apikey/jenkins
 declare _host="${JENKINS_HOST#http*://}"; _host="${_host%%/*}"; _host="${_host%%:*}"
 declare _first="${_host%%.*}"
@@ -191,6 +194,36 @@ function hasFailure() {
   HAS_FAILURE_CACHE["${_node}"]=1; return 1
 }
 
+declare -A STEPS_CACHE
+function fetchSteps() {
+  local _node="$1"
+  if [[ -z "${STEPS_CACHE[${_node}]+x}" ]]; then
+    STEPS_CACHE["${_node}"]="$( "${CURL_CMD[@]}" "${API_URL}/nodes/${_node}/steps/" 2>/dev/null |
+                                jq -r --arg ignore "${STEP_IGNORE}" '
+                                  .[]?
+                                  | select( ((.result // "") == "SUCCESS" and (.displayName | test($ignore))) | not )
+                                  | [(.result // "UNKNOWN"), .displayName] | @tsv' 2>/dev/null )"
+  fi
+  printf '%s\n' "${STEPS_CACHE[${_node}]}"
+}
+
+# print a single step as a tree leaf, colored by its own result (aligned with
+# the node colors: FAILURE red, NOT_BUILT/ABORTED grey, SUCCESS green).
+function printStep() {
+  local _data="$1" _prefix="$2" _last="$3"
+  local sres="${_data%%$'\t'*}" sname="${_data#*$'\t'}"
+  local _cur _start='' _end=''
+  # shellcheck disable=SC2015
+  [[ "${_last}" == 'true' ]] && _cur="${_prefix}╰── " || _cur="${_prefix}├── "
+  # SUCCESS steps -> light grey italic; non-SUCCESS keep the aligned result color
+  if [[ "${sres^^}" == 'SUCCESS' ]]; then
+    _start="$(c Wi)"; _end="$(c)"
+  else
+    color "${sres^^}" _start _end
+  fi
+  printf "%s%b[STEP] %s%b\n" "${_cur}" "${_start}" "${sname}" "${_end}"
+}
+
 function printTree() {
   local _node="$1"
   local _prefix="$2"
@@ -231,30 +264,45 @@ function printTree() {
     printf "%s%s %b%s%b\n" "${_curprefix}" "${_line}" "${_start}" "${res}" "${_end}"
   fi
 
+  # ── gather visible child nodes (sorted numerically by id) ──
+  local -a visible=()
   if [[ -n "${NODE_CHILDREN[${_node}]:-}" ]]; then
     local -a children=()
-    local cid
     read -ra children <<< "${NODE_CHILDREN[${_node}]}"
-
-    local -a visible=()
+    mapfile -t children < <( printf '%s\n' "${children[@]}" | sort -n )
+    local cid
     for cid in "${children[@]}"; do
       if [[ "${SHOW_MODE}" == 'all' ]] || hasFailure "${cid}"; then
         visible+=("${cid}")
       fi
     done
-
-    local vcount=${#visible[@]}
-    local i
-    for (( i=0; i<vcount; i++ )); do
-      local child_id=${visible[i]}
-      local _lastchild="false"
-      [[ $((i + 1)) -eq ${vcount} ]] && _lastchild="true"
-      printTree "${child_id}" "${_childprefix}" "${_lastchild}" "false"
-    done
   fi
+
+  # ── gather sub-steps (with --steps): in --all mode for every node, otherwise
+  #    only for FAILURE/NOT_BUILT nodes (keeps --failure focused + fast) ──
+  local -a steps=()
+  if [[ "${STEPS}" -eq 1 && ( "${SHOW_MODE}" == 'all' || "${res}" =~ ^(${BAD_RESULTS})$ ) ]]; then
+    local _sl
+    while IFS= read -r _sl; do
+      [[ -n "${_sl}" ]] && steps+=("${_sl}")
+    done < <( fetchSteps "${_node}" )
+  fi
+
+  # ── print child nodes then steps; share last-child accounting for connectors ──
+  local total=$(( ${#visible[@]} + ${#steps[@]} ))
+  local idx=0 i _lc
+  for (( i=0; i<${#visible[@]}; i++ )); do
+    (( ++idx )); _lc="false"; [[ ${idx} -eq ${total} ]] && _lc="true"
+    printTree "${visible[i]}" "${_childprefix}" "${_lc}" "false"
+  done
+  for (( i=0; i<${#steps[@]}; i++ )); do
+    (( ++idx )); _lc="false"; [[ ${idx} -eq ${total} ]] && _lc="true"
+    printStep "${steps[i]}" "${_childprefix}" "${_lc}"
+  done
 }
 
 [[ "${VERBOSE}" -ge 1 ]] && { echo -e "$(c 0Gs)>> Blueocean URL: $(c)${UI_URL}"; } || :
+[[ ${#ROOT_NODES[@]} -gt 0 ]] && mapfile -t ROOT_NODES < <( printf '%s\n' "${ROOT_NODES[@]}" | sort -n )
 for rid in "${ROOT_NODES[@]}"; do
   if [[ "${SHOW_MODE}" == 'all' ]] || hasFailure "${rid}"; then
     printTree "${rid}" '' 'false' 'true'

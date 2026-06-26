@@ -4,7 +4,7 @@
 #      FileName : ls-stgs
 #        Author : marslo
 #       Created : 2026-06-23 22:16:41
-#    LastChange : 2026-06-23 23:10:24
+#    LastChange : 2026-06-26 02:58:06
 # =============================================================================
 
 # bash completion for ls-stgs.sh
@@ -22,6 +22,7 @@ _ls_stgs() {
     -u --url
     -f --failure
     -a --all
+    -s --steps
     -v, -vv
     -h --help
   '
