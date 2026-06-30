@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2026-06-24 00:07:08
+#   LastChange : 2026-06-29 21:40:47
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -52,7 +52,7 @@ type -P eza        >/dev/null                        && source "${COMPLETION_DIR
 complete -o bashdefault -o filenames -F _eza la
 type -P ls-stgs.sh >/dev/null                        && source "${COMPLETION_DIR}/ls-stgs"
 
-type -P cursor-agent >/dev/null || type -P agent >/dev/null && source "${COMPLETION_DIR}/cursor-agent-completion.bash"
+type -P cursor-agent >/dev/null || type -P agent >/dev/null && source "${COMPLETION_DIR}/cursor-agent.bash"
 source "${COMPLETION_DIR}/pythia.bash"
 
 test -L "${COMPLETION_DIR}/gh-arsenal-completion.sh" && source "${COMPLETION_DIR}/gh-arsenal-completion.sh"

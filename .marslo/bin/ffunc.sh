@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-06-10 23:00:17
+#   LastChange : 2026-06-29 21:40:05
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1240,12 +1240,22 @@ function goto() {
   '
 
   # requires setup environment variable `GHE_LAB_OWNER` to filter repos by owner
-  repo=$(
+  local list=''
+  list=$(
     fd --color=never --hidden --no-ignore --type f --exclude '*sandbox*' --exclude '*archive*' --exclude '*poc*' --full-path '\.git/config$' "${path}" \
        --exec-batch rg --color=never -l -e "${GHE_LAB_OWNER:-OWNER}" -e 'marslo_' 2>/dev/null |
-    xargs ls -t |
+    xargs -r ls -t |
     sed 's|/\.git/config$||' |
-    awk -F/ '{printf "%s\t%s\n", $NF, $0}'  |
+    awk -F/ '{printf "%s\t%s\n", $NF, $0}'
+  )
+
+  if [[ -z "${list}" ]]; then
+    echo -e "$(c Ri)WARNING:$(c) no matched repo found under $(c Yi)${path}$(c)" >&2
+    return 1
+  fi
+
+  repo=$(
+    printf '%s\n' "${list}" |
     fzf --delimiter '\t' \
         --with-nth=1 \
         --height 50% \

@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2207,SC2034
+# =============================================================================
+#      FileName : cursor-agent.bash
+#        Author : marslo
+#       Created : 2026-06-03 18:05:11
+#    LastChange : 2026-06-29 18:37:53
+# =============================================================================
 
 # bash completion for cursor-agent
 # source this file from your ~/.bashrc:
