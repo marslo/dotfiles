@@ -31,6 +31,7 @@
   slap         = blame -s -w -C -M
   stt          = status -sb
   graph        = log --graph --oneline --decorate=short --branches='*'
+  re-head      = remote set-head origin --auto
   set-user     = "!~/.marslo/gitconfig.d/bin/set-git-user.sh --verbose"
   https-set    = "!~/.marslo/gitconfig.d/bin/https-settings.sh --on"
   https-unset  = "!~/.marslo/gitconfig.d/bin/https-settings.sh --off"
