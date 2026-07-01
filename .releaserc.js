@@ -1,3 +1,67 @@
+// =============================================================================
+// Self-contained changelog config.
+//
+// WHY THE TEMPLATES ARE INLINED HERE:
+//   @semantic-release/release-notes-generator renders with the Handlebars-based
+//   conventional-changelog-writer. conventional-changelog-conventionalcommits
+//   >= 9 dropped its Handlebars writerOpts in favour of @conventional-changelog/
+//   template, which release-notes-generator does NOT use — so with preset >= 9
+//   the section grouping silently disappears (flat list, no "### Features").
+//   To stay compatible with ANY preset version (8, 9, 10, …) we supply the full
+//   Handlebars writerOpts (mainTemplate / headerPartial / commitPartial) and the
+//   grouping ourselves; the preset is then only used for its commit PARSER.
+// =============================================================================
+
+const SECTIONS = [
+  { type: 'feat',     section: 'Features' },
+  { type: 'fix',      section: 'Bug Fixes' },
+  { type: 'refactor', section: 'Code Refactoring' },
+  { type: 'chore',    section: 'Others' },
+  { type: 'docs',     section: 'Documentation' },
+  { type: 'perf',     section: 'Performance' },
+  { type: 'ci',       section: 'CI/CD' }
+];
+const TYPE_TO_SECTION = Object.fromEntries(SECTIONS.map(s => [s.type, s.section]));
+const SECTION_ORDER   = SECTIONS.map(s => s.section);
+const isSignoff       = (line) => /^\s*Signed-off-by:/i.test(line);
+const stripSignoff    = (text) => (text || '').split('\n').filter(l => !isSignoff(l)).join('\n').trim();
+
+// ── Handlebars templates (writer-8 compatible; vendored from the conventional - commits preset so they work regardless of the installed preset major) ──
+const mainTemplate = `{{> header}}
+{{#if noteGroups}}
+{{#each noteGroups}}
+
+### ⚠ {{title}}
+
+{{#each notes}}
+* {{#if commit.scope}}**{{commit.scope}}:** {{/if}}{{text}}
+{{/each}}
+{{/each}}
+{{/if}}
+{{#each commitGroups}}
+
+{{#if title}}
+### {{title}}
+
+{{/if}}
+{{#each commits}}
+{{> commit root=@root}}
+{{/each}}
+{{/each}}
+`;
+
+const headerPartial = `## {{#if @root.linkCompare~}}
+  [{{version}}]({{~@root.host}}/{{#if this.owner}}{{~this.owner}}{{else}}{{~@root.owner}}{{/if}}/{{#if this.repository}}{{~this.repository}}{{else}}{{~@root.repository}}{{/if}}/compare/{{previousTag}}...{{currentTag}})
+{{~else}}
+  {{~version}}
+{{~/if}}
+{{~#if date}} ({{date}})
+{{/if}}
+`;
+
+// {{header}} keeps the original "feat: ..." prefix; body/footer follow (signoff stripped in transform)
+const commitPartial = "* {{header}}\n{{#if body}}\n{{body}}\n{{/if}}\n{{#if footer}}\n\n{{footer}}\n{{/if}}\n";
+
 module.exports = {
   "branches": ["main"],
   "tagFormat": "v${version}",
@@ -5,6 +69,7 @@ module.exports = {
     ["@semantic-release/commit-analyzer", {
       "preset": "angular",
       "releaseRules": [
+        // { "type": "feat",     "release": "patch" },
         // { "breaking": true,   "release": "minor" },
         { "type": "chore",    "release": "patch" },
         { "type": "refactor", "release": "patch" },
@@ -14,57 +79,41 @@ module.exports = {
     }],
     ["@semantic-release/release-notes-generator", {
       "preset": "conventionalcommits",
-      "presetConfig": {
-        "types": [
-          { "type": "Features",  "section": "Features" },
-          { "type": "Bug Fixes", "section": "Bug Fixes" }
-        ]
-      },
+      "presetConfig": { "types": SECTIONS },
       "writerOpts": {
+        "groupBy": "type",
+        // order sections as listed in SECTIONS (not alphabetically)
+        "commitGroupsSort": (a, b) => SECTION_ORDER.indexOf(a.title) - SECTION_ORDER.indexOf(b.title),
         "commitsSort": ["header", "subject"],
+        "noteGroupsSort": "title",
+        "mainTemplate": mainTemplate,
+        "headerPartial": headerPartial,
+        "commitPartial": commitPartial,
+        "footerPartial": "",
         "transform": (commit) => {
-          // clone object to avoid immutable error
-          const clonedCommit = { ...commit };
+          const c = { ...commit };
 
-          // mapping from original commit type to section title in CHANGELOG
-          const sectionMap = {
-            'feat': 'Features',
-            'fix': 'Bug Fixes',
-            'refactor': 'Code Refactoring',
-            'chore': 'Others',
-            'docs': 'Documentation',
-            'perf': 'Performance',
-            'ci': 'CI/CD'
-          };
-
-          const isSignoff = (line) => /^\s*Signed-off-by:/i.test(line);
-
-          // commit body
-          if (clonedCommit.body) {
-            const cleanedBodyLines = clonedCommit.body.split('\n').filter(line => !isSignoff(line));
-            clonedCommit.body = cleanedBodyLines.length > 0
-              ? cleanedBodyLines.map(line => '  ' + line).join('\n')
-              : null;
+          // type -> section label (drives the "### <section>" grouping)
+          if (TYPE_TO_SECTION[c.type]) {
+            c.type = TYPE_TO_SECTION[c.type];
           }
 
-          // footer
-          if (clonedCommit.footer) {
-            clonedCommit.footer = clonedCommit.footer
-              .split('\n')
-              .filter(line => !isSignoff(line))
-              .join('\n').trim() || null;
+          // drop Signed-off-by trailers from body / footer / notes
+          if (c.body) {
+            const lines = c.body.split('\n').filter(l => !isSignoff(l));
+            c.body = lines.length > 0 ? lines.map(l => '  ' + l).join('\n') : null;
+          }
+          if (c.footer) {
+            c.footer = stripSignoff(c.footer) || null;
+          }
+          if (Array.isArray(c.notes)) {
+            c.notes = c.notes
+              .map(n => ({ ...n, text: stripSignoff(n.text) }))
+              .filter(n => n.text);
           }
 
-          // notes
-          if (Array.isArray(clonedCommit.notes)) {
-            clonedCommit.notes = clonedCommit.notes.filter(n => !isSignoff(n.text || n.title || ''));
-          }
-
-          // return the modified commit object, note: we did not change the subject,
-          return clonedCommit;
-        },
-        // using {{header}} to ensure the original "feat: ..." is fully preserved
-        "commitPartial": "* {{header}}\n{{#if body}}\n{{body}}\n{{/if}}\n{{#if footer}}\n\n{{footer}}\n{{/if}}\n"
+          return c;
+        }
       }
     }],
     ["@semantic-release/changelog", { "changelogFile": "CHANGELOG.md" }],
