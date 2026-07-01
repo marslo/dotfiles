@@ -4,7 +4,7 @@
 #     FileName : imarslo.sh
 #       Author : marslo
 #      Created : 2026-03-09 14:28:06
-#   LastChange : 2026-04-09 17:50:35
+#   LastChange : 2026-06-30 18:49:11
 #=============================================================================
 
 function _compgen_nocase() {
@@ -173,7 +173,7 @@ function _setme_completion() {
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
-  opts="-a --admin -r --remove -c --check -u --user -h --help"
+  opts="-a --admin -d --disable -c --check -u --user -h --help"
 
   case "${prev}" in
     -u|--user) COMPREPLY=( $(compgen -u -- "${cur}") ); return 0 ;;
@@ -214,7 +214,7 @@ function _knrun_completion() {
     COMPREPLY=()
 }
 
-_ghperm_completion() {
+function _ghperm_completion() {
   local cur prev opts
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
@@ -245,14 +245,47 @@ _ghperm_completion() {
   fi
 }
 
-complete -F _jira_completions      jira
-complete -F _jira_stat_completions jira-stat
-complete -F _jira_ls_completions   jira-ls
-complete -F _hex2rgba_completion   hex2rgba
-complete -F _rgba2hex_completion   rgba2hex
-complete -F _gdoc_completion       gdoc
-complete -F _setme_completion      setme
-complete -F _knrun_completion      knrun
-complete -F _ghperm_completion     ghperm.sh
+function _clean_completion() {
+  local cur prev opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+  opts="-p --path -a --all --dot --ds --lg --dryrun -v --verbose -h --help"
+
+  # options that take a directory argument
+  case "${prev}" in
+    -p|--path)
+        if declare -F _filedir >/dev/null; then
+          _filedir -d                                    # use bash-completion for directory completion.
+        else
+          compopt -o nospace 2>/dev/null
+          COMPREPLY=( $(compgen -d -S / -- "${cur}") )   # manually add the directory and a trailing slash
+        fi
+        return 0
+        ;;
+  esac
+
+  # complete option flags
+  if [[ "${cur}" == -* ]]; then
+    COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+    return 0
+  fi
+
+  # default: no positional args, but offer flags
+  COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+  return 0
+}
+
+complete -o default -o bashdefault -F _jira_completions      jira
+complete -o default -o bashdefault -F _jira_stat_completions jira-stat
+complete -o default -o bashdefault -F _jira_ls_completions   jira-ls
+complete -o default -o bashdefault -F _hex2rgba_completion   hex2rgba
+complete -o default -o bashdefault -F _rgba2hex_completion   rgba2hex
+complete -o default -o bashdefault -F _gdoc_completion       gdoc
+complete -o default -o bashdefault -F _setme_completion      setme
+complete -o default -o bashdefault -F _knrun_completion      knrun
+complete -o default -o bashdefault -F _ghperm_completion     ghperm.sh
+complete -o default -o bashdefault -F _clean_completion      clean
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

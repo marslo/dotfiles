@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo
 #     Created : 2012
-#  LastChange : 2026-05-22 16:17:50
+#  LastChange : 2026-06-30 18:43:23
 #  Description : ifunctions
 # =============================================================================
 
@@ -755,9 +755,9 @@ function fdiff() {
   diff -u "${1}" "${2}" | diff-so-fancy
 }
 
-# setme - set or remove user as/from admin
+# setme - set or disable user as/from admin
 # usage : setme [-a, --admin]
-#               [-r, --remove]
+#               [-d, --disable]
 #               [-c, --check]
 #               [-u, --user <username>]
 function setme() {
@@ -768,14 +768,14 @@ function setme() {
 
   local USER=''
   local ADMIN=false
-  local REMOVE=false
+  local DISABLE=false
   local CHECK=true
   # shellcheck disable=SC2155
   local USAGE="USAGE
     $(c Cs)\$ setme $(c 0Gi)[ OPTIONS ]$(c)
   \nOPTIONS
     $(c G)-a$(c), $(c G)--admin$(c)                set the account as admin
-    $(c G)-r$(c), $(c G)--remove$(c)               remove the account from admin
+    $(c G)-d$(c), $(c G)--disable$(c)              disable the account from admin
     $(c G)-c$(c), $(c G)--check$(c)                check if the account is admin $(c 0i)(default)$(c)
     $(c G)-u$(c), $(c G)--user $(c 0Mi)<username>$(c)      specify the username $(c 0i)(default: current user)$(c)
     $(c G)-h$(c), $(c G)--help$(c)                 show this help message
@@ -783,8 +783,8 @@ function setme() {
     $(c Wdi)# set the current user as admin$(c)
     $(c Y)\$ setme $(c 0Gi)--admin$(c)
 
-    $(c Wdi)# remove the current user from admin$(c)
-    $(c Y)\$ setme $(c 0Gi)--remove --user $(c 0Mi)john$(c)
+    $(c Wdi)# disable the current user from admin$(c)
+    $(c Y)\$ setme $(c 0Gi)--disable --user $(c 0Mi)john$(c)
 
     $(c Wdi)# check if the user 'jane' is admin$(c)
     $(c Y)\$ setme $(c 0Gi)--check --user $(c 0Mi)jane$(c)
@@ -794,12 +794,12 @@ function setme() {
 
   while [[ $# -gt 0 ]]; do
     case $1 in
-      -a | --admin  ) ADMIN=true  ; shift   ;;
-      -r | --remove ) REMOVE=true ; shift   ;;
-      -c | --check  ) CHECK=true  ; shift   ;;
-      -u | --user   ) USER="$2"   ; shift 2 ;;
-      -h | --help   ) echo -e "${USAGE}" ; return 0 ;;
-      *             ) echo "Unknown option: '$1'" >&2; return 1 ;;
+      -a | --admin   ) ADMIN=true  ; shift   ;;
+      -d | --disable ) DISABLE=true ; shift   ;;
+      -c | --check   ) CHECK=true  ; shift   ;;
+      -u | --user    ) USER="$2"   ; shift 2 ;;
+      -h | --help    ) echo -e "${USAGE}" ; return 0 ;;
+      *              ) echo "Unknown option: '$1'" >&2; return 1 ;;
     esac
   done
 
@@ -812,7 +812,7 @@ function setme() {
     }
   fi
 
-  if "${REMOVE}"; then
+  if "${DISABLE}"; then
     isAdmin "${USER}" && {
       echo -e "$(c Wdi)>> removing admin user: $(c 0Mi)${USER}$(c 0Wdi) ...$(c)"
       sudo dscl . -delete /Groups/admin GroupMembership "${USER}"
