@@ -4,7 +4,7 @@
 #     FileName : fzf-preview.sh
 #       Author : marslo
 #      Created : 2026-05-11 22:50:00
-#   LastChange : 2026-05-18 17:00:58
+#   LastChange : 2026-07-06 22:49:42
 #  Description : unified fzf preview command for files and directories
 #                used by: FZF_CTRL_T_OPTS (env.d/fzf), _load_fzf_context() (ffunc.sh)
 #       Syntax : fzf-preview.sh FILENAME[:LINENO][:IGNORED]
@@ -178,6 +178,32 @@ function _show_pdf() {
   fi
 }
 
+# =========================================================================== #
+# vim/nvim modeline filetype -> bat language token                            #
+# (names often differ, e.g. vim `sshconfig` -> bat `SSH Config` / ssh_config) #
+# add new mappings here when a vim ft doesn't match a bat syntax name         #
+# =========================================================================== #
+declare -A FT_TO_BAT=(
+  [sshconfig]=ssh_config
+  [config]=ssh_config
+  [sshdconfig]=sshd_config
+  [dosini]=ini
+  [conf]=ini
+  [zsh]=bash
+  [csh]=bash
+  [cmake]=cmake
+  [dockerfile]=Dockerfile
+)
+
+# echo the bat language token derived from a file's vim/nvim modeline (empty when none found)
+function _render_ft() {
+  local _file="${1:?file is required}"
+  local _ft
+  _ft=$(grep -Eo --color=never '(filetype|ft)=[a-zA-Z0-9_-]+' "${_file}" 2>/dev/null | awk -F= 'END{print $2}')
+  [[ -z "${_ft}" ]] && return 0
+  printf '%s' "${FT_TO_BAT[${_ft,,}]:-${_ft}}"
+}
+
 # main
 case "${file}" in
   *.html | *.HTM ) _show_html "${file}" ;;
@@ -190,13 +216,15 @@ case "${file}" in
                    elif file -bL --mime-encoding "${file}" | grep -iq "binary" && ! iconv -f utf-8 -t utf-8 "${file}" >/dev/null 2>&1; then
                      _show_binary "${file}"
                    else
-                     # extension ? bat auto-detects (fast) > vim modeline > bat auto-detect
+                     # extension ? bat auto-detects (fast) > vim modeline (ft) > bat auto-detect
+                     declare -a _lang=()
                      if [[ "${file##*/}" != *.* ]]; then
-                       declare ft
-                       ft=$(grep -Eo '(filetype|ft)=[a-zA-Z0-9_-]+' "${file}" 2>/dev/null | awk -F= 'END{print $2}')
-                       [[ -n "${ft}" ]] && CAT+=( --language="${ft}" )
+                       declare lang
+                       lang="$(_render_ft "${file}")"
+                       [[ -n "${lang}" ]] && _lang=( --language="${lang}" )
                      fi
-                     "${CAT[@]}" -- "${file}" 2>/dev/null || "${CAT[@]}" -- "${file}"
+                     # fall back to bat auto-detect when the language is not a syntax bat knows (e.g. `config`)
+                     "${CAT[@]}" "${_lang[@]}" -- "${file}" 2>/dev/null || "${CAT[@]}" -- "${file}"
                    fi
                    ;;
 esac

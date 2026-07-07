@@ -2,9 +2,9 @@
 # shellcheck source=/dev/null disable=SC2155
 #=============================================================================
 #     FileName : rrun
-#       Author : marslo.jiao@gmail.com
+#       Author : marslo
 #      Created : 2025-04-09 16:43:02
-#   LastChange : 2026-04-08 13:17:10
+#   LastChange : 2026-07-01 17:18:37
 #  Description : [r]emote [run]
 #=============================================================================
 
@@ -140,19 +140,44 @@ TRIM_REGEX="[.](${TRIM_DOMAINS})$"
     key == "hostname" { ip = $2; next }
     END { emit() }
   ' "${SSH_CONFIG}" |
-  awk -F':' '{
-    orig = $0; alias = $1;
-    match(alias, /[0-9]+/)
-    num_str = substr( alias, RSTART, RLENGTH )
-    prefix  = substr( alias, 1, RSTART-1 )
-    is_zero = ( substr(num_str, 1, 1) == "0" ? "0" : "1" )
-    printf "%s\t%s\t%010d\t%s\n", prefix, is_zero, num_str, orig
-  }' |
-  sort -k1,1 -k2,2 -k3,3 | cut -f4 |
+  awk -F':' '
+    # drop the non-padded twin when a zero-padded alias exists (name1 vs name01 -> keep name01),
+    # then emit the version-sort key columns: prefix \t is_zero \t zero-padded-number \t original-line
+    function normKey(s,   out, i, c, run, n) {
+      out = ""; run = ""; n = length(s)
+      for ( i = 1; i <= n; i++ ) {
+        c = substr(s, i, 1)
+        if ( c ~ /[0-9]/ ) { run = run c }
+        else { if ( run != "" ) { out = out (run + 0); run = "" } out = out c }
+      }
+      if ( run != "" ) out = out (run + 0)
+      return out
+    }
+    {
+      line[NR]  = $0
+      alias[NR] = $1
+      k = normKey($1); key[NR] = k
+      padded[NR] = ( $1 ~ /(^|[^0-9])0[0-9]/ ) ? 1 : 0
+      if ( padded[NR] ) hasPad[k] = 1
+    }
+    END {
+      for ( i = 1; i <= NR; i++ ) {
+        if ( hasPad[key[i]] && !padded[i] ) continue
+        a = alias[i]
+        match(a, /[0-9]+/)
+        num_str = substr( a, RSTART, RLENGTH )
+        prefix  = substr( a, 1, RSTART-1 )
+        is_zero = ( substr(num_str, 1, 1) == "0" ? "0" : "1" )
+        printf "%s\t%s\t%010d\t%s\n", prefix, is_zero, num_str, line[i]
+      }
+    }
+  ' |
+  sort --version-sort -k1,1 -k2,2 -k3,3 | cut -f4 |
   column -t -s ':' -o ' : ' |
   fzf --ansi \
+      --layout=reverse-list \
       --multi \
-      --prompt='HOST 󱚥 ' \
+      --prompt='HOST  ' \
       --color=fg+:#979736,hl+:#979736,label:italic:#77A678 \
       --preview-window=top:65% --height 35% --min-height 3+ \
       --delimiter='[[:space:]]+:[[:space:]]+' \
