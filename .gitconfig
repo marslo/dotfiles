@@ -87,7 +87,7 @@
 [blame]
   # https://gist.github.com/BuonOmo/ce45b51d0cefe949fd0c536a4a60f000
   # date            = relative
-  date              ="format:%Y-%m-%d %H:%M:%S %p"
+  date              = "format:%Y-%m-%d %H:%M:%S %p"
   coloring          = highlightRecent
   showRoot          = true
 [help]
@@ -100,7 +100,7 @@
   key               = Signed-off-by
   ifmissing         = add
   ifexists          = doNothing
-  command           = echo \"$(git config user.name) <$(git config user.email)>\"
+  command           = echo "$(git config user.name) <$(git config user.email)>"
 
 [filter "lfs"]
   required          = true
@@ -115,10 +115,10 @@
   path              = ~/.marslo/gitconfig.d/credential
   path              = ~/.marslo/gitconfig.d/gitalias
   path              = ~/.marslo/gitconfig.d/gitcolors
-  ## ------ git ssh-set / https-set to enable or disable ------ ##
-  # path              = ~/.marslo/gitconfig.d/credential.ssh
+  # ────────────── git ssh-set / https-set to enable or disable ───────────────
+  path              = ~/.marslo/gitconfig.d/credential.ssh
   # path              = ~/.marslo/gitconfig.d/credential.https
-  # disable due to pre-commit hook will fail if the account info is missing
-  # path              = ~/.marslo/gitconfig.d/account
+  # ─ disable due to pre-commit hook will fail if the account info is missing ─
+  path              = ~/.marslo/gitconfig.d/account
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:foldmethod=marker:
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:
