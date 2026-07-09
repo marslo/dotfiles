@@ -4,7 +4,7 @@
 #     FileName : jira-ls
 #       Author : marslo
 #      Created : 2026-01-21 20:57:09
-#   LastChange : 2026-05-27 16:51:00
+#   LastChange : 2026-07-09 16:37:55
 #=============================================================================
 
 set -euo pipefail
@@ -19,6 +19,7 @@ declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # shellcheck disable=SC2015
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
+declare -r JIRA_URL="${JIRA_URL:-https://jira.domain.com}"
 declare -A PROJECTS_ID=( ['PROJ1']='23918' ['PROJ2']='23917' ['PROJ3']='18308' ['PROJ4']='15014' )
 declare _PROJECT='PROJ1'
 declare -a PROJECTS=()
@@ -26,6 +27,8 @@ declare RETURN_TYPE='full'
 declare UPDATE_LIMIT=''
 declare ASSIGNEE=''
 declare REPORTER=''
+declare TRANSITION=''
+declare COMMENT=''
 declare -a KEYS=()
 declare -a CURRENT_STATUS=()
 declare -A JQL_MAP=(
@@ -34,6 +37,12 @@ declare -A JQL_MAP=(
   ['todo']='status in ("To Do")'
   ['open']='status in (Open, New, Active, "To Do", "In Progress", "In Review")'
   ['closed']='status = Closed OR resolution in (Done, Fixed)'
+)
+# map `--to` target aliases to the JIRA status name
+declare -A TRANSITION_MAP=(
+  ['in-progress']='In Progress'
+  ['close']='Closed'
+  ['closed']='Closed'
 )
 
 # shellcheck disable=SC2155
@@ -47,6 +56,7 @@ OPTIONS
   $(c G)-p$(c), $(c G)--project $(c 0Mi)PROJECT_KEY$(c)  specify the JIRA project key $(c 0i)(default: $(c 0Mi)'${_PROJECT}'$(c 0i))$(c)
   $(c G)--assignee$(c) $(c 0Mi)USER_ID$(c)         filter issues assigned to the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
   $(c G)--reporter$(c) $(c 0Mi)USER_ID$(c)         filter issues reported by the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
+  $(c G)-u$(c), $(c G)--update $(c 0Mi)FILTER$(c)        filter issues updated within the specified time frame $(c 0i)(e.g., $(c 0Mi)'-4w'$(c 0i) for 4 weeks)$(c)
 
   $(c B)--open$(c)                     list issues with $(c Bi)status $(c 0i)in ($(c 0Ci)'New'$(c 0i),$(c 0Ci)'Active'$(c 0i),$(c 0Ci)'To Do'$(c 0i),$(c 0Ci)'In Progress'$(c 0i))$(c) $(c 0i)(default)$(c)
   $(c B)--new$(c)                      list issues with $(c Bi)status $(c 0Ci)'New'$(c) or $(c 0Ci)'Active'$(c)
@@ -54,23 +64,94 @@ OPTIONS
   $(c B)--todo$(c)                     list issues with $(c Bi)status $(c 0Ci)'To Do'$(c)
   $(c B)--closed$(c)                   list issues with $(c Bi)status $(c 0Ci)'Closed'$(c 0i) or $(c Bi)resolution $(c 0i)in ($(c 0Ci)'Done'$(c 0i),$(c 0Ci)'Fixed'$(c 0i))$(c)
                              filter in $(c 0Mi)4 weeks$(c) by default
-  $(c G)-u$(c), $(c G)--update $(c 0Mi)FILTER$(c)        filter issues updated within the specified time frame $(c 0i)(e.g., $(c 0Mi)'-4w'$(c 0i) for 4 weeks)$(c)
+
+  $(c Y)--to $(c 0Bi)STATUS$(c)                transition the $(c i)selected$(c) issue to $(c 0Bi)STATUS$(c) $(c 0i)( available: $(c 0Ci)'in-progress'$(c 0i), $(c 0Ci)'close'$(c 0i))$(c)
+  $(c Y)-c$(c), $(c Y)--add-comment $(c 0Mi)TEXT$(c)     add a comment $(c 0Mi)TEXT$(c) to the $(c i)selected$(c) issue
+
   $(c G)-r$(c), $(c G)--return $(c 0Mi)TYPE$(c)          specify the return format $(c 0i)(default: $(c 0Mi)full$(c 0i))$(c)
                              $(c 0Mi)full$(c) for key and summary; $(c 0Mi)short$(c) for key only
   $(c G)-h$(c), $(c G)--help$(c)                 show this help message and exit
 
 EXAMPLE
   $(c Wdi)# list 2 weeks in-progress jira ticket in project 'PROJID' and 'NEWID' for \`currentUser()\`$(c)
-  $(c Y)\$ ${ME} $(c 0Gi)--project $(c 0Mi)PROJID $(c 0Gi)--project $(c 0Mi)NEWID $(c 0Bi)--in-progress $(c 0Gi)--assignee -u $(c 0Mi)'-2w'$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--project $(c 0Mi)PROJID $(c 0Gi)--project $(c 0Mi)NEWID $(c 0Bi)--in-progress $(c 0Gi)--assignee -u $(c 0Mi)'-2w'$(c)
 
   $(c Wdi)# list closed and todo tickets in default project for user 'alice' after '2026-03-01 14:30'$(c)
-  $(c Y)\$ ${ME} $(c 0Bi)--todo --closed $(c 0Gi)--assignee $(c 0Mi)alice $(c 0Gi)--update $(c 0Mi)'2026-03-01 14:30'$(c)
+  $(c Ys)\$ ${ME} $(c 0Bi)--todo --closed $(c 0Gi)--assignee $(c 0Mi)alice $(c 0Gi)--update $(c 0Mi)'2026-03-01 14:30'$(c)
+
+  $(c Wdi)# list open tickets, then move the selected one to 'In Progress'$(c)
+  $(c Ys)\$ ${ME} $(c 0Bi)--open $(c 0Yi)--to $(c 0Ci)in-progress$(c)
+
+  $(c Wdi)# list open tickets, then add a comment to the selected one$(c)
+  $(c Ys)\$ ${ME} $(c 0Bi)--open $(c 0Yi)--add-comment $(c 0Mi)'working on it now'$(c)
 "
 
 function passToken() { pass show "${1}" | head -n1; }
 function showUsage() { echo -e "${USAGE}"; exit 0;  }
-function die()  { echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
+function dieWithCode { echo -e "$(c Ri)ERROR$(c 0i): $1 :$(c)"; shift; echo -e "$(c 0Wi)\`\`\`\n$*\n\`\`\`\n$(c 0Wdi)exit ...$(c)"; exit 1; }
+function die()  { echo -e "$(c Ri)ERROR$(c 0i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
 function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
+
+declare -r JIRA_API_TOKEN="${JIRA_API_TOKEN:-$( passToken "${PASS_JIRA:-marslo/jira}" )}"
+test -n "${JIRA_API_TOKEN:-}" || die "JIRA API token not found. Please set the \`JIRA_API_TOKEN\` environment variable"
+declare -ar CURL_CMD=( command curl -u "marslo:${JIRA_API_TOKEN}" --silent --compressed )
+
+# GET the available transitions for a given issue key
+function getTransitions() {
+  "${CURL_CMD[@]}" --get "${JIRA_URL}/rest/api/2/issue/${1}/transitions"
+}
+
+# transition an issue to a target status via the JIRA API
+#   $1: issue key ; $2: target status name (e.g. 'In Progress', 'Closed')
+function doTransition() {
+  local key="$1" target="$2" transitions tid resp
+  transitions="$( getTransitions "${key}" )"
+
+  if echo "${transitions}" | jq -e 'has("errorMessages")' >/dev/null 2>&1; then
+    dieWithCode 'JIRA API Error' "$(echo "${transitions}" | jq -r '.errorMessages[]')"
+  fi
+
+  # prefer matching by the transition's target status name, fallback to transition name
+  tid="$( echo "${transitions}" |
+          jq -r --arg t "${target}" '.transitions[] | select((.to.name | ascii_downcase) == ($t | ascii_downcase)) | .id' |
+          head -n1
+        )"
+  if [[ -z "${tid}" ]]; then
+    tid="$( echo "${transitions}" |
+            jq -r --arg t "${target}" '.transitions[] | select((.name | ascii_downcase) == ($t | ascii_downcase)) | .id' |
+            head -n1
+          )"
+  fi
+  test -n "${tid}" || dieWithCode "no transition to '${target}' available for ${key}. available" "$( echo "${transitions}" | jq -r '[.transitions[].to.name] | join(", ")' )"
+
+  resp="$( "${CURL_CMD[@]}" \
+           --request POST \
+           --header 'Content-Type: application/json' \
+           --data "{\"transition\":{\"id\":\"${tid}\"}}" \
+           "${JIRA_URL}/rest/api/2/issue/${key}/transitions"
+         )"
+  # a successful transition returns HTTP 204 with an empty body
+  if [[ -n "${resp}" ]] && echo "${resp}" | jq -e 'has("errorMessages") or has("errors")' >/dev/null 2>&1; then
+    dieWithCode 'JIRA transition failed' "$(echo "${resp}" | jq -rc '.errorMessages, .errors')"
+  fi
+}
+
+# add a comment to an issue via the JIRA API
+#   $1: issue key ; $2: comment body
+function addComment() {
+  local key="$1" body="$2" payload resp
+  payload="$( jq -n --arg b "${body}" '{body: $b}' )"
+  resp="$( "${CURL_CMD[@]}" \
+           --request POST \
+           --header 'Content-Type: application/json' \
+           --data "${payload}" \
+           "${JIRA_URL}/rest/api/2/issue/${key}/comment"
+         )"
+  if echo "${resp}" | jq -e 'has("errorMessages") or has("errors")' >/dev/null 2>&1; then
+    die "JIRA add comment failed: $(echo "${resp}" | jq -rc '.errorMessages, .errors')"
+  fi
+  echo "${resp}" | jq -e 'has("id")' >/dev/null 2>&1 || dieWithCode 'JIRA add comment failed' "${resp}"
+}
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -81,7 +162,13 @@ while [[ $# -gt 0 ]]; do
                               esac
                               shift 2                           ;;
     -p | --project          ) PROJECTS+=( "$2" ) ; shift 2      ;;
-    -u | --update           ) UPDATE_LIMIT="$2" ; shift 2       ;;
+    -u | --update           ) UPDATE_LIMIT="$2"  ; shift 2      ;;
+    --to                    ) test -n "${2:-}" || die "'--to' requires a target status (e.g. $(IFS=', '; echo "${!TRANSITION_MAP[*]}"))"
+                              test -n "${TRANSITION_MAP[${2,,}]:-}" || die "'--to' unknown target '$2' (e.g. $(IFS=', '; echo "${!TRANSITION_MAP[*]}"))"
+                              TRANSITION="${TRANSITION_MAP[${2,,}]}"
+                              shift 2                           ;;
+    -c | --add-comment      ) test -n "${2:-}" || die "'$1' requires a comment text"
+                              COMMENT="$2"; shift 2             ;;
     --assignee | --reporter ) PARAM="${1#--}"; PARAM="${PARAM^^}";
                               if [[ -n "${2:-}" && "$2" != -* ]]; then
                                 printf -v "${PARAM}" "%s" "$2"; shift 2;
@@ -131,17 +218,8 @@ query+="${REPORTER:+ AND reporter=${REPORTER}}"
 # shellcheck disable=SC2016
 query+="${UPDATE_LIMIT:+ AND updated >= '${UPDATE_LIMIT}'}"
 
-declare JIRA_API_TOKEN="${JIRA_API_TOKEN:-$( passToken "${PASS_JIRA:-marslo/jira}" )}"
-test -n "${JIRA_API_TOKEN:-}" || die "JIRA API token not found. Please set the \`JIRA_API_TOKEN\` environment variable"
-
 declare json=''
-json="$( command curl -u "marslo:${JIRA_API_TOKEN}" \
-              --data-urlencode "jql=${query}" \
-              --get \
-              --silent \
-              --compressed \
-              "${JIRA_URL:-https://jira.domain.com}/rest/api/2/search"
-      )"
+json="$( "${CURL_CMD[@]}" --data-urlencode "jql=${query}" --get "${JIRA_URL}/rest/api/2/search" )"
 
 if echo "${json}" | jq -e 'has("errorMessages")' >/dev/null 2>&1; then
   die "JIRA API Error: $(echo "${json}" | jq -r '.errorMessages[]')"
@@ -185,7 +263,7 @@ declare TRANSFORMER='
 declare jira=''
 jira="$(
   echo "${json}" | jq ".issues[] | ${TEMPLATE}" |
-  sed -e 's/"\(.*\)"/\1/' -e 's/\\t/\t/g' -e 's/\\\\033/\\033/g' |
+  sed -e 's/"\(.*\)"/\1/' -e 's/\\"/"/g' -e 's/\\t/\t/g' -e 's/\\\\033/\\033/g' |
   fzf --with-nth=1 --ansi \
       --delimiter='\t' \
       --preview='printf "%b" {2}' \
@@ -194,10 +272,29 @@ jira="$(
       --bind "resize:transform:${TRANSFORMER}" \
       --bind "ctrl-k:execute-silent(${GET_ID} | pbcopy)" \
       --bind "ctrl-y:execute-silent(${FORMAT_CONTENT} | pbcopy)" \
-      --bind "ctrl-o:execute(${GET_ID} | xargs -I {} open ${JIRA_URL:-https://jira.domain.com}/browse/{})" |
+      --bind "ctrl-o:execute(${GET_ID} | xargs -I {} open ${JIRA_URL}/browse/{})" |
   cut -f1 |
   trim
 )"
+
+# act on the selected issue when a `--to-*` / `--add-comment` flag is present
+if [[ -n "${TRANSITION:-}" ]] || [[ -n "${COMMENT:-}" ]]; then
+  declare KEY_SELECTED=''
+  KEY_SELECTED="$( echo "${jira%%:*}" | trim )"
+  test -n "${KEY_SELECTED}" || { echo -e "$(c Wdi)>> $(c 0Mi)no issue selected$(c)" >&2; exit 0; }
+
+  if [[ -n "${TRANSITION:-}" ]]; then
+    doTransition "${KEY_SELECTED}" "${TRANSITION}"
+    echo -e "$(c Gi)>> ${JIRA_URL}/browse/${KEY_SELECTED}$(c)$(c i) transitioned to $(c)$(c 0Ci)'${TRANSITION}'$(c)"
+  fi
+
+  if [[ -n "${COMMENT:-}" ]]; then
+    addComment "${KEY_SELECTED}" "${COMMENT}"
+    echo -e "$(c Gi)>> ${KEY_SELECTED}$(c)$(c i) comment added$(c)"
+  fi
+
+  exit 0
+fi
 
 # return
 case "${RETURN_TYPE}" in
