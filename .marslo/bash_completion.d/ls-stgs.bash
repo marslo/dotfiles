@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2207,SC2034
 # =============================================================================
-#      FileName : ls-stgs
+#      FileName : ls-stgs.bash
 #        Author : marslo
 #       Created : 2026-06-23 22:16:41
-#    LastChange : 2026-06-26 02:58:06
+#    LastChange : 2026-07-09 17:59:49
 # =============================================================================
 
 # bash completion for ls-stgs.sh

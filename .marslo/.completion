@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2026-06-29 21:40:47
+#   LastChange : 2026-07-09 17:59:55
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -50,10 +50,11 @@ type -P mas        >/dev/null                        && source "${COMPLETION_DIR
 type -P tmux       >/dev/null                        && source "${COMPLETION_DIR}/tmux"
 type -P eza        >/dev/null                        && source "${COMPLETION_DIR}/eza.sh"
 complete -o bashdefault -o filenames -F _eza la
-type -P ls-stgs.sh >/dev/null                        && source "${COMPLETION_DIR}/ls-stgs"
+type -P ls-stgs.sh >/dev/null                        && source "${COMPLETION_DIR}/ls-stgs.bash"
 
-type -P cursor-agent >/dev/null || type -P agent >/dev/null && source "${COMPLETION_DIR}/cursor-agent.bash"
-source "${COMPLETION_DIR}/pythia.bash"
+type -P agent      >/dev/null || type -P cursor-agent >/dev/null && source "${COMPLETION_DIR}/cursor-agent.bash"
+type -P claude     >/dev/null                        && source "${COMPLETION_DIR}/claude.bash"
+type -P pythia.sh  >/dev/null                        && source "${COMPLETION_DIR}/pythia.bash"
 
 test -L "${COMPLETION_DIR}/gh-arsenal-completion.sh" && source "${COMPLETION_DIR}/gh-arsenal-completion.sh"
 # test -d "${NPM_COMPLETION}"                        && source "${NPM_COMPLETION}/npm-completion.sh"
