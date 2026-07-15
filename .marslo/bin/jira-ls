@@ -4,7 +4,7 @@
 #     FileName : jira-ls
 #       Author : marslo
 #      Created : 2026-01-21 20:57:09
-#   LastChange : 2026-07-09 16:37:55
+#   LastChange : 2026-07-14 23:38:02
 #=============================================================================
 
 set -euo pipefail
@@ -38,11 +38,12 @@ declare -A JQL_MAP=(
   ['open']='status in (Open, New, Active, "To Do", "In Progress", "In Review")'
   ['closed']='status = Closed OR resolution in (Done, Fixed)'
 )
-# map `--to` target aliases to the JIRA status name
+# map `--to` target aliases to a comma-separated spec: 'STATUS[,RESOLUTION...]'
 declare -A TRANSITION_MAP=(
   ['in-progress']='In Progress'
-  ['close']='Closed'
-  ['closed']='Closed'
+  ['close']='Closed,Completed,Done,Fixed'
+  ['closed']='Closed,Completed,Done,Fixed'
+  ['done']='Done,Done'
 )
 
 # shellcheck disable=SC2155
@@ -65,7 +66,7 @@ OPTIONS
   $(c B)--closed$(c)                   list issues with $(c Bi)status $(c 0Ci)'Closed'$(c 0i) or $(c Bi)resolution $(c 0i)in ($(c 0Ci)'Done'$(c 0i),$(c 0Ci)'Fixed'$(c 0i))$(c)
                              filter in $(c 0Mi)4 weeks$(c) by default
 
-  $(c Y)--to $(c 0Bi)STATUS$(c)                transition the $(c i)selected$(c) issue to $(c 0Bi)STATUS$(c) $(c 0i)( available: $(c 0Ci)'in-progress'$(c 0i), $(c 0Ci)'close'$(c 0i))$(c)
+  $(c Y)--to $(c 0Bi)STATUS$(c)                transition the $(c i)selected$(c) issue to $(c 0Bi)STATUS$(c) $(c 0i)( available: $(c 0Ci)'in-progress'$(c 0i), $(c 0Ci)'close'$(c 0i), $(c 0Ci)'done'$(c 0i))$(c)
   $(c Y)-c$(c), $(c Y)--add-comment $(c 0Mi)TEXT$(c)     add a comment $(c 0Mi)TEXT$(c) to the $(c i)selected$(c) issue
 
   $(c G)-r$(c), $(c G)--return $(c 0Mi)TYPE$(c)          specify the return format $(c 0i)(default: $(c 0Mi)full$(c 0i))$(c)
@@ -97,14 +98,19 @@ test -n "${JIRA_API_TOKEN:-}" || die "JIRA API token not found. Please set the \
 declare -ar CURL_CMD=( command curl -u "marslo:${JIRA_API_TOKEN}" --silent --compressed )
 
 # GET the available transitions for a given issue key
+#   expand transitions.fields so we can tell whether `resolution` is settable
 function getTransitions() {
-  "${CURL_CMD[@]}" --get "${JIRA_URL}/rest/api/2/issue/${1}/transitions"
+  "${CURL_CMD[@]}" --get --data-urlencode 'expand=transitions.fields' \
+                   "${JIRA_URL}/rest/api/2/issue/${1}/transitions"
 }
 
 # transition an issue to a target status via the JIRA API
 #   $1: issue key ; $2: target status name (e.g. 'In Progress', 'Closed')
 function doTransition() {
-  local key="$1" target="$2" transitions tid resp
+  # $2 is a 'STATUS[,RESOLUTION...]' spec (see TRANSITION_MAP)
+  local key="$1" spec="$2" target resolutions transitions tid payload resp
+  target="${spec%%,*}"
+  resolutions=''; [[ "${spec}" == *,* ]] && resolutions="${spec#*,}"
   transitions="$( getTransitions "${key}" )"
 
   if echo "${transitions}" | jq -e 'has("errorMessages")' >/dev/null 2>&1; then
@@ -122,12 +128,25 @@ function doTransition() {
             head -n1
           )"
   fi
-  test -n "${tid}" || dieWithCode "no transition to '${target}' available for ${key}. available" "$( echo "${transitions}" | jq -r '[.transitions[].to.name] | join(", ")' )"
+  test -n "${tid}" || die "no transition to '${target}' available for ${key}. available: $(c 0Mi)$( echo "${transitions}" | jq -r '[.transitions[].to.name] | join(", ")' )$(c 0i)"
+
+  # build the payload; when this transition exposes a `resolution` field JIRA requires it to be set explicitly, otherwise resolution defaults to 'Open'
+  # try the configured resolution names in order; only names actually offered by the transition are used
+  payload="$( echo "${transitions}" | jq -c --arg tid "${tid}" --arg resolutions "${resolutions}" '
+    ( .transitions[] | select(.id == $tid) ) as $tr
+    | ( $resolutions | if . == "" then [] else split(",") end ) as $prefer
+    | { transition: { id: $tid } }
+    + ( if ( ($prefer | length) > 0 ) and ( $tr.fields // {} | has("resolution") ) then
+          ( $tr.fields.resolution.allowedValues // [] | map(.name) ) as $allowed
+          | ( $prefer | map( select( . as $n | $allowed | index($n) ) ) | first ) as $pick
+          | if $pick then { fields: { resolution: { name: $pick } } } else {} end
+        else {} end )
+  ' )"
 
   resp="$( "${CURL_CMD[@]}" \
            --request POST \
            --header 'Content-Type: application/json' \
-           --data "{\"transition\":{\"id\":\"${tid}\"}}" \
+           --data "${payload}" \
            "${JIRA_URL}/rest/api/2/issue/${key}/transitions"
          )"
   # a successful transition returns HTTP 204 with an empty body
@@ -285,7 +304,7 @@ if [[ -n "${TRANSITION:-}" ]] || [[ -n "${COMMENT:-}" ]]; then
 
   if [[ -n "${TRANSITION:-}" ]]; then
     doTransition "${KEY_SELECTED}" "${TRANSITION}"
-    echo -e "$(c Gi)>> ${JIRA_URL}/browse/${KEY_SELECTED}$(c)$(c i) transitioned to $(c)$(c 0Ci)'${TRANSITION}'$(c)"
+    echo -e "$(c Gi)>> ${JIRA_URL}/browse/${KEY_SELECTED}$(c)$(c i) transitioned to $(c)$(c 0Ci)'${TRANSITION%%,*}'$(c)"
   fi
 
   if [[ -n "${COMMENT:-}" ]]; then

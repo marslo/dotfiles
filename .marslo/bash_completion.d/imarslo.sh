@@ -4,7 +4,7 @@
 #     FileName : imarslo.sh
 #       Author : marslo
 #      Created : 2026-03-09 14:28:06
-#   LastChange : 2026-07-09 16:19:18
+#   LastChange : 2026-07-14 23:23:12
 #=============================================================================
 
 function _compgen_nocase() {
@@ -18,7 +18,7 @@ function _compgen_nocase() {
   for word in ${candidates}; do
     # convert both word and cur to lowercase for case-insensitive comparison
     if [[ "${word,,}" == "${cur,,}"* ]]; then
-      COMPREPLY+=( "$word" )
+      COMPREPLY+=( "${word}" )
     fi
   done
 }
@@ -80,8 +80,8 @@ function _rgba2hex_completion() {
 
 _JIRA_STAT_OPTS="-p --project -t --type -c --condition -a --and -o --or -m --max -j --jql -i --index -h --help -v -vv --verbose"
 _JIRA_LS_OPTS="--new --in-progress --todo --open --closed --reporter --assignee -p --project -u --update -r --return -h --help"
-_JIRA_TRANSITION_OPTS="--to --add-comment"
-_JIRA_TRANSITION_TARGETS="in-progress close"
+_JIRA_TRANSITION_OPTS="--to -c --add-comment"
+_JIRA_TRANSITION_TARGETS="in-progress close done"
 _JIRA_STAT_CONDITIONS="AND OR IN"
 
 function _jira_stat_logic() {
@@ -103,13 +103,13 @@ function _jira_ls_logic() {
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
   case "${prev}" in
-    -p|--project                 ) _compgen_nocase "${cur}" "IPBUSW IPBD SPTA"; return 0 ;;
-    -r|--return                  ) _compgen_nocase "${cur}" "full short"; return 0 ;;
-    --to                         ) _compgen_nocase "${cur}" "${_JIRA_TRANSITION_TARGETS}"; return 0 ;;
-    --add-comment                ) return 0 ;;
-    --assignee|--reporter        ) if [[ "${cur}" != -* ]]; then
-                                     _compgen_nocase "${cur}" "'currentUser()' unassigned"; return 0
-                                   fi ;;
+    -p|--project          ) _compgen_nocase "${cur}" "IPBUSW IPBD SPTA"; return 0 ;;
+    -r|--return           ) _compgen_nocase "${cur}" "full short"; return 0 ;;
+    --to                  ) _compgen_nocase "${cur}" "${_JIRA_TRANSITION_TARGETS}"; return 0 ;;
+    -c|--add-comment      ) return 0 ;;
+    --assignee|--reporter ) if [[ "${cur}" != -* ]]; then
+                              _compgen_nocase "${cur}" "'currentUser()' unassigned"; return 0
+                            fi ;;
   esac
 
   if [[ "${cur}" == -* ]]; then
@@ -279,6 +279,36 @@ function _clean_completion() {
   # default: no positional args, but offer flags
   COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
   return 0
+}
+
+# -- claude ( Claude Code CLI ) ---------------------------------------------
+_CLAUDE_SUBCOMMANDS="agents auth auto-mode doctor gateway install mcp plugin plugins project setup-token ultrareview update upgrade"
+_CLAUDE_OPTS="\
+--add-dir --agent --agents --allow-dangerously-skip-permissions \
+--allowedTools --allowed-tools --append-system-prompt --append-system-prompt-file \
+--ax-screen-reader --bg --background --bare --betas --brief --chrome \
+-c --continue --dangerously-skip-permissions -d --debug --debug-file \
+--disable-slash-commands --disallowedTools --disallowed-tools --effort \
+--exclude-dynamic-system-prompt-sections --fallback-model --file --fork-session \
+--from-pr -h --help --ide --include-hook-events --include-partial-messages \
+--input-format --json-schema --max-budget-usd --mcp-config --model -n --name \
+--no-chrome --no-session-persistence --output-format --permission-mode \
+--plugin-dir --plugin-url -p --print --prompt-suggestions --remote-control \
+--remote-control-session-name-prefix --replay-user-messages -r --resume \
+--safe-mode --session-id --setting-sources --settings --strict-mcp-config \
+--system-prompt --system-prompt-file --tmux --tools --verbose -v --version \
+-w --worktree"
+
+function _claude_filedir() {
+  # complete files (or dirs when '-d' passed), preferring bash-completion's _filedir
+  if declare -F _filedir >/dev/null; then
+    _filedir "$@"
+  elif [[ "$1" == '-d' ]]; then
+    compopt -o nospace 2>/dev/null
+    COMPREPLY=( $(compgen -d -S / -- "${cur}") )
+  else
+    COMPREPLY=( $(compgen -f -- "${cur}") )
+  fi
 }
 
 complete -o default -o bashdefault -F _jira_completions      jira
