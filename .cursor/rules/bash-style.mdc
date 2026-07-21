@@ -1,0 +1,101 @@
+---
+description: Bash scripting style conventions for marslo
+globs: **/*.sh
+alwaysApply: false
+---
+
+# Bash Style
+
+Apply these conventions when writing or editing Bash scripts.
+
+## 1. Naming
+
+- **UPPER_CASE_WITH_UNDERSCORES** (Java-style constants) for global variables,
+  variables set from CLI argument/option parsing, and anything treated as a
+  constant/config: `ROOT`, `GLOBAL_PATH`, `ME`, `CURRENT_ROOT`, `PREFIX`, `DO_PATH`.
+- **camelCase** for ordinary local working variables and for all function names:
+  `buildNumber`, `tmpFile`; `installCli()`, `fetchLogs()`.
+
+```bash
+# ✅ GOOD
+declare -r ROOT="$(pwd)"          # global / constant
+function fetchLogs() {            # function → camelCase
+  local buildNumber="${1}"        # local working var → camelCase
+}
+
+# ❌ BAD
+declare -r root="$(pwd)"
+function fetch_logs() { local BuildNumber="${1}"; }
+```
+
+## 2. Always brace expansions
+
+Reference every variable as `${var}` — never bare `$var` (positionals too: `${1}`, `"${@}"`, `${#}`).
+
+```bash
+echo "${NAME}"   ;   rm -rf "${DIR}/output"   ;   run "${@}"     # ✅
+echo "$name"     ;   rm -rf "$dir/output"     ;   run "$@"       # ❌
+```
+
+## 3. Space the outermost bracket when brackets nest
+
+When a statement nests brackets/parens/braces `([{}])`, pad the **outermost** pair
+with a space on each side; inner pairs stay tight.
+
+```bash
+ROOT="$( cd "$(dirname "${0}")" && pwd )"        # ✅ outer padded, inner tight
+files=( "${dir}"/*.log )                         # ✅
+
+ROOT="$(cd "$(dirname "${0}")" && pwd)"          # ❌
+files=("${dir}"/*.log)                           # ❌
+```
+
+## 4. Single-quote hardcoded strings
+
+If a string has no expansion (no variable, no command sub), use single quotes;
+use double quotes only when interpolating.
+
+```bash
+msg='hello world'         ;   path="${ROOT}/output"     # ✅
+msg="hello world"                                       # ❌
+```
+
+## 5. Yoda comparisons — literal on the left
+
+In equality tests, put the hardcoded literal on the left, the variable on the right.
+
+```bash
+test 'abc' = "${VAR}"          # ✅
+test "${VAR}" = 'abc'          # ❌
+```
+
+## 6. Prefer `test` over `[[ ... ]]` / `[ ... ]`
+
+For portability, prefer `test EXPR`. Fall back to `[[ ... ]]` only when you need
+its extras — regex `=~`, glob `==`, or a compound condition that's clearer grouped.
+
+```bash
+test -f "${FILE}"                       # ✅ portable
+test -n "${X}" && test '-' != "${X}"    # ✅ chain with shell &&
+
+[[ -f "${FILE}" ]]                      # ❌ when plain test suffices
+[[ "${VAL}" =~ ^[0-9]+$ ]]              # ✅ OK — regex needs [[ ]]
+```
+
+## 7. Collapse simple if/else into `&&` / `||`
+
+- single-branch `if`  →  `test COND && cmd`   (or `test COND || cmd`)
+- two-branch with single statements  →  `test COND && cmd1 || cmd2`
+
+```bash
+test -d "${DIR}" && rm -rf "${DIR}"                  # ✅ single-branch
+test -f "${F}"   || echo 'missing' >&2               # ✅
+test -f "${F}" && echo 'found' || echo 'missing'     # ✅ two-branch
+```
+
+⚠ Pitfall: in `A && cmd1 || cmd2`, `cmd2` also runs if `cmd1` fails. When `cmd1`
+may fail — or the branch **returns a value** — keep a full `if/else/fi`:
+
+```bash
+if test -f "${F}"; then status='ok'; else status='no'; fi
+```
