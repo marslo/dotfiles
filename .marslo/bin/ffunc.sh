@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-06-29 21:40:05
+#   LastChange : 2026-07-24 21:21:21
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -257,7 +257,7 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
   }
 
   # for rc folders
-  local -a rcRawPaths=( "${HOME}"/.marslo "${HOME}"/.idlerc "${HOME}"/.ssh "${HOME}"/.jfrog "${HOME}"/.pip "${HOME}"/.config/nvim "${HOME}"/.cht.sh "${HOME}"/.git-templates "${HOME}"/.config/bat/syntaxes "${HOME}"/.ctags.d "${HOME}"/.hammerspoon )
+  local -a rcRawPaths=( "${HOME}"/.marslo "${HOME}"/.idlerc "${HOME}"/.ssh "${HOME}"/.jfrog "${HOME}"/.pip "${HOME}"/.config/nvim "${HOME}"/.cht.sh "${HOME}"/.git-templates "${HOME}"/.config/bat/syntaxes "${HOME}"/.ctags.d "${HOME}"/.hammerspoon "${HOME}"/.cursor/rules "${HOME}"/.claude/rules )
   # ~/.config
   local -a cfgNames=( cheat github-copilot htop yamllint pip ncdu bat gh btop )
   local -a rcPaths=() cfgRoots=()
@@ -300,7 +300,7 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
     statCmd=( stat -f '%Sm | %N' -t '%Y-%m-%d %H:%M:%S' )
   fi
 
-  local -a extraFiles=( "${HOME}"/.gradle/gradle.properties )
+  local -a extraFiles=( "${HOME}"/.gradle/gradle.properties "${HOME}"/.claude/CLAUDE.md )
 
   {
     # top-level rc-like files under $HOME

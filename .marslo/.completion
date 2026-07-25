@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2026-07-09 17:59:55
+#   LastChange : 2026-07-24 20:45:15
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -54,7 +54,6 @@ type -P ls-stgs.sh >/dev/null                        && source "${COMPLETION_DIR
 
 type -P agent      >/dev/null || type -P cursor-agent >/dev/null && source "${COMPLETION_DIR}/cursor-agent.bash"
 type -P claude     >/dev/null                        && source "${COMPLETION_DIR}/claude.bash"
-type -P pythia.sh  >/dev/null                        && source "${COMPLETION_DIR}/pythia.bash"
 
 test -L "${COMPLETION_DIR}/gh-arsenal-completion.sh" && source "${COMPLETION_DIR}/gh-arsenal-completion.sh"
 # test -d "${NPM_COMPLETION}"                        && source "${NPM_COMPLETION}/npm-completion.sh"
@@ -73,5 +72,9 @@ if compgen -G "${ANSIBLE_COMPLETION_PATH}/*.bash" >/dev/null; then
   done
   shopt -u nullglob
 fi
+
+# >>> pythia (ai-pythia) completion >>>
+test -r "${HOME}/.local/share/pythia/completion.bash" && source "${HOME}/.local/share/pythia/completion.bash"
+# <<< pythia (ai-pythia) completion <<<
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

@@ -1,10 +1,7 @@
----
-description:
-globs: **/*.groovy
-alwaysApply: false
----
-
 # Groovy Implicit Return
+
+> Migrated from `~/.cursor/rules/groovy-implicit-return.mdc` (Cursor scope `globs: **/*.groovy`).
+> Claude Code loads this globally, not glob-scoped — apply it when writing or reviewing Groovy.
 
 Groovy supports implicit returns (the last expression in a method is the return value). Do **not** flag or suggest adding explicit `return` statements to Groovy methods.
 

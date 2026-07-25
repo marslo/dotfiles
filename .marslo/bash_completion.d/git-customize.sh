@@ -4,7 +4,7 @@
 #     FileName : git-customize.sh
 #       Author : marslo
 #      Created : 2025-12-11 21:28:56
-#   LastChange : 2026-05-20 22:14:18
+#   LastChange : 2026-07-16 18:37:08
 #=============================================================================
 
 function _git_ca()     { _git_mcx;      }
@@ -18,7 +18,15 @@ function _git_finda () { __gitcomp_nl "$(git --list-cmds=alias 2>/dev/null)"; }
 
 function _git_nb() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
+  local prev="${COMP_WORDS[COMP_CWORD-1]}"
   compopt +o nospace 2>/dev/null
+
+  # common branch prefixes: personal / git-flow / misc
+  local prefixes="\
+    sandbox user users \
+    feature feat fix bugfix bug bugs hotfix \
+    release support develop \
+    issue issues task tasks wip experiment spike poc"
 
   local i
   for (( i=1; i < COMP_CWORD; i++ )); do
@@ -30,7 +38,13 @@ function _git_nb() {
     fi
   done
 
-  local options="-c --checkout -C --no-checkout -y --yes -i --interactive -v -vv -h --"
+  case "${prev}" in
+    -P | --prefix ) COMPREPLY=( $(compgen -W "${prefixes}" -- "${cur}") ); return 0 ;;
+    -O | --owner  ) COMPREPLY=( $(compgen -W "marslo" -- "${cur}") ); return 0 ;;
+    -S | --suffix ) COMPREPLY=(); compopt +o default +o bashdefault 2>/dev/null; return 0 ;;
+  esac
+
+  local options="-P --prefix -s --sandbox -u --user -O --owner -S --suffix -c --checkout -C --no-checkout -y --yes -i --interactive -v -vv -h --"
   case "${cur}" in
     -* ) COMPREPLY=( $(compgen -W "${options}" -- "${cur}") ) ;;
     *  ) COMPREPLY=() ;;

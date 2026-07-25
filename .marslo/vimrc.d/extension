@@ -504,6 +504,18 @@ nnoremap <Leader>ebb :<C-u>set mouse=<CR>:call gitblame#echo()<CR>
 nnoremap <Leader>bb  :BlamerToggle<CR>
 if IsNvim() && has('unix')
   let g:blamer_enabled            = 1
+  " keep blamer off outside a git work tree so its async refresh timer doesn't
+  " echo '[blamer.nvim] Not a git repository' (a hit-enter prompt) on files like ~/.releaserc.js
+  function! s:BlamerGitGuard() abort
+    if &buftype !=# '' | return | endif
+    let l:dir = expand('%:p:h')
+    if empty(l:dir) | return | endif
+    let g:blamer_enabled = (!empty(finddir('.git', l:dir . ';')) || !empty(findfile('.git', l:dir . ';'))) ? 1 : 0
+  endfunction
+  augroup blamerGitGuard
+    autocmd!
+    autocmd BufEnter,BufWinEnter * call s:BlamerGitGuard()
+  augroup END
 else
   let g:blamer_enabled            = 0
 endif

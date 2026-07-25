@@ -4,7 +4,7 @@
 #     FileName : git-nb
 #       Author : marslo
 #      Created : 2026-03-16 15:45:59
-#   LastChange : 2026-05-04 19:46:31
+#   LastChange : 2026-07-16 18:32:52
 #  Description : create a [n]ew [b]ranch with the Jira ID
 #=============================================================================
 
@@ -23,6 +23,20 @@ test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :
 function die()     { echo -e "$(c R)ERROR:$(c) $(c 0Wi)$*$(c)" >&2; exit 1; }
 function info()    { echo -e "$(c Wd)>> $(c 0Wdi)$1: $(c 0C)$2 $(c 0Wdi)...$(c)" >&2; }
 function isRepo()  { git rev-parse --git-dir >/dev/null 2>&1 || die 'not a git repo !'; }
+
+# ensure an option ($1) is followed by a real value ($2), not missing nor another option
+function needArg() { [[ -n "${2:-}" && "$2" != -* ]] || die "'$1' requires a value"; }
+
+# resolve the branch prefix:
+#   - sandbox/marslo/JIRA_ID or user/marslo/JIRA_ID
+#   - auto-selected `user` for the `ORG/DEVOPS` repo
+function getPrefix() {
+  test -n "${PREFIX}" && { echo "${PREFIX}"; return 0; }
+
+  local url=''
+  url=$(git remote get-url origin 2>/dev/null) || url=''
+  [[ "${url}" == *'ORG/DEVOPS'* ]] && echo 'user' || echo 'sandbox'
+}
 
 # add `-n` automatically base on local and remote branches
 function getName() {
@@ -69,15 +83,31 @@ function getName() {
 function main() {
   local jira=''
 
-  [[ " ${JIRA_OPTS[*]} " != *' --project '* ]] && JIRA_OPTS+=( --project 'DEVOPS' )
-  [[ " ${JIRA_OPTS[*]} " != *' --return '*  ]] && JIRA_OPTS+=( --return 'full'    )
-  jira=$( jira ls "${JIRA_OPTS[@]}" 2>/dev/null )
+  if [[ -z "${SUFFIX}" ]]; then
+    [[ " ${JIRA_OPTS[*]} " != *' --project '* ]] && JIRA_OPTS+=( --project 'IPBUSW' )
+    [[ " ${JIRA_OPTS[*]} " != *' --return '*  ]] && JIRA_OPTS+=( --return 'full'    )
+    jira=$( jira ls "${JIRA_OPTS[@]}" 2>/dev/null )
 
-  test -n "${jira}" || die "no JIRA issue found !"
-  [[ "${VERBOSE}" -ge 1 ]] && { info 'jira issue selected' "${jira}"; } || :
-  jiraId="${jira%%:*}"
+    test -n "${jira}" || die "no JIRA issue found !"
+    [[ "${VERBOSE}" -ge 1 ]] && { info 'jira issue selected' "${jira}"; } || :
+    SUFFIX="${jira%%:*}"
+  else
+    [[ "${VERBOSE}" -ge 1 ]] && { info 'suffix provided' "${SUFFIX}"; } || :
+  fi
 
-  branch="$(getName "sandbox/marslo/${jiraId}")"
+  local prefix='' base=''
+  prefix="$(getPrefix)"
+  [[ "${VERBOSE}" -ge 1 ]] && info 'branch prefix' "${prefix}" || :
+
+  # owner segment rules:
+  #   - sandbox/user  : personal namespaces, always include owner (default `marslo`)
+  #   - other prefixes: flat by default, include owner only when `--owner` is given
+  local owner="${OWNER}"
+  case "${prefix}" in
+    sandbox | user ) owner="${owner:-marslo}" ;;
+  esac
+  [[ -n "${owner}" ]] && base="${prefix}/${owner}/${SUFFIX}" || base="${prefix}/${SUFFIX}"
+  branch="$(getName "${base}")"
   [[ "${VERBOSE}" -ge 1 ]] && info 'creating branch' "${branch}" || :
   local -a cmd=( git )
   "${CHECKOUT}" && cmd+=( checkout -b ) || cmd+=( branch )
@@ -99,6 +129,14 @@ SYNOPSIS
   $(c Ys)\$ ${ME} $(c 0G)[OPTIONS]$(c)
 
 OPTIONS
+  $(c G)-P$(c), $(c G)--prefix $(c 0Mi)STRING$(c)     use $(c 0Mi)STRING$(c) as the branch prefix, e.g. $(c 0i)feature$(c), $(c 0i)issue$(c)
+                          $(c 0Wdi)• $(c 0Mi)sandbox$(c)/$(c 0Mi)user$(c)      $(c 0Wdi)=> personal namespace$(c) $(c 0Ci)PREFIX/OWNER/SUFFIX$(c)
+                          $(c 0Wdi)• $(c 0Wi)any other prefix  $(c 0Wdi)=> flat$(c)                     $(c 0Ci)PREFIX/SUFFIX$(c)
+    $(c G)-s$(c), $(c G)--sandbox$(c)         shortcut for $(c 0Gi)--prefix sandbox$(c) $(c 0i)(default)$(c)
+    $(c G)-u$(c), $(c G)--user$(c)            shortcut for $(c 0Gi)--prefix user$(c), $(c 0Wdi)(auto-selected for the$(c) $(c 0Ci)ORG/DEVOPS$(c) $(c 0Wdi)repo)$(c)
+  $(c G)-O$(c), $(c G)--owner $(c 0Mi)STRING$(c)      insert $(c 0Mi)STRING$(c) as the owner segment => $(c 0Ci)PREFIX/$(c 0Mi)OWNER$(c 0Ci)/SUFFIX$(c)
+                          $(c 0Wdi)(sandbox/user default to$(c) $(c 0Yi)marslo$(c)$(c 0Wdi); use this for other prefixes too)$(c)
+  $(c G)-S$(c), $(c G)--suffix $(c 0Mi)STRING$(c)     use $(c 0Mi)STRING$(c) as the branch suffix instead of querying \`jira ls\` for the Jira ID
   $(c G)-c$(c), $(c G)--checkout$(c)          create and checkout the new branch $(c 0i)(default)$(c)
   $(c G)-C$(c), $(c G)--no-checkout$(c)       only create the new branch without checkout
   $(c G)-y$(c), $(c G)--yes$(c)               non-interactive mode, do not ask for confirmation $(c 0i)(default)$(c)
@@ -110,27 +148,45 @@ OPTIONS
 ENVIRONMENT VARIABLES
   • $(c 0Ci)\`GIT_NB_INTERACTIVE\`$(c): $(c 0Wdi)set the default interactive mode for the script$(c)
                           $(c 0Ci)true $(c 0Wdi)== $(c 0Gi)-y/--yes$(c 0Wdi), and $(c 0Ci)false $(c 0Wdi)== $(c 0Gi)-i/--interactive$(c)
+  • $(c 0Ci)\`GIT_NB_OWNER\`$(c):       $(c 0Wdi)default owner segment $(c 0i)(same as $(c 0Gi)-O/--owner$(c 0i); sandbox/user fallback to $(c 0Yi)marslo$(c))$(c)
 
 EXAMPLES
   $(c Wdi)# create branch with closed JIRA issue$(c)
   $(c Ys)\$ ${ME} $(c 0Csi)-- $(c 0Mi)--closed$(c)
+
+  $(c Wdi)# create branch feature/test$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--prefix $(c 0Mi)feature $(c 0Gi)--suffix $(c 0Mi)test$(c)
+
+  $(c Wdi)# create branch issue/team/abc$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--prefix $(c 0Mi)issue $(c 0Gi)--owner $(c 0Mi)team $(c 0Gi)--suffix $(c 0Mi)abc$(c)
+
+  $(c Wdi)# create branch sandbox/marslo/test - bypass Jira Check$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--suffix $(c 0Mi)test$(c)
 "
 
 declare VERBOSE=0
 declare CHECKOUT=true
 declare INTERACTIVE="${GIT_NB_INTERACTIVE:-true}"
+declare PREFIX=''
+declare SUFFIX=''
+declare OWNER="${GIT_NB_OWNER:-}"
 declare -a JIRA_OPTS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -c | --checkout    ) CHECKOUT=true              ; shift   ;;
-    -C | --no-checkout ) CHECKOUT=false             ; shift   ;;
-    -y | --yes         ) INTERACTIVE=false          ; shift   ;;
-    -i | --interactive ) INTERACTIVE=true           ; shift   ;;
-    -v | -vv           ) VERBOSE=$(( ${#1} - 1 ))   ; shift   ;;
-    -h                 ) echo -e "${USAGE}" >&2     ; exit 0  ;;
+    -s | --sandbox     ) PREFIX='sandbox'          ; shift    ;;
+    -u | --user        ) PREFIX='user'             ; shift    ;;
+    -c | --checkout    ) CHECKOUT=true             ; shift    ;;
+    -C | --no-checkout ) CHECKOUT=false            ; shift    ;;
+    -y | --yes         ) INTERACTIVE=false         ; shift    ;;
+    -i | --interactive ) INTERACTIVE=true          ; shift    ;;
+    -P | --prefix      ) needArg "$1" "${2:-}"     ; PREFIX="$2" ; shift 2 ;;
+    -S | --suffix      ) needArg "$1" "${2:-}"     ; SUFFIX="$2" ; shift 2 ;;
+    -O | --owner       ) needArg "$1" "${2:-}"     ; OWNER="$2"  ; shift 2 ;;
+    -v | -vv           ) VERBOSE=$(( ${#1} - 1 ))  ; shift    ;;
+    -h                 ) echo -e "${USAGE}" >&2    ; exit 0   ;;
     --                 ) shift
                          if [[ "${1:-}" == '--help' || "${1:-}" == '-h' ]]; then
-                           echo -e "${USAGE}" >&2   ; exit 0  ;
+                           echo -e "${USAGE}" >&2  ; exit 0   ;
                          fi
                          JIRA_OPTS+=( "$@" ); shift $#; break ;;
     *                  ) die "unknown option '$1'"            ;;

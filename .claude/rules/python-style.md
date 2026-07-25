@@ -1,0 +1,139 @@
+# Python Style
+
+> Migrated from `~/.cursor/rules/python-style.mdc` (Cursor scope `globs: **/*.py`).
+> Claude Code loads this globally, not glob-scoped — apply it when writing or editing Python.
+
+Write **Pythonic** Python 3 that follows PEP8. Prefer clear, idiomatic
+expressions over manual loops and defensive boilerplate.
+
+## 1. New file header
+
+Every new `.py` file starts with this exact preamble (shebang, encoding,
+module docstring, and a trailing vim modeline):
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+""" docstring """
+
+# vim:tabstop=4:softtabstop=4:shiftwidth=4:expandtab:filetype=python:
+```
+
+### Docstring quoting — single- vs multi-line
+
+- **Single-line** — text and both `"""` on one line, space-padded:
+
+  ```python
+  """ Return the tidy, cwd-relative display path. """
+  ```
+
+- **Multi-line** — opening `"""` on its own line, body on the following line(s),
+  closing `"""` on its own line:
+
+  ```python
+  """
+  Distil raw log text at the given level.
+
+  Cumulative: L1 clean · L2 dedup+denoise · L3 heavy.
+  """
+  ```
+
+## 2. Indentation & line length
+
+- **One tab = 4 spaces**, `expandtab` (never hard tabs) — `E101/W191`.
+- Max line length 79 (`E501`).
+
+## 3. Bracket spacing (marslo convention — overrides PEP8)
+
+Pad the **inner** side of the **outermost** bracket pair (`()` / `[]`) with one
+space on each side. A single bracket is padded too; nested inner pairs stay tight.
+
+```python
+( xxx )                     # ✅ single bracket → padded
+( xxx(yyy) )                # ✅ nested → outer padded, inner tight
+spam( ham[1], {eggs: 2} )   # ✅ outermost () padded, inner []/{} tight
+def munge( sep: str = None ): ...   # ✅ padded; keyword-arg = keeps no space
+income = ( gross_wages
+           + taxable_interest       # ✅ break before binary operators
+           - ira_deduction )
+spam (1)                    # ❌ no space before the bracket (E211)
+( xxx( yyy ) )              # ❌ inner pair must stay tight
+```
+
+> ⚠ This intentionally contradicts pycodestyle `E201/E202`. If the `pycodestyle`
+> pre-commit hook is enabled, add `--ignore=E201,E202` (keep `E211`).
+
+## 4. Other whitespace (PEP8)
+
+- One space around operators & after commas; none around keyword-arg `=`.
+- No space before `,` / `;` / `:` (`E203`).
+
+## 5. Imports (PEP8)
+
+One module per line, absolute imports, at top of file — never `from x import *`.
+
+```python
+import os                             # ✅
+import sys
+from mypkg.sibling import example
+import os, sys                        # ❌ E401
+```
+
+## 6. Prefer idioms over manual loops
+
+```python
+# ✅ Pythonic                                   # ❌ non-Pythonic
+sq = [x*x for x in range(10) if x % 3 == 0]     # manual append loop
+total = sum(nums); hi = max(nums)               # accumulator loops
+dic = dict(zip(keys, values))                   # enumerate + index assign
+a, b = b, a                                     # temp-var swap
+' '.join(str_list)                              # += with trailing space
+for i, item in enumerate(seq): ...              # range(len(seq)) indexing
+rev = s[::-1]                                   # reversed-build loop
+b = 2 if a > 2 else 1                           # if/else block for one value
+count = collections.Counter(items)              # manual tally dict
+val = dic.get(key, default)                     # if key in dic ... else
+```
+
+## 7. Comparisons & truthiness (PEP8)
+
+```python
+if foo is not None: ...          # ✅ not `if not foo is None`   (E714)
+if seq: ...                      # ✅ not `if len(seq)`          (E712)
+if greeting: ...                 # ✅ not `== True` / `is True`
+if isinstance(obj, int): ...     # ✅ not `type(obj) is type(1)` (E721)
+if x not in items: ...           # ✅ not `not x in items`       (E713)
+1 <= b <= a < 10                 # ✅ chained comparison
+```
+
+## 8. Functions & definitions
+
+- Use `def` for named behavior; don't bind a `lambda` to a name (`E731`).
+- Never use a **mutable default arg**; default to `None` and build inside.
+- One statement per line — no `if x: a(); b()` or trailing `;` (`E701/E702/E703`).
+
+```python
+def f(x): return 2*x                    # ✅ not  f = lambda x: 2*x
+def foo(x=None):                        # ✅ mutable default guard
+    if x is None:
+        x = []
+    x.append(1)
+```
+
+## 9. Errors, resources & docstrings
+
+- Keep `try` bodies narrow; use `except/else/finally`; catch specific exceptions.
+- Manage resources with `with`; use triple-quoted docstrings for public APIs.
+
+```python
+try:
+    value = collection[key]             # ✅ only the risky call
+except KeyError:
+    return key_not_found(key)
+else:
+    return handle_value(value)
+
+with open('foo.txt', 'w') as f:         # ✅ context manager
+    f.write('hello!')
+```

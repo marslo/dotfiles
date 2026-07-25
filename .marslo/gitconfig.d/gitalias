@@ -2,7 +2,7 @@
 #     FileName : gitalias
 #       Author : marslo
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2026-05-18 23:28:52
+#   LastChange : 2026-07-23 05:23:20
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -61,7 +61,7 @@
   pl          = !git -c log.decorate=short --no-pager log --color --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:"'%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(auto)%d%C(reset) %s %C(green)(%cr) %C(italic blue)<%an>%C(reset) %C(italic #6971a3)(%G?)%C(reset)'"
   pls         = !git -c log.decorate=full log --decorate --color --graph --abbrev-commit --date=relative --pretty=tformat:"'%C(#678963)%h%C(reset) %C(dim white)-%C(reset)%C(auto)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr)%C(reset) %C(italic blue)<%an>%C(reset) %C(italic #6971a3)(%G?)%C(reset)'"
   ### [p]revious branch [p]retty [l]og
-  ppl         = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git --no-pager log --color=always --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:\"%C(#678963)%h%C(reset) -%C(yellow)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" @{-1} \"$@\" | git_color_gpg' -"
+  ppl         = "!bash -c 'source $HOME/.marslo/bin/ig.sh; git --no-pager log --color=always --graph --abbrev-commit --date=relative --max-count=3 --pretty=tformat:\"%C(#678963)%h%C(reset) -%C(auto)%d%C(reset) %C(dim white)%s%C(reset) %C(green)(%cr) %C(italic blue)<%an>%C(reset) GPG_STATUS_%G?\" @{-1} \"$@\" | git_color_gpg' -"
   ### [f]ull [p]retty [l]log
   fpl         = "!bash -c '\
                   source $HOME/.marslo/bin/ig.sh; \
@@ -70,10 +70,10 @@
   fl          = log -p --graph --color
   dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format="'%C(6)%h%C(reset) %C(yellow)(%ad)%C(reset) %s %C(blue)<%an>%C(reset)'"
   # usage : git notes --ref=linrev add -m "<message>" <commit>
-  revlog      = log --max-count=3 --color --graph --abbrev-commit --date=relative --notes=linrev --pretty=tformat:"'%C(bold red)%h%C(reset) -%C(yellow)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)%n'""'           %C(italic white)%N%C(reset)'"
+  revlog      = log --max-count=3 --color --graph --abbrev-commit --date=relative --notes=linrev --pretty=tformat:"'%C(bold red)%h%C(reset) -%C(auto)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)%n'""'           %C(italic white)%N%C(reset)'"
   ### showing all branches and their relationships
   clog        = log --color --graph --all --decorate --simplify-by-decoration --oneline
-  tree        = log --color --graph --all --decorate --abbrev-commit --pretty=oneline --format=format:"'%C(bold blue)%h%C(reset) - %C(green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- <%an>%C(reset)%C(italic yellow)%d%C(reset)'"
+  tree        = log --color --graph --all --decorate --abbrev-commit --pretty=oneline --format=format:"'%C(bold blue)%h%C(reset) - %C(green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- <%an>%C(reset)%C(auto)%d%C(reset)'"
   ### [r]emote [log]
   rlog        = "!bash -c 'while read branch; do \n\
                               git fetch --all --force; \n\
@@ -199,7 +199,7 @@
                             git push --delete origin ${branch} && \
                             printf \"\\033[1;35;3m~~> pushing to remotes/origin/${branch} ...\\033[0m\n\"; \
                           fi; \
-                          git push -u --force origin ${branch}; \
+                          git push -u --force-with-lease origin ${branch}; \
                         fi; \n\
                       }; f \
                 "
@@ -223,6 +223,36 @@
                           ' \n\
                 "
   # }}}
+
+
+  #-----------------------#
+  # commit && PR          #
+  #-----------------------#
+  # append (#ID) to the current commit's subject; skip if already present; keep original body
+  pr-stamp    = "!f() { \
+                        id=\"$1\"; \
+                        subj=\"$(git log -1 --format=%s)\"; \
+                        case \"${subj}\" in *\"(#$id)\") return 0 ;; esac; \
+                        body=\"$(git log -1 --format=%b)\"; \
+                        if [ -n \"${body}\" ]; then \
+                          git commit --amend -m \"${subj} (#${id})\" -m \"${body}\"; \
+                        else \
+                          git commit --amend -m \"${subj} (#${id})\"; \
+                        fi; \
+                      }; f \
+                "
+
+  # stamp (#ID) onto every commit in base..HEAD and rebase onto base (auto-detect the PR's base branch by default)
+  pr-rebase   = "!f() { \
+                        id=\"$1\"; base=\"$2\"; \
+                        if test -z \"${id}\"; then echo 'usage: git pr-rebase <ID> [base-branch]' >&2; return 1; fi; \
+                        if test -z \"${base}\"; then base=\"$(gh pr view \"${id}\" --json baseRefName -q .baseRefName 2>/dev/null)\"; fi; \
+                        if test -z \"${base}\"; then base=main; fi; \
+                        echo \"rebase PR #$id onto origin/$base\" >&2; \
+                        git fetch origin \"${base}\" && \
+                        git rebase \"origin/${base}\" --exec \"git pr-stamp ${id}\"; \
+                      }; f \
+                "
 
   #-----------------------#
   # Change-Id             #
@@ -516,7 +546,7 @@
                           git fetch --all --prune --prune-tags --force; \
                         fi; \
                         git reset --hard remotes/${remote}/${branch}; \
-                        git clean -dffx -e .tags; \
+                        git clean -dffx -e .tags -e .claude -e .cursor; \
                         if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \
                           git submodule foreach --recursive git clean -dffx; \
                           git submodule foreach --recursive git reset --hard; \

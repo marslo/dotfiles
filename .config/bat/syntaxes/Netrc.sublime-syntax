@@ -1,0 +1,57 @@
+%YAML 1.2
+---
+# .netrc / _netrc credential file highlighting
+# https://www.gnu.org/software/inetutils/manual/html_node/The-_002enetrc-file.html
+name: Netrc
+file_extensions:
+  - netrc
+  - authinfo
+hidden_file_extensions:
+  - .netrc
+  - _netrc
+scope: source.netrc
+
+variables:
+  value: '\S+'
+
+contexts:
+  main:
+    # comments (start with #)
+    - match: '#.*$'
+      scope: comment.line.number-sign.netrc
+
+    # macdef <name> : macro definition, body runs until a blank line
+    - match: '^\s*(macdef)\s+({{value}})?'
+      captures:
+        1: keyword.control.netrc
+        2: entity.name.function.netrc
+      push: macdef_body
+
+    # machine <host>
+    - match: '\b(machine)\b\s+({{value}})?'
+      captures:
+        1: keyword.control.netrc
+        2: entity.name.namespace.host.netrc
+
+    # default (the catch-all entry, takes no argument)
+    - match: '\b(default)\b'
+      scope: keyword.control.netrc
+
+    # login <name>
+    - match: '\b(login)\b\s+({{value}})?'
+      captures:
+        1: keyword.other.netrc
+        2: string.unquoted.name.netrc
+
+    # password / account <secret>
+    - match: '\b(password|account)\b\s+({{value}})?'
+      captures:
+        1: keyword.other.netrc
+        2: string.unquoted.secret.netrc
+
+  # macro body: everything up to the first empty line belongs to the macro
+  macdef_body:
+    - match: '^\s*$'
+      pop: true
+    - match: '.*$'
+      scope: string.unquoted.macro.netrc

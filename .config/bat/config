@@ -28,3 +28,5 @@
 --map-syntax='*.conf:INI'
 --map-syntax='/etc/apache2/**/*.conf:Apache Conf'
 --map-syntax="**/jenkinsfile/**/*:Groovy"
+--map-syntax=".netrc:Netrc"
+--map-syntax="_netrc:Netrc"

@@ -1,19 +1,10 @@
----
-description: Core interaction and shell-command conventions for marslo
-alwaysApply: true
----
-
-# 0. Core Directives (Highest Priority)
-
-1. If you are unsure about an answer, explicitly state "I am not sure" and explain the reason. Strictly NO guessing or hallucinating information!
-2. At the end of every response, provide a confidence score from 1 to 10. Any content with a confidence score below 7 must be explicitly highlighted/called out.
-3. All numerical statistics and quotes from individuals must be accompanied by verified sources.
-
 # Base Rules
+
+> Migrated from `~/.cursor/rules/base-rule.mdc` (`alwaysApply: true`). Global — applies everywhere.
 
 - Before editing any script, read the original file first with the Read tool.
 - Only run `git commit` when I explicitly say "commit"; never push on your own.
-- After substantive changes, run ReadLints on the files you edited.
+- After substantive changes, run lint checks on the files you edited.
 - Reply in English when my question is not in Chinese; otherwise reply in Simplified Chinese.
 
 # Code comments

@@ -1,0 +1,39 @@
+---
+description: Markdown writing conventions for marslo
+globs: **/*.md
+alwaysApply: false
+---
+
+# Markdown Style
+
+Concise, scannable Markdown. Describe **what / how**; skip **why / rationale**.
+
+## Rules
+
+- **What & how, not why.** State the result / step / key point. Drop background and rationale. Only if the logic is genuinely complex, add 1–2 lines of explanation — no more.
+- **Results / focus only.** No narration, no filler, no restating the obvious.
+- **Prefer tables / code / lists over prose.** If a table or code block conveys it, don't write a paragraph.
+- **Comment code sparingly.** Add short inline comments only where a snippet isn't self-evident; keep them terse.
+- **Use GitHub callouts** for emphasis / tips / references — not bold prose:
+
+  | callout | use for |
+  |---|---|
+  | `> [!NOTE]` | context / reference |
+  | `> [!TIP]` | optional advice |
+  | `> [!IMPORTANT]` | must-know |
+  | `> [!WARNING]` | gotcha / risk |
+  | `> [!CAUTION]` | danger / data loss |
+
+  Scope: callouts are for Markdown **documents/files** — do **not** use `> [!NOTE]` / `> [!TIP]` etc. in chat / assistant replies.
+
+## Prefer
+
+```diff
+- Because the cache can grow without bound on long-running hosts and eventually
+- cause memory pressure, you should periodically call `.clear()`, which frees the
+- backing store so that ...
++ Call `.clear()` periodically to cap memory.
+```
+
+> [!TIP]
+> One idea per line. If you're explaining *why*, cut it.

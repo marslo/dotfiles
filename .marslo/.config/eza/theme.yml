@@ -219,7 +219,7 @@ filenames:
       glyph: "λ"
   ".github":
     icon:
-      glyph: ""
+      glyph: ""
   ".git":
     icon:
       glyph: ""

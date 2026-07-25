@@ -6,7 +6,7 @@
   "groovy.enable": true,
   // $ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk,
   // "groovy.java.home": "/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home",
-  "groovy.java.home": "/opt/homebrew/Cellar/openjdk@21/21.0.11/libexec/openjdk.jdk/Contents/Home",
+  "groovy.java.home": "/opt/homebrew/Cellar/openjdk@21/21.0.12/libexec/openjdk.jdk/Contents/Home",
   "groovy.project.referencedLibraries": [
     "/opt/groovy/global-libs/groovy/*",
     "/opt/groovy/global-libs/jenkins/*",

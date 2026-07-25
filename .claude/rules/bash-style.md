@@ -1,10 +1,7 @@
----
-description: Bash scripting style conventions for marslo
-globs: **/*.sh
-alwaysApply: false
----
-
 # Bash Style
+
+> Migrated from `~/.cursor/rules/bash-style.mdc` (Cursor scope `globs: **/*.sh`).
+> Claude Code loads this globally, not glob-scoped — apply it when writing or editing Bash scripts.
 
 Apply these conventions when writing or editing Bash scripts.
 
