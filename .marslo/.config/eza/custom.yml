@@ -11,6 +11,9 @@ filenames:
   "COPYRIGHT": { icon: { glyph: "\U000F05E6" } }
   ".copilot": { icon: { glyph: "\uF4B8" } }
   "install": { icon: { glyph: "\U000F1183" } }
+  "install.sh": { icon: { glyph: "\U000F1183" } }
+  "bootstrap.sh": { icon: { glyph: "\U000F0DFA" } }
+  "install.ps1": { icon: { glyph: "\U000F1183" } }
   "uninstall": { icon: { glyph: "\U000F1183" } }
   "kubeadm-cfg.yml": { icon: { glyph: "\uE81D" } }
   "README.md": { icon: { glyph: "\uF486" } }

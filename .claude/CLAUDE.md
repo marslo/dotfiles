@@ -1,6 +1,6 @@
 # marslo — global Claude Code rules
 
-Machine-wide rules for every project (the Claude Code analog of `~/.cursor/rules/`). Each rule lives in `~/.claude/rules/*.md` and is imported below; `base-rule` is the always-on entry, the rest are language-specific.
+Machine-wide rules for every project (the Claude Code analog of `~/.cursor/rules/`). Each rule lives in `~/.claude/rules/*.md` and is imported below;
 `base-rule` is the always-on entry, the rest are language-specific.
 
 > Note: unlike Cursor's per-glob `.mdc`, these imports are **always** loaded into

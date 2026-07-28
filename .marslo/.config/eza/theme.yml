@@ -205,6 +205,15 @@ filenames:
   "install":
     icon:
       glyph: "\U000F1183"
+  "install.sh":
+    icon:
+      glyph: "\U000F1183"
+  "bootstrap.sh":
+    icon:
+      glyph: "\U000F0DFA"
+  "install.ps1":
+    icon:
+      glyph: "\U000F1183"
   "uninstall":
     icon:
       glyph: "\U000F1183"
