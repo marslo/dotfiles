@@ -2,14 +2,9 @@
 // Self-contained changelog config.
 //
 // WHY THE TEMPLATES ARE INLINED HERE:
-//   @semantic-release/release-notes-generator renders with the Handlebars-based
-//   conventional-changelog-writer. conventional-changelog-conventionalcommits
-//   >= 9 dropped its Handlebars writerOpts in favour of @conventional-changelog/
-//   template, which release-notes-generator does NOT use — so with preset >= 9
-//   the section grouping silently disappears (flat list, no "### Features").
-//   To stay compatible with ANY preset version (8, 9, 10, …) we supply the full
-//   Handlebars writerOpts (mainTemplate / headerPartial / commitPartial) and the
-//   grouping ourselves; the preset is then only used for its commit PARSER.
+//   @semantic-release/release-notes-generator renders with the Handlebars-based conventional-changelog-writer.
+//   conventional-changelog-conventionalcommits >= 9 dropped its Handlebars writerOpts in favour of @conventional-changelog/ template, which release-notes-generator does NOT use — so with preset >= 9 the section grouping silently disappears (flat list, no "### Features").
+//   To stay compatible with ANY preset version (8, 9, 10, …) we supply the full Handlebars writerOpts (mainTemplate / headerPartial / commitPartial) and the grouping ourselves; the preset is then only used for its commit PARSER.
 // =============================================================================
 
 const SECTIONS = [
@@ -28,7 +23,7 @@ const SECTION_ORDER   = SECTIONS.map(s => s.section);
 const isSignoff       = (line) => /^\s*Signed-off-by:/i.test(line);
 const stripSignoff    = (text) => (text || '').split('\n').filter(l => !isSignoff(l)).join('\n').trim();
 
-// ── Handlebars templates (writer-8 compatible; vendored from the conventional - commits preset so they work regardless of the installed preset major) ──
+// ── Handlebars templates (writer-8 compatible; vendored from the conventional-commits preset so they work regardless of the installed preset major) ──
 const mainTemplate = `{{> header}}
 {{#if noteGroups}}
 {{#each noteGroups}}
@@ -86,8 +81,11 @@ module.exports = {
       "presetConfig": { "types": SECTIONS },
       "writerOpts": {
         "groupBy": "type",
-        // order sections as listed in SECTIONS (not alphabetically)
-        "commitGroupsSort": (a, b) => SECTION_ORDER.indexOf(a.title) - SECTION_ORDER.indexOf(b.title),
+        // order sections as listed in SECTIONS (not alphabetically); unknown types go last
+        "commitGroupsSort": (a, b) => {
+          const rank = (t) => { const i = SECTION_ORDER.indexOf(t); return i === -1 ? SECTION_ORDER.length : i; };
+          return rank(a.title) - rank(b.title);
+        },
         "commitsSort": ["header", "subject"],
         "noteGroupsSort": "title",
         "mainTemplate": mainTemplate,
@@ -102,14 +100,19 @@ module.exports = {
             c.type = TYPE_TO_SECTION[c.type];
           }
 
-          // drop Signed-off-by trailers from body / footer / notes
-          if (c.body) {
-            const lines = c.body.split('\n').filter(l => !isSignoff(l));
-            c.body = lines.length > 0 ? lines.map(l => '  ' + l).join('\n') : null;
-          }
-          if (c.footer) {
-            c.footer = stripSignoff(c.footer) || null;
-          }
+          // the parser may split trailing body lines into `footer` (e.g. a bullet containing an issue-like "#N");
+          // fold body + footer back together, drop Signed-off-by, and indent non-empty lines so every detail stays in the commit's sub-list (blank lines kept empty to avoid trailing whitespace)
+          const detail = [c.body, c.footer]
+            .filter(Boolean)
+            .join('\n')
+            .split('\n')
+            .filter(l => !isSignoff(l));
+          c.body = detail.some(l => l.trim() !== '')
+            ? detail.map(l => l.trim() === '' ? '' : '  ' + l).join('\n')
+            : null;
+          c.footer = null;
+
+          // drop Signed-off-by trailers from notes
           if (Array.isArray(c.notes)) {
             c.notes = c.notes
               .map(n => ({ ...n, text: stripSignoff(n.text) }))
