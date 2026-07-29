@@ -18,6 +18,10 @@ Machine-wide rules for every project (the Claude Code analog of `~/.cursor/rules
 第二条: 每次回答完后, 请为你的信心指数打分, 1 到 10 分, 任何低于 7 分的内容都要专门标注出来
 第三条: 针对所有的数字统计数据和人物言论必须提供经过验证的来源
 
+**CRITICAL RULE**:
+If not explicitly asked to commit, !!NEVER!! run git commit for any message. Provide the message if necessary, but unless explicitly instructed, you must absolutely not run git commit!
+如果没有明确的让你提交, !!切勿!! git commit 任何 message. 如果有必要提供就行, 除非我显式的让你提交, 否则一律不得 git commit!
+
 @rules/base-rule.md
 @rules/bash-style.md
 @rules/python-style.md

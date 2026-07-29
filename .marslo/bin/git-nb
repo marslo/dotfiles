@@ -4,7 +4,7 @@
 #     FileName : git-nb
 #       Author : marslo
 #      Created : 2026-03-16 15:45:59
-#   LastChange : 2026-07-16 18:32:52
+#   LastChange : 2026-07-28 22:17:22
 #  Description : create a [n]ew [b]ranch with the Jira ID
 #=============================================================================
 
@@ -81,6 +81,10 @@ function getName() {
 }
 
 function main() {
+  if [[ -n "${START_POINT}" ]]; then
+    git rev-parse --verify --quiet "${START_POINT}^{commit}" >/dev/null || die "invalid start point: '${START_POINT}'"
+  fi
+
   local jira=''
 
   if [[ -z "${SUFFIX}" ]]; then
@@ -112,6 +116,7 @@ function main() {
   local -a cmd=( git )
   "${CHECKOUT}" && cmd+=( checkout -b ) || cmd+=( branch )
   cmd+=( "${branch}" )
+  [[ -n "${START_POINT}" ]] && cmd+=( "${START_POINT}" )
 
   if "${INTERACTIVE}"; then
     read -rp "$(printf "\001$(c 0Wdi)\002create new branch \001$(c 0Cs)%s$(c 0Wdi)\002 in local ? \001$(c 0i)\002[y/N]\001$(c)\002" "${branch}") " response
@@ -126,7 +131,10 @@ declare -r USAGE="NAME
   $(c Ys)${ME}$(c) - create a $(c Ysi)n$(c)ew $(c Ysi)b$(c)ranch with the Jira ID
 
 SYNOPSIS
-  $(c Ys)\$ ${ME} $(c 0G)[OPTIONS]$(c)
+  $(c Ys)\$ ${ME} $(c 0G)[OPTIONS]$(c) $(c 0Mi)[START_POINT]$(c)
+
+START_POINT
+  The commit, tag, or branch to start the new branch from $(c 0i)(default: HEAD)$(c)
 
 OPTIONS
   $(c G)-P$(c), $(c G)--prefix $(c 0Mi)STRING$(c)     use $(c 0Mi)STRING$(c) as the branch prefix, e.g. $(c 0i)feature$(c), $(c 0i)issue$(c)
@@ -162,6 +170,9 @@ EXAMPLES
 
   $(c Wdi)# create branch sandbox/marslo/test - bypass Jira Check$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--suffix $(c 0Mi)test$(c)
+
+  $(c Wdi)# create branch from a specific tag or commit$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--suffix $(c 0Mi)test $(c 0Mi)v1.0.0$(c)
 "
 
 declare VERBOSE=0
@@ -170,6 +181,7 @@ declare INTERACTIVE="${GIT_NB_INTERACTIVE:-true}"
 declare PREFIX=''
 declare SUFFIX=''
 declare OWNER="${GIT_NB_OWNER:-}"
+declare START_POINT=''
 declare -a JIRA_OPTS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -189,7 +201,8 @@ while [[ $# -gt 0 ]]; do
                            echo -e "${USAGE}" >&2  ; exit 0   ;
                          fi
                          JIRA_OPTS+=( "$@" ); shift $#; break ;;
-    *                  ) die "unknown option '$1'"            ;;
+    -*                 ) die "unknown option '$1'"            ;;
+    *                  ) if [[ -z "${START_POINT}" ]]; then START_POINT="$1"; shift; else die "unknown argument: '$1'"; fi ;;
   esac
 done
 
