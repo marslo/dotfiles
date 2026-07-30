@@ -14,7 +14,7 @@ Concise, scannable Markdown. Describe **what / how**; skip **why / rationale**.
 - **Results / focus only.** No narration, no filler, no restating the obvious.
 - **Prefer tables / code / lists over prose.** If a table or code block conveys it, don't write a paragraph.
 - **Comment code sparingly.** Add short inline comments only where a snippet isn't self-evident; keep them terse.
-- **Use GitHub callouts** for emphasis / tips / references — not bold prose:
+- **Use GitHub callouts** for emphasis / tips / references — not bold prose (**files only**, **never in use chat/agent/assistant replies**). :
 
   | callout | use for |
   |---|---|
@@ -24,7 +24,7 @@ Concise, scannable Markdown. Describe **what / how**; skip **why / rationale**.
   | `> [!WARNING]` | gotcha / risk |
   | `> [!CAUTION]` | danger / data loss |
 
-  Scope: callouts are for Markdown **documents/files** — do **not** use `> [!NOTE]` / `> [!TIP]` etc. in chat / assistant replies.
+  Scope — **files only**: use callouts **only** when writing or editing an actual Markdown document/file (`*.md`, README, docs, etc.). In chat / assistant replies, **never** use `> [!NOTE]` / `> [!TIP]` etc. — even though the reply is rendered as Markdown, callout syntax is for files, not conversation.
 
 ## Prefer
 

@@ -14,26 +14,28 @@ Machine-wide rules for every project (the Claude Code analog of `~/.cursor/rules
 3. All numerical statistics and quotes from individuals must be accompanied by verified sources.
 
 请现在起遵守以下三条规则:
-第一条: 如果你对答案没有把握, 请直接说我不确定并解释原因, 严禁瞎猜假想!
-第二条: 每次回答完后, 请为你的信心指数打分, 1 到 10 分, 任何低于 7 分的内容都要专门标注出来
-第三条: 针对所有的数字统计数据和人物言论必须提供经过验证的来源
+
+1. 如果你对答案没有把握, 请直接说我不确定并解释原因, 严禁瞎猜假想!
+2. 每次回答完后, 请为你的信心指数打分, 1 到 10 分, 任何低于 7 分的内容都要专门标注出来
+3. 针对所有的数字统计数据和人物言论必须提供经过验证的来源
 
 **CRITICAL RULE**:
-If not explicitly asked to commit, !!NEVER!! run git commit for any message. Provide the message if necessary, but unless explicitly instructed, you must absolutely not run git commit!
-如果没有明确的让你提交, !!切勿!! git commit 任何 message. 如果有必要提供就行, 除非我显式的让你提交, 否则一律不得 git commit!
+
+- If not explicitly asked to commit, !!NEVER!! run git commit for any message. Provide the message if necessary, but unless explicitly instructed, you must absolutely not run git commit!
+- 如果没有明确的让你提交, !!切勿!! git commit 任何 message. 如果有必要提供就行, 除非我显式的让你提交, 否则一律不得 git commit!
 
 # 1. base-rule (always applied)
 
 1. Before editing any script, read the original file first with the Read tool.
 2. Only run `git commit` when I explicitly say "commit"; never push on your own.
 3. After substantive changes, run lint checks on the files you edited.
-4. Reply in English when my question is not in Chinese; otherwise reply in Simplified Chinese.
-
+4. Reply/Chat language — chat answers only: if I ask in Chinese, reply in Simplified Chinese; otherwise reply in English. (code comments are always English — see § 2.)
 
 # 2. Code comments
 
 Style for comments in any language (`#`, `//`, `/* */`, `--`, …).
 
+- language: **always English**, regardless of the conversation language (even when we're chatting in Chinese).
 - lowercase by default — no leading capital; keep uppercase only for terms that demand it: `ID`, `PR`, `URL`, `API`, `TTL`, `SHA`, acronyms, and proper names.
 - describe **what** it is or **what** it does — not **why**, not the underlying mechanism. prefer precise technical terms over prose.
 - no 80-column limit: put it on one line if one line says it; wrap only when a single line can't be clear, or when listing an `example` / multiple behaviors.
@@ -59,7 +61,6 @@ Both are color-aliased, so ALWAYS invoke them with the `command` prefix (i.e. `c
 
 Fallback: if the modern tool isn't installed (`command -v fd` / `command -v rg` fails), fall back to the default `find` / `grep`. Prefer a guarded one-liner,
 e.g. `command -v fd >/dev/null && command fd PATTERN || command find . -name PATTERN` and `command -v rg >/dev/null && command rg PATTERN || command grep -rn PATTERN`.
-
 
 ## 3.2. bypass color-injecting aliases
 
