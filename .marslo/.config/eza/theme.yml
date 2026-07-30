@@ -226,6 +226,15 @@ filenames:
   "SUMMARY.md":
     icon:
       glyph: "λ"
+  ".pypirc":
+    icon:
+      glyph: "\U000F0320"
+  ".netrc":
+    icon:
+      glyph: ""
+  ".shellcheckrc":
+    icon:
+      glyph: "\U000F1501"
   ".github":
     icon:
       glyph: ""
