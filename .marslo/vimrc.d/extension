@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-06-23 23:58:53
+"    LastChange : 2026-07-30 22:47:16
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -243,10 +243,14 @@ let g:indentLine_bufNameExclude       = ['_.*', 'NERD_tree.*']
 " cohama/lexima.vim
 let g:lexima_enable_basic_rules = 1
 " suppress auto-pair unless next char is whitespace, closing bracket/quote, or EOL (priority 1)
-let s:block_chars = ['(', '[', '{', '"', "'", '`', '<']
 let s:suppress_regex = '\%#\%(\\["''`]\)\@![^ \t)}\]>"''`/]'
-for s:char in s:block_chars
+for s:char in ['"', "'", '`', '<']
   call lexima#add_rule({ 'char': s:char, 'at': s:suppress_regex, 'priority': 1 })
+endfor
+" brackets additionally suppress before quotes: `print|"..."` + `(` => `print(|"..."` (no closing `)`)
+let s:bracket_suppress = '\%#[^ \t)}\]>/]'
+for s:char in ['(', '[', '{']
+  call lexima#add_rule({ 'char': s:char, 'at': s:bracket_suppress, 'priority': 1 })
 endfor
 " suppress auto-pair for quotes when odd number on line (priority 1)
 for s:char in ['"', "'", '`']
@@ -260,6 +264,8 @@ call lexima#add_rule({ 'char': '`', 'at': '\%#`',  'leave': 1, 'priority': 2 })
 " \%# : after-cursor position
 " - < rule
 call lexima#add_rule({ 'char': '<', 'input_after': '>', 'at': '\%#\%(\w\|\s\|$\|)\|}\|]\|"\|''\|`\)' })
+" - << rule: typing < right after an auto-paired <> drops the > (e.g. left-shift `<<`) => `<<|`
+call lexima#add_rule({ 'char': '<', 'at': '<\%#>', 'input': '<', 'delete': 1, 'priority': 2 })
 " - > rule
 call lexima#add_rule({ 'char': '>', 'at': '\%#>', 'leave': 1 })
 " " "><"/ ">>><<<"
