@@ -21,7 +21,9 @@ filenames:
   ".pypirc": { icon: { glyph: "\U000F0320" } }
   ".netrc": { icon: { glyph: "\uF4BE" } }
   ".shellcheckrc": { icon: { glyph: "\U000F1501" } }
-  ".github": { icon: { glyph: "\uF1D3" } }
+  ".github": { icon: { glyph: "\uF408" } }
+  ".temp": { icon: { glyph: "\U000F0DB5" } }
+  "temp": { icon: { glyph: "\uE763" } }
   ".git": { icon: { glyph: "\uF1D2" } }
   ".kube": { icon: { glyph: "\uE81D" } }
   "log": { icon: { glyph: "\U000F1362" } }

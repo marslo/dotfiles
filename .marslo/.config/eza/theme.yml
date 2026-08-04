@@ -237,7 +237,13 @@ filenames:
       glyph: "\U000F1501"
   ".github":
     icon:
-      glyph: ""
+      glyph: ""
+  ".temp":
+    icon:
+      glyph: "\U000F0DB5"
+  "temp":
+    icon:
+      glyph: ""
   ".git":
     icon:
       glyph: ""
