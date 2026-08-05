@@ -4,7 +4,7 @@
 #     FileName : update.sh
 #       Author : marslo
 #      Created : 2025-11-14 19:43:32
-#   LastChange : 2026-05-12 01:49:26
+#   LastChange : 2026-08-04 17:36:28
 #=============================================================================
 
 set -euo pipefail
@@ -26,8 +26,12 @@ type -P gh      >/dev/null && { command gh completion -s bash            > "${HE
 type -P bat     >/dev/null && { command bat --completion bash            > "${HERE}"/bat.sh            ; info "bat"     ; }
 type -P pipx    >/dev/null && { command register-python-argcomplete pipx > "${HERE}"/pipx.sh           ; info "pipx"    ; }
 type -P pip     >/dev/null && { command pip completion --bash            > "${HERE}"/pip.sh            ; info "pip"     ; }
+# shellcheck disable=SC2016
+type -P pip     >/dev/null && { printf '\n%s\n' '_py_m_pip_completion() { [[ "${COMP_WORDS[1]}" == "-m" && "${COMP_WORDS[2]}" == "pip" ]] || return; if (( COMP_CWORD == 2 )); then COMPREPLY=(pip); return; fi; COMPREPLY=( $( COMP_WORDS="pip ${COMP_WORDS[*]:3}" COMP_CWORD=$(( COMP_CWORD - 2 )) PIP_AUTO_COMPLETE=1 pip 2>/dev/null ) ); }; complete -o default -F _py_m_pip_completion python python3 python3.14' >> "${HERE}/pip.sh"; info "python3 -m pip"; }
 type -P cheat   >/dev/null && { command cheat --completion bash          > "${HERE}"/cheat.sh          ; info "cheat"   ; }
 type -P smctl   >/dev/null && { command smctl completion bash            > "${HERE}"/completions/smctl ; info "smctl"   ; }
+type -P keyring >/dev/null && { command keyring --print-completion bash  > "${HERE}"/keyring.bash      ; info "keyring" ; }
+type -P tt      >/dev/null && { command tt completion bash               > "${HERE}"/tt.bash           ; info "tt"      ; }
 
 type -P poetry  >/dev/null && {
   command poetry completions bash | sed -E 's/_poetry_[a-f0-9]+_complete/_poetry_complete/g' > "${HERE}"/poetry.sh

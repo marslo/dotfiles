@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-07-30 22:47:16
+"    LastChange : 2026-08-04 19:13:24
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -51,7 +51,7 @@ Plug 'fracpete/vim-large-files'
 Plug 'Konfekt/FastFold'
 Plug 'kana/vim-textobj-user'
 Plug 'kana/vim-textobj-fold'
-Plug 'dhruvasagar/vim-table-mode'
+Plug 'marslo/vim-table-mode'
 Plug 'vim-autoformat/vim-autoformat'
 Plug 'honza/vim-snippets'                                           " coc-snippets
 Plug 'tomtom/tcomment_vim'
@@ -489,8 +489,7 @@ noremap <Leader>tm :TableModeToggle<CR>
 let g:table_mode_corner          = '|'
 let g:table_mode_header_fillchar = '-'
 let g:table_mode_align_char      = ':'
-let g:table_mode_corner          = '|'
-let g:table_mode_align_char      = ':'
+let g:table_mode_padding         = 1
 
 " godlygeek/tabular
 if exists( ':Tabularize' )

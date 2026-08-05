@@ -118,11 +118,11 @@ _poetry_complete()
             ;;
 
             ('python list')
-            opts="${opts} --all --implementation --managed"
+            opts="${opts} --all --free-threaded --implementation --managed"
             ;;
 
             ('python remove')
-            opts="${opts} --implementation"
+            opts="${opts} --free-threaded --implementation"
             ;;
 
             (remove)
@@ -217,4 +217,3 @@ _poetry_complete()
 }
 
 complete -o default -F _poetry_complete poetry
-complete -o default -F _poetry_complete /Users/marslo/.marslo/bash_completion.d/poetry

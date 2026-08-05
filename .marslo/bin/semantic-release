@@ -4,7 +4,7 @@
 #     FileName : semantic-release
 #       Author : marslo
 #      Created : 2025-06-17 23:02:43
-#   LastChange : 2026-05-14 18:57:01
+#   LastChange : 2026-08-04 19:13:47
 #=============================================================================
 
 set -euo pipefail
@@ -100,7 +100,7 @@ cmd+=( GIT_CONFIG_PARAMETERS="'commit.gpgsign=false' 'tag.gpgsign=false'" )
 [[ -n "${TOKEN}" ]] && cmd+=( "GITHUB_TOKEN=${TOKEN}" )
 cmd+=( GIT_BRANCH="${branch}" )
 [[ -n "${NPM_GLOBAL_ROOT}" ]] && cmd+=( NODE_PATH="${NPM_GLOBAL_ROOT}" )
-cmd+=( npx semantic-release --branch "${branch}" )
+cmd+=( npx semantic-release --branches "${branch}" )
 
 # rc lookup: cwd → repo root → default (~/.releaserc.{js,json})
 if ! compgen -G ".releaserc*" > /dev/null && ! compgen -G "release.config.*" > /dev/null; then

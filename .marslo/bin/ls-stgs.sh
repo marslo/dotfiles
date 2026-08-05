@@ -20,8 +20,8 @@ declare BUILD_NUMBER=''
 declare SHOW_MODE='failure'
 declare VERBOSE=0
 declare STEPS=0
-# results treated as "interesting" in --failure mode (add UNSTABLE|ABORTED if needed)
-declare BAD_RESULTS='FAILURE|NOT_BUILT'
+# results treated as "interesting" in --failure mode
+declare BAD_RESULTS='FAILURE|NOT_BUILT|UNSTABLE|ABORTED'
 declare STEP_IGNORE='^Print Message$'
 # shellcheck disable=SC2155
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
@@ -39,7 +39,7 @@ OPTIONS
   $(c 0G)-u$(c), $(c 0G)--url $(c 0Mi)<BUILD_URL>$(c)       full jenkins build url (classic/blueocean); parses host, job and build
   $(c 0G)-f$(c), $(c 0G)--failure$(c)               show only stages on paths containing FAILURE $(c 0i)($(c 0Ci)default$(c 0i))$(c)
   $(c 0G)-a$(c), $(c 0G)--all$(c)                   show all stages
-  $(c 0G)-s$(c), $(c 0G)--steps$(c)                 print sub-steps under each FAILURE/NOT_BUILT node $(c 0i)(via $(c 0Ci)/steps/$(c 0i) API)$(c)
+  $(c 0G)-s$(c), $(c 0G)--steps$(c)                 print sub-steps under each bad-result node $(c 0i)(via $(c 0Ci)/steps/$(c 0i) API)$(c)
   $(c G)-v$(c)                          multiple $(c 0Gi)-v$(c) options increase verbosity $(c 0i)(max: $(c 0Yi)1$(c))$(c)
   $(c 0G)-h$(c), $(c 0G)--help$(c)                  show this help message and exit
 "
@@ -167,7 +167,7 @@ function color() {
   case "${res}" in
     FAILURE   ) __start="$(c 0Rs)"; __end="$(c)" ;;
     UNSTABLE  ) __start="$(c 0Ys)"; __end="$(c)" ;;
-    NOT_BUILT ) __start="$(c 0Wi)"; __end="$(c)" ;;
+    NOT_BUILT ) __start="$(c 0Wdi)"; __end="$(c)" ;;
     ABORTED   ) __start="$(c 0Wi)"; __end="$(c)" ;;
     SUCCESS   ) __start="$(c 0Gs)"; __end="$(c)" ;;
     *         ) ;;
@@ -279,7 +279,7 @@ function printTree() {
   fi
 
   # ── gather sub-steps (with --steps): in --all mode for every node, otherwise
-  #    only for FAILURE/NOT_BUILT nodes (keeps --failure focused + fast) ──
+  #    only for bad-result nodes (BAD_RESULTS) (keeps --failure focused + fast) ──
   local -a steps=()
   if [[ "${STEPS}" -eq 1 && ( "${SHOW_MODE}" == 'all' || "${res}" =~ ^(${BAD_RESULTS})$ ) ]]; then
     local _sl
