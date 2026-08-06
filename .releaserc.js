@@ -59,6 +59,24 @@ const headerPartial = `## {{#if @root.linkCompare~}}
 // {{header}} keeps the original "feat: ..." prefix; body/footer follow (signoff stripped in transform)
 const commitPartial = "* {{header}}\n{{#if body}}\n{{body}}\n{{/if}}\n{{#if footer}}\n\n{{footer}}\n{{/if}}\n";
 
+// ── dynamic changelog title ──
+// reuse an existing level-1 header (`# ...`) at the very top of CHANGELOG.md so new
+// releases are inserted BELOW it; if there is none, leave changelogTitle unset so
+// semantic-release just prepends (no title is forced onto title-less changelogs)
+const fs = require('fs');
+const path = require('path');
+const CHANGELOG_FILE = 'CHANGELOG.md';
+function detectChangelogTitle(file) {
+  try {
+    const text = fs.readFileSync(path.resolve(process.cwd(), file), 'utf8');
+    const first = text.split('\n').find(l => l.trim() !== '');
+    // a single '#' ATX header (rejects '##', '###', …) with actual text
+    if (first && /^#\s+\S/.test(first)) { return first.trim(); }
+  } catch (e) { /* missing or unreadable → treat as no title */ }
+  return null;
+}
+const CHANGELOG_TITLE = detectChangelogTitle(CHANGELOG_FILE);
+
 module.exports = {
   "branches": ["main"],
   "tagFormat": "v${version}",
@@ -101,15 +119,22 @@ module.exports = {
           }
 
           // the parser may split trailing body lines into `footer` (e.g. a bullet containing an issue-like "#N");
-          // fold body + footer back together, drop Signed-off-by, and indent non-empty lines so every detail stays in the commit's sub-list (blank lines kept empty to avoid trailing whitespace)
+          // fold body + footer back together and drop Signed-off-by
           const detail = [c.body, c.footer]
             .filter(Boolean)
             .join('\n')
             .split('\n')
             .filter(l => !isSignoff(l));
-          c.body = detail.some(l => l.trim() !== '')
-            ? detail.map(l => l.trim() === '' ? '' : '  ' + l).join('\n')
-            : null;
+          if (detail.some(l => l.trim() !== '')) {
+            // bullet body (`- ...`) -> 2-space sub-list right under the subject;
+            // free-form body (no bullets) -> blank line + 4-space verbatim block
+            const hasBullets = detail.some(l => /^\s*-\s+\S/.test(l));
+            const indent = hasBullets ? '  ' : '    ';
+            const block = detail.map(l => l.trim() === '' ? '' : indent + l).join('\n');
+            c.body = hasBullets ? block : '\n' + block;
+          } else {
+            c.body = null;
+          }
           c.footer = null;
 
           // drop Signed-off-by trailers from notes
@@ -123,7 +148,10 @@ module.exports = {
         }
       }
     }],
-    ["@semantic-release/changelog", { "changelogFile": "CHANGELOG.md" }],
+    ["@semantic-release/changelog", Object.assign(
+      { "changelogFile": CHANGELOG_FILE },
+      CHANGELOG_TITLE ? { "changelogTitle": CHANGELOG_TITLE } : {}
+    )],
     ["@semantic-release/exec", {
       "prepareCmd": "pre-commit run --files CHANGELOG.md || true"
     }],

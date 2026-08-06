@@ -3,7 +3,7 @@
 #      FileName : ls-stgs.sh
 #        Author : marslo
 #       Created : 2026-06-02 17:03:32
-#    LastChange : 2026-06-26 03:02:13
+#    LastChange : 2026-08-04 19:22:39
 # =============================================================================
 
 set -euo pipefail
@@ -165,11 +165,11 @@ function color() {
   __end=''
 
   case "${res}" in
-    FAILURE   ) __start="$(c 0Rs)"; __end="$(c)" ;;
-    UNSTABLE  ) __start="$(c 0Ys)"; __end="$(c)" ;;
+    FAILURE   ) __start="$(c 0Rs)" ; __end="$(c)" ;;
+    UNSTABLE  ) __start="$(c 0Ys)" ; __end="$(c)" ;;
     NOT_BUILT ) __start="$(c 0Wdi)"; __end="$(c)" ;;
-    ABORTED   ) __start="$(c 0Wi)"; __end="$(c)" ;;
-    SUCCESS   ) __start="$(c 0Gs)"; __end="$(c)" ;;
+    ABORTED   ) __start="$(c 0Wi)" ; __end="$(c)" ;;
+    SUCCESS   ) __start="$(c 0Gs)" ; __end="$(c)" ;;
     *         ) ;;
   esac
 }

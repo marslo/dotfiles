@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-08-04 19:13:24
+"    LastChange : 2026-08-04 19:28:10
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -32,7 +32,8 @@ filetype off
 call plug#begin( '~/.vim/plugged' )
 
 Plug 'tpope/vim-surround'
-Plug 'godlygeek/tabular', { 'commit': '84057252a01e96909cd1a9f0b1395f5d9f61be1e' }
+" Plug 'godlygeek/tabular', { 'commit': '84057252a01e96909cd1a9f0b1395f5d9f61be1e' }
+Plug 'godlygeek/tabular',
 Plug 'tpope/vim-repeat'
 Plug 'Yggdroot/indentLine'                                          " Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
