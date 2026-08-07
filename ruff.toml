@@ -1,0 +1,7 @@
+[lint]
+# explicitly ignore if the E/D series is enabled
+ignore = [
+  "E201",  # whitespace after '('
+  "E202",  # whitespace before ')'
+  "D210",  # no whitespaces surrounding docstring text
+]
