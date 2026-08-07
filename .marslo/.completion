@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2026-08-04 17:36:50
+#   LastChange : 2026-08-06 19:18:44
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -39,7 +39,8 @@ type -P npm        >/dev/null                        && source "${COMPLETION_DIR
 type -P gh         >/dev/null                        && source "${COMPLETION_DIR}/gh.bash.sh"
 type -P bat        >/dev/null                        && source "${COMPLETION_DIR}/bat.sh"
 type -P pipx       >/dev/null                        && source "${COMPLETION_DIR}/pipx.sh"
-type -P pip        >/dev/null                        && source "${COMPLETION_DIR}/pip.sh"
+type -P pip        >/dev/null                        && source "${COMPLETION_DIR}/pip.bash"
+type -P python     >/dev/null                        && source "${COMPLETION_DIR}/python.bash"
 type -P poetry     >/dev/null                        && source "${COMPLETION_DIR}/poetry.sh"
 type -P code       >/dev/null                        && source "${COMPLETION_DIR}/code.sh"
 type -P fossa      >/dev/null                        && source "${COMPLETION_DIR}/fossa.sh"

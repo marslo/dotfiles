@@ -114,6 +114,8 @@ export DOCKER_COMPLETION_SHOW_CONTAINER_IDS=true
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 # pip install
 # export PIP_BREAK_SYSTEM_PACKAGES=true
+# pip completion
+export PIP_AUTO_COMPLETE=1
 
 export LANG=en_US.UTF-8
 export LANGUAGE=$LANG
