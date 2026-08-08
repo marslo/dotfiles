@@ -118,7 +118,8 @@
   # ────────────── git ssh-set / https-set to enable or disable ───────────────
   path              = ~/.marslo/gitconfig.d/credential.ssh
   # path              = ~/.marslo/gitconfig.d/credential.https
-  # ─ disable due to pre-commit hook will fail if the account info is missing ─
-  path              = ~/.marslo/gitconfig.d/account
+  # ────────────── git ssh-set / https-set to enable or disable ───────────────
+  # ─ disable due to pre-commit hook will fail if the account routing info is missing ─
+  # path              = ~/.marslo/gitconfig.d/routing
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=gitconfig:

@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 """
 
 Clear Window Extension
@@ -24,6 +27,7 @@ clear-window=<Control-Key-l>
 """
 
 
+# ruff: noqa: RUF012
 class ClearWindow:
 
     menudefs = [
@@ -83,3 +87,5 @@ class ClearWindow:
 
         # restore undo delegator
         self.editwin.per.insertfilter(undo)
+
+# vim:tabstop=4:softtabstop=4:shiftwidth=4:expandtab:filetype=python:

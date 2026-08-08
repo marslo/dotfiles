@@ -4,4 +4,5 @@ ignore = [
   "E201",  # whitespace after '('
   "E202",  # whitespace before ')'
   "D210",  # no whitespaces surrounding docstring text
+  "UP009"  # UTF-8 encoding declaration is unnecessary
 ]
