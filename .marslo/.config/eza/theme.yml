@@ -172,6 +172,13 @@ broken_symlink:
 broken_path_overlay:
   foreground: "#5C6370"
 filenames:
+  ".ruff_cache":
+    filename:
+      foreground: 239
+      is_italic: true
+    icon:
+      style:
+        foreground: 239
   ".tags":
     icon:
       glyph: "\U000F0DFA"

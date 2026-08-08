@@ -19,6 +19,7 @@ Library/
 Movies/
 Music/
 Pictures/
+.ruff_cache/
 
 ##############################
 # configuration files and sensitive data

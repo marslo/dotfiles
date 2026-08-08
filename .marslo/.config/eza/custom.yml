@@ -1,5 +1,6 @@
 ---
 filenames:
+  ".ruff_cache": { filename: { foreground: 239, is_italic: true }, icon: { style: { foreground: 239 } } }
   ".tags": { icon: { glyph: "\U000F0DFA" } }
   ".vim_mru_files": { icon: { glyph: "\uE7C5" } }
   ".git-stats": { icon: { glyph: "\U000F04C1" } }

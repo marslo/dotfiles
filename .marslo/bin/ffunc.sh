@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-08-03 16:33:03
+#   LastChange : 2026-08-08 00:30:19
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -259,7 +259,7 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
   # for rc folders
   local -a rcRawPaths=( "${HOME}"/.marslo "${HOME}"/.idlerc "${HOME}"/.ssh "${HOME}"/.jfrog "${HOME}"/.pip "${HOME}"/.config/nvim "${HOME}"/.cht.sh "${HOME}"/.git-templates "${HOME}"/.config/bat/syntaxes "${HOME}"/.ctags.d "${HOME}"/.hammerspoon "${HOME}"/.cursor/rules "${HOME}"/.claude/rules )
   # ~/.config
-  local -a cfgNames=( cheat github-copilot htop yamllint pip ncdu bat gh btop )
+  local -a cfgNames=( cheat github-copilot htop yamllint pip ncdu bat gh btop ruff )
   local -a rcPaths=() cfgRoots=()
   mapfile -d '' -t rcPaths  < <(getValidDirs "${rcRawPaths[@]}")
   mapfile -d '' -t cfgRoots < <(getValidDirs "${cfgNames[@]/#/$HOME/.config/}")

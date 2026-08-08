@@ -4,7 +4,7 @@
 #   FileName: .imac
 #     Author: marslo
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2026-05-30 01:50:05
+# LastChange: 2026-08-07 23:55:13
 #   Comments:
 #             2024-11-04: using `brew --prefix` for $HOMEBEW_PREFIX set as `/opt/homebrew`
 #             2025-12-11: using ${HOMEBREW_OPT}/${HOMEBEW_PREFIX} instead of `brew --prefix xxx` for quick load
@@ -99,22 +99,24 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   # java 26
   JAVA_HOME=$(/usr/libexec/java_home)                             # $ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
   GROOVY_HOME="${HOMEBREW_OPT}/groovy/libexec"                    # -> "${HOMEBREW_OPT}/groovy/libexec"
-  # GROOVY_HOME="/opt/groovy/current"                             # -> for groovydoc issue
+  _GROOVY_LIBS='/opt/groovy/libs'                                 # -> for groovydoc issue
+  _JENKINS_LIBS='/opt/jenkins'
   GROOVY_CLASSPATH="${GROOVY_CLASSPATH:+$GROOVY_CLASSPATH:}"
-  test -d '/opt/groovy/global-libs/groovy'  && GROOVY_CLASSPATH+=".:$(echo /opt/groovy/global-libs/groovy/*.jar | tr ' ' ':'):"
-  test -d '/opt/groovy/global-libs/jenkins' && GROOVY_CLASSPATH+="$(echo /opt/groovy/global-libs/jenkins/*.jar | tr ' ' ':'):"
-  test -d "${GROOVY_HOME}/lib"              && GROOVY_CLASSPATH+="$(echo "${GROOVY_HOME}"/lib/*.jar | tr ' ' ':'):"
-  test -d '/opt/jenkins/latest/WEB-INF/lib' && GROOVY_CLASSPATH+="$(echo /opt/jenkins/latest/WEB-INF/lib/*.jar | tr ' ' ':'):"
-  test -d '/opt/jenkins/plugins'            && GROOVY_CLASSPATH+="$(echo /opt/jenkins/plugins/*/latest/WEB-INF/lib/*.jar | tr ' ' ':')"
+  test -d "${GROOVY_HOME}/lib"                  && GROOVY_CLASSPATH+=".:$(echo "${GROOVY_HOME}"/lib/*.jar | tr ' ' ':'):"
+  test -d "${_GROOVY_LIBS}/groovy"              && GROOVY_CLASSPATH+="$(echo "${_GROOVY_LIBS}"/groovy/latest/*.jar | tr ' ' ':'):"
+  test -d "${_GROOVY_LIBS}/jenkins"             && GROOVY_CLASSPATH+="$(echo "${_GROOVY_LIBS}"/jenkins/latest/*.jar | tr ' ' ':'):"
+  test -d "${_JENKINS_LIBS}/latest/WEB-INF/lib" && GROOVY_CLASSPATH+="$(echo "${_JENKINS_LIBS}"/latest/WEB-INF/lib/*.jar | tr ' ' ':'):"
+  test -d "${_JENKINS_LIBS}/plugins"            && GROOVY_CLASSPATH+="$(echo "${_JENKINS_LIBS}"/plugins/*/latest/WEB-INF/lib/*.jar | tr ' ' ':')"
   test -f "${HOMEBREW_OPT}/coreutils/libexec/gnubin/paste" &&
        GROOVY_CLASSPATH=$( echo "${GROOVY_CLASSPATH}" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | "${HOMEBREW_OPT}/coreutils/libexec/gnubin/paste" -s -d: )
-  test -f "${JAVA_HOME}/lib/tools.jar"      && GROOVY_CLASSPATH+=":${JAVA_HOME}/lib/tools.jar"
-  test -f "${JAVA_HOME}/lib/dt.jar"         && GROOVY_CLASSPATH+=":${JAVA_HOME}/lib/dt.jar"
+  test -f "${JAVA_HOME}/lib/tools.jar"          && GROOVY_CLASSPATH+=":${JAVA_HOME}/lib/tools.jar"
+  test -f "${JAVA_HOME}/lib/dt.jar"             && GROOVY_CLASSPATH+=":${JAVA_HOME}/lib/dt.jar"
   CLASSPATH+=":${GROOVY_CLASSPATH}"
   test -f "${HOMEBREW_OPT}/coreutils/libexec/gnubin/paste" &&
        CLASSPATH=$( echo "${CLASSPATH}" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | "${HOMEBREW_OPT}/coreutils/libexec/gnubin/paste" -s -d: )
   CPPFLAGS="-I${HOMEBREW_OPT}/openjdk/include"                   # https://stackoverflow.com/a/69504284/2940319
   # JAVA_OPTS+='-Dhttp.proxyHost=ipamunix.sample.com -Dhttp.proxyPort=8080'
+  unset _GROOVY_LIBS _JENKINS_LIBS
 
   # NODE_HOME="${HOMEBREW_OPT}/node@12"
   NODE_HOME="${HOMEBREW_OPT}/node"

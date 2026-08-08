@@ -23,9 +23,10 @@ alwaysApply: true
 # Base Rules
 
 1. Before editing any script, read the original file first with the Read tool.
-2. Only run `git commit` when I explicitly say "commit"; never push on your own.
-3. After substantive changes, run lint checks on the files you edited.
-4. Reply/Chat language — chat answers only: if I ask in Chinese, reply in Simplified Chinese; otherwise reply in English. (code comments are always English — see § 2.)
+2. When running in a sandbox environment, prepend `/opt/homebrew/bin` to your PATH: `export PATH="/opt/homebrew/bin:$PATH"`.
+3. Only run `git commit` when I explicitly say "commit"; never push on your own.
+4. After substantive changes, run lint checks on the files you edited.
+5. Reply/Chat language — chat answers only: if I ask in Chinese, reply in Simplified Chinese; otherwise reply in English. (code comments are always English — see § 2.)
 
 # Code comments
 

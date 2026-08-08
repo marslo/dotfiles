@@ -1,0 +1,9 @@
+# user-level fallback config
+# applied by ruff only when a file has no project-level ruff.toml / .ruff.toml / pyproject.toml above it
+
+[lint]
+# keep ruff's default rule selection; drop these globally
+ignore = [
+  "EXE001",  # shebang is present but file is not executable
+  "UP009",   # utf-8 encoding declaration is unnecessary
+]

@@ -8,12 +8,11 @@
   // "groovy.java.home": "/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home",
   "groovy.java.home": "/opt/homebrew/Cellar/openjdk@21/21.0.12/libexec/openjdk.jdk/Contents/Home",
   "groovy.project.referencedLibraries": [
-    "/opt/groovy/global-libs/groovy/*",
-    "/opt/groovy/global-libs/jenkins/*",
+    "/opt/groovy/libs/groovy/latest/*",
+    "/opt/groovy/libs/jenkins/latest/*",
     "/opt/homebrew/opt/groovy/libexec/lib/*",
     "/Users/marslo/.groovy/lib/*",
-    "/opt/jenkins/latest/WEB-INF/lib/*",
-    "/opt/jenkins/plugins/*/latest/WEB-INF/lib/*"
+    "/opt/jenkins/latest/WEB-INF/lib/*"
   ],
   "groovy.ls.vmargs": "-noverify -Xmx2G -XX:+UseG1GC -XX:+UseStringDeduplication",
   // "verbose" / "message" / "off"
@@ -159,11 +158,19 @@
   // :echo coc_git_status OR :echo get(b:, 'coc_git_status', '')
   "git.enableGutters": true,
 
-  "python.formatting.provider": "black",
-  "python.linting.pylintEnabled": true,
   "python.linting.enabled": true,
+  "python.linting.pylintEnabled": false,
+  // pipx install ruff
+  "python.linting.ruffEnabled": true,
+  "python.linting.ruffPath": "ruff",
+  //  using pep8 instead of black - fix via `:Autoformat`
+  "python.formatting.provider": "autopep8",
+  "python.formatting.autopep8Args": ["--ignore", "E201,E202"],
+
   "python.analysis.useLibraryCodeForTypes": false,
   "python.analysis.typeCheckingMode": "off",
+
+  "pyright.trace.server": "messages",
   "pyright.inlayHints.functionReturnTypes" : true,
   "pyright.inlayHints.variableTypes": true,
   "pyright.inlayHints.parameterTypes": false,
@@ -179,6 +186,8 @@
   "coc.source.emoji.shortcut": "E",
   "coc.source.buffer.priority": 70,
   "coc.source.word.priority": 1,
-  "coc.source.dictionary.priority": 1
+  "coc.source.word.filetypes": ["markdown", "text", "gitcommit"],
+  "coc.source.dictionary.priority": 1,
+  "coc.source.dictionary.filetypes": ["markdown", "text", "gitcommit"]
   // "workspace.ignoredFolders": [ "**/.git/**" ]
 }

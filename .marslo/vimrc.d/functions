@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-06-23 03:57:41
+"    LastChange : 2026-08-07 19:12:19
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -299,18 +299,18 @@ if !has('nvim')
   augroup END
 endif
 
-" to addresses a performance bottleneck in the GnuPG SSH-Agent when handling high-concurrency SSH handshake requests
+" force using HTTPS for PlugUpdate, since SSH to GitHub is unstable because a corporate security appliance near the network edge intermittently injects spoofed TCP RST packets
 function! PlugUpdateHTTPS()
-    let l:old_global = $GIT_CONFIG_GLOBAL
-    let l:old_system = $GIT_CONFIG_SYSTEM
+  let l:old_global = $GIT_CONFIG_GLOBAL
+  let l:old_system = $GIT_CONFIG_SYSTEM
 
-    let $GIT_CONFIG_GLOBAL = '/dev/null'
-    let $GIT_CONFIG_SYSTEM = '/dev/null'
+  let $GIT_CONFIG_GLOBAL = '/dev/null'
+  let $GIT_CONFIG_SYSTEM = '/dev/null'
 
-    PlugUpdate
+  PlugUpdate
 
-    let $GIT_CONFIG_GLOBAL = l:old_global
-    let $GIT_CONFIG_SYSTEM = l:old_system
+  let $GIT_CONFIG_GLOBAL = l:old_global
+  let $GIT_CONFIG_SYSTEM = l:old_system
 endfunction
 command! PlugUpdateHTTPS call PlugUpdateHTTPS()
 
