@@ -4,7 +4,7 @@
 #     FileName : rrun
 #       Author : marslo
 #      Created : 2026-03-17 22:15:43
-#   LastChange : 2026-03-17 22:47:57
+#   LastChange : 2026-08-10 19:39:37
 #=============================================================================
 
 function _rrun_get_ssh_hosts() {
@@ -72,7 +72,7 @@ function _rrun_completion() {
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-  opts="--ip --config -n --name -u --user -f --file -c --cmd -q --quiet -v --verbose -h --help --"
+  opts="--host --config -n --name -u --user -f --file -c --cmd -q --quiet -v --verbose -h --help --"
 
   local i pass_through=false
   for (( i=1; i < COMP_CWORD; i++ )); do
@@ -88,12 +88,12 @@ function _rrun_completion() {
   fi
 
   case "${prev}" in
-    -f|--file ) COMPREPLY=(); return 0 ;;
-    --config  ) _rrun_complete_config "${cur}"; return 0 ;;
-    -c|--cmd  ) COMPREPLY=( $(compgen -c -- "${cur}") ); return 0 ;;
-    -u|--user ) COMPREPLY=( $(compgen -u -- "${cur}" | grep --color=never -v '^_') ); return 0 ;;
-    -n|--name ) COMPREPLY=( $(compgen -W "$(_rrun_get_ssh_hosts)" -- "${cur}") ); return 0 ;;
-    --ip      ) return 0 ;;
+    -f |--file ) COMPREPLY=(); return 0 ;;
+    --config   ) _rrun_complete_config "${cur}"; return 0 ;;
+    -c |--cmd  ) COMPREPLY=( $(compgen -c -- "${cur}") ); return 0 ;;
+    -u |--user ) COMPREPLY=( $(compgen -u -- "${cur}" | grep --color=never -v '^_') ); return 0 ;;
+    -n |--name ) COMPREPLY=( $(compgen -W "$(_rrun_get_ssh_hosts)" -- "${cur}") ); return 0 ;;
+    --host     ) return 0 ;;
   esac
 
   if [[ "${cur}" == -* ]]; then
