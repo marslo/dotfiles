@@ -19,6 +19,14 @@ filenames:
   "kubeadm-cfg.yml": { icon: { glyph: "\uE81D" } }
   "README.md": { icon: { glyph: "\uF486" } }
   "SUMMARY.md": { icon: { glyph: "\u03BB" } }
+  "commitdiff": { icon: { glyph: "\uF2EC" } }
+  "mbi": { icon: { glyph: "\uF2EC" } }
+  "buildroot": { icon: { glyph: "\uF2EC" } }
+  "unified-sdk": { icon: { glyph: "\uF2EC" } }
+  "sdkdocs": { icon: { glyph: "\uF2EC" } }
+  "toGSR": { icon: { glyph: "\uF2EC" } }
+  "toGithub": { icon: { glyph: "\uF2EC" } }
+  "branchFreezer": { icon: { glyph: "\uF2EC" } }
   ".pypirc": { icon: { glyph: "\U000F0320" } }
   ".netrc": { icon: { glyph: "\uF4BE" } }
   ".shellcheckrc": { icon: { glyph: "\U000F1501" } }
@@ -32,3 +40,6 @@ filenames:
   "pipeline": { icon: { glyph: "\uF2EC" } }
   "pipelines": { icon: { glyph: "\uF2EC" } }
   "vars": { icon: { glyph: "\U000F0424" } }
+  "legacyfc": { icon: { glyph: "\U000F0424" } }
+  "repackage": { icon: { glyph: "\U000F0424" } }
+  "sync": { icon: { glyph: "\U000F0424" } }

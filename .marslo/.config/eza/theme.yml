@@ -233,6 +233,30 @@ filenames:
   "SUMMARY.md":
     icon:
       glyph: "λ"
+  "commitdiff":
+    icon:
+      glyph: ""
+  "mbi":
+    icon:
+      glyph: ""
+  "buildroot":
+    icon:
+      glyph: ""
+  "unified-sdk":
+    icon:
+      glyph: ""
+  "sdkdocs":
+    icon:
+      glyph: ""
+  "toGSR":
+    icon:
+      glyph: ""
+  "toGithub":
+    icon:
+      glyph: ""
+  "branchFreezer":
+    icon:
+      glyph: ""
   ".pypirc":
     icon:
       glyph: "\U000F0320"
@@ -270,5 +294,14 @@ filenames:
     icon:
       glyph: ""
   "vars":
+    icon:
+      glyph: "\U000F0424"
+  "legacyfc":
+    icon:
+      glyph: "\U000F0424"
+  "repackage":
+    icon:
+      glyph: "\U000F0424"
+  "sync":
     icon:
       glyph: "\U000F0424"

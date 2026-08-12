@@ -131,6 +131,7 @@
   # commit && push        #
   #-----------------------#
   # {{{
+  l-tag       = -c tag.gpgsign=false tag
   ci          = commit -s -m
   ### [c]ommit --[a]llow [e]mepty
   cae         = commit --allow-empty --signoff -am
@@ -224,10 +225,10 @@
                 "
   # }}}
 
-
   #-----------------------#
   # commit && PR          #
   #-----------------------#
+  # {{{
   # append (#ID) to the current commit's subject; skip if already present; keep original body
   pr-stamp    = "!f() { \
                         id=\"$1\"; \
@@ -253,6 +254,7 @@
                         git rebase \"origin/${base}\" --exec \"git pr-stamp ${id}\"; \
                       }; f \
                 "
+  # }}}
 
   #-----------------------#
   # Change-Id             #
@@ -360,13 +362,7 @@
   #-----------------------#
   # revision              #
   #-----------------------#
-  # {{{
   # retag       = !bash -c 'source $HOME/.marslo/bin/ig.sh && grt "$*"'
-  # }}}
-
-  #-----------------------#
-  # revision              #
-  #-----------------------#
   # {{{
   show-rev        = "!f(){ git rev-list --count $1; }; f"
   rev-number      = "!bash -c 'git rev-list --reverse HEAD | nl | sort -nr | awk \"{ if(\\$1 == "$0") { print \\$2 }}\"'"

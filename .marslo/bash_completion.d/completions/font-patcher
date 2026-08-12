@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+#=============================================================================
+#     FileName : font-patcher.sh
+#       Author : marslo.jiao@gmail.com
+#      Created : 2024-04-15 19:31:20
+#   LastChange : 2026-08-11 17:42:00
+#=============================================================================
+# Bash completion for Nerd Fonts `font-patcher` (v3.5.0)
+
+_font_patcher() {
+  # shellcheck disable=SC2034
+  local cur prev words cword
+  _init_completion -n = || return
+
+  # option → values (options that expect a value with known choices/hints)
+  local -A opt_vals=(
+    [--debug]="0 1 2 3"
+    [--makegroups]="-1 0 1 2 3 4 5 6"
+    [--metrics]="HHEA TYPO WIN"
+    [--extension]="ttf otf woff woff2"
+    [--braille]="rectangle circle gapless"
+    [--name]="full postscript filename"
+    [--experimental]="help"
+  )
+
+  # short option → long option
+  local -A short_to_long=(
+    [-ext]=--extension
+    [-out]=--outputdir
+    [-c]=--complete
+    [-h]=--help
+    [-q]=--quiet
+    [-s]=--mono
+    [-v]=--version
+    [-l]=--adjust-line-height
+  )
+
+  # options expecting a directory
+  local dir_opts=(--outputdir --glyphdir)
+
+  # options expecting a file
+  local file_opts=(--configfile --custom --postprocess)
+
+  # long options
+  local long_opts=(
+    --careful --debug --extension --help --makegroups --mono --outputdir --quiet
+    --single-width-glyphs --variable-width-glyphs --version
+    --braille --complete --codicons --fontawesome --fontawesomeext --fontlogos
+    --material --mdi --octicons --pomicons --powerline --powerlineextra
+    --powersymbols --weather
+    --adjust-line-height --boxdrawing --cell --configfile --custom --dry
+    --experimental --glyphdir --has-no-italic --metrics --name --postprocess
+    --removeligs --removeligatures --xavgcharwidth
+    --progressbars --no-progressbars
+  )
+
+  # short options
+  local short_opts=(-ext -h -s -out -q -v -c -l)
+
+  # resolve short option to its long form for value/path lookups
+  local prev_opt="${prev}"
+  [[ -n "${prev}" ]] && prev_opt="${short_to_long[${prev}]:-${prev}}"
+
+  # the previous parameter is one that takes a value (e.g. --debug)
+  if [[ -n "${prev_opt}" && -n "${opt_vals[${prev_opt}]:-}" ]]; then
+    mapfile -t COMPREPLY < <(compgen -W "${opt_vals[${prev_opt}]}" -- "${cur}")
+    return 0
+  fi
+
+  # the previous parameter expects a directory
+  if [[ " ${dir_opts[*]} " == *" ${prev_opt} "* ]]; then
+    mapfile -t COMPREPLY < <(compgen -d -- "${cur}")
+    return 0
+  fi
+
+  # the previous parameter expects a file
+  if [[ " ${file_opts[*]} " == *" ${prev_opt} "* ]]; then
+    _filedir
+    return 0
+  fi
+
+  # for long option - `--xxx`
+  if [[ "${cur}" == --* ]]; then
+    mapfile -t COMPREPLY < <(compgen -W "${long_opts[*]}" -- "${cur}")
+    return 0
+  fi
+
+  # for short option - `-x`
+  if [[ "${cur}" == -* && "${cur}" != --* ]]; then
+    mapfile -t COMPREPLY < <(compgen -W "${short_opts[*]}" -- "${cur}")
+    return 0
+  fi
+
+  _filedir
+}
+
+if [[ $- =~ i ]]; then
+  complete -o default -o bashdefault -F _font_patcher font-patcher
+fi
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
