@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-08-07 23:55:41
+"    LastChange : 2026-08-12 17:40:14
 " =============================================================================
 
 " /**************************************************************
@@ -15,86 +15,89 @@
 "
 " **************************************************************/
 " :help map-overview : https://vimhelp.org/map.txt.html#map-overview
-noremap  <leader>v    :e ~/.vimrc<CR>
-nnoremap <leader>sv   :source $MYVIMRC<CR>:echohl WarningMsg<CR>:echom "Config Reloaded!"<CR>:echohl None<CR>
-nnoremap j            gj
-nnoremap gj           j
-nnoremap k            gk
-nnoremap gk           k
-nnoremap n            nzzzv
-nnoremap N            Nzzzv
-nnoremap <leader>bd   :bd<CR>
-noremap  <leader>Q    :qa!<CR>
-noremap  qQ           :%bd<CR>
-nnoremap <C-k>        <C-w>k
-nnoremap <C-j>        <C-w>j
-nnoremap <C-h>        <C-w>h
-nnoremap <C-a>        <ESC>^
-inoremap <C-a>        <ESC>I
-cnoremap <C-a>        <Home>
-nnoremap <C-e>        <ESC>$
-inoremap <C-e>        <ESC>A
-cnoremap <C-e>        <End>
-cnoremap <C-k>        <C-\>e(strpart(getcmdline(), 0, getcmdpos() - 1))<CR>
-cnoremap sudow!!      w !sudo tee > /dev/null %
-cnoremap sw!!         execute 'silent! write !sudo tee % >/dev/null' <bar> edit!
-nnoremap Y            y$
+noremap  <leader>v           :e ~/.vimrc<CR>
+nnoremap <leader>sv          :source $MYVIMRC<CR>:echohl WarningMsg<CR>:echom "Config Reloaded!"<CR>:echohl None<CR>
+nnoremap j                   gj
+nnoremap gj                  j
+nnoremap k                   gk
+nnoremap gk                  k
+nnoremap n                   nzzzv
+nnoremap N                   Nzzzv
+nnoremap <leader>bd          :bd<CR>
+noremap  <leader>Q           :qa!<CR>
+noremap  qQ                  :%bd<CR>
+nnoremap <C-k>               <C-w>k
+nnoremap <C-j>               <C-w>j
+nnoremap <C-h>               <C-w>h
+nnoremap <C-a>               <ESC>^
+inoremap <C-a>               <ESC>I
+cnoremap <C-a>               <Home>
+nnoremap <C-e>               <ESC>$
+inoremap <C-e>               <ESC>A
+cnoremap <C-e>               <End>
+cnoremap <C-k>               <C-\>e(strpart(getcmdline(), 0, getcmdpos() - 1))<CR>
+cnoremap sudow!!             w !sudo tee > /dev/null %
+cnoremap sw!!                execute 'silent! write !sudo tee % >/dev/null' <bar> edit!
+nnoremap Y                   y$
 " invpaste <-> paste in insert/normal/visual mode ( toggle paste mode )
-nnoremap <leader>pp   :set invpaste paste?<CR>
+nnoremap <leader>pp          :set invpaste paste?<CR>
 " switch mouse model
-nnoremap <M-m>        :execute 'set mousemodel=' . (&mousemodel ==# 'extend' ? 'popup_setpos' : 'extend')<CR>
+nnoremap <M-m>               :execute 'set mousemodel=' . (&mousemodel ==# 'extend' ? 'popup_setpos' : 'extend')<CR>
 " silent delete in virtual mode
 " `"_dd` delete without copy to default register: https://til.hashrocket.com/posts/u86r0vdytl-deleting-lines-without-copying-to-default-register
-nnoremap rdd          "_dd
-nnoremap rdw          "_dw
-nnoremap sx           "_x
-vnoremap sd           "_dd
-nnoremap <Del>        "_x
-xnoremap <Del>        "_d
-nnoremap <space>      za
-nmap     zzf          vazzO
-nnoremap &            :&&<CR>
-xnoremap &            :&&<CR>
-vnoremap s            <Plug>VSurround
-vnoremap //           y/\V<C-R>=escape(@",'/\')<CR><CR>
-tnoremap <Esc>        <C-\><C-n>
-tnoremap <C-w>        <C-\><C-n><C-w>
-tnoremap <expr> <C-R> '<C-\><C-N>"'.nr2char(getchar()).'pi'
-nnoremap <Leader>i    :Inspect<CR>
+nnoremap rdd                 "_dd
+nnoremap rdw                 "_dw
+nnoremap sx                  "_x
+vnoremap sd                  "_dd
+nnoremap <Del>               "_x
+xnoremap <Del>               "_d
+nnoremap <space>             za
+nmap     zzf                 vazzO
+nnoremap &                   :&&<CR>
+xnoremap &                   :&&<CR>
+vnoremap s                   <Plug>VSurround
+vnoremap //                  y/\V<C-R>=escape(@",'/\')<CR><CR>
+tnoremap <Esc>               <C-\><C-n>
+tnoremap <C-w>               <C-\><C-n><C-w>
+tnoremap <expr> <C-R>        '<C-\><C-N>"'.nr2char(getchar()).'pi'
+nnoremap <Leader>i           :Inspect<CR>
 
 " dense-analysis/ale
-noremap  ]a           :ALENextWrap<CR>
-noremap  [a           :ALEPreviousWrap<CR>
-noremap  ]A           :ALELast<CR>
-noremap  [A           :ALEFirst<CR>
-noremap  <silent>]d   :ALEDetail<CR>
-noremap  <silent>[d   :ALEDetail<CR>
+noremap  ]a                  :ALENextWrap<CR>
+noremap  [a                  :ALEPreviousWrap<CR>
+noremap  ]A                  :ALELast<CR>
+noremap  [A                  :ALEFirst<CR>
+noremap  <silent>]d          :ALEDetail<CR>
+noremap  <silent>[d          :ALEDetail<CR>
 " airblade/vim-gitgutter
-noremap  ]h           :GitGutterNextHunk<CR>
-noremap  [h           :GitGutterPrevHunk<CR>
+noremap  ]h                  :GitGutterNextHunk<CR>
+noremap  [h                  :GitGutterPrevHunk<CR>
 
 " neoclide/coc.nvim
 " GoTo code navigation
-nmap     <silent>[g    <Plug>(coc-diagnostic-prev)
-nmap     <silent>]g    <Plug>(coc-diagnostic-next)
-nmap     <silent>gd    <Plug>(coc-definition)
-nmap     <silent>gy    <Plug>(coc-type-definition)
-nmap     <silent>gi    <Plug>(coc-implementation)
-nmap     <silent>gr    <Plug>(coc-references)
+nmap     <silent>[g          <Plug>(coc-diagnostic-prev)
+nmap     <silent>]g          <Plug>(coc-diagnostic-next)
+nmap     <silent>gd          <Plug>(coc-definition)
+nmap     <silent>gy          <Plug>(coc-type-definition)
+nmap     <silent>gi          <Plug>(coc-implementation)
+nmap     <silent>gr          <Plug>(coc-references)
 " coc-snippets ( ctrl-j )
-imap     <C-S-j>       <Plug>(coc-snippets-expand)
-vmap     <C-j>         <Plug>(coc-snippets-select)
+imap     <C-S-j>             <Plug>(coc-snippets-expand)
+vmap     <C-j>               <Plug>(coc-snippets-select)
 " run the Code Lens action on the current line
-nmap     <leader>cl    <Plug>(coc-codelens-action)
+nmap     <leader>cl          <Plug>(coc-codelens-action)
 " remap keys for applying code actions at the cursor position
-nmap     <leader>ac    <Plug>(coc-codeaction-cursor)
-nmap     <leader>as    <Plug>(coc-codeaction-source)
-" applying code actions to the selected code block, i.e.: `<leader>aap` for current paragraph
-xmap     <leader>a     <Plug>(coc-codeaction-selected)
-nmap     <leader>a     <Plug>(coc-codeaction-selected)
-" apply the most preferred quickfix action to fix diagnostic on the current line
-nmap     <leader>qf    <Plug>(coc-fix-current)
-nnoremap <silent>K     :call ShowDocumentation()<CR>
+nmap     <leader>ac          <Plug>(coc-codeaction-cursor)
+nmap     <leader>as          <Plug>(coc-codeaction-source)
+" choose code actions from selected range
+xmap     <leader>aa          <Plug>(coc-codeaction-selected)
+nmap     <leader>aa          <Plug>(coc-codeaction-selected)
+" try the first quickfix action ── coc-fix-current → :call CocActionAsync('doQuickfix')
+nmap     <leader>qf          <Plug>(coc-fix-current)
+xmap     <silent><leader>qf  :<C-u>call CocActionAsync('codeAction', visualmode(), ['quickfix'])<CR>
+
+nnoremap <silent>K           :call ShowDocumentation()<CR>
+
 " -- remap <C-f> and <C-b> to scroll float windows/popups
 nnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
 nnoremap <silent><nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"

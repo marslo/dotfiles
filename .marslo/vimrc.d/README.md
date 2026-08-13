@@ -263,31 +263,31 @@ vimrc.d/
 > [!TIP]
 > disabled in vscode/cursor
 
-| SHORTCUT  | MODE | COMMENTS                              |
-|-----------|------|---------------------------------------|
-| `,cl`     | n    | `coc-codelens-action`                 |
-| `,ac`     | n    | `coc-codeaction-cursor`               |
-| `,as`     | n    | `coc-codeaction-source`               |
-| `,a`      | n/x  | `coc-codeaction-selected`             |
-| `,qf`     | n    | `coc-fix-current` (quickfix)          |
-|           |      |                                       |
-| `[g`      | n    | `coc-diagnostic-prev`                 |
-| `]g`      | n    | `coc-diagnostic-next`                 |
-| `gd`      | n    | `coc-definition`                      |
-| `gy`      | n    | `coc-type-definition`                 |
-| `gi`      | n    | `coc-implementation`                  |
-| `gr`      | n    | `coc-references`                      |
-| `K`       | n    | show documentation (hover)            |
-|           |      |                                       |
-| `<C-S-j>` | i    | `coc-snippets-expand`                 |
-| `<C-j>`   | v    | `coc-snippets-select`                 |
-| `<C-j>`   | i    | snippet expand or jump                |
-| `<C-k>`   | -    | snippet prev (via `coc_snippet_prev`) |
-| `<DOWN>`  | i    | coc popup next item                   |
-| `<UP>`    | i    | coc popup prev item                   |
-| `<C-M>`   | i    | coc popup confirm                     |
-|           |      |                                       |
-| `:OR`     | cmd  | organize imports                      |
+| SHORTCUT  | MODE | COMMENTS                                          |
+| --------- | ---- | ------------------------------------------------- |
+| `,cl`     | n    | `coc-codelens-action`                             |
+| `,ac`     | n    | `coc-codeaction-cursor`                           |
+| `,as`     | n    | `coc-codeaction-source`                           |
+| `,aa`     | n/x  | `coc-codeaction-selected`                         |
+| `,qf`     | n/x  | `coc-fix-current` (n) / quickfix in selection (x) |
+|           |      |                                                   |
+| `[g`      | n    | `coc-diagnostic-prev`                             |
+| `]g`      | n    | `coc-diagnostic-next`                             |
+| `gd`      | n    | `coc-definition`                                  |
+| `gy`      | n    | `coc-type-definition`                             |
+| `gi`      | n    | `coc-implementation`                              |
+| `gr`      | n    | `coc-references`                                  |
+| `K`       | n    | show documentation (hover)                        |
+|           |      |                                                   |
+| `<C-S-j>` | i    | `coc-snippets-expand`                             |
+| `<C-j>`   | v    | `coc-snippets-select`                             |
+| `<C-j>`   | i    | snippet expand or jump                            |
+| `<C-k>`   | -    | snippet prev (via `coc_snippet_prev`)             |
+| `<DOWN>`  | i    | coc popup next item                               |
+| `<UP>`    | i    | coc popup prev item                               |
+| `<C-M>`   | i    | coc popup confirm                                 |
+|           |      |                                                   |
+| `:OR`     | cmd  | organize imports                                  |
 
 ### [dense-analysis/ale](https://github.com/dense-analysis/ale)
 
