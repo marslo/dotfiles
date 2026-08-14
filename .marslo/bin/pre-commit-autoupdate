@@ -3,7 +3,7 @@
 #     FileName : pre-commit-autoupdate
 #       Author : marslo
 #      Created : 2026-05-13 14:15:00
-#   LastChange : 2026-05-18 23:26:05
+#   LastChange : 2026-08-14 02:03:43
 #  Description : `pre-commit autoupdate` — runs real autoupdate → fixes repos that use rolling major-version tags
 #                e.g. crate-ci/typos publishes "v1"
 #=============================================================================
@@ -21,14 +21,30 @@ function backer() {
 
 readonly CFG='.pre-commit-config.yaml'
 readonly ROLLING_REPOS=('crate-ci/typos')
-[[ ! -f "${CFG}" ]] && { echo >&2 "error: $CFG not found in $(pwd)"; exit 1; }
-trap 'rm -f "${CFG}.bak"' EXIT
+
+# locate the config dir (walk up from cwd, else git repo root) so autoupdate runs from any subdir
+function findroot() {
+  local d="${PWD}"
+  while [[ "${d}" != '/' ]]; do
+    [[ -f "${d}/${CFG}" ]] && { printf '%s' "${d}"; return 0; }
+    d="$( dirname "${d}" )"
+  done
+  local root; root="$( git rev-parse --show-toplevel 2>/dev/null )" || true
+  [[ -n "${root}" && -f "${root}/${CFG}" ]] && { printf '%s' "${root}"; return 0; }
+  return 1
+}
+
+declare CFG_DIR CFG_PATH
+CFG_DIR="$( findroot )" || { echo >&2 "error: ${CFG} not found in ${PWD} or any parent / git root"; exit 1; }
+CFG_PATH="${CFG_DIR}/${CFG}"
+[[ "${CFG_DIR}" != "${PWD}" ]] && echo >&2 "→ ${CFG_PATH}"
+trap 'rm -f "${CFG_PATH}.bak"' EXIT
 
 : "${_REAL_PRECOMMIT:=$(backer)}"
-"${_REAL_PRECOMMIT}" autoupdate "$@"
+"${_REAL_PRECOMMIT}" autoupdate --config "${CFG_PATH}" "$@"
 
 for repo in "${ROLLING_REPOS[@]}"; do
-  if ! grep -q "${repo}" "${CFG}"; then continue; fi
+  if ! grep -q "${repo}" "${CFG_PATH}"; then continue; fi
 
   latest=$(
     curl -fsSL ${GITHUB_TOKEN:+-H "Authorization: token $GITHUB_TOKEN"} \
@@ -38,10 +54,10 @@ for repo in "${ROLLING_REPOS[@]}"; do
   [[ -z "${latest}" ]] && { echo >&2 "warning: could not fetch latest release for ${repo}, skipping"; continue; }
 
   escaped="${repo//\//\\/}"
-  current=$(sed -n "/${escaped}/{n;s/.*rev:[[:space:]]*//p;}" "${CFG}" | head -1)
+  current=$(sed -n "/${escaped}/{n;s/.*rev:[[:space:]]*//p;}" "${CFG_PATH}" | head -1)
 
   if [[ "${current}" != "${latest}" ]]; then
-    sed -i.bak "/${escaped}/{n;s/rev:.*/rev: ${latest}/;}" "${CFG}"
+    sed -i.bak "/${escaped}/{n;s/rev:.*/rev: ${latest}/;}" "${CFG_PATH}"
     printf "\033[0;2;3;37m[https://github.com/%s]\033[0m \033[0;1;36mfixed rev\033[0m: \033[0;1;3;34m%s\033[0m -> \033[0;1;3;35m%s\033[0m\n" "${repo}" "${current}" "${latest}"
   fi
 done
