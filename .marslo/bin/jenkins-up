@@ -1,0 +1,234 @@
+#!/usr/bin/env bash
+# shellcheck source=/dev/null
+# =============================================================================
+#      FileName : jenkins-up
+#        Author : marslo
+#       Created : 2026-08-13 18:49:06
+#    LastChange : 2026-08-13 21:32:39
+# =============================================================================
+
+set -euo pipefail
+
+# shellcheck disable=SC2155
+# declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+source "${HOME}/.marslo/bin/bash-colors.sh" 2>/dev/null || { c() { :; }; }
+
+declare KUBECONFIG="${HOME}/iMarslo/job/devops/env/linux/dc5-ssdfw8/.kube/config"
+declare -r NS='devops-ci'
+declare -a KUBECTL=( kubectl --kubeconfig="${KUBECONFIG}" -n "${NS}" )
+declare -a KUBECOLOR=( env KUBECOLOR_FORCE_COLORS=true kubecolor --kubeconfig="${KUBECONFIG}" -n "${NS}" )
+
+# latest core version per channel
+declare -r JENKINS_URL='https://updates.jenkins.io'
+declare -r LTS_URL="${JENKINS_URL}/stable/latestCore.txt"
+declare -r WEEKLY_URL="${JENKINS_URL}/current/latestCore.txt"
+
+declare JDK=''
+declare FORCE_LTS=false
+declare HISTORY=false
+declare FORCE=false
+
+# shellcheck disable=SC2155
+declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
+# shellcheck disable=SC2155
+declare -r USAGE="NAME
+  $(c 0Ys)${ME}$(c) upgrade a jenkins deployment to the latest version
+
+USAGE
+  $(c 0Ys)${ME}$(c) [OPTIONS]
+
+OPTIONS
+  $(c 0G)--jdk$(c) $(c 0Mi)jdkNN$(c)   force the jdk suffix $(c 0Wi)(e.g. $(c 0Mi)jdk17$(c), $(c 0Mi)jdk21$(c)), the image keeps its original jdk by default
+  $(c 0G)--lts$(c)         force the lts channel, the image keeps its original channel by default
+  $(c 0G)--history$(c)     only show rollout history for the picked deployment
+  $(c 0G)--force$(c)       re-apply even when already on the latest version
+  $(c 0G)-h$(c), $(c 0G)--help$(c)    show this help
+"
+
+function usage() { echo -e "${USAGE}"; exit 0; }
+function info()  { printf "$(c 0Wdi)>> $(c 0Ys)%-10s $(c 0Wdi): $(c 0Gi)%s$(c)\n" "${1}" "${2}"; }
+function alert() { printf "$(c 0Wdi)>> $(c 0Ms)%-10s $(c 0Wdi): %b$(c)\n" >&2 "${1}" "${2}"; }
+function die()   { printf "$(c 0Wdi)>> $(c 0Rs)%-10s $(c 0Wdi): %b$(c)\n" >&2 "${1}" "${2}"; }
+
+function pickDeploy() {
+  local _pcmd="${KUBECOLOR[*]} get deployment {1} -o yaml"
+
+  "${KUBECTL[@]}" get deployment -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.template.spec.containers[0].image}{"\n"}{end}' |
+  command grep 'jenkins' | command grep -v 'dcfw' |
+  column -t -s $'\t' |
+  fzf --sort \
+      --no-multi \
+      --reverse \
+      --height=40% \
+      --ansi \
+      --prompt='select deployment  ' \
+      --preview-window=up,70%,wrap,rounded,+10 \
+      --preview "${_pcmd}" |
+  awk '{print $1}'
+}
+
+# echo "name image" for the fzf-chosen container of a deployment;
+# always lists every container, preview shows that container's current image
+function pickContainer() {
+  local deploy="${1:?deployment required}"
+
+  "${KUBECTL[@]}" get deployment "${deploy}" \
+      -o jsonpath='{range .spec.template.spec.containers[*]}{.name}{"\t"}{.image}{"\n"}{end}' |
+  fzf --no-sort --no-multi \
+      --reverse \
+      --height=20% --min-height 3+ \
+      --ansi \
+      --delimiter='\t' \
+      --with-nth=1 \
+      --prompt='select container  ' \
+      --preview-window=right,65%,wrap,rounded \
+      --preview 'echo {2}' |
+  awk '{print $1, $2}'
+}
+
+# echo the upgraded image string for the given current image preserves registry prefix, the -lts marker, and any -jdkNN suffix
+function computeImage() {
+  local curImage="${1:?current image required}"
+  local repo="${curImage%:*}"
+  local tag="${curImage##*:}"
+  local suffix url newcore isLts jdk newsuffix
+
+  # strip leading numeric-dotted core, keep the rest as suffix
+  if [[ "${tag}" =~ ^[0-9]+(\.[0-9]+)*(.*)$ ]]; then
+    suffix="${BASH_REMATCH[2]}"
+  else
+    die 'ERROR' "cannot parse version from tag: $(c 0Mi)${tag}$(c)"
+    return 1
+  fi
+
+  # decompose the suffix into the -lts marker and the -jdkNN part
+  test "${suffix/lts/}" != "${suffix}" && isLts=1 || isLts=''
+  [[ "${suffix}" =~ (jdk[0-9]+) ]] && jdk="${BASH_REMATCH[1]}" || jdk=''
+
+  # --lts forces the lts channel; --jdk overrides the jdk; empty keeps originals
+  "${FORCE_LTS}" && isLts=1
+  test -n "${JDK}" && jdk="${JDK}"
+
+  # channel decided by the original -lts marker
+  test -n "${isLts}" && url="${LTS_URL}" || url="${WEEKLY_URL}"
+
+  newcore="$( curl -sL --max-time 15 "${url}" )"
+  test -n "${newcore}" || { die 'ERROR' "empty version from $(c 0Gi)${url}$(c)"; return 1; }
+
+  # rebuild in canonical order: <core>[-lts][-jdkNN]
+  newsuffix=''
+  test -n "${isLts}" && newsuffix+='-lts'
+  test -n "${jdk}"   && newsuffix+="-${jdk}"
+
+  echo "${repo}:${newcore}${newsuffix}"
+}
+
+# wait until the rollout completes, polled via plain GET; this cluster's watch is broken (bookmark expired), so `rollout status` hangs
+function waitRollout() {
+  local deploy="${1:?deployment required}"
+  local gen observed desired replicas updated avail
+  local -i tries=0
+  local jp='{.metadata.generation}{","}{.status.observedGeneration}{","}{.spec.replicas}{","}{.status.replicas}{","}{.status.updatedReplicas}{","}{.status.availableReplicas}{"\n"}'
+
+  while true; do
+    IFS=',' read -r gen observed desired replicas updated avail < <(
+      "${KUBECTL[@]}" get deployment "${deploy}" -o jsonpath="${jp}"
+    )
+    : "${gen:=0}" "${observed:=0}" "${desired:=0}" "${replicas:=0}" "${updated:=0}" "${avail:=0}"
+
+    if test "${observed}" -ge "${gen}" && test "${updated}" -eq "${desired}" && test "${replicas}" -eq "${updated}" && test "${avail}" -eq "${desired}"; then
+      printf "\r\033[K$(c 0Wdi)>> $(c 0i)rollout complete: $(c 0C)%s$(c 0i)/$(c 0Y)%s $(c 0i)ready$(c)\n" "${avail}" "${desired}"
+      break
+    fi
+
+    printf "\r\033[K$(c 0Wdi)>> $(c 0i)waiting rollout: updated=$(c 0M)%s $(c 0i)replicas=$(c 0G)%s $(c 0i)available=$(c 0Y)%s $(c 0i)desired=$(c 0C)%s $(c)" \
+           "${updated}" "${replicas}" "${avail}" "${desired}"
+    tries+=1
+    test "${tries}" -lt 100 || { echo ''; die 'TIMEOUT' 'rollout wait timed out'; return 1; }
+    sleep 3
+  done
+}
+
+while test ${#} -gt 0; do
+  case "${1}" in
+    --jdk     ) JDK="${2:?--jdk requires a value}"       ;  shift 2 ;;
+    --jdk=*   ) JDK="${1#*=}"                            ;  shift   ;;
+    --lts     ) FORCE_LTS=true                           ;  shift   ;;
+    --history ) HISTORY=true                             ;  shift   ;;
+    --force   ) FORCE=true                               ;  shift   ;;
+    -h|--help ) usage                                               ;;
+    *         ) die 'ERROR' "unknown argument: ${1}" >&2 ;  exit 1  ;;
+  esac
+done
+
+# normalize --jdk to jdkNN (accepts jdk17 or 17)
+if test -n "${JDK}"; then
+  declare _n="${JDK//[!0-9]/}"
+  test -n "${_n}" || { die 'ERROR' "invalid --jdk value: $(c 0Cs)${JDK}$(c)"; exit 1; }
+  JDK="jdk${_n}"
+fi
+
+declare deploy; deploy="$( pickDeploy )" || deploy=''
+test -n "${deploy}" || { alert 'SKIP' 'no deployment selected !'; exit 1; }
+
+# --history: just show rollout history for the picked deployment, then stop
+"${HISTORY}" && {
+  "${KUBECOLOR[@]}" rollout history deployment "${deploy}"
+  exit 0
+}
+
+# chosen container: name + current image (fzf-list every container)
+declare picked
+picked="$( pickContainer "${deploy}" )" || picked=''
+test -n "${picked}" || { alert 'SKIP' 'no container selected !'; exit 1; }
+
+declare container curImage
+read -r container curImage <<< "${picked}"
+
+# upgrade logic is jenkins-specific; refuse a non-jenkins container image
+case "${curImage}" in
+  *jenkins* ) ;;
+  *         ) alert 'ERROR' "container $(c 0Ms)${container}$(c 0i) is not a jenkins image: $(c 0Ys)${curImage}$(c)"; exit 1;;
+esac
+
+declare newImage; newImage="$( computeImage "${curImage}" )"
+declare newTag="${newImage##*:}"
+
+info 'DEPLOYMENT' "${deploy}"
+info 'CONTAINER'  "${container}"
+info 'CURRENT'    "${curImage}"
+info 'NEW'        "${newImage}"
+
+# same version: skip, unless --force turns it into a rollout restart
+declare restart=false
+if test "${curImage}" = "${newImage}"; then
+  "${FORCE}" || { alert 'SKIP' "$(c 0Ms)${deploy}$(c 0i) already on latest ($(c 0Mi)${newTag}$(c 0i))$(c)"; exit 0; }
+  restart=true
+  alert 'FORCE' "$(c 0Cs)${deploy}$(c) already on latest ($(c 0Ys)${newTag}$(c)), rollout restart"
+fi
+
+prompt="$( printf "$(c 0Wdi)>> $(c 0Wi)%-10s $(c 0Wdi): $(c 0C)[y/N]$(c) " 'proceed?' )"
+read -rp "${prompt}" ans
+[[ "${ans}" =~ ^([yY][eE][sS]|[yY])$ ]] || { alert 'SKIP' 'aborted.'; exit 0; }
+
+# 1. same version -> restart to force a fresh rollout; otherwise upgrade the image
+declare cause
+if "${restart}"; then
+  "${KUBECTL[@]}" rollout restart deployment "${deploy}"
+  cause="[$(date +'%F %T')] restart jenkins ${newTag}"
+else
+  "${KUBECTL[@]}" set image deployment "${deploy}" "${container}=${newImage}"
+  cause="[$(date +'%F %T')] upgrade jenkins to ${newTag}"
+fi
+
+# 2. record change-cause (captured into the new revision during rollout)
+"${KUBECTL[@]}" annotate deployment "${deploy}" "kubernetes.io/change-cause=${cause}" --overwrite
+
+# 3. wait for rollout (polled GET, not the hanging watch), then show history
+waitRollout "${deploy}"
+"${KUBECOLOR[@]}" rollout history deployment "${deploy}"
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

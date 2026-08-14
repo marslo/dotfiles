@@ -8,11 +8,10 @@
   // "groovy.java.home": "/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home",
   "groovy.java.home": "/opt/homebrew/Cellar/openjdk@21/21.0.12/libexec/openjdk.jdk/Contents/Home",
   "groovy.project.referencedLibraries": [
-    "/opt/groovy/libs/groovy/latest/*",
-    "/opt/groovy/libs/jenkins/latest/*",
     "/opt/homebrew/opt/groovy/libexec/lib/*",
-    "/Users/marslo/.groovy/lib/*",
-    "/opt/jenkins/latest/WEB-INF/lib/*"
+    "/opt/groovy/latest/*",
+    "/opt/jenkins/latest/WEB-INF/lib/*",
+    "/Users/marslo/.groovy/lib/*"
   ],
   "groovy.ls.vmargs": "-noverify -Xmx2G -XX:+UseG1GC -XX:+UseStringDeduplication",
   // "verbose" / "message" / "off"
@@ -107,6 +106,8 @@
   "json.maxItemsComputed": 1000,
 
   "suggest.maxCompleteItemCount": 100,
+  // default is `replace` mode
+  "suggest.insertMode": "insert",
   "suggest.enablePreselect": true,
   "suggest.labelMaxLength": 666,
   "suggest.detailField": "preview",
@@ -186,8 +187,11 @@
   "coc.source.emoji.shortcut": "E",
   "coc.source.buffer.priority": 70,
   "coc.source.word.priority": 1,
-  "coc.source.word.filetypes": ["markdown", "text", "gitcommit"],
+  "coc.source.word.filetypes": [ "markdown", "text", "gitcommit" ],
   "coc.source.dictionary.priority": 1,
-  "coc.source.dictionary.filetypes": ["markdown", "text", "gitcommit"]
+  "coc.source.dictionary.filetypes": [ "markdown", "text", "gitcommit" ],
+  "json.schemaDownload.trustedDomains": {
+    "https://www.schemastore.org": true
+  }
   // "workspace.ignoredFolders": [ "**/.git/**" ]
 }

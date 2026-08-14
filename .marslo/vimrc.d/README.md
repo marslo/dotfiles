@@ -1,3 +1,4 @@
+
 > [!TIP]
 > leader = `,` &nbsp;&nbsp;|&nbsp;&nbsp; localleader = `\`
 
@@ -33,9 +34,12 @@ vimrc.d/
 ---
 
 # table of content
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [summary](#summary)
+  - [folder structure](#folder-structure)
 - [General (built-in remaps)](#general-built-in-remaps)
     - [Insert Mode Helpers](#insert-mode-helpers)
     - [Text Manipulation](#text-manipulation)
@@ -53,6 +57,7 @@ vimrc.d/
     - [dhruvasagar/vim-table-mode](#dhruvasagarvim-table-mode)
     - [Konfekt/FastFold](#konfektfastfold)
     - [neoclide/coc.nvim](#neoclidecocnvim)
+    - [Groovy / Jenkinsfile documentation (javadoc + go-to-definition)](#groovy--jenkinsfile-documentation-javadoc--go-to-definition)
     - [dense-analysis/ale](#dense-analysisale)
     - [airblade/vim-gitgutter](#airbladevim-gitgutter)
     - [zivyangll/git-blame.vim](#zivyangllgit-blamevim)
@@ -77,6 +82,7 @@ vimrc.d/
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+---
 
 # General (built-in remaps)
 
@@ -288,6 +294,40 @@ vimrc.d/
 | `<C-M>`   | i    | coc popup confirm                                 |
 |           |      |                                                   |
 | `:OR`     | cmd  | organize imports                                  |
+
+### Groovy / Jenkinsfile documentation (javadoc + go-to-definition)
+
+> [!NOTE]
+> [setup environment](https://github.com/marslo/mytools/tree/main/itool):
+> ```bash
+> curl -fsSL https://github.com/marslo/mytools/raw/main/itool/groovy-libs.sh  | bash -s -- --groovy --with-libs --path /opt/groovy
+> curl -fsSL https://github.com/marslo/mytools/raw/main/itool/jenkins-libs.sh | bash -s -- --lts --ln --sources --javadoc --path /opt/jenkins
+> curl -fsSL https://github.com/marslo/dotfiles/raw/main/.marslo/bin/lsp-gdoc | bash -s -- --build
+> ```
+> ```vim
+> " ~/.vimrc
+> augroup Groovy
+>   autocmd!
+>   autocmd FileType groovy,Jenkinsfile setlocal tags+=~/.cache/nvim/gdoc/.tags
+> augroup END
+> augroup JavaMarkdownDoc
+>   autocmd!
+>   autocmd ColorScheme * highlight default link markdownLineStart markdownH1
+> augroup END
+> silent! highlight default link markdownLineStart markdownH1
+> ```
+
+| SHORTCUT     | MODE | COMMENTS                                                                             |
+| ------------ | ---- | ------------------------------------------------------------------------------------ |
+| `,gd`        | n    | `gdoc#hover()` — javadoc for the symbol under the cursor (from `-sources.jar`); nvim |
+| `<C-]>`      | n    | go to definition — in groovy/Jenkinsfile also jumps into the extracted jar sources   |
+| `<C-t>`      | n    | jump back after `<C-]>`                                                              |
+| `gh.<meth>`  | i    | in Jenkinsfile, `.` completion shows the shared-lib javadoc (`[GT]` source)          |
+| `:GdocBuild` | cmd  | (re)build the offline index — `lsp-gdoc --build`; nvim                               |
+
+- `<C-]>` into jar sources works via a **buffer-local** `tags+=~/.cache/nvim/gdoc/.tags`, set only for `groovy`/`Jenkinsfile`
+- `libs.<method>` completion + javadoc comes from the `groovy_tags` coc source, which reads the repo `.tags` (via `gctags`) and extracts the `/** */` block above the def in `vars/*.groovy`.
+- rebuild after downloading new jars: `lsp-gdoc --build` (or `:GdocBuild`).
 
 ### [dense-analysis/ale](https://github.com/dense-analysis/ale)
 

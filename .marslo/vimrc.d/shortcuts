@@ -42,7 +42,7 @@ nnoremap Y                   y$
 " invpaste <-> paste in insert/normal/visual mode ( toggle paste mode )
 nnoremap <leader>pp          :set invpaste paste?<CR>
 " switch mouse model
-nnoremap <M-m>               :execute 'set mousemodel=' . (&mousemodel ==# 'extend' ? 'popup_setpos' : 'extend')<CR>
+nnoremap <M-m>               :execute 'set mousemodel=' . ( &mousemodel ==# 'extend' ? 'popup_setpos' : 'extend' )<CR>
 " silent delete in virtual mode
 " `"_dd` delete without copy to default register: https://til.hashrocket.com/posts/u86r0vdytl-deleting-lines-without-copying-to-default-register
 nnoremap rdd                 "_dd
@@ -97,6 +97,9 @@ nmap     <leader>qf          <Plug>(coc-fix-current)
 xmap     <silent><leader>qf  :<C-u>call CocActionAsync('codeAction', visualmode(), ['quickfix'])<CR>
 
 nnoremap <silent>K           :call ShowDocumentation()<CR>
+" gdoc: javadoc for classpath symbols (groovy/jenkins jars) from the offline index
+nnoremap <silent><leader>gd  :call gdoc#hover()<CR>
+command! -nargs=* GdocBuild  call gdoc#build(<f-args>)
 
 " -- remap <C-f> and <C-b> to scroll float windows/popups
 nnoremap <silent><nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"

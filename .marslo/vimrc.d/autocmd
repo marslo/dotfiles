@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-07-29 21:18:57
+"    LastChange : 2026-08-14 01:39:20
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -196,6 +196,7 @@ if has( 'autocmd' )
           \ let b:ale_groovy_npmgroovylint_options = '--loglevel warning --config ' . s:FindJenkinsfileLintRC()
     autocmd BufAdd      *.groovy,*.gradle,Jenkinsfile  call s:ToggleGroovyLSByFileSize()
     autocmd BufEnter    *.groovy,*.gradle,Jenkinsfile  call s:ToggleGroovyLSByFileSize()
+    autocmd FileType    groovy,Jenkinsfile             setlocal tags+=~/.cache/nvim/gdoc/.tags
 
     if did_filetype()                       | finish             | endif
     " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
