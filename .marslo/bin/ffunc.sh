@@ -566,40 +566,6 @@ function fpw() {                           # copy or show [p]ass[w]ord from pass
   fi
 }
 
-# lsps         : list processes
-# @author      : marslo
-# @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
-# @version     : 1.0.1
-#                - 1.0.1: https://github.com/junegunn/fzf/releases/tag/v0.59.0
-function lsps() {                          # [l]i[s]t [p]roces[s]
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      -p | --pid ) showPid="true" ; shift ;;
-    esac
-  done
-  local cmd=''
-
-  # shellcheck disable=SC2016,SC1078,SC1079
-  #   --header $'Press CTRL-R to reload\n' --header-lines 1 \
-  cmd=""" (date; ps -eof) |
-          fzf --bind 'start,ctrl-r:reload:(date; ps -eof)' \
-              --bind 'ctrl-n:change-nth(8..|1|2|3|4|5|6|7|)' \
-              --bind 'result:transform-prompt:echo \"${FZF_NTH}> \"' \
-              --preview 'echo {}' --preview-window=down,3,wrap \
-              --style full --layout reverse --header-lines 1 --height 80% \
-              --header-lines-border bottom --no-list-border \
-              --color fg:dim,nth:regular \
-              --bind 'click-header:transform-nth(
-                        echo $FZF_CLICK_HEADER_NTH
-                      )+transform-prompt(
-                        echo \"$FZF_CLICK_HEADER_WORD> \"
-                      )'
-  """
-  [[ -z "${showPid:-}" ]] && cmd+=" | awk '{print \$2}'"
-
-  eval "${cmd}"
-}
-
 function killps() {                        # [kill] [p]roces[s]
   (date; ps -ef) |
   fzf --bind='ctrl-r:reload(date; ps -ef)' \
@@ -2103,16 +2069,18 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
   elif [[ -n "${_venv:-}" ]]; then
     createVenv "${_venv}" "${_auto}"
     activeVenv "${_venv}"
+    echo -e "$(c Wd)>>$(c) $(c Wid)upgrade$(c) $(c Cis)pip$(c) $(c Wdi)if necessary ..$(c)"
+    python3 -m pip install --upgrade --no-user pip
     echo -e "$(c Wd)>>$(c) $(c Wid)install pip package$(c) $(c Cis)pynvim$(c) $(c Wdi)for nvim ..$(c)"
-    python3 -m pip install --upgrade pynvim
+    python3 -m pip install --upgrade --no-user pynvim
     echo -e "$(c Wd)>>$(c) $(c Wid)install pip package$(c) $(c Cis)pylint$(c) $(c Wdi) ..$(c)"
-    python3 -m pip install --upgrade pylint
+    python3 -m pip install --upgrade --no-user pylint
     if [[ -f ./requirements.txt ]]; then
       echo -e "$(c Wd)>>$(c) $(c Wid)install$(c) $(c Cis)./requirements.txt$(c) $(c Wdi)automatically ..$(c)"
       python3 -m pip install -r ./requirements.txt
     fi
   else
-    _venv=$(command ls --color=never "$HOME/.venv" | fzf --no-border --no-input-border --layout=reverse)
+    _venv=$(command ls --color=never "${HOME}/.venv" | fzf --no-border --no-input-border --layout=reverse)
     activeVenv "${_venv}"
   fi
 }

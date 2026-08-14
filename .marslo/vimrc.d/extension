@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-08-12 17:40:20
+"    LastChange : 2026-08-14 02:08:45
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -244,13 +244,13 @@ let g:indentLine_bufNameExclude       = ['_.*', 'NERD_tree.*']
 
 " cohama/lexima.vim
 let g:lexima_enable_basic_rules = 1
-" suppress auto-pair before path `/` or word content; still pair before whitespace, closing bracket/quote, punctuation `,;.:!?`, or EOL (priority 1)
-let s:suppress_regex = '\%#\%(\\["''`]\)\@![^ \t)}\]>"''`,;.:!?]'
+" suppress auto-pair before word content or `.`; still pair before whitespace, closing bracket/quote, punctuation `,;:!?`, path `/`, or EOL (priority 1)
+let s:suppress_regex = '\%#\%(\\["''`]\)\@![^ \t)}\]>"''`,;:!?/]'
 for s:char in ['"', "'", '`', '<']
   call lexima#add_rule({ 'char': s:char, 'at': s:suppress_regex, 'priority': 1 })
 endfor
-" brackets suppress before word/quote/path: `print|"..."` + `(` => `print(|"..."`; `|/usr` + `(` => `(|/usr`; still pair before whitespace/punctuation `,;.:!?`
-let s:bracket_suppress = '\%#[^ \t)}\]>,;.:!?]'
+" brackets suppress before word content or `.`; still pair before whitespace, quote, path `/`, closing bracket, punctuation `,;:!?`, or EOL
+let s:bracket_suppress = '\%#[^ \t)}\]>"''`,;:!?/]'
 for s:char in ['(', '[', '{']
   call lexima#add_rule({ 'char': s:char, 'at': s:bracket_suppress, 'priority': 1 })
 endfor
