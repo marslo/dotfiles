@@ -38,8 +38,6 @@ vimrc.d/
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [summary](#summary)
-  - [folder structure](#folder-structure)
 - [General (built-in remaps)](#general-built-in-remaps)
     - [Insert Mode Helpers](#insert-mode-helpers)
     - [Text Manipulation](#text-manipulation)
@@ -79,6 +77,15 @@ vimrc.d/
     - [NVIM ONLY](#nvim-only-1)
 - [vimrc - commands](#vimrc---commands)
   - [Command Abbreviations](#command-abbreviations)
+- [lexima behavior reference](#lexima-behavior-reference)
+  - [1. Basic pairing — cursor is followed by an "allowed position"](#1-basic-pairing--cursor-is-followed-by-an-allowed-position)
+  - [2. Pairing suppressed — cursor is followed by a word char / `.` / `@` etc. (not an allowed position)](#2-pairing-suppressed--cursor-is-followed-by-a-word-char-----etc-not-an-allowed-position)
+  - [3. Apostrophe in contractions/words — `'` right after a word](#3-apostrophe-in-contractionswords---right-after-a-word)
+  - [4. Skip over the closing char (leave-over) — cursor already before the closing char](#4-skip-over-the-closing-char-leave-over--cursor-already-before-the-closing-char)
+  - [5. `<<` (second `<`)](#5--second-)
+  - [6. After the escape char `\`](#6-after-the-escape-char-%5C)
+  - [7. Triple quotes (markdown / docstring)](#7-triple-quotes-markdown--docstring)
+  - [8. Backspace deletes the whole pair](#8-backspace-deletes-the-whole-pair)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -604,3 +611,82 @@ vimrc.d/
 | `:%D`                           | `:%d`                        |
 | `sudow!!`                       | `w !sudo tee > /dev/null %`  |
 | `sw!!`                          | silent sudo write and reload |
+
+# lexima behavior reference
+
+> Cursor is shown as `│`. Rules come from the lexima config in [`.marslo/vimrc.d/extension`](https://github.com/marslo/dotfiles/blob/main/.marslo/vimrc.d/extension#L245-L311).
+> "Allowed position" = space / end of line / `) ] } >` / `" ' ` `` ` `` / `/` / `, ; : ! ?`.
+
+## 1. Basic pairing — cursor is followed by an "allowed position"
+
+| BEFORE | INPUT   | AFTER     | NOTE                             |
+| ------ | ------- | --------- | -------------------------------- |
+| `│`    | `(`     | `(│)`     | paired                           |
+| `│`    | `[`     | `[│]`     | paired                           |
+| `│`    | `{`     | `{│}`     | paired                           |
+| `│`    | `"`     | `"│"`     | paired                           |
+| `│`    | `'`     | `'│'`     | paired                           |
+| `│`    | `` ` `` | `` `│` `` | paired                           |
+| `│`    | `<`     | `<│>`     | paired                           |
+| `foo│` | `{`     | `foo{│}`  | cursor at end of line → allowed  |
+| `│/x`  | `(`     | `(│)/x`   | cursor followed by `/` → allowed |
+
+## 2. Pairing suppressed — cursor is followed by a word char / `.` / `@` etc. (not an allowed position)
+
+| BEFORE  | INPUT | AFTER    | NOTE                                                                 |
+| ------- | ----- | -------- | -------------------------------------------------------------------- |
+| `│foo`  | `(`   | `(│foo`  | followed by a letter → only the opening char is inserted, no closing |
+| `│foo`  | `"`   | `"│foo`  | same as above                                                        |
+| `│.bar` | `{`   | `{│.bar` | followed by `.` → suppressed                                         |
+
+## 3. Apostrophe in contractions/words — `'` right after a word
+
+| Before | Input | After | Note |
+|---|---|---|---|
+| `I│` | `'` | `I'│` | lexima default: `'` after a letter is not paired (`I'm` / `don't`) |
+| `don│` | `'` | `don'│` | same as above |
+
+## 4. Skip over the closing char (leave-over) — cursor already before the closing char
+
+| BEFORE | INPUT | AFTER | NOTE                             |
+| ------ | ----- | ----- | -------------------------------- |
+| `(│)`  | `)`   | `()│` | nothing inserted, just skip over |
+| `"│"`  | `"`   | `""│` | skip over                        |
+| `'│'`  | `'`   | `''│` | skip over                        |
+| `<│>`  | `>`   | `<>│` | skip over                        |
+
+## 5. `<<` (second `<`)
+
+| BEFORE | INPUT | AFTER | NOTE                                                   |
+| ------ | ----- | ----- | ------------------------------------------------------ |
+| `<│>`  | `<`   | `<<│` | second `<` → becomes `<<`, no longer treated as a pair |
+
+## 6. After the escape char `\`
+
+| BEFORE   | INPUT   | AFTER       | NOTE                                               |
+| -------- | ------- | ----------- | -------------------------------------------------- |
+| `\│`     | `"`     | `\"│\"`     | `\`+quote → escaped quote, paired                  |
+| `\│`     | `'`     | `\'│\'`     | same as above                                      |
+| `` \│ `` | `` ` `` | `` \`│\` `` | escaped backtick, paired                           |
+| `\│`     | `[`     | `\[│`       | `\`+bracket → escaped, not paired (lexima default) |
+
+## 7. Triple quotes (markdown / docstring)
+
+| BEFORE    | INPUT   | AFTER         | NOTE                      |
+| --------- | ------- | ------------- | ------------------------- |
+| `""│`     | `"`     | `"""│"""`     | third quote → triple pair |
+| `''│`     | `'`     | `'''│'''`     | same as above             |
+| `` ``│ `` | `` ` `` | `` ```│``` `` | same as above             |
+
+## 8. Backspace deletes the whole pair
+
+| BEFORE | INPUT  | AFTER | NOTE                                                  |
+| ------ | ------ | ----- | ----------------------------------------------------- |
+| `(│)`  | `<BS>` | `│`   | delete the opening char → closing char is removed too |
+| `"│"`  | `<BS>` | `│`   | same as above                                         |
+
+---
+
+> [!NOTE]
+> Groups 1, 2, 3, 6, 8 are actual results measured with `feedkeys` in headless nvim;
+> groups 4 (leave), 5 (`<<`), 7 (triple) are from lexima's standard behavior + screenshot confirmation.
