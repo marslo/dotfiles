@@ -56,13 +56,14 @@ const headerPartial = `## {{#if @root.linkCompare~}}
 {{/if}}
 `;
 
-// {{header}} keeps the original "feat: ..." prefix; body/footer follow (signoff stripped in transform)
-const commitPartial = "* {{header}}\n{{#if body}}\n{{body}}\n{{/if}}\n{{#if footer}}\n\n{{footer}}\n{{/if}}\n";
+// commit line: bold the scope as **scope:** and keep the subject. PR commits carry an inline "(#N)" that GitHub auto-links, so leave them link-free; only direct pushes (no "(#N)") get an appended ([shortHash](…/commit/<hash>)) link. body/footer follow (built in transform)
+const commitPartial =
+  '*{{#if scope}} **{{scope}}:**{{/if}} {{#if subject}}{{subject}}{{else}}{{header}}{{/if}}' +
+  '{{#unless hasIssueRef}}{{#if @root.linkReferences}} ([{{shortHash}}]({{@root.host}}/{{@root.owner}}/{{@root.repository}}/commit/{{hash}})){{/if}}{{/unless}}' +
+  '\n{{#if body}}\n{{body}}\n{{/if}}\n{{#if footer}}\n\n{{footer}}\n{{/if}}\n';
 
 // ── dynamic changelog title ──
-// reuse an existing level-1 header (`# ...`) at the very top of CHANGELOG.md so new
-// releases are inserted BELOW it; if there is none, leave changelogTitle unset so
-// semantic-release just prepends (no title is forced onto title-less changelogs)
+// reuse an existing level-1 header (`# ...`) at the very top of CHANGELOG.md so new releases are inserted BELOW it; if there is none, leave changelogTitle unset so semantic-release just prepends (no title is forced onto title-less changelogs)
 const fs = require('fs');
 const path = require('path');
 const CHANGELOG_FILE = 'CHANGELOG.md';
@@ -118,16 +119,22 @@ module.exports = {
             c.type = TYPE_TO_SECTION[c.type];
           }
 
-          // the parser may split trailing body lines into `footer` (e.g. a bullet containing an issue-like "#N");
-          // fold body + footer back together and drop Signed-off-by
+          // preset's default transform (overridden here) normally sets shortHash; restore it so the commit link text isn't empty ("[](…/commit/<hash>)")
+          if (typeof c.hash === 'string') {
+            c.shortHash = c.hash.substring(0, 7);
+          }
+
+          // PR commits carry an inline "(#N)" that GitHub auto-links; keep it verbatim and skip the sha link. direct pushes (no "(#N)") get the commit-sha link (see commitPartial)
+          c.hasIssueRef = /\(#\d+\)/.test(c.subject || '');
+
+          // the parser may split trailing body lines into `footer` (e.g. a bullet containing an issue-like "#N"); fold body + footer back together and drop Signed-off-by
           const detail = [c.body, c.footer]
             .filter(Boolean)
             .join('\n')
             .split('\n')
             .filter(l => !isSignoff(l));
           if (detail.some(l => l.trim() !== '')) {
-            // bullet body (`- ...`) -> 2-space sub-list right under the subject;
-            // free-form body (no bullets) -> blank line + 4-space verbatim block
+            // bullet body (`- ...`) -> 2-space sub-list right under the subject; free-form body (no bullets) -> blank line + 4-space verbatim block
             const hasBullets = detail.some(l => /^\s*-\s+\S/.test(l));
             const indent = hasBullets ? '  ' : '    ';
             const block = detail.map(l => l.trim() === '' ? '' : indent + l).join('\n');

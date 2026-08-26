@@ -3,7 +3,7 @@
 #      FileName : lsp-gdoc
 #        Author : marslo
 #       Created : 2026-08-13 22:28:15
-#    LastChange : 2026-08-14 01:27:51
+#    LastChange : 2026-08-19 21:27:58
 # =============================================================================
 #   build an offline javadoc index from *-sources.jar on the groovy classpath, so nvim can show docs for classpath symbols. reuses ctags (line numbers) + the same "javadoc block above the def" extraction used by groovy_tags.
 #   jar files in ROOTS:
@@ -59,6 +59,9 @@ function jarsOf() {
   done
 }
 
+# aligned summary row: >> <label> : <value> -> <target>  ($HOME shown as ~)
+function row() { printf '>> %-7s : %-24s -> %s\n' "${1}" "${2}" "${3/#${HOME}/\~}"; }
+
 function gdocBuild() {
   local -a roots
   if test ${#} -gt 0; then roots=( "${@}" ); else roots=( "${ROOTS[@]}" ); fi
@@ -72,36 +75,36 @@ function gdocBuild() {
     unzip -o -q "${jar}" '*.java' '*.groovy' -d "${GDOC_SRC}" 2>/dev/null || true
     sjars=$(( sjars + 1 ))
   done < <( jarsOf '-sources.jar' "${roots[@]}" )
-  printf '>> sources : %d jars extracted -> %s\n' "${sjars}" "${GDOC_SRC}"
+  row sources "${sjars} jars extracted" "${GDOC_SRC}"
 
   # 2. ctags over the tree, with line numbers (line:) and qualified extras
   ctags -R --languages=Java,groovy --fields=+n --extras=+q -f "${GDOC_TAGS}" "${GDOC_SRC}" 2>/dev/null || true
-  printf '>> tags    : %s symbols -> %s\n' "$( command grep -vc '^!' "${GDOC_TAGS}" 2>/dev/null || echo 0 )" "${GDOC_TAGS}"
+  row tags "$( command grep -vc '^!' "${GDOC_TAGS}" 2>/dev/null || echo 0 ) symbols" "${GDOC_TAGS}"
 
   # 3. javadoc html map: FQN \t jar \t internal.html  (for literal class hover)
   : > "${GDOC_JDMAP}"
   local -i jjars=0
   while IFS= read -r jar; do
-    unzip -Z1 "${jar}" '*.html' 2>/dev/null |
-    while IFS= read -r html; do
+    # unzip exits 11 ("no matching files") for javadoc jars without html; don't let it abort
+    unzip -Z1 "${jar}" '*.html' 2>/dev/null | while IFS= read -r html; do
       case "${html}" in
         */class-use/*|*/doc-files/*|*-summary.html|*index*|*package-*|*deprecated*|*help-doc*|*overview*|*allclasses*|*serialized-form*|*constant-values*|*search*) continue ;;
       esac
       local fqn="${html%.html}"
       printf '%s\t%s\t%s\n' "${fqn//\//.}" "${jar}" "${html}"
-    done >> "${GDOC_JDMAP}"
+    done >> "${GDOC_JDMAP}" || true
     jjars=$(( jjars + 1 ))
   done < <( jarsOf '-javadoc.jar' "${roots[@]}" )
-  printf '>> javadoc : %d jars, %s classes -> %s\n' "${jjars}" "$( command wc -l < "${GDOC_JDMAP}" | tr -d ' ' )" "${GDOC_JDMAP}"
+  row javadoc "${jjars} jars, $( command wc -l < "${GDOC_JDMAP}" | tr -d ' ' ) classes" "${GDOC_JDMAP}"
 }
 
 function gdocClean() {
   if test -d "${GDOC_HOME}"; then
     local sz; sz="$( command du -sh "${GDOC_HOME}" 2>/dev/null | command cut -f1 )"
     command rm -rf "${GDOC_HOME}"
-    printf '>> removed %s (%s)\n' "${GDOC_HOME}" "${sz:-?}"
+    printf '>> removed %s (%s)\n' "${GDOC_HOME/#${HOME}/\~}" "${sz:-?}"
   else
-    printf '>> nothing to clean (%s absent)\n' "${GDOC_HOME}"
+    printf '>> nothing to clean (%s absent)\n' "${GDOC_HOME/#${HOME}/\~}"
   fi
 }
 

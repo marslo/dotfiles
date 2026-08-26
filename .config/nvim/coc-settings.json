@@ -5,17 +5,17 @@
   "codeLens.enable": true,
   "groovy.enable": true,
   // $ sudo ln -sfn $(brew --prefix openjdk)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk,
-  // "groovy.java.home": "/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home",
-  "groovy.java.home": "/opt/homebrew/Cellar/openjdk@21/21.0.12/libexec/openjdk.jdk/Contents/Home",
+  "groovy.java.home": "/Library/Java/JavaVirtualMachines/openjdk.jdk/Contents/Home",
+  // "groovy.java.home": "/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home",
   "groovy.project.referencedLibraries": [
+    // "/opt/groovy/latest/*",
     "/opt/homebrew/opt/groovy/libexec/lib/*",
-    "/opt/groovy/latest/*",
     "/opt/jenkins/latest/WEB-INF/lib/*",
     "/Users/marslo/.groovy/lib/*"
   ],
-  "groovy.ls.vmargs": "-noverify -Xmx2G -XX:+UseG1GC -XX:+UseStringDeduplication",
-  // "verbose" / "message" / "off"
-  "groovy.trace.server": "off",
+  "groovy.ls.vmargs": "-XX:+UseStringDeduplication",
+  // "off" / "messages" / "verbose"
+  "groovy.trace.server": "messages",
   "groovy.ls.feature.noRoot": true,
   "java.referencesCodeLens.enabled": true,
   "java.implementationsCodeLens.enabled": true,
@@ -57,7 +57,6 @@
     "npm-groovy-lint": {
       "command": "/Users/marslo/.npm/bin/npm-groovy-lint",
       "args": [
-        "--noserver",
         "--failon",
         "none",
         "--loglevel",
@@ -195,3 +194,5 @@
   }
   // "workspace.ignoredFolders": [ "**/.git/**" ]
 }
+
+// vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=jsonc:

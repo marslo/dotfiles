@@ -3,7 +3,7 @@
 #     FileName : pre-commit-autoupdate
 #       Author : marslo
 #      Created : 2026-05-13 14:15:00
-#   LastChange : 2026-08-14 02:03:43
+#   LastChange : 2026-08-19 21:25:40
 #  Description : `pre-commit autoupdate` — runs real autoupdate → fixes repos that use rolling major-version tags
 #                e.g. crate-ci/typos publishes "v1"
 #=============================================================================
@@ -16,17 +16,17 @@ declare -r HERE="$( cd "$( dirname "${BASH_SOURCE[0]:-$0}" )" && pwd )"
 function backer() {
   local _path
   _path=$(echo "${PATH}" | awk -v RS=: -v ORS=: -v skip="${HERE}" '$1 != skip' | sed 's/:$//')
-  PATH="${_path}" command -v pre-commit || { echo >&2 "error: real pre-commit not found in PATH"; return 1; }
+  PATH="${_path}" command -v pre-commit || { echo >&2 "error: pre-commit not found in PATH"; return 1; }
 }
 
 readonly CFG='.pre-commit-config.yaml'
-readonly ROLLING_REPOS=('crate-ci/typos')
+readonly ROLLING_REPOS=( 'crate-ci/typos' )
 
 # locate the config dir (walk up from cwd, else git repo root) so autoupdate runs from any subdir
 function findroot() {
   local d="${PWD}"
   while [[ "${d}" != '/' ]]; do
-    [[ -f "${d}/${CFG}" ]] && { printf '%s' "${d}"; return 0; }
+    test -f "${d}/${CFG}" && { printf '%s' "${d}"; return 0; }
     d="$( dirname "${d}" )"
   done
   local root; root="$( git rev-parse --show-toplevel 2>/dev/null )" || true
@@ -37,7 +37,7 @@ function findroot() {
 declare CFG_DIR CFG_PATH
 CFG_DIR="$( findroot )" || { echo >&2 "error: ${CFG} not found in ${PWD} or any parent / git root"; exit 1; }
 CFG_PATH="${CFG_DIR}/${CFG}"
-[[ "${CFG_DIR}" != "${PWD}" ]] && echo >&2 "→ ${CFG_PATH}"
+[[ "${CFG_DIR}" != "${PWD}" ]] && echo >&2 -e "\033[0;2;3;37m→ ${CFG_PATH}\033[0m"
 trap 'rm -f "${CFG_PATH}.bak"' EXIT
 
 : "${_REAL_PRECOMMIT:=$(backer)}"
@@ -46,15 +46,11 @@ trap 'rm -f "${CFG_PATH}.bak"' EXIT
 for repo in "${ROLLING_REPOS[@]}"; do
   if ! grep -q "${repo}" "${CFG_PATH}"; then continue; fi
 
-  latest=$(
-    curl -fsSL ${GITHUB_TOKEN:+-H "Authorization: token $GITHUB_TOKEN"} \
-      "https://api.github.com/repos/${repo}/releases/latest" |
-      jq -r '.tag_name // empty'
-  ) || true
-  [[ -z "${latest}" ]] && { echo >&2 "warning: could not fetch latest release for ${repo}, skipping"; continue; }
+  latest=$( curl -fsSL ${GITHUB_TOKEN:+-H "Authorization: token $GITHUB_TOKEN"} "https://api.github.com/repos/${repo}/releases/latest" | jq -r '.tag_name // empty' ) || true
+  test -z "${latest}" && { echo >&2 "warning: could not fetch latest release for ${repo}, skipping"; continue; }
 
   escaped="${repo//\//\\/}"
-  current=$(sed -n "/${escaped}/{n;s/.*rev:[[:space:]]*//p;}" "${CFG_PATH}" | head -1)
+  current=$( sed -n "/${escaped}/{n;s/.*rev:[[:space:]]*//p;}" "${CFG_PATH}" | head -1 )
 
   if [[ "${current}" != "${latest}" ]]; then
     sed -i.bak "/${escaped}/{n;s/rev:.*/rev: ${latest}/;}" "${CFG_PATH}"
