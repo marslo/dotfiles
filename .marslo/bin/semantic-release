@@ -4,7 +4,7 @@
 #     FileName : semantic-release
 #       Author : marslo
 #      Created : 2025-06-17 23:02:43
-#   LastChange : 2026-08-04 19:13:47
+#   LastChange : 2026-08-25 20:56:50
 #=============================================================================
 
 set -euo pipefail
@@ -124,6 +124,11 @@ trap 'unset GITHUB_TOKEN GITHUB_USER' EXIT
 export GITHUB_TOKEN="${TOKEN}"
 export GH_TOKEN="${TOKEN}"
 export GITHUB_USER="${ACCOUNT}"
-"${cmd[@]}" || { echo -e '\n'; die "semantic-release failed"; }
+
+if "${cmd[@]}"; then
+  git pull --rebase
+else
+  echo -e '\n'; die "semantic-release failed"
+fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

@@ -56,9 +56,9 @@ const headerPartial = `## {{#if @root.linkCompare~}}
 {{/if}}
 `;
 
-// commit line: bold the scope as **scope:** and keep the subject. PR commits carry an inline "(#N)" that GitHub auto-links, so leave them link-free; only direct pushes (no "(#N)") get an appended ([shortHash](…/commit/<hash>)) link. body/footer follow (built in transform)
+// commit line: bold each comma-split scope as **scope:** (built as scopeFmt in transform) and keep the subject. PR commits carry an inline "(#N)" that GitHub auto-links, so leave them link-free; only direct pushes (no "(#N)") get an appended ([shortHash](…/commit/<hash>)) link. body/footer follow (built in transform)
 const commitPartial =
-  '*{{#if scope}} **{{scope}}:**{{/if}} {{#if subject}}{{subject}}{{else}}{{header}}{{/if}}' +
+  '*{{#if scopeFmt}} {{scopeFmt}}:{{/if}} {{#if subject}}{{subject}}{{else}}{{header}}{{/if}}' +
   '{{#unless hasIssueRef}}{{#if @root.linkReferences}} ([{{shortHash}}]({{@root.host}}/{{@root.owner}}/{{@root.repository}}/commit/{{hash}})){{/if}}{{/unless}}' +
   '\n{{#if body}}\n{{body}}\n{{/if}}\n{{#if footer}}\n\n{{footer}}\n{{/if}}\n';
 
@@ -126,6 +126,11 @@ module.exports = {
 
           // PR commits carry an inline "(#N)" that GitHub auto-links; keep it verbatim and skip the sha link. direct pushes (no "(#N)") get the commit-sha link (see commitPartial)
           c.hasIssueRef = /\(#\d+\)/.test(c.subject || '');
+
+          // comma-split the scope and bold each part -> "**a**, **b**" (rendered via scopeFmt)
+          if (c.scope) {
+            c.scopeFmt = c.scope.split(',').map(s => '**' + s.trim() + '**').join(', ');
+          }
 
           // the parser may split trailing body lines into `footer` (e.g. a bullet containing an issue-like "#N"); fold body + footer back together and drop Signed-off-by
           const detail = [c.body, c.footer]
