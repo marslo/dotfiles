@@ -1,2 +1,3 @@
-*.config    text diff=config whitespace=-tab-in-indent
-*.ltsv      text diff=ltsv whitespace=-tab-in-indent
+*.config         text diff=config whitespace=-tab-in-indent
+*.ltsv           text diff=ltsv   whitespace=-tab-in-indent
+stylus-*.json    diff=stylus-json

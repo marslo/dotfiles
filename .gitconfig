@@ -19,6 +19,8 @@
   wsErrorHighlight  = all
   renamelimit       = 10000
   external          = difft
+  colorMoved        = zebra
+  colorMovedWS      = allow-indentation-change
 # inspired from tpope: https://github.com/tpope/tpope/blob/master/.gitconfig
 [diff "ruby"]
   funcname          = "^ *\\(\\(def\\) .*\\)"
@@ -26,6 +28,30 @@
   textconv          = identify
 [diff "bin"]
   textconv          = hexdump -v -C
+[diff "stylus-json"]
+  textconv          = ~/.marslo/gitconfig.d/bin/stylus-expand.sh
+  cachetextconv     = true
+[difftool "difftastic"]
+  cmd               = difft "$LOCAL" "$REMOTE"
+[delta]
+  navigate                 = true
+  line-numbers             = true
+  side-by-side             = false
+  wrap-max-lines           = unlimited
+  hyperlinks               = false
+  max-line-length          = 0
+  syntax-theme             = Catppuccin Mocha
+  minus-style              = syntax
+  minus-emph-style         = syntax "#45293440"
+  plus-style               = syntax
+  plus-emph-style          = syntax "#2c3b3480"
+  line-numbers-minus-style = "#f38ba8"
+  line-numbers-plus-style  = "#a6e3a1"
+  line-numbers-zero-style  = "#6c7086"
+  zero-style               = syntax
+  hunk-header-style        = omit
+  file-style               = bold "#89b4fa"
+  file-decoration-style    = "#585b70" ul
 [core]
   editor            = nvim
   pager             = diff-highlight | less $LESS -F -x1,5 -X
@@ -47,6 +73,7 @@
   # decolorize | bat - to bypass the gitcolors settings
   # requires `bat cache --build` to load the syntax highlighting for `glogsmart`
   show              = "sed 's/\\x1b\\[[0-9;]*m//g' | bat --language 'git show' --plain --theme 'Catppuccin Mocha'"
+  difftool          = true
 [gui]
   fontdiff          = -family Consolas -size 11 -weight normal -slant roman -underline 0 -overstrike 0
 [pretty]

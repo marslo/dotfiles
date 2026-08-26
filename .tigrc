@@ -1,7 +1,7 @@
 # ===========================================================================
 #     FileName: .tigrc
-#       Author: marslo.jiao@gmail.com
-#   LastChange: 2025-09-17 22:12:04
+#       Author: marslo
+#   LastChange: 2026-08-25 21:30:04
 # ===========================================================================
 
 # Shortcut
@@ -55,12 +55,23 @@ bind generic us stage-split-chunk
 bind generic <C-w><C-w> view-next
 
 # scroll left/right
+bind generic 0  scroll-first-col
 bind generic L  scroll-right
 bind generic H  scroll-left
 bind main    H  scroll-left
 
 # bind generic xf +sh -c "echo -n %(file) | xclip -sel c && echo File Clipped"
 bind generic xf +sh -c "cat %(file) | pbcopy && echo File Copied Into The Cliboard (paste with Cmd-V)"
+
+# using delta as diff tool
+bind diff    D  !sh -c "git --no-pager show --no-ext-diff --textconv %(commit) | delta"
+bind main    D  !sh -c "git --no-pager show --no-ext-diff --textconv %(commit) | delta"
+bind status  D  !sh -c "git --no-pager diff --no-ext-diff -- %(file)           | delta"
+
+# using difftastic (difft) as diff tool
+bind diff    F  !sh -c "GIT_EXTERNAL_DIFF='difft --color always' git --no-pager show --ext-diff %(commit) | less -R"
+bind main    F  !sh -c "GIT_EXTERNAL_DIFF='difft --color always' git --no-pager show --ext-diff %(commit) | less -R"
+bind status  F  !sh -c "GIT_EXTERNAL_DIFF='difft --color always' git --no-pager diff HEAD -- %(file)      | less -R"
 
 # View
 # ------
@@ -113,8 +124,10 @@ set send-child-enter       = yes
 set focus-child            = yes
 set blame-options          = -C -C -C
 set mouse-scroll           = 3
-set wrap-lines             = false
+set wrap-lines             = yes
 set diff-highlight         = true
+set diff-options           = --no-ext-diff
+set horizontal-scroll      = 33%
 # set git-colors           = yes
 
 # Colors

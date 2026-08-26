@@ -577,30 +577,34 @@
   # diff                  #
   #-----------------------#
   # {{{
-  ### [d]iff with [r]emote branch - requires difftastic tool installed
+  #### [d]iff via colorful [w]ords
+  wd          = diff --no-ext-diff --color-words -U0
+  ### [d]iff with [r]emote branch   - requires difftastic tool installed
   rd          = -c diff.external=difft diff @{u}..@
   ### [d]iff with [p]revious branch - requires difftastic tool installed
   pd          = -c diff.external=difft diff @{-1}..@
-  #### [d]iff file [n]ame only - requires difftastic tool installed
+  #### [d]iff file [n]ame only      - requires difftastic tool installed
   nd          = -c diff.external=difft diff --name-status
-  #### [d]iff via colorful [w]ords
-  wd          = diff --color-words -U0
+  # [s]how with [d]iff              - requires difftastic tool installed
+  sd          = -c diff.external=difft -c pager.show='less -R' show --ext-diff
   # [l]ine [d]iff
-  ld          = !bash -c 'source ~/.marslo/bin/ig.sh && git diff -U0 \"$@\" | diffLines' -
+  ld          = !bash -c 'source ~/.marslo/bin/ig.sh && git diff --no-ext-diff -U0 \"$@\" | diffLines' -
   # ld        = !bash -l -c 'git diff -U0 "$@" | diffLines' -
   ldiff       = -c diff.external=difft diff -U0
-  diffremote  = "!bash -c 'while read branch; do \n\
+  diff-remote = "!bash -c 'while read branch; do \n\
                              git fetch origin ${branch}; \n\
                              git ld $branch remotes/origin/${branch}; \n\
                            done < <(git rev-parse --abbrev-ref HEAD) \n\
                           '"
-  diffname    = git diff --name-only
-  diffbranch  = log --left-right --graph --cherry-pick --oneline
-  sortdiff    = !sh -c 'git diff "$@" | grep "^[+-]" | sort --key=1.2 | uniq -u -s1'
+  diff-name   = git diff --name-only
+  diff-branch = log --left-right --graph --cherry-pick --oneline
+  diff-sort   = "!f() { git diff --no-ext-diff --no-color --textconv \"$@\" | command grep '^[+-]' | command grep -vE '^(\\+\\+\\+|---)' | sort --key=1.2 | uniq -u -s1; }; f"
+  diff-moved  = "!f() { git diff --no-ext-diff --no-color --textconv \"$@\" | command grep '^[+-]' | command grep -vE '^(\\+\\+\\+|---)' | sort --key=1.2 | uniq -d -s1; }; f"
   # requires difftastic tool installed
   # dft       = -c diff.external=difft diff
-  dft         = diff --no-ext-diff
-  ds          = -c diff.external=difft show --ext-diff
+  df          = diff --no-ext-diff
+  # delta - brew install git-delta [ --HEAD ]
+  dd          = "!git --no-pager diff --no-ext-diff \"$@\" | delta"
   # }}}
 
   #-----------------------#
