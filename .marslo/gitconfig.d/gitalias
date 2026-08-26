@@ -2,7 +2,7 @@
 #     FileName : gitalias
 #       Author : marslo
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2026-07-23 05:23:20
+#   LastChange : 2026-08-26 03:48:17
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -600,11 +600,15 @@
   diff-branch = log --left-right --graph --cherry-pick --oneline
   diff-sort   = "!f() { git diff --no-ext-diff --no-color --textconv \"$@\" | command grep '^[+-]' | command grep -vE '^(\\+\\+\\+|---)' | sort --key=1.2 | uniq -u -s1; }; f"
   diff-moved  = "!f() { git diff --no-ext-diff --no-color --textconv \"$@\" | command grep '^[+-]' | command grep -vE '^(\\+\\+\\+|---)' | sort --key=1.2 | uniq -d -s1; }; f"
-  # requires difftastic tool installed
-  # dft       = -c diff.external=difft diff
-  df          = diff --no-ext-diff
-  # delta - brew install git-delta [ --HEAD ]
+  # brew install difftastic
+  dft         = -c diff.external=difft diff
+  # $(brew --prefix git)/share/git-core/contrib/diff-highlight/diff-highlight
+  dh          = "!f() { git --no-pager diff --no-ext-diff \"$@\" | diff-highlight | less -RFX; }; f"
+  # brew install git-delta --HEAD
   dd          = "!git --no-pager diff --no-ext-diff \"$@\" | delta"
+  # no delta, no difft
+  dp          = -c pager.diff=false diff --no-ext-diff
+  df          = diff --no-ext-diff
   # }}}
 
   #-----------------------#

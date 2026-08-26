@@ -18,7 +18,7 @@
   submodule         = log
   wsErrorHighlight  = all
   renamelimit       = 10000
-  external          = difft
+  # external        = difft
   colorMoved        = zebra
   colorMovedWS      = allow-indentation-change
 # inspired from tpope: https://github.com/tpope/tpope/blob/master/.gitconfig
@@ -33,6 +33,7 @@
   cachetextconv     = true
 [difftool "difftastic"]
   cmd               = difft "$LOCAL" "$REMOTE"
+# brew install git-delta [--HEAD]
 [delta]
   navigate                 = true
   line-numbers             = true
@@ -54,7 +55,8 @@
   file-decoration-style    = "#585b70" ul
 [core]
   editor            = nvim
-  pager             = diff-highlight | less $LESS -F -x1,5 -X
+  # pager           = diff-highlight | less $LESS -F -x1,5 -X
+  pager             = delta
   whitespace        = fix,-indent-with-non-tab,trailing-space,cr-at-eol,tab-in-indent
   autocrlf          = input
   precomposeUnicode = true
@@ -68,16 +70,19 @@
   abbrev            = 8
 [pager]
   branch            = less -FRXK
-  diff              = diff-highlight | less
-  log               = diff-highlight | less -FRXK
-  # decolorize | bat - to bypass the gitcolors settings
-  # requires `bat cache --build` to load the syntax highlighting for `glogsmart`
+  # diff            = diff-highlight | less
+  # log             = diff-highlight | less -FRXK
+  diff              = delta
+  log               = delta
+  # decolorize | bat - to bypass the gitcolors settings ── requires `bat cache --build` to load the syntax highlighting for `glogsmart`
   show              = "sed 's/\\x1b\\[[0-9;]*m//g' | bat --language 'git show' --plain --theme 'Catppuccin Mocha'"
   difftool          = true
+[interactive]
+  diffFilter        = delta --color-only
 [gui]
   fontdiff          = -family Consolas -size 11 -weight normal -slant roman -underline 0 -overstrike 0
 [pretty]
-  custom            = "%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
+  custom            = "%C(magenta)%h%C(auto)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
   #                                │        │            │            │             └─ author name
   #                                │        │            │            └─ message
   #                                │        │            └─ date (relative)
