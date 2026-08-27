@@ -29,9 +29,7 @@ if has('gui_running')
   else
     set guifont=OperatorMonoLig\ Nerd\ Font\ Mono:h29
     " not in vscode/cursor nvim
-    if !exists('g:vscode')
-      set renderoptions=type:directx,renmode:5
-    endif
+    if !exists('g:vscode') | set renderoptions=type:directx,renmode:5 | endif
   endif
   set lines=30                                                      " the initialize size
   set columns=106

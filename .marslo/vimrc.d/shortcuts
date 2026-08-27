@@ -43,6 +43,9 @@ nnoremap Y                   y$
 nnoremap <leader>pp          :set invpaste paste?<CR>
 " switch mouse model
 nnoremap <M-m>               :execute 'set mousemodel=' . ( &mousemodel ==# 'extend' ? 'popup_setpos' : 'extend' )<CR>
+" toggle groovy_tags idle auto-hover (on/off)
+command! GroovyHoverToggle   call groovy_tags#toggle_auto_hover()
+nnoremap <silent><M-h>       :GroovyHoverToggle<CR>
 " silent delete in virtual mode
 " `"_dd` delete without copy to default register: https://til.hashrocket.com/posts/u86r0vdytl-deleting-lines-without-copying-to-default-register
 nnoremap rdd                 "_dd
@@ -92,12 +95,12 @@ nmap     <leader>as          <Plug>(coc-codeaction-source)
 " choose code actions from selected range
 xmap     <leader>aa          <Plug>(coc-codeaction-selected)
 nmap     <leader>aa          <Plug>(coc-codeaction-selected)
-" try the first quickfix action ── coc-fix-current → :call CocActionAsync('doQuickfix')
+" try the first [q]uick[f]ix action ── coc-fix-current → :call CocActionAsync('doQuickfix')
 nmap     <leader>qf          <Plug>(coc-fix-current)
 xmap     <silent><leader>qf  :<C-u>call CocActionAsync('codeAction', visualmode(), ['quickfix'])<CR>
 
 nnoremap <silent>K           :call ShowDocumentation()<CR>
-" gdoc: javadoc for classpath symbols (groovy/jenkins jars) from the offline index
+" [g]oto [d]efinition ── gdoc: javadoc for classpath symbols (groovy/jenkins jars) from the offline index
 nnoremap <silent><leader>gd  :call gdoc#hover()<CR>
 command! -nargs=* GdocBuild  call gdoc#build(<f-args>)
 

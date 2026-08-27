@@ -38,7 +38,7 @@
 snippet #!! "shebang dropdown" rb
 #!/usr/bin/env groovy
 
-@Library( 'sdk-release-libs@${1:sdk-release-automation-devel}' ) _
+@Library${1|( 'sdk-release-libs' ),([ 'libs'\, 'engineering-libs' ])|} _
 
 import groovy.transform.Field
 ${2}

@@ -276,31 +276,33 @@ vimrc.d/
 > [!TIP]
 > disabled in vscode/cursor
 
-| SHORTCUT  | MODE | COMMENTS                                          |
-| --------- | ---- | ------------------------------------------------- |
-| `,cl`     | n    | `coc-codelens-action`                             |
-| `,ac`     | n    | `coc-codeaction-cursor`                           |
-| `,as`     | n    | `coc-codeaction-source`                           |
-| `,aa`     | n/x  | `coc-codeaction-selected`                         |
-| `,qf`     | n/x  | `coc-fix-current` (n) / quickfix in selection (x) |
-|           |      |                                                   |
-| `[g`      | n    | `coc-diagnostic-prev`                             |
-| `]g`      | n    | `coc-diagnostic-next`                             |
-| `gd`      | n    | `coc-definition`                                  |
-| `gy`      | n    | `coc-type-definition`                             |
-| `gi`      | n    | `coc-implementation`                              |
-| `gr`      | n    | `coc-references`                                  |
-| `K`       | n    | show documentation (hover)                        |
-|           |      |                                                   |
-| `<C-S-j>` | i    | `coc-snippets-expand`                             |
-| `<C-j>`   | v    | `coc-snippets-select`                             |
-| `<C-j>`   | i    | snippet expand or jump                            |
-| `<C-k>`   | -    | snippet prev (via `coc_snippet_prev`)             |
-| `<DOWN>`  | i    | coc popup next item                               |
-| `<UP>`    | i    | coc popup prev item                               |
-| `<C-M>`   | i    | coc popup confirm                                 |
-|           |      |                                                   |
-| `:OR`     | cmd  | organize imports                                  |
+| SHORTCUT             | MODE | COMMENTS                                          | FROM                       |
+| -------------------- | ---- | ------------------------------------------------- | -------------------------- |
+| `,cl`                | n    | `coc-codelens-action`                             | -                          |
+| `,ac`                | n    | `coc-codeaction-cursor`                           | -                          |
+| `,as`                | n    | `coc-codeaction-source`                           | -                          |
+| `,aa`                | n/x  | `coc-codeaction-selected`                         | -                          |
+| `,qf`                | n/x  | `coc-fix-current` (n) / quickfix in selection (x) | -                          |
+|                      |      |                                                   |                            |
+| `[g`                 | n    | `coc-diagnostic-prev`                             | -                          |
+| `]g`                 | n    | `coc-diagnostic-next`                             | -                          |
+| `gd`                 | n    | `coc-definition`                                  | -                          |
+| `gy`                 | n    | `coc-type-definition`                             | -                          |
+| `gi`                 | n    | `coc-implementation`                              | -                          |
+| `gr`                 | n    | `coc-references`                                  | -                          |
+| `K`                  | n    | show documentation (hover)                        | -                          |
+| `<M-h>`              | n    | toggle idle auto-hover on/off                     | `autoload/groovy_tags.vim` |
+|                      |      |                                                   |                            |
+| `<C-S-j>`            | i    | `coc-snippets-expand`                             | -                          |
+| `<C-j>`              | v    | `coc-snippets-select`                             | -                          |
+| `<C-j>`              | i    | snippet expand or jump                            | -                          |
+| `<C-k>`              | -    | snippet prev (via `coc_snippet_prev`)             | -                          |
+| `<DOWN>`             | i    | coc popup next item                               | -                          |
+| `<UP>`               | i    | coc popup prev item                               | -                          |
+| `<C-M>`              | i    | coc popup confirm                                 | -                          |
+|                      |      |                                                   |                            |
+| `:OR`                | cmd  | organize imports                                  | -                          |
+| `:GroovyHoverToggle` | cmd  | toggle idle auto-hover on/off                     | `autoload/groovy_tags.vim` |
 
 ### Groovy / Jenkinsfile documentation (javadoc + go-to-definition)
 
@@ -324,17 +326,34 @@ vimrc.d/
 > silent! highlight default link markdownLineStart markdownH1
 > ```
 
-| SHORTCUT     | MODE | COMMENTS                                                                             |
-| ------------ | ---- | ------------------------------------------------------------------------------------ |
-| `,gd`        | n    | `gdoc#hover()` — javadoc for the symbol under the cursor (from `-sources.jar`); nvim |
-| `<C-]>`      | n    | go to definition — in groovy/Jenkinsfile also jumps into the extracted jar sources   |
-| `<C-t>`      | n    | jump back after `<C-]>`                                                              |
-| `gh.<meth>`  | i    | in Jenkinsfile, `.` completion shows the shared-lib javadoc (`[GT]` source)          |
-| `:GdocBuild` | cmd  | (re)build the offline index — `lsp-gdoc --build`; nvim                               |
+| SHORTCUT     | MODE | COMMENTS                                                                               |
+| ------------ | ---- | -------------------------------------------------------------------------------------- |
+| `,gd`        | n    | `gdoc#hover()` — javadoc for the symbol under the cursor (from `-sources.jar`); nvim   |
+| `<C-]>`      | n    | go to definition — in groovy/Jenkinsfile also jumps into the extracted jar sources     |
+| `<C-t>`      | n    | jump back after `<C-]>`                                                                |
+| `gh.<meth>`  | i    | in Jenkinsfile, `.` completion shows the shared-lib javadoc (`[GT]` source)            |
+| `:GdocBuild` | cmd  | (re)build the offline index — `lsp-gdoc --build`; nvim                                 |
+| `K`          | n    | `groovy_tags#hover()` — doc for the lib call under the cursor; falls back to coc hover |
+| `gd`         | n    | `groovy_tags#definition()` — arity-aware go-to-def for `lib.member` / same-file calls  |
+| `<M-h>`      | n    | toggle idle auto-hover on/off (also `:GroovyHoverToggle`)                              |
 
 - `<C-]>` into jar sources works via a **buffer-local** `tags+=~/.cache/nvim/gdoc/.tags`, set only for `groovy`/`Jenkinsfile`
 - `libs.<method>` completion + javadoc comes from the `groovy_tags` coc source, which reads the repo `.tags` (via `gctags`) and extracts the `/** */` block above the def in `vars/*.groovy`.
 - rebuild after downloading new jars: `lsp-gdoc --build` (or `:GdocBuild`).
+
+#### the autoload files behind groovy-lib docs
+
+| file                                  | how to call                                    | keys / trigger             | what to provide                                                                               | source                                                                                              |
+| ------------------------------------- | ---------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `autoload/coc/source/groovy_tags.vim` | `coc#source#groovy_tags#init` / `#complete`    | `.` (insert)               | `lib.member` completion + javadoc preview (`[GT]` source)                                     | repo-root `.tags` (via `gctags`, over `vars/*.groovy` + `jenkinsfile/`)                             |
+| `autoload/groovy_tags.vim`            | `groovy_tags#hover` / `#definition` / `#setup` | `K`, `gd`, idle auto-hover | hover, arity-aware go-to-definition, and idle auto-hover for `lib.member` and same-file calls | repo-root `.tags` (+ the live buffer for same-file calls)                                           |
+| `autoload/gdoc.vim`                   | `gdoc#hover` / `gdoc#build`                    | `,gd`, `:GdocBuild`        | javadoc hover for classpath symbols; (re)builds the offline index                             | `~/.cache/nvim/gdoc/` — `.tags`, `src/`, `javadoc-map.tsv` (from `*-sources.jar` / `*-javadoc.jar`) |
+
+- the two `groovy_tags.vim` files share a base name **by choice** (same feature family), not by requirement — separate namespaces (`coc#source#groovy_tags#*` vs `groovy_tags#*`), and neither calls the other.
+- `groovy_tags` (repo `.tags`) covers your `vars/*.groovy` libs; `gdoc` (classpath index) covers symbols from jars — two indexes, kept independent. `groovy_tags` explicitly skips the `~/.cache/nvim/gdoc/` tag file so it never scans the 88MB classpath index.
+- the gdoc classpath index is consumed by `,gd` (`gdoc#hover`), `<C-]>` (native jump into jar sources), and coc's generic `[Tag]` source — **not** by the `[GT]` source above (which reads only repo `.tags`). two separate completion sources: `[GT]` = your libs, `[Tag]` = all `&tags` incl. classpath.
+- `<C-]>` is **not** any of these files — it is vim's native tag jump over `&tags`; `gd` (groovy_tags) is arity-aware, `<C-]>` is not.
+- config (both live, no reload): `g:groovy_tags_auto_hover` — on/off (`1/0`, `yes/no`, `true/false`, `on/off`); `g:groovy_tags_auto_hover_delay` — idle delay in ms, unset → follow `&updatetime`.
 
 ### [dense-analysis/ale](https://github.com/dense-analysis/ale)
 
@@ -570,31 +589,34 @@ vimrc.d/
 
 > Custom commands defined in vimrc.d and nvim config (not built-in vim/nvim commands).
 
-| COMMAND             | ARGS               | SOURCE                                                                              | COMMENTS                                           |
-|---------------------|--------------------|-------------------------------------------------------------------------------------|----------------------------------------------------|
-| `:Reverse`          | `[range]`          | [cmds](cmds)                                                                        | reverse lines in range (default: whole file)       |
-| `:Silent <cmd>`     | `<cmd>`            | [cmds](cmds)                                                                        | execute shell command silently and redraw          |
-| `:DocTocUpdate [n]` | `[maxlevel]`       | [cmds](cmds)                                                                        | update existing doctoc (default maxlevel=3)        |
-| `:DocTocCreate [n]` | `[maxlevel]`       | [cmds](cmds)                                                                        | create new doctoc (default maxlevel=3)             |
-| `:First <char>`     | `<char>` `[range]` | [cmds](cmds)                                                                        | tabularize by first occurrence of char             |
-| `:Iname`            | -                  | [cmds](cmds)                                                                        | echo absolute path of current file                 |
-| `:FormatJSON`       | `[range]`          | [cmds](cmds)                                                                        | format JSON via `jq`                               |
-| `:Hitest`           | -                  | [cmds](cmds)                                                                        | echo syntax highlight stack at cursor              |
-| `:FixSyntax`        | -                  | [cmds](cmds)                                                                        | `syntax sync fromstart` to fix broken highlighting |
-| `:TabMessage <cmd>` | `<cmd>`            | [functions](functions)                                                              | redirect ex-command output into a new tab          |
-| `:GetPlug`          | -                  | [functions](functions)                                                              | download vim-plug to `~/.vim/autoload/plug.vim`    |
-| `:GetVim`           | -                  | [functions](functions)                                                              | `marslofunc#GetVim()` (requires MarsloFunc plugin) |
-| `:PlugUpdateHTTPS`  | -                  | [functions](functions)                                                              | PlugUpdate over HTTPS (bypass GnuPG SSH agent)     |
-| `:OR`               | -                  | [extension](extension)                                                              | coc - organize imports                             |
-| `:Files [dir]`      | `[dir]`            | [extension](extension)                                                              | fzf files with bat preview (overrides fzf.vim)     |
-| `:LS [dir]`         | `[dir]`            | [extension](extension)                                                              | fzf `ls` output in given directory                 |
-| `:TSInstallAll`     | -                  | [lua/config/nvim-treesitter.lua](../../.config/nvim/lua/config/nvim-treesitter.lua) | install all configured treesitter parsers          |
-| `:DebugCursor`      | -                  | [plugin/dynamic-cursor.lua](../../.config/nvim/plugin/dynamic-cursor.lua)           | print extmarks + treesitter captures at cursor     |
+| COMMAND              | ARGS               | SOURCE                                                                              | COMMENTS                                                                    |
+| -------------------- | ------------------ | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `:Reverse`           | `[range]`          | [cmds](./cmds)                                                                      | reverse lines in range (default: whole file)                                |
+| `:Silent <cmd>`      | `<cmd>`            | [cmds](./cmds)                                                                      | execute shell command silently and redraw                                   |
+| `:DocTocUpdate [n]`  | `[maxlevel]`       | [cmds](./cmds)                                                                      | update existing doctoc (default maxlevel=3)                                 |
+| `:DocTocCreate [n]`  | `[maxlevel]`       | [cmds](./cmds)                                                                      | create new doctoc (default maxlevel=3)                                      |
+| `:First <char>`      | `<char>` `[range]` | [cmds](./cmds)                                                                      | tabularize by first occurrence of char                                      |
+| `:Iname`             | - or `-p`          | [cmds](./cmds)                                                                      | echo or paste absolute path of current file                                 |
+| `:FormatJSON`        | `[range]`          | [cmds](./cmds)                                                                      | format JSON via `jq`                                                        |
+| `:Hitest`            | -                  | [cmds](./cmds)                                                                      | echo syntax highlight stack at cursor                                       |
+| `:FixSyntax`         | -                  | [cmds](./cmds)                                                                      | `syntax sync fromstart` to fix broken highlighting                          |
+| `:TabMessage <cmd>`  | `<cmd>`            | [functions](./functions)                                                            | redirect ex-command output into a new tab                                   |
+| `:GetPlug`           | -                  | [functions](./functions)                                                            | download vim-plug to `~/.vim/autoload/plug.vim`                             |
+| `:GetVim`            | -                  | [functions](./functions)                                                            | `marslofunc#GetVim()` (requires MarsloFunc plugin)                          |
+| `:PlugUpdateHTTPS`   | -                  | [functions](./functions)                                                            | PlugUpdate over HTTPS (bypass GnuPG SSH agent)                              |
+| `:OR`                | -                  | [extension](./extension)                                                            | coc - organize imports                                                      |
+| `:Files [dir]`       | `[dir]`            | [extension](./extension)                                                            | fzf files with bat preview (overrides fzf.vim)                              |
+| `:LS [dir]`          | `[dir]`            | [extension](./extension)                                                            | fzf `ls` output in given directory                                          |
+| `:GdocBuild`         | -                  | [shortcuts](./shortcuts)                                                            | rebuild offline javadoc index for groovy/javadoc hover (`lsp-gdoc --build`) |
+| `:TSInstallAll`      | -                  | [lua/config/nvim-treesitter.lua](../../.config/nvim/lua/config/nvim-treesitter.lua) | install all configured treesitter parsers                                   |
+| `:DebugCursor`       | -                  | [plugin/dynamic-cursor.lua](../../.config/nvim/plugin/dynamic-cursor.lua)           | print extmarks + treesitter captures at cursor                              |
+| `:GroovyHoverToggle` | -                  | [autoload/groovy_tags.vim](../../.config/nvim/autoload/groovy_tags.vim)             | toggle idle auto-hover on/off for groovy/javadoc hover                      |
 
 ---
 
 ## Command Abbreviations
 
+> [!NOTE]
 > typo-proof abbreviations defined in [shortcuts](shortcuts)
 
 | ABBREVIATION                    | REPLACEMENT                  |

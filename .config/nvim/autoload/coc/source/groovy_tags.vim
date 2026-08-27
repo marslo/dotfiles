@@ -84,10 +84,13 @@ function! coc#source#groovy_tags#complete(opt, cb) abort
   let items    = []
   let seen     = {}
   let srccache = {}
+  let gdocdir  = fnamemodify(expand('~/.cache/nvim/gdoc'), ':p')
 
   for tf in tagfiles()
     let fpath = fnamemodify(tf, ':p')
     if !filereadable(fpath) | continue | endif
+    " skip the classpath index (served by gdoc#hover); it has no vars/*.groovy
+    if stridx(fpath, gdocdir) == 0 | continue | endif
     for entry in readfile(fpath)
       if entry[0] ==# '!' | continue | endif
       if stridx(entry, pattern) < 0 | continue | endif

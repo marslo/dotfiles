@@ -542,6 +542,7 @@ let g:gitgutter_eager                  = 0
 
 " RRethy/vim-hexokinase
 let g:Hexokinase_highlighters  = [ 'backgroundfull' ]
+let g:Hexokinase_ftDisabled    = [ 'help' ]                          " no colour preview in :help buffers
 let g:Hexokinase_optInPatterns = [
   \   'full_hex',
   \   'triple_hex',

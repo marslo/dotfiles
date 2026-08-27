@@ -197,6 +197,8 @@ if has( 'autocmd' )
     autocmd BufAdd      *.groovy,*.gradle,Jenkinsfile  call s:ToggleGroovyLSByFileSize()
     autocmd BufEnter    *.groovy,*.gradle,Jenkinsfile  call s:ToggleGroovyLSByFileSize()
     autocmd FileType    groovy,Jenkinsfile             setlocal tags+=~/.cache/nvim/gdoc/.tags
+    " cross-lib hover + go-to-definition for vars/*.groovy globals (color.info, constant.X, ...)
+    autocmd FileType    groovy,Jenkinsfile             call groovy_tags#setup()
 
     if did_filetype()                       | finish             | endif
     " to setup filetype to groovy if first line matches `#!.*[/\\]groovy`
