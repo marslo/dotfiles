@@ -80,11 +80,11 @@ Known aliases to bypass:
 
 ## 3.3. Git - always bypass the external diff tool
 
-My git is configured with an external/pager diff tool (e.g. difftastic / delta via `diff.external` or `[pager] diff`). Any command that emits a diff MUST be run with `--no-ext-diff` so the output is a clean, parseable unified diff:
+My git is configured with an external/pager diff tool (e.g. difftastic / delta via `diff.external` or `[pager] diff`). Any command that emits a diff MUST be run with `--no-pager` and `--no-ext-diff` so the output is a clean, parseable unified diff:
 
-- `git diff` → `git diff --no-ext-diff`
-- `git show` → `git show --no-ext-diff`
-- `git log -p` → `git log -p --no-ext-diff`
+- `git diff` → `git --no-pager diff --no-ext-diff`
+- `git show` → `git --no-pager show --no-ext-diff --no-color`
+- `git log -p` → `git --no-pager log -p --no-ext-diff -1 --no-color`
 
 Add `--no-color` as well when the result will be parsed further.
 

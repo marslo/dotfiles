@@ -2,7 +2,7 @@
 #     FileName : gitalias
 #       Author : marslo
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2026-08-26 03:48:17
+#   LastChange : 2026-08-26 13:44:22
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -579,14 +579,14 @@
   # {{{
   #### [d]iff via colorful [w]ords
   wd          = diff --no-ext-diff --color-words -U0
-  ### [d]iff with [r]emote branch   - requires difftastic tool installed
-  rd          = -c diff.external=difft diff @{u}..@
-  ### [d]iff with [p]revious branch - requires difftastic tool installed
-  pd          = -c diff.external=difft diff @{-1}..@
-  #### [d]iff file [n]ame only      - requires difftastic tool installed
-  nd          = -c diff.external=difft diff --name-status
   # [s]how with [d]iff              - requires difftastic tool installed
   sd          = -c diff.external=difft -c pager.show='less -R' show --ext-diff
+  ### [d]iff with [p]revious branch
+  pd          = diff @{-1}..@
+  # [d]iff with [r]emote branch
+  rd          = diff @{u}..@
+  # [d]iff file [n]ame only
+  nd          = diff --name-status
   # [l]ine [d]iff
   ld          = !bash -c 'source ~/.marslo/bin/ig.sh && git diff --no-ext-diff -U0 \"$@\" | diffLines' -
   # ld        = !bash -l -c 'git diff -U0 "$@" | diffLines' -

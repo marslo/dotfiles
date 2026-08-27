@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo
 #     Created : 2012
-#  LastChange : 2026-06-30 18:43:23
+#  LastChange : 2026-08-26 18:12:26
 #  Description : ifunctions
 # =============================================================================
 
@@ -500,11 +500,11 @@ function showTODO() {
 }
 
 function fdclean() {
-  local path="$PWD"
-  local pattern='.DS_*'
-  local verbose=false
-  local dryrun=false
-  local -a cleanCmd=( command fd
+  local FOLDER="$PWD"
+  local PATTERN='.DS_*'
+  local DRYRUN=false
+  local -i VERBOSE=1
+  local -a CLEAN_CMD=( command fd
                       --type f
                       --hidden
                       --follow
@@ -513,64 +513,82 @@ function fdclean() {
                       --exclude .Trash
                       --exclude "OneDrive*"
                     )
+  # shellcheck disable=SC2155
+  local USAGE="$(c 0Cs)fdclean$(c) - clean dump files in path
+  \nSYNOPSIS
+    $(c 0Cs)\$ fdclean $(c 0Gi)[OPTIONS]$(c)
+  \nOPTIONS
+    • $(c 0G)-p$(c), $(c 0G)--path $(c 0Mi)<path>$(c)        specify path to clean $(c 0i)(default: $(c 0Mi)current path$(c 0i))$(c)
+    • $(c 0G)-k$(c), $(c 0G)--pattern $(c 0Mi)<pattern>$(c)  specify pattern to clean $(c 0i)(default: $(c 0Mi)'.DS_*'$(c 0i))$(c)
+    • $(c 0G)-d$(c), $(c 0G)-v$(c), $(c 0G)-vv$(c)              enable verbose output, multiple $(c 0Gi)-v$(c) options increase verbosity $(c 0i)(max: $(c 0Yi)2$(c))$(c)
+    • $(c 0G)--dryrun$(c)                 show files to be deleted without deleting them
+    • $(c 0G)-h$(c), $(c 0G)--help$(c)               show this help message
+  \nEXAMPLES
+    $(c 0Cs)\$ fdclean $(c 0Gi)-p $(c 0Mi)'~/.marslo'$(c) $(c 0Gi)-k $(c 0Mi)'.DS_*'$(c)
+    $(c 0Cs)\$ fdclean $(c 0Gi)--path $(c 0Mi)'~/.marslo'$(c) $(c 0Gi)--pattern $(c 0Mi)'.DS_*'$(c)
+    $(c 0Cs)\$ fdclean $(c 0Gi)--path $(c 0Mi)'~/.marslo'$(c) $(c 0Gi)--pattern $(c 0Mi)'._*'$(c)
+    $(c 0Cs)\$ fdclean $(c 0Gi)--path $(c 0Mi)'~/.marslo'$(c) $(c 0Gi)--pattern $(c 0Mi)'logback.log'$(c)
+  "
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -p | --path                   ) path="${2}"    ; shift 2   ;;
-      -k | --pattern                ) pattern="${2}" ; shift 2   ;;
-      -d | -v | --verbose | --debug ) verbose=true   ; shift     ;;
-      --dryrun                      ) dryrun=true    ; shift     ;;
-      *                             ) echo "invalid option $1" >&2 ; return 1 ;;
+      -p | --path         ) FOLDER="${2}"                  ; shift 2  ;;
+      -k | --pattern      ) PATTERN="${2}"               ; shift 2  ;;
+      -d | -v | -vv       ) VERBOSE=$(( ${#1} - 1 ))     ; shift    ;;
+      --debug | --verbose ) VERBOSE=1                    ; shift    ;;
+      --dryrun            ) DRYRUN=true                  ; shift    ;;
+      -h | --help         ) echo -e "${USAGE}" >&2       ; return 0 ;;
+      *                   ) echo "invalid option $1" >&2 ; return 1 ;;
     esac
   done
 
-  test -z "${path:-}" && { echo -e "$(c R)ERROR:$(c) path is empty."; return 1; }
-  path=$(realpath "${path}")
-  cleanCmd+=(--glob "*${pattern}" "${path}")
-  "${dryrun}"  && cleanCmd+=(-x echo rm) || cleanCmd+=(-x rm)
-  "${verbose}" && cleanCmd+=(-vf)        || cleanCmd+=(-f)         # remove -r for file only
+  test -z "${FOLDER:-}" && { echo -e "$(c R)ERROR:$(c) path is empty."; return 1; }
+  FOLDER="$( realpath "${FOLDER}" )"
+  CLEAN_CMD+=( --glob "*${PATTERN}" "${FOLDER}" )
+  "${DRYRUN}"              && CLEAN_CMD+=( -x echo rm ) || CLEAN_CMD+=( -x rm )
+  [[ "${VERBOSE}" -ge 1 ]] && CLEAN_CMD+=( -vf )        || CLEAN_CMD+=( -f )         # remove -r for file only
 
-  echo -e "$(c Wid)>> cleaning \`${pattern}\` in $(c)$(c Mis)${path}$(c)$(c Wd) ..$(c)"
-  "${verbose}" && echo -e "$(c Wid)>> [DEBUG]:$(c)\n\t$(c Yi)${cleanCmd[*]}$(c)\n"
-  "${cleanCmd[@]}"
+  echo -e "$(c 0Wid)>> cleaning \`${PATTERN}\` in $(c 0Mis)${FOLDER}$(c 0Wd) ..$(c)"
+  [[ "${VERBOSE}" -ge 2 ]] && echo -e "$(c 0Wid)>> [DEBUG]:\n\t$(c 0Yi)${CLEAN_CMD[*]}$(c)\n"
+  "${CLEAN_CMD[@]}"
 }
 
 function clean() {
-  local path="${PWD}"
-  local action=''
-  local -a option=()
+  local FOLDER="${PWD}"
+  local ACTION=''
+  local -a OPTION=()
   # shellcheck disable=SC2155
-  local usage="""$(c Cs)clean$(c) - clean dump files in path
+  local usage="$(c Cs)clean$(c) - clean dump files in path
   \nSYNOPSIS
     $(c Cs)\$ clean $(c 0Gi)[OPTIONS]$(c)
   \nOPTIONS
-    • $(c G)-p <path>$(c), $(c G)--path <path>$(c) : specify path to clean $(c Wi)(default: current path)$(c)
-    • $(c G)-a$(c), $(c G)--all$(c)                : clean from home directory
-    • $(c G)--dot$(c)                    : clean '._*' files
-    • $(c G)--ds$(c)                     : clean '.DS_*' files
-    • $(c G)--lg$(c)                     : clean 'logback.log' files
-    • $(c G)--dryrun$(c)                 : show files to be deleted without deleting them
-    • $(c G)-v$(c), $(c G)--verbose$(c)            : enable verbose output
-    • $(c G)-h$(c), $(c G)--help$(c)               : show this help message
-  """
+    • $(c 0G)-p$(c), $(c 0G)--path $(c 0Mi)<path>$(c)  specify path to clean $(c 0Wi)(default: $(c 0Mi)current path$(c 0i))$(c)
+    • $(c 0G)-a$(c), $(c G)--all$(c)          clean from home directory
+    • $(c 0G)--dot$(c)              clean $(c 0Mi)'._*'$(c) files
+    • $(c 0G)--ds$(c)               clean $(c 0Mi)'.DS_*'$(c) files
+    • $(c 0G)--lg$(c)               clean $(c 0Mi)'logback.log'$(c) files
+    • $(c 0G)--dryrun$(c)           show files to be deleted without deleting them
+    • $(c 0G)-v$(c), $(c 0G)--verbose$(c)      enable verbose output, multiple $(c 0Gi)-v$(c) options increase verbosity $(c 0i)(max: $(c 0Yi)2$(c))$(c)
+    • $(c 0G)-h$(c), $(c 0G)--help$(c)         show this help message
+  "
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -p | --path         ) path="${2}"           ; shift 2  ;;
-      -a | --all          ) path="$HOME"          ; shift    ;;
-      --dot | --ds | --lg ) action="${1#--}"      ; shift    ;;
-      --dryrun            ) option+=('--dryrun')  ; shift    ;;
-      -v | --verbose      ) option+=('--verbose') ; shift    ;;
-      -h | --help         ) echo -e "${usage}"    ; return 0 ;;
-      *                   ) echo "invalid option $1. try \`-h\`" >&2 ;  return 1 ;;
+      -p | --path          ) FOLDER="${2}"      ; shift 2  ;;
+      -a | --all           ) FOLDER="$HOME"     ; shift    ;;
+      --dot | --ds | --lg  ) ACTION="${1#--}"   ; shift    ;;
+      --dryrun             ) OPTION+=( "${1}" ) ; shift    ;;
+      -v | -vv | --verbose ) OPTION+=( "${1}" ) ; shift    ;;
+      -h | --help          ) echo -e "${usage}" ; return 0 ;;
+      *                    ) echo "invalid option $1. try \`-h\`" >&2 ;  return 1 ;;
     esac
   done
 
-  case "${action}" in
-    'dot' ) eval "fdclean --path '${path}' --pattern '._*' ${option[*]}"         ;;
-    'ds'  ) eval "fdclean --path '${path}' --pattern '.DS_*' ${option[*]}"       ;;
-    'lg'  ) eval "fdclean --path '${path}' --pattern 'logback.log' ${option[*]}" ;;
-    ''    ) echo -e "$(c Ri)ERROR:$(c) action is empty."                         ;;
+  case "${ACTION}" in
+    'dot' ) eval "fdclean --path '${FOLDER}' --pattern '._*' ${OPTION[*]}"         ;;
+    'ds'  ) eval "fdclean --path '${FOLDER}' --pattern '.DS_*' ${OPTION[*]}"       ;;
+    'lg'  ) eval "fdclean --path '${FOLDER}' --pattern 'logback.log' ${OPTION[*]}" ;;
+    ''    ) echo -e "$(c Ri)ERROR:$(c) action is empty."                           ;;
   esac
 }
 
