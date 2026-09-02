@@ -26,7 +26,10 @@ declare -r TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-${SEMANTIC_RELEASE_TOKEN:-}}}"
 
 declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}")"
 declare -a DEFAULT_RCS=( "${HOME}/.releaserc.js" "${HOME}/.releaserc.json" )
+# --user (with --init) installs into this prefix; default: global prefix via npm config
+declare -r USER_PREFIX="${NPM_CONFIG_PREFIX:-${HOME}/.npm}"
 declare init=false
+declare user=false
 declare debug=false
 declare dryrun=false
 declare branch="$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --abbrev-ref HEAD)"
@@ -43,13 +46,14 @@ OPTIONS
   $(c G)--no-debug$(c)             disable debug mode $(c 0Wdi)( default: $(c 0Mi)disabled$(c) $(c 0Wdi))$(c)
   $(c G)--dryrun$(c)               perform a dry run without making any changes $(c 0Wdi)( default: $(c 0Mi)disabled$(c) $(c 0Wdi))$(c)
   $(c G)-i$(c), $(c G)--init$(c)             initialize semantic-release environment $(c 0Wdi)( \$ npm i -g ... )$(c)
+  $(c G)--user$(c)                 with $(c Gi)--init$(c) install into user prefix $(c 0Wdi)( $(c 0Mi)${USER_PREFIX}$(c) $(c 0Wdi)) instead of $(c 0Mi)-g$(c)
   $(c G)-h$(c), $(c G)--help$(c)             show this help message and exit.
 
 REQUIREMENTS
   • the $(c 0Ci)GITHUB_TOKEN$(c) or $(c 0Ci)GH_TOKEN$(c) or $(c 0Ci)SEMANTIC_RELEASE_TOKEN$(c) environment variable must be set with a valid GitHub token; and
     the $(c 0Ci)GITHUB_USER$(c) environment variable must be set with a valid GitHub username, or the $(c 0Ci)git user.name$(c) must be configured
   • the $(c Biu).releaserc.js$(c) or $(c Biu).releaserc.json$(c) file must be present in the current directory
-  • $(c Wsu)semantic-release$(c) must be installed globally or available in the PATH. install via $(c 0Mi)\`\$ ${ME} --init\`$(c)
+  • $(c Wsu)semantic-release$(c) must be installed globally or available in the PATH. install via $(c 0Mi)\`\$ ${ME} --init\`$(c) $(c 0Wdi)( or $(c 0Mi)\`\$ ${ME} --init --user\`$(c) $(c 0Wdi)-> ${USER_PREFIX} )$(c)
 
 NOTE
   • check more usage via $(c 0Yi)\`\$ npx semantic-release $(c 0Gi)--help\`$(c)
@@ -62,6 +66,7 @@ while [[ $# -gt 0 ]]; do
     --no-debug               ) debug=false ; shift      ;;
     --dryrun                 ) dryrun=true ; shift      ;;
     -i | --init              ) init=true   ; shift      ;;
+    --user                   ) user=true   ; shift      ;;
     -h | --help              ) showUsage                ;;
     *                        ) die "unknown option: $1" ;;
   esac
@@ -69,9 +74,12 @@ done
 
 # mandatory: $ npm install -g semantic-release @semantic-release/changelog @semantic-release/git @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/exec
 # optional:  $ npm install -g conventional-changelog-cli conventional-changelog-angular
-declare -a npmcmd=(npm install -g)
+declare -a npmcmd=( npm install -g )
 if "${init}"; then
-  echo -e "$(c 0Ci)>> installing semantic-release and plugins globally ...$(c)" >&2
+  declare _scope='globally'
+  "${user}" && npmcmd+=( --prefix "${USER_PREFIX}" )
+  "${user}" && _scope="into '${USER_PREFIX}'"
+  echo -e "$(c 0Ci)>> installing semantic-release and plugins ${_scope} ...$(c)" >&2
   npmcmd+=( semantic-release )
   npmcmd+=( @semantic-release/commit-analyzer )
   npmcmd+=( @semantic-release/release-notes-generator )
@@ -83,7 +91,7 @@ if "${init}"; then
   "${debug}" && npmcmd+=( --verbose )
   "${npmcmd[@]}" || {
     echo -e '\n'
-    die "failed to install semantic-release and plugins globally"
+    die "failed to install semantic-release and plugins ${_scope}"
   }
   exit 0
 fi
