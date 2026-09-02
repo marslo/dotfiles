@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+# =============================================================================
+#      FileName : typos-msg
+#        Author : marslo
+#       Created : 2026-09-01 21:59:04
+#    LastChange : 2026-09-01 23:38:24
+# =============================================================================
+
+set -euo pipefail
+
+# shellcheck disable=SC2155
+declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+# shellcheck disable=SC2155
+declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
+
+# @credit: https://github.com/ppo/bash-colors
+# @usage:  or copy & paste the `c()` function from:
+#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# shellcheck disable=SC2015
+test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
+
+declare MODE='hook'
+declare MSG_TEXT=''
+declare HAS_TEXT='false'
+declare REF='HEAD'
+declare REPO_DIR='.'
+# shellcheck disable=SC2155
+declare USAGE="NAME
+  $(c Ys)${ME}$(c) - check / fix a commit message for typos
+
+SYNOPSIS
+  $(c Ys)\$ ${ME} $(c 0G)[OPTION] $(c 0C)<REF>$(c)
+
+OPTIONS
+  $(c 0G)--hook$(c)        run $(c 0Ci)\`pre-commit run --hook-stage commit-msg\`$(c) $(c 0Wi)(default)$(c)
+  $(c 0G)--cli$(c)         run the $(c 0Ci)\`typos\`$(c) CLI directly $(c 0Wi)(applies the repo .typos.toml when present)$(c)
+  $(c 0G)--fix$(c)         auto-fix the message of $(c Ci)<ref>$(c) $(c 0Wi)(default $(c 0Ci)HEAD$(c 0Wi))$(c); amend if HEAD, else rebase-reword (asks y/N)
+  $(c 0G)--repo $(c 0Mi)<dir>$(c)  operate on this repo $(c 0Wi)(default: current directory)$(c)
+  $(c 0G)-m $(c 0Mi)TEXT$(c)       check the given text; else check the message of $(c 0Ci)<ref> $(c 0Wi)(default HEAD)$(c)
+  $(c 0G)-h$(c), $(c 0G)--help$(c)    display this help and exit
+
+EXAMPLES
+  $(c 0Ys)\$ ${ME} $(c 0Gi)--hook$(c)
+  $(c 0Ys)\$ ${ME} $(c 0Gi)--cli$(c)
+  $(c 0Ys)\$ ${ME} $(c 0Gi)--fix$(c)
+  $(c 0Ys)\$ ${ME} $(c 0Gi)--fix -m $(c 0Mi)'This is a test message with a typo'$(c)
+"
+
+function showHelp() { echo -e "${USAGE}"; exit 0; }
+function info() {
+  local tag="${1:-}"; test $# -gt 0 && shift;
+  echo -e "$(c Wd)>> $(c 0Gi)${tag}$(c 0Wdi): $(c 0C)$* $(c 0Wdi)...$(c)" >&2;
+}
+function die()  {
+  local code=1
+  # if the last arg is a non-negative integer, use it as the exit code and drop it from the message
+  if test $# -gt 0 && [[ "${!#}" =~ ^[0-9]+$ ]]; then
+    code="${!#}"; set -- "${@:1:$#-1}"
+  fi
+  echo -e "$(c Ri)ERROR$(c)$(c i): $*.$(c) $(c Wdi)exit ...$(c)" >&2
+  exit "${code}"
+}
+
+# shellcheck disable=SC2016
+while test $# -gt 0; do
+  case "${1}" in
+    --hook    ) MODE='hook'                        ; shift   ;;
+    --cli     ) MODE='cli'                         ; shift   ;;
+    --fix     ) MODE='fix'                         ; shift   ;;
+    --repo    ) test $# -ge 2 || die 'option `--repo` requires a <dir> argument' 2
+                REPO_DIR="${2}"                    ; shift 2 ;;
+    -m        ) test $# -ge 2 || die 'option `-m` requires a TEXT argument' 2
+                MSG_TEXT="${2}"; HAS_TEXT='true'   ; shift 2 ;;
+    -h|--help ) showHelp                                     ;;
+    --        ) shift; test $# -gt 0 && REF="${1}" ; break   ;;
+    -*        ) die "unknown option: '${1}'" 2               ;;
+    *         ) REF="${1}"                         ; shift   ;;
+  esac
+done
+
+declare REPO_TOP
+if ! REPO_TOP="$( git -C "${REPO_DIR:-.}" rev-parse --show-toplevel 2>/dev/null )"; then
+  # shellcheck disable=SC2015
+  test '.' = "${REPO_DIR}" && die 'not a git repository' || die "not a git repository: '${REPO_DIR}'"
+fi
+
+declare dir; dir="$(mktemp -d)"
+declare tmp="${dir}/COMMIT_EDITMSG"
+# shellcheck disable=SC2064
+trap "rm -rf '${dir}'" EXIT
+
+if test 'true' = "${HAS_TEXT}"; then
+  printf '%s\n' "${MSG_TEXT}" > "${tmp}"
+elif ! git -C "${REPO_TOP}" log -1 --format=%B "${REF}" > "${tmp}" 2>/dev/null; then
+  die "not a valid revision: '${REF}'"
+fi
+
+# typos command carrying the repo config when present
+declare -a typosBase=( typos )
+test -f "${REPO_TOP}/.typos.toml" && typosBase+=( --config "${REPO_TOP}/.typos.toml" )
+
+function runHook() {
+  # prefer pre-commit's commit-msg stage; fall back to the typos CLI when pre-commit is unavailable
+  if ! type -P pre-commit >/dev/null 2>&1; then
+    info HOOK 'pre-commit not found on PATH; falling back to typos CLI'
+    runCLI
+    return
+  fi
+  # subshell isolates the cd: cwd is never changed for the rest of the script, and it is "restored" automatically even if pre-commit fails under `set -e`
+  ( cd "${REPO_TOP}" && pre-commit run --hook-stage commit-msg --commit-msg-filename "${tmp}"; )
+}
+
+function runCLI() {
+  # shellcheck disable=SC2016
+  type -P typos >/dev/null 2>&1 || die '`typos` CLI not found on PATH' 127
+  "${typosBase[@]}" "${tmp}"
+}
+
+# shellcheck disable=SC2016
+function runFix() {
+  type -P typos >/dev/null 2>&1 || die '`typos` CLI not found on PATH' 127
+  test 'true' = "${HAS_TEXT}"   && die '`--fix` cannot be combined with `-m`' 2
+  # history rewrite must not fold staged changes / rebase refuses on a dirty tree
+  if test -n "$( git -C "${REPO_TOP}" status --porcelain --untracked-files=no 2>/dev/null )"; then
+    die 'working tree is not clean; commit or stash tracked changes before `--fix`'
+  fi
+  declare sha
+  sha="$( git -C "${REPO_TOP}" rev-parse --verify "${REF}^{commit}" 2>/dev/null )" || die "not a valid revision: '${REF}'"
+
+  command cp "${tmp}" "${dir}/orig"
+  "${typosBase[@]}" --write-changes "${tmp}" >/dev/null 2>&1 || true
+  # residual (non auto-fixable / ambiguous) typos -> do NOT rewrite history
+  if ! "${typosBase[@]}" "${tmp}" >/dev/null 2>&1; then
+    "${typosBase[@]}" "${tmp}" >&2 || true          # show which typos remain
+    die 'some typos are not auto-fixable; leaving history untouched'
+  fi
+  command diff -q "${dir}/orig" "${tmp}" >/dev/null 2>&1 && { info FIX 'no typos to fix'; return 0; }
+  info FIX 'fixed typos in commit message'
+  command sed 's/^/    /' "${tmp}"
+
+  declare head; head="$( git -C "${REPO_TOP}" rev-parse HEAD )"
+  if test "${sha}" = "${head}"; then
+    if git -C "${REPO_TOP}" commit --amend -F "${tmp}" --no-verify >/dev/null; then
+      info FIX "amended HEAD commit message (${sha:0:9})"
+    else
+      die 'failed to amend HEAD'
+    fi
+  else
+    # a rebase reword would flatten any merge commit between the target and HEAD -> refuse
+    test -n "$( git -C "${REPO_TOP}" rev-list --merges "${sha}..HEAD" 2>/dev/null )" \
+      && die 'refusing --fix: a merge commit lies between the target and HEAD (rebase would flatten it)'
+    printf '%s is not HEAD — rewrite history via rebase reword? [y/N] ' "${REF}" >&2
+    declare ANS=''; read -r ANS || true
+    case "${ANS}" in
+      y | Y | yes | YES | Yes ) : ;;
+      *                       ) info FIX 'aborted'; exit 1 ;;
+    esac
+    declare base='--root'
+    git -C "${REPO_TOP}" rev-parse --verify "${sha}^" >/dev/null 2>&1 && base="${sha}^"
+    if GIT_SEQUENCE_EDITOR="sed -i.bak '1s/^pick /reword /'" \
+       GIT_EDITOR="cp '${tmp}'" \
+         git -C "${REPO_TOP}" rebase -i "${base}" >/dev/null 2>&1; then
+      info FIX "reworded ${sha:0:9} via rebase"
+    else
+      die "rebase failed; run \`git -C '${REPO_TOP}' rebase --abort\` if needed"
+    fi
+  fi
+}
+
+case "${MODE}" in
+  hook ) runHook ;;
+  cli  ) runCLI  ;;
+  fix  ) runFix  ;;
+esac
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

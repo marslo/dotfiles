@@ -57,8 +57,7 @@ declare MCX_BREAKING_CHANGE="${MCX_BREAKING_CHANGE:-false}"
 declare -a JIRA_OPTS=()
 declare LINTRC_FILE="${HOME}/.commitlintrc.js"
 # shellcheck source=/dev/null disable=SC2155
-declare -r USAGE="""
-NAME
+declare -r USAGE="NAME
   $(c Ys)${ME}$(c) - $(c Ysi)m$(c 0i)arslo $(c Ysi)c$(c 0i)ommit pro ma$(c 0Ysi)x$(c) - Git commit message helper
 
 USAGE
@@ -91,7 +90,7 @@ EXAMPLES
   $(c Ys)\$ ${ME} $(c 0Gi)--no-preview --no-scope --lintrc $(c 0Wi)./custom-lintrc.json$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--no-lint --no-footer --no-body$(c)
   $(c Ys)\$ ${ME}C$(c 0Gi)--jira$(c 0Cs) -- $(c 0Bi)--project $(c 0Mi)PROJECT_ID$(c)  $(c 0Wdi)# filter JIRA_ID via $(c 0Ci)jira ls$(c 0Wdi) command$(c)
-"""
+"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
