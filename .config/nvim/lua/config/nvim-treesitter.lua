@@ -1,7 +1,9 @@
 -- ~/.config/nvim/lua/config/nvim-treesitter.lua
 
 ---------------- this configure is for nvim-treesitter in main branch ----------------
--- @usage :TSInstallInfo / :TSInstall <lang> / :TSUpdate / :TSUninstall <lang>
+-- @usage  :TSInstall <lang> / :TSUpdate / :TSUninstall <lang> / :TSInstallFromGrammar / :TSLog
+--         (main branch dropped built-in :TSInstallInfo — re-added below as a shim)
+-- @custom :TSInstallInfo / :TSModuleInfo / :TSInstallAll (install missing) / :TSInstallAllForce (force refresh all) / :TSUpdateAll
 -- @ensure_installed :TSInstallAll
 -- @ensure_installed :TSInstall bash c cmake css csv diff dockerfile git_config git_rebase gitcommit gitignore groovy ini java jq json lua markdown python query ssh_config vim vimdoc xml yaml
 
@@ -114,34 +116,118 @@ end
 local ensure_installed = {
   'bash', 'c', 'cmake', 'css', 'csv', 'diff', 'dockerfile',
   'git_config', 'git_rebase', 'gitcommit', 'gitignore', 'groovy',
-  'html', 'ini', 'java', 'jq', 'json', 'lua', 'markdown', 'python',
+  'html', 'ini', 'java', 'jq', 'json', 'lua', 'markdown', 'markdown_inline', 'python',
   'query', 'ssh_config', 'vim', 'vimdoc', 'xml', 'yaml'
 }
+
+-- parsers in ensure_installed that nvim-treesitter has NOT installed yet.
+--   get_installed('parsers') reads nvim-treesitter's own install dir via its get_install_dir() — path- and OS-agnostic (same on macOS + ubuntu), and it ignores parsers bundled with nvim itself (Homebrew's Cellar/.../lib/nvim, or /usr/local/lib/nvim on the /opt builds).
+--   so a bundled-but-unmanaged parser correctly shows as "to install" instead of being masked — the bug back when this used vim.treesitter.language.inspect, which any loadable bundled parser passes.
+-- returns: missing[], installed[]
+local function missing_parsers()
+  local installed = require('nvim-treesitter').get_installed( 'parsers' )
+  local set = {}
+  for _, l in ipairs( installed ) do
+    set[l] = true
+  end
+  local missing = {}
+  for _, l in ipairs( ensure_installed ) do
+    if not set[l] then
+      table.insert( missing, l )
+    end
+  end
+  table.sort( missing )
+  table.sort( installed )
+  return missing, installed
+end
 
 -- for :TSInstallAll command
 local function install_all_parsers()
   vim.schedule(function()
-    local to_install = {}
-
-    for _, lang in ipairs(ensure_installed) do
-      local ok = pcall( vim.treesitter.language.inspect, lang )
-      if not ok then
-        table.insert( to_install, lang )
-      end
-    end
-
+    local to_install = missing_parsers()
     if #to_install > 0 then
-      vim.notify( "Installing TS parsers in background: " .. table.concat(to_install, ", ") )
-      vim.cmd( "silent! TSInstall " .. table.concat(to_install, " ") )
+      vim.notify( "Installing TS parsers in background: " .. table.concat( to_install, ", " ) )
+      vim.cmd( "silent! TSInstall " .. table.concat( to_install, " " ) )
       vim.cmd( "redraw!" )
       vim.notify( "Installation started! Use :messages to check progress.", vim.log.levels.INFO )
     else
-      vim.notify( "All TS parsers are already installed." )
+      vim.notify( "All ensure_installed parsers are managed by nvim-treesitter." )
     end
   end)
 end
 -- register the command :TSInstallAll
 vim.api.nvim_create_user_command( 'TSInstallAll', install_all_parsers, {} )
+
+-- for :TSInstallAllForce command
+--   -> force (re)install EVERY parser in ensure_installed into ~/.local, regardless
+--      of what is already installed. :TSInstallAll only fills gaps; use this to
+--      rebuild/refresh the whole set (e.g. after an nvim ABI bump).
+--      groovy is excluded: it builds from a local fork and needs a macOS re-sign,
+--      so refresh it via :TSUpdateGroovy instead.
+local function install_all_parsers_force()
+  vim.schedule(function()
+    local langs = {}
+    for _, lang in ipairs( ensure_installed ) do
+      if 'groovy' ~= lang then
+        table.insert( langs, lang )
+      end
+    end
+
+    local list = table.concat( langs, ' ' )
+    vim.notify( "Force-installing ALL TS parsers: " .. list, vim.log.levels.INFO )
+    -- try the force form first; fall back to plain install if `!` is unsupported
+    if not pcall( vim.cmd, 'TSInstall! ' .. list ) then
+      vim.cmd( 'silent! TSInstall ' .. list )
+    end
+    vim.cmd( "redraw!" )
+    vim.notify( "Force-install started! Use :messages to check progress.", vim.log.levels.INFO )
+  end)
+end
+-- register the command :TSInstallAllForce
+vim.api.nvim_create_user_command( 'TSInstallAllForce', install_all_parsers_force, {} )
+
+-- for :TSInstallInfo command
+--   -> main branch removed the built-in :TSInstallInfo; reproduce it via the shared
+--      missing_parsers() helper. "managed" = installed by nvim-treesitter (~/.local);
+--      a lang served only by a bundled parser shows under "not managed / to install".
+local function install_info()
+  local missing, installed = missing_parsers()
+  vim.notify( ("managed by nvim-treesitter (%d): %s"):format( #installed, table.concat( installed, ', ' ) ), vim.log.levels.INFO )
+  if #missing > 0 then
+    vim.notify( ("not managed / to install (%d): %s"):format( #missing, table.concat( missing, ', ' ) ), vim.log.levels.WARN )
+  else
+    vim.notify( "ensure_installed: all managed by nvim-treesitter.", vim.log.levels.INFO )
+  end
+end
+-- register the command :TSInstallInfo
+vim.api.nvim_create_user_command( 'TSInstallInfo', install_info, {} )
+
+-- for :TSModuleInfo command
+--   -> main branch removed the module system (and :TSModuleInfo) entirely — there
+--      are no toggleable modules anymore. report the effective TS state of the
+--      current buffer instead: filetype, resolved lang, parser, highlight, indent.
+local function module_info()
+  local buf  = vim.api.nvim_get_current_buf()
+  local ft   = vim.bo[buf].filetype
+  local lang = vim.treesitter.language.get_lang( ft ) or ft
+  local has_parser = pcall( vim.treesitter.language.inspect, lang )
+  local hl_on = false
+  pcall(function()
+    hl_on = vim.treesitter.highlighter.active[buf] ~= nil
+  end)
+  local indent = vim.bo[buf].indentexpr
+
+  vim.notify( table.concat( {
+    'TS buffer info (main branch has no modules):',
+    ('  filetype   : %s'):format( '' ~= ft and ft or '<none>' ),
+    ('  language   : %s'):format( lang ),
+    ('  parser     : %s'):format( has_parser and 'available' or 'MISSING' ),
+    ('  highlight  : %s'):format( hl_on and 'on' or 'off' ),
+    ('  indentexpr : %s'):format( '' ~= indent and indent or '<none>' ),
+  }, '\n' ), vim.log.levels.INFO )
+end
+-- register the command :TSModuleInfo
+vim.api.nvim_create_user_command( 'TSModuleInfo', module_info, {} )
 
 -- for :TSUpdateAll command
 --   -> run a full async update, then (once it finishes) rebuild + re-sign the local groovy parser via :TSUpdateGroovy.

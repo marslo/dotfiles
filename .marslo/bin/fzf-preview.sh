@@ -4,7 +4,7 @@
 #     FileName : fzf-preview.sh
 #       Author : marslo
 #      Created : 2026-05-11 22:50:00
-#   LastChange : 2026-07-06 22:49:42
+#   LastChange : 2026-09-02 00:15:29
 #  Description : unified fzf preview command for files and directories
 #                used by: FZF_CTRL_T_OPTS (env.d/fzf), _load_fzf_context() (ffunc.sh)
 #       Syntax : fzf-preview.sh FILENAME[:LINENO][:IGNORED]
@@ -27,7 +27,7 @@ fi
 
 # ~/path expansion
 file=${1/#\~\//${HOME}/}
-[[ -z "${file}" ]] && exit 0
+test -z "${file}" && exit 0
 
 # file:lineno[:col] parsing (for grep/rg results)
 center=0
@@ -53,7 +53,7 @@ mime="$(file --brief --dereference --mime -- "${file}" 2>/dev/null)"
 declare -a CAT=( "$(type -P cat)" )
 # batchip (~/.marslo/bin/batchip) > batcat (/usr/bin/batcat - Debian/Ubuntu) > bat (/usr/local/bin/bat - macOS)
 declare _BAT_CMD=$(type -P batchip || type -P batcat || type -P bat)
-if [[ -n "${_BAT_CMD}" ]]; then
+if test -n "${_BAT_CMD}"; then
   CAT=( "${_BAT_CMD}" --style="${BAT_STYLE:-numbers}" --theme='Nord' --color=always --pager=never --line-range :500 )
   [[ "${center}" -gt 0 ]] && CAT+=( --highlight-line="${center}" )
 fi
@@ -63,7 +63,7 @@ fi
 # =========================================================================== #
 declare -a TREE=( command ls '-Al' )
 if type -P eza >/dev/null; then
-  TREE=( command eza --tree -L 3 --classify --ignore-glob=".git|node_modules|.DS_Store|__pycache__|.venv" --color always --icons )
+  TREE=( command eza --tree -L 3 --classify --ignore-glob=".git|node_modules|.DS_Store|__pycache__|.venv" --color=always --icons=always )
 elif type -P tree >/dev/null; then
   TREE=( command tree '-C' '-L' 2 )
 fi
@@ -83,8 +83,8 @@ function _show_binary() {
   local _file="${1:?file is required}"
   local _info
   _info="$(file -bL "${_file}")"
-  ${FZF_TOILET:-true} && [[ -x "${TOILET_PATH}" ]] && _info=$(printf '%s\n' "${_info}" | "${TOILET_PATH}" -f "${FZF_TOILET_FONT:-bfraktur}" -w "${FZF_PREVIEW_COLUMNS:-65}")
-  [[ -x "${LOLCAT_PATH}" ]] && printf '%s\n' "${_info}" | "${LOLCAT_PATH}" -f || printf '%s\n' "${_info}"
+  ${FZF_TOILET:-true} && test -x "${TOILET_PATH}" && _info=$(printf '%s\n' "${_info}" | "${TOILET_PATH}" -f "${FZF_TOILET_FONT:-bfraktur}" -w "${FZF_PREVIEW_COLUMNS:-65}")
+  test -x "${LOLCAT_PATH}" && printf '%s\n' "${_info}" | "${LOLCAT_PATH}" -f || printf '%s\n' "${_info}"
 }
 
 # =========================================================================== #
@@ -94,7 +94,7 @@ function _show_image() {
   local _file="${1:?file is required}"
 
   local dim="${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES}"
-  if [[ "${dim}" == 'x' ]]; then
+  if [[ "${dim}" = 'x' ]]; then
     dim=$(stty size < /dev/tty | awk '{print $2 "x" $1}')
   elif ! [[ ${KITTY_WINDOW_ID} ]] && (( FZF_PREVIEW_TOP + FZF_PREVIEW_LINES == $(stty size < /dev/tty | awk '{print $1}') )); then
     dim="${FZF_PREVIEW_COLUMNS}x$(( FZF_PREVIEW_LINES - 1 ))"
@@ -105,7 +105,7 @@ function _show_image() {
     kitten icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="${dim}@0x0" "${_file}" | sed '$d' | sed $'$s/$/\e[m/'
 
   # chafa (terminal image to ANSI/Unicode)
-  elif [[ -x "${CHAFA_PATH}" ]]; then
+  elif test -x "${CHAFA_PATH}"; then
     # sips (macOS)
     if type -P sips >/dev/null; then
       read -r pw ph < <(sips -g pixelWidth -g pixelHeight "${_file}" 2>/dev/null | awk '/pixel/ {printf "%d ", $2}')
@@ -115,7 +115,7 @@ function _show_image() {
     fi
     maxpw=$(( FZF_PREVIEW_COLUMNS * 12 ))
     maxph=$(( FZF_PREVIEW_LINES   * 24 ))
-    if [[ "${_file,,}" == *.svg ]] || [[ -z "${pw}" ]] || [[ "${pw}" -gt "${maxpw}" ]] || [[ "${ph}" -gt "${maxph}" ]]; then
+    if [[ "${_file,,}" == *.svg ]] || test -z "${pw}" || [[ "${pw}" -gt "${maxpw}" ]] || [[ "${ph}" -gt "${maxph}" ]]; then
       "${CHAFA_CMD[@]}" --size "${dim}" "${_file}"
     else
       "${CHAFA_CMD[@]}" "${_file}"
@@ -157,7 +157,7 @@ function _show_html() {
 function _show_md() {
   local _file="${1:?file is required}"
 
-  if [[ -x "${GLOW_PATH}" ]]; then
+  if test -x "${GLOW_PATH}"; then
     CLICOLOR_FORCE=1 "${GLOW_PATH}" -s dark -w "${FZF_PREVIEW_COLUMNS:-65}" -- "${_file}"
   else
     "${CAT[@]}" -- "${_file}"
@@ -200,7 +200,7 @@ function _render_ft() {
   local _file="${1:?file is required}"
   local _ft
   _ft=$(grep -Eo --color=never '(filetype|ft)=[a-zA-Z0-9_-]+' "${_file}" 2>/dev/null | awk -F= 'END{print $2}')
-  [[ -z "${_ft}" ]] && return 0
+  test -z "${_ft}" && return 0
   printf '%s' "${FT_TO_BAT[${_ft,,}]:-${_ft}}"
 }
 
@@ -209,8 +209,8 @@ case "${file}" in
   *.html | *.HTM ) _show_html "${file}" ;;
   *.md   | *.MD  ) _show_md   "${file}" ;;
   *.pdf  | *.PDF ) _show_pdf  "${file}" ;;
-  *              ) if [[ -d "${file}" ]]; then
-                     "${TREE[@]}" "${file}"
+  *              ) if test -d "${file}"; then
+                     "${TREE[@]}" -- "${file}"
                    elif [[ ${mime} =~ image/ ]]; then
                      _show_image "${file}"
                    elif file -bL --mime-encoding "${file}" | grep -iq "binary" && ! iconv -f utf-8 -t utf-8 "${file}" >/dev/null 2>&1; then
@@ -221,7 +221,7 @@ case "${file}" in
                      if [[ "${file##*/}" != *.* ]]; then
                        declare lang
                        lang="$(_render_ft "${file}")"
-                       [[ -n "${lang}" ]] && _lang=( --language="${lang}" )
+                       test -n "${lang}" && _lang=( --language="${lang}" )
                      fi
                      # fall back to bat auto-detect when the language is not a syntax bat knows (e.g. `config`)
                      "${CAT[@]}" "${_lang[@]}" -- "${file}" 2>/dev/null || "${CAT[@]}" -- "${file}"

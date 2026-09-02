@@ -542,7 +542,7 @@
                           git fetch --all --prune --prune-tags --force; \
                         fi; \
                         git reset --hard remotes/${remote}/${branch}; \
-                        git clean -dffx -e .tags -e .claude -e .cursor; \
+                        git clean -dffx -e .tags -e .claude -e .cursor -e node_modules -e .target_book; \
                         if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \
                           git submodule foreach --recursive git clean -dffx; \
                           git submodule foreach --recursive git reset --hard; \
