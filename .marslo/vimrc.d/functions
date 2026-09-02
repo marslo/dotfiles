@@ -108,7 +108,7 @@ function! GroovyKeywords() abort
   syntax keyword noColor                 git push
 
   " basic keywords
-  syntax keyword groovyJDKMethods        collectEntries collectMany eachWithIndex toString first last tail trim
+  syntax keyword groovyJDKMethods        collectEntries collectMany eachWithIndex toString first last tail trim unique
   syntax keyword groovyKeywords          Object Closure stage
   syntax keyword JenkinsPluginsKeywords  writeCSV withEnv
 

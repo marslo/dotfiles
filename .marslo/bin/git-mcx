@@ -4,7 +4,7 @@
 #     FileName : git-mcx
 #       Author : marslo
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2026-06-09 17:12:32
+#   LastChange : 2026-09-01 20:48:13
 #        Usage : git-mcx [OPTION]             # call getCommitMessage to set commit message
 #                git-mcx [OPTION] [message]   # using `[message]` as commit message
 #=============================================================================
@@ -13,6 +13,7 @@
 # | --------------------| -----------------------------| ---------|
 # | MCX_ENABLE_SCOPE    | is enable commit scope       | true     |
 # | MCX_LINT_ENABLE     | is enable commit lint        | true     |
+# | MCX_TYPOS_ENABLE    | is enable message typo check | true     |
 # | MCX_ENABLE_BODY     | is enable commit body        | false    |
 # | MCX_ENABLE_FOOTER   | is enable commit footer      | false    |
 # | MCX_BREAKING_CHANGE | is enable breaking change    | false    |
@@ -44,6 +45,7 @@ declare -r ME="$(basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /')"
 # flag
 declare MCX_ENABLE_SCOPE="${MCX_ENABLE_SCOPE:-true}"
 declare MCX_LINT_ENABLE="${MCX_LINT_ENABLE:-true}"
+declare MCX_TYPOS_ENABLE="${MCX_TYPOS_ENABLE:-true}"
 declare MCX_ENABLE_BODY="${MCX_ENABLE_BODY:-false}"
 declare MCX_ENABLE_FOOTER="${MCX_ENABLE_FOOTER:-false}"
 declare MCX_SHOW_PREVIEW="${MCX_SHOW_PREVIEW:-false}"
@@ -68,6 +70,7 @@ OPTIONS
   $(c Gi)--preview$(c), $(c Gi)--no-preview$(c 0Y)*$(c)                    enable/disable full preview of the final commit message
   $(c Gi)--scope$(c 0Y)*$(c), $(c Gi)--no-scope$(c)                        prompt/skip for Conventional Commit 'scope' input
   $(c Gi)--lint$(c 0Y)*$(c), $(c Gi)--no-lint$(c)                          enable/disable commit message linting $(c i)(via commitlint - if applicable)$(c)
+  $(c Gi)--typos$(c 0Y)*$(c), $(c Gi)--no-typos$(c)                        enable/disable commit message typo check $(c i)(via typos - advisory, if applicable)$(c)
 
   $(c Gi)--global-lintrc$(c), $(c Gi)--no-global-lintrc$(c 0Y)*$(c)        force use/disable global commitlint configuration ($(c i)default: $(c M)~/.commitlintrc$(c))
   $(c Gi)--lintrc $(c 0Wi)<file>$(c)                             specify a custom commitlint configuration file
@@ -102,6 +105,8 @@ while [[ $# -gt 0 ]]; do
     --no-scope                     ) MCX_ENABLE_SCOPE=false  ; shift     ;;
     --lint                         ) MCX_LINT_ENABLE=true    ; shift     ;;
     --no-lint                      ) MCX_LINT_ENABLE=false   ; shift     ;;
+    --typos                        ) MCX_TYPOS_ENABLE=true   ; shift     ;;
+    --no-typos                     ) MCX_TYPOS_ENABLE=false  ; shift     ;;
     --lintrc                       ) LINTRC_FILE="$2"        ; shift 2   ;;
     --global-lintrc                ) MCX_GLOBAL_LINTRC=true  ; shift     ;;
     --no-global-lintrc             ) MCX_GLOBAL_LINTRC=false ; shift     ;;
@@ -257,6 +262,21 @@ function commitlintCheck() {
   fi
 }
 
+# check the commit MESSAGE for spelling typos
+function typosCheck() {
+  local message="$1"
+  local out status=0
+  out="$( printf '%s\n' "${message}" | typos --color always - 2>&1 )" || status=$?
+
+  if [[ "${status}" -eq 0 ]]; then
+    printf "%s\n" "$(_banner 'typos checked (succeed)' '0Gi' 196)"
+  else
+    printf "%s\n%s\n" "$(_banner 'typos checked (warning)' '0Yi' 36)" "${out}"
+    printf "%b\n" "$(c Ydi)(typos are advisory only - commit will continue)$(c)"
+  fi
+  return 0
+}
+
 function main() {
   if [[ $# -gt 0 ]]; then
     message="$1"
@@ -271,6 +291,10 @@ function main() {
   # commitlint check
   [[ 'true' = "${MCX_LINT_ENABLE:-true}"   ]] && {
     command -v commitlint >/dev/null 2>&1 && commitlintCheck "${message}"
+  }
+  # typos check (commit message spelling) - advisory only
+  [[ 'true' = "${MCX_TYPOS_ENABLE:-true}"  ]] && {
+    command -v typos      >/dev/null 2>&1 && typosCheck "${message}"
   }
 
   git add --all "$(git rev-parse --show-toplevel)";

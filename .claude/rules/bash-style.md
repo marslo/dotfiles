@@ -5,6 +5,17 @@
 
 Apply these conventions when writing or editing Bash scripts.
 
+## Shebang
+
+Always `#!/usr/bin/env bash` — portable, resolves bash 5.x from PATH (Homebrew).
+Never hardcode `#!/bin/bash` (macOS system bash 3.2) or `#!/opt/homebrew/bin/bash`.
+
+```bash
+#!/usr/bin/env bash         # ✅ portable, PATH-resolved
+#!/bin/bash                 # ❌ macOS system bash 3.2
+#!/opt/homebrew/bin/bash    # ❌ hardcoded path — not portable
+```
+
 ## 1. Naming
 
 - **UPPER_CASE_WITH_UNDERSCORES** (Java-style constants) for global variables,

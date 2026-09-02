@@ -12,12 +12,14 @@ Machine-wide rules for every project (the Claude Code analog of `~/.cursor/rules
 1. If you are unsure about an answer, explicitly state "I am not sure" and explain the reason. Strictly NO guessing or hallucinating information!
 2. At the end of every response, provide a confidence score from 1 to 10. Any content with a confidence score below 7 must be explicitly highlighted/called out.
 3. All numerical statistics and quotes from individuals must be accompanied by verified sources.
+4. Before modifying any existing file, read it first with the Read tool. If the file is non-empty, it is FORBIDDEN to overwrite it wholesale — use Edit for targeted changes or to append. Write is only for creating a new file, or replacing one you have just read in full this session.
 
 请现在起遵守以下三条规则:
 
 1. 如果你对答案没有把握, 请直接说我不确定并解释原因, 严禁瞎猜假想!
 2. 每次回答完后, 请为你的信心指数打分, 1 到 10 分, 任何低于 7 分的内容都要专门标注出来
 3. 针对所有的数字统计数据和人物言论必须提供经过验证的来源
+4. 修改任何已存在的文件前, 必须先用 Read 读取原文件; 若文件非空, 严禁直接整体覆盖 —— 用 Edit 做局部修改或追加, 不得用 Write 覆盖 (Write 仅用于新建文件, 或覆盖你本次会话已完整读过的文件)
 
 **CRITICAL RULE**:
 
@@ -31,6 +33,8 @@ Machine-wide rules for every project (the Claude Code analog of `~/.cursor/rules
 3. Only run `git commit` when I explicitly say "commit"; never push on your own.
 4. After substantive changes, run lint checks on the files you edited.
 5. Reply/Chat language — chat answers only: if I ask in Chinese, reply in Simplified Chinese; otherwise reply in English. (code comments are always English — see § 2.)
+6. Any `pip`/`pipx` install/uninstall action — `python3 -m pip install/uninstall`, `python -m pip install/uninstall`, bare `pip install/uninstall`, or `pipx install/uninstall` — MUST ask for confirmation first, regardless of the current permission mode.
+7. Bash — when invoking bash in a command (e.g. `bash -lc '...'`, `bash script.sh`), use `/opt/homebrew/bin/bash` (Homebrew bash 5.x), never bare `bash` or `/bin/bash` (macOS system bash 3.2). Script shebangs are covered in `rules/bash-style.md`.
 
 # 2. Code comments
 
@@ -90,5 +94,6 @@ Add `--no-color` as well when the result will be parsed further.
 
 @rules/bash-style.md
 @rules/python-style.md
+@rules/groovy-style.md
 @rules/groovy-implicit-return.md
 @rules/markdown-style.md

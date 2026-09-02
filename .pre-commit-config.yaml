@@ -3,6 +3,9 @@
 ci:
   autofix_prs: false
 
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit]
+
 exclude: '^(.*/screenfetch-dev|.*/gitalias|.*/pip.conf|.*/\.vault/.*|\.signingmanager/.*|.*\.current|.*colors?|.*/set-git-user.sh|.*/renew.sh|.*/copilot.pem|\.pypirc|\.netrc)$'
 
 repos:
@@ -80,3 +83,9 @@ repos:
       - id: typos
         name: Typos
         args: ['--write-changes', '--force-exclude']
+      # scan the commit message itself; no --write-changes -> only fail, never rewrite the message
+      - id: typos
+        name: Typos (commit message)
+        alias: typos-commit-msg
+        stages: [commit-msg]
+        args: ['--force-exclude']

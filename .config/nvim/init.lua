@@ -23,6 +23,16 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+-- autoload/groovy_tags.vim
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'groovy', 'Jenkinsfile' },
+  callback = function()
+    if #vim.api.nvim_get_runtime_file('autoload/groovy_tags.vim', false) > 0 then
+      vim.fn['groovy_tags#setup']()
+    end
+  end,
+})
+
 -- devicons
 pcall( require, 'config.devicons' )
 

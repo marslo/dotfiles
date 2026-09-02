@@ -38,7 +38,7 @@ set fileformat=unix fileformats=unix
 set nowrap                                                          " no wrap lines
 " $ brew install universal-ctags && ctags --recurse --languages=Groovy -f .tags vars jenkinsfile
 set tags=./.tags;,./tags;,tags
-let g:groovy_tags_auto_hover = 1                                    " groovy_tags idle auto-hover: 1/0, yes/no, true/false, on/off
+let g:groovy_tags_auto_hover = 0                                    " groovy_tags idle auto-hover: 1/0, yes/no, true/false, on/off
 " let g:groovy_tags_auto_hover_delay = 500                          " idle delay in ms; unset -> follow &updatetime below
 set updatetime=300
 set maxmempattern=5000

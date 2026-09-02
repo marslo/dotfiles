@@ -4,7 +4,7 @@
 #     FileName : git-customize.sh
 #       Author : marslo
 #      Created : 2025-12-11 21:28:56
-#   LastChange : 2026-07-16 18:37:08
+#   LastChange : 2026-09-01 21:11:25
 #=============================================================================
 
 function _git_ca()     { _git_mcx;      }
@@ -75,6 +75,7 @@ function _git_mcx() {
 
   opts="--body --no-body --footer --no-footer --diff --no-diff \
         --preview --no-preview --scope --no-scope --lint --no-lint \
+        --typos --no-typos \
         --global-lintrc --no-global-lintrc --lintrc \
         --breaking --breaking-change \
         --fix --close --resolve -j --jira -h --"

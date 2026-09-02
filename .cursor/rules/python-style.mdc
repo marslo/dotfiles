@@ -6,13 +6,11 @@ alwaysApply: false
 
 # Python Style
 
-Write **Pythonic** Python 3 that follows PEP8. Prefer clear, idiomatic
-expressions over manual loops and defensive boilerplate.
+Write **Pythonic** Python 3 that follows PEP8. Prefer clear, idiomatic expressions over manual loops and defensive boilerplate.
 
 ## 1. New file header
 
-Every new `.py` file starts with this exact preamble (shebang, encoding,
-module docstring, and a trailing vim modeline):
+Every new `.py` file starts with this exact preamble (shebang, encoding, module docstring, and a trailing vim modeline):
 
 ```python
 #!/usr/bin/env python3
@@ -49,23 +47,22 @@ module docstring, and a trailing vim modeline):
 
 ## 3. Bracket spacing (marslo convention — overrides PEP8)
 
-Pad the **inner** side of the **outermost** bracket pair (`()` / `[]`) with one
-space on each side. A single bracket is padded too; nested inner pairs stay tight.
+Pad the **inner** side of the **outermost** bracket pair (`()` / `[]`) with one space on each side. A single bracket is padded too; nested inner pairs stay tight.
 
 ```python
-( xxx )                     # ✅ single bracket → padded
-( xxx(yyy) )                # ✅ nested → outer padded, inner tight
-spam( ham[1], {eggs: 2} )   # ✅ outermost () padded, inner []/{} tight
+( xxx )                             # ✅ single bracket → padded
+( xxx(yyy) )                        # ✅ nested → outer padded, inner tight
+spam( ham[1], {eggs: 2} )           # ✅ outermost () padded, inner []/{} tight
 def munge( sep: str = None ): ...   # ✅ padded; keyword-arg = keeps no space
 income = ( gross_wages
            + taxable_interest       # ✅ break before binary operators
-           - ira_deduction )
-spam (1)                    # ❌ no space before the bracket (E211)
-( xxx( yyy ) )              # ❌ inner pair must stay tight
+           - ira_deduction
+         )
+spam (1)                            # ❌ no space before the bracket (E211)
+( xxx( yyy ) )                      # ❌ inner pair must stay tight
 ```
 
-> ⚠ This intentionally contradicts pycodestyle `E201/E202`. If the `pycodestyle`
-> pre-commit hook is enabled, add `--ignore=E201,E202` (keep `E211`).
+> ⚠ This intentionally contradicts pycodestyle `E201/E202`. If the `pycodestyle` pre-commit hook is enabled, add `--ignore=E201,E202` (keep `E211`).
 
 ## 4. Other whitespace (PEP8)
 
@@ -86,7 +83,7 @@ import os, sys                        # ❌ E401
 ## 6. Prefer idioms over manual loops
 
 ```python
-# ✅ Pythonic                                   # ❌ non-Pythonic
+# ✅ pythonic                                   # ❌ non-Pythonic
 sq = [x*x for x in range(10) if x % 3 == 0]     # manual append loop
 total = sum(nums); hi = max(nums)               # accumulator loops
 dic = dict(zip(keys, values))                   # enumerate + index assign

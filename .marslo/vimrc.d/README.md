@@ -304,6 +304,30 @@ vimrc.d/
 | `:OR`                | cmd  | organize imports                                  | -                          |
 | `:GroovyHoverToggle` | cmd  | toggle idle auto-hover on/off                     | `autoload/groovy_tags.vim` |
 
+#### coc-html — external typescript dependency
+
+> [!IMPORTANT]
+> `coc-html` needs a matching `typescript` that coc does **not** auto-install, so its language server crashes on start:
+> - `Cannot find module 'typescript'` — none installed
+> - `Cannot read properties of undefined (reading 'JS')` — wrong major (e.g. global TS 7 against coc-html 1.9.0)
+>
+> Version map: `coc-html` 1.7.0/1.8.0 → `typescript@^4.3`; 1.9.0 → `typescript@^6.0.3` (npm has only 6.0.2 / 6.0.3). Adding `typescript` to `g:coc_global_extensions` does **not** work (coc rejects packages without an `engines.coc` field). `coc-tsserver` bundles its own TS, invisible to `coc-html`.
+
+`require('typescript')` walks `node_modules` up from the file, then `NODE_PATH`; it never searches the global npm dir on its own (PATH only helps CLI binaries). Two fixes:
+
+```bash
+# 1) local — keeps global TS 7 for other tools (coc-html uses 6.x from extensions/node_modules)
+cd ~/.config/coc/extensions && npm install typescript@6
+npm install -g typescript@7
+
+# 2) global — simplest; global tsc becomes 6.x too
+npm install -g typescript@6
+export NODE_PATH="/opt/homebrew/lib/node_modules"   # = `npm root -g`; so coc-html can require it
+```
+
+> [!TIP]
+> Most robust (survives coc extension updates): a dedicated dir `~/.config/coc/ts6` with `typescript@6.0.3` + `export NODE_PATH="$HOME/.config/coc/ts6/node_modules"` — coc never prunes it, unlike `extensions/node_modules`. Run `:CocRestart` after any fix.
+
 ### Groovy / Jenkinsfile documentation (javadoc + go-to-definition)
 
 > [!NOTE]

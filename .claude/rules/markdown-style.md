@@ -11,6 +11,7 @@ Concise, scannable Markdown. Describe **what / how**; skip **why / rationale**.
 - **Results / focus only.** No narration, no filler, no restating the obvious.
 - **Prefer tables / code / lists over prose.** If a table or code block conveys it, don't write a paragraph.
 - **Comment code sparingly.** Add short inline comments only where a snippet isn't self-evident; keep them terse.
+- **No 80-column wrapping.** Don't hard-wrap prose to guess an 80-char width. Break lines by logic / context (one idea per line); let the line run as long as it reads naturally.
 - **Use GitHub callouts** for emphasis / tips / references — not bold prose (**files only**, **never in use chat/agent/assistant replies**). :
 
   | callout | use for |

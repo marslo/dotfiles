@@ -1,0 +1,293 @@
+---
+description: Groovy coding style conventions for marslo
+globs: **/*.groovy
+alwaysApply: false
+---
+
+# Groovy Style
+
+> Distilled from the internal *Groovy Coding Standard* — only the formats marked
+> recommended (√ / green) are captured here. See also [groovy-implicit-return.mdc](mdc:groovy-implicit-return.mdc)
+> for the implicit-return rule (never add explicit `return` to satisfy a linter).
+
+Reference: [Apache Groovy Style Guide](https://groovy-lang.org/style-guide.html).
+
+Bracket convention matches the marslo Bash/Python rules: **single inner space on
+each side of the outermost bracket pair; nested inner pairs stay tight.**
+
+## 1. Trailing space
+
+Never leave trailing whitespace — configure the editor to strip it automatically.
+
+## 2. Curly braces (K&R / one true brace)
+
+Opening `{` stays on the same line as the statement; never on its own line.
+
+```groovy
+if ( condition ) {          // ✅
+  ...
+}
+
+if ( condition )            // ❌ Allman — brace on its own line
+{
+  ..
+}
+```
+
+## 3. Shebang
+
+```groovy
+#!/usr/bin/env groovy       // ✅ portable
+#!/usr/bin/groovy           // ❌ hardcoded path
+#!/usr/local/bin/groovy     // ❌ hardcoded path
+```
+
+## 4. Groovydoc comment
+
+Open `/**`, continuation ` * `, close ` */` or with `**/`.
+
+```groovy
+/**                         // ✅ close with */
+ * ...
+ */
+```
+```groovy
+/**                         // ✅ closes with **/
+ * ...
+**/
+```
+
+Description block (everything before the first `@param`) — use **HTML tags**
+(`<code>`, `<p>`, `<pre>`, `<ul>`, `<a>` …), not Groovydoc `{@code}` / `{@link}`.
+LSPs render HTML but cannot parse the `{@...}` javadoc signs, so `{@code}` in the
+description shows up as raw text on hover. Keep `{@code}` / `{@link}` only inside
+the `@param` / `@return` / `@see` tag lines, and align the tags.
+
+```groovy
+/**
+ * find the matches tags for <code>revision</code> with default pattern matches.
+ * <p>
+ * <pre><code>
+ *   tagMatches( 'v1.*', 'HEAD', '.' )
+ * </code></pre>
+ *
+ * @param pattern   the pattern to match the tag(s) for {@code revision}
+ * @param revision  the revision to fetch tag(s). using {@code HEAD} by default
+ * @param dir       the local repo location. using current directory by default
+ * @return          find the matches list or empty ArrayList
+ * @see             {@link util#capture(java.lang.String, java.lang.String, int, int)}
+**/
+```
+
+## 5. Whitespace
+
+One space around binary and ternary operators:
+
+```
+=   +   -   <   >   *   /   %   |   &   ^   <=   >=   ==   !=   ?   :
+```
+
+Single inner space for the outermost bracket; nested pairs tight:
+
+```groovy
+for ( int i = 0; i < 10; i++ )                      // ✅
+for(int i = 0; i < 10; i++)                         // ❌
+
+if ( condition )                                    // ✅
+if(condition)                                       // ❌
+
+void function( String str, Boolean boolean )        // ✅
+void function(String str,Boolean b)                 // ❌
+void function( String str, Boolean boolean, pwd() ) // ✅ inner pwd() tight
+
+List list = [ 'a', 'b', 'c' ]                       // ✅
+List list=['a','b','c']                             // ❌
+
+List list = [ 'a', 'b', ['1', '2'] ]                // ✅ outer padded, nested [ ] tight
+```
+
+Multi-line condition — align continuation, put `) {` on its own line:
+
+```groovy
+if ( (condition1 && condition2) ||
+     (condition3 && condition4) ||
+     ! (condition5 && condition6)
+) {
+  ...
+}
+```
+
+## 6. Quotes
+
+- single quotes — string **without** interpolation
+- double quotes — **interpolated** string
+
+```groovy
+String str = 'this string has no variable'
+String str = "the variable is : ${variable}"
+```
+
+## 7. `==` — literal on the left (Yoda)
+
+Put the hardcoded value on the left so a typo can't assign the variable.
+
+```groovy
+'1' == str                    // ✅ safety
+str == '1'                    // ❌ risky: `str = '1'` typo silently assigns
+```
+
+## 8. `def` & type
+
+Declare the explicit type; reserve `def` for genuinely dynamic values.
+
+```groovy
+String name = "Guillaume"     // ✅ recommended
+def name = "Guillaume"        // ❌ not recommended
+```
+
+## 9. Wrapping lines
+
+### String (triple-quote)
+
+Closing `'''` on its own line — never appended to the last content line.
+
+```groovy
+String str = '''            // ✅
+               line 1
+               line 2
+               line 3
+             '''
+
+String str = '''            // ❌ closing quotes glued to line 3
+               line 3'''
+```
+
+### List
+
+Opening `[` on the declaration line, elements aligned, closing `]` on its own line:
+
+```groovy
+List<String> recipients = [ 'sjc@example.edu',
+                            'dan@example.com',
+                            'spm@example.edu',
+                            'jim@example.org'
+                          ]
+
+List<String> recipients = [           // ✅ also acceptable
+                            'sjc@example.edu',
+                            'dan@example.com',
+                          ]
+```
+
+### function
+
+Wrap args aligned; put `) {` on its own line.
+
+```groovy
+def someMethod( int anArg,
+                Object anotherArg,
+                String yetAnotherArg,
+                Object andStillAnother
+) {
+  ...
+}
+
+def someMethod (            // ✅ also acceptable
+  int anArg,
+  Object anotherArg,
+) {
+  ...
+}
+```
+
+Long expression argument — align continuations, closing `)` on its own line:
+
+```groovy
+throw new PluginException( "Failed to execute command list-applications:" +
+                           " The group with name " +
+                           parameterMap.groupname[0] +
+                           " is not compatible group of type " +
+                           SERVER_TYPE_NAME
+                         )
+```
+
+## 10. if
+
+```groovy
+if ( condition ) {          // ✅
+...
+}
+if(condition){              // ❌
+  ...
+}
+
+if ( condition1 &&
+     condition2 &&
+     ! condition3
+) {
+  ...
+}
+```
+
+## 11. try / catch / finally
+
+```groovy
+try {
+  ...
+} catch {
+  ...
+} finally {
+  ...
+}
+```
+
+## 12. switch / case
+
+Space the `switch ( ... )` parens; `case X :` with a space before the colon.
+
+```groovy
+switch ( string ) {
+  case 'foo' :
+    result = "string"
+    break
+  case [ 'a', 'b', 'c' ] :
+    result = "list"
+    break
+  case Integer :
+    result = "integer"
+    break
+  default :
+    result = 'default'
+}
+```
+
+## 13. Method chaining
+
+Break before each `.`, align the chain under the first call.
+
+```groovy
+List foo = Jenkins.instance.getAllItems(...)
+                           .findAll{ ... }
+                           .collect { ... }
+
+List foo = map.findAll{
+                ...
+              }
+              .unique()
+              .sort()
+              .collect {
+                ...
+              }
+```
+
+## 14. Syntactic sugar
+
+Prefer the Groovy shorthand:
+
+| construct | ✅ use | ❌ instead of |
+|---|---|---|
+| ternary if | `a ? b : c` | `if (a) b else c` |
+| elvis | `a ?: b` | `a ? a : b` |
+| null safe | `a?.b` | `( a == null ) ? a : a.b` |
+| implicit return | `return i > 1` | `if ( i > 1 ) { return true } else { return false }` |
+| groovy truth | `if ( name ) { .. }` | `if ( name != null && name.length > 0 ) { .. }` |
