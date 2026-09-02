@@ -4,7 +4,7 @@
 #     FileName : exports
 #       Author : marslo
 #      Created : 2020-08-25 15:26:55
-#   LastChange : 2026-05-15 22:46:55
+#   LastChange : 2026-09-02 03:49:43
 # =============================================================================
 
 # bat
@@ -152,7 +152,6 @@ test -d '/usr/local/nvim'        && NVIM_HOME='/usr/local/nvim'
 test -d '/opt/FontPatcher'       && FONT_PATCHER='/opt/FontPatcher'
 test -d '/opt/smtools-linux-x64' && SMTOOLS_HOME='/opt/smtools-linux-x64'
 test -d "$HOME/.volta"           && VOLTA_HOME="$HOME/.volta"
-test -d "$HOME/.config/envman"   && ENVMAN_PATH="$HOME/.config/envman"
 test -d '/opt/git/depot_tools'   && {
   GIT_DEPOT_TOOLS='/opt/git/depot_tools'
   # https://chromium.googlesource.com/chromium/tools/depot_tools/+/master/vpython3
@@ -195,7 +194,8 @@ if [[ '/opt/nvim/latest' = "${NVIM_HOME}" ]]; then
 fi
 
 # shellcheck disable=SC1091
-test -s "${ENVMAN_PATH}/load.sh" && source "${ENVMAN_PATH}/load.sh"
+# test -d "$HOME/.config/envman"   && ENVMAN_PATH="$HOME/.config/envman"
+# test -s "${ENVMAN_PATH}/load.sh" && source "${ENVMAN_PATH}/load.sh"
 
 # for windows and wsl
 if isWSL; then
