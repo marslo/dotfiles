@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # shellcheck disable=SC2207
 
 # Requires https://github.com/scop/bash-completion
@@ -244,6 +246,6 @@ _bat() {
 
   _filedir
 
-  ## Completion of the 'cache' command itself is removed for better UX
-  ## See https://github.com/sharkdp/bat/issues/2085#issuecomment-1271646802
+  # re-add the cache subcommand at the first arg (upstream bat drops it, bat#2085)
+  ((cword == 1)) && COMPREPLY+=($(compgen -W "cache" -- "$cur"))
 } && complete -F _bat bat
