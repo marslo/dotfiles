@@ -4,7 +4,7 @@
 #     FileName : update.sh
 #       Author : marslo
 #      Created : 2025-11-14 19:43:32
-#   LastChange : 2026-09-02 03:43:49
+#   LastChange : 2026-09-02 04:36:10
 #=============================================================================
 
 set -euo pipefail
@@ -19,24 +19,41 @@ test -f "${HOME}"/.marslo/bin/bash-colors.sh && source "${HOME}"/.marslo/bin/bas
 declare -r HERE="$( cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P )"
 function info() { echo -e "$(c Ms)>> $1 $(c 0Gi)updated !$(c)"; }
 function warn() { echo -e "$(c Ms)>> $1 $(c 0Ri)failed or timed out !$(c)"; }
+# finalize <file>: read a generated completion on stdin and write it to <file> —
+# tabs expanded to 2 spaces, trailing whitespace stripped, trailing blank lines
+# dropped, a shebang prepended only if missing, and the house vim modeline
+# appended only if missing. idempotent: safe on input that already has either.
+function finalize() {
+  awk '
+    function is_shebang(s)  { return s ~ /^#!/ }
+    function is_modeline(s) { return s ~ /^[ \t]*#.*vim:/ }
+    { gsub(/\t/, "  "); sub(/ +$/, "") }                          # tabs -> 2 spaces, strip trailing ws
+    NR == 1 && !is_shebang($0) { print "#!/usr/bin/env bash"; print "" }   # prepend shebang if missing
+    /^$/ { pending++; next }                                      # hold blank lines
+    { for (; pending>0; pending--) print ""; print; last = $0 }   # flush blanks; track last non-blank
+    END {
+      if (!is_modeline(last)) {
+        print ""
+        print "# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh"
+      }
+    }
+  ' > "${1:?output path required}"
+}
 
 type -P kubectl >/dev/null && { command kubectl completion bash          > "${HERE}"/kubectl.sh        ; info "kubectl" ; }
 type -P npm     >/dev/null && { command npm completion                   > "${HERE}"/npm.sh            ; info "npm"     ; }
 type -P gh      >/dev/null && { command gh completion -s bash            > "${HERE}"/gh.bash.sh        ; info "gh cli"  ; }
 type -P bat     >/dev/null && {
-  {
-    printf '#!/usr/bin/env bash\n\n'
-    # re-add the top-level 'cache' subcommand that `bat --completion` drops (bat#2085)
-    command bat --completion bash | awk '
-      /removed for better UX/ { next }
-      /issues\/2085/          { next }
-      /^\} && complete -F _bat bat$/ {
-        print "\t# re-add the cache subcommand at the first arg (upstream bat drops it, bat#2085)"
-        print "\t((cword == 1)) && COMPREPLY+=($(compgen -W \"cache\" -- \"$cur\"))"
-      }
-      { print }
-    '
-  } > "${HERE}"/bat.sh
+  # re-add the top-level 'cache' subcommand that `bat --completion` drops (bat#2085)
+  command bat --completion bash | awk '
+    /removed for better UX/ { next }
+    /issues\/2085/          { next }
+    /^\} && complete -F _bat bat$/ {
+      print "\t# re-add the cache subcommand at the first arg (upstream bat drops it, bat#2085)"
+      print "\t((cword == 1)) && COMPREPLY+=($(compgen -W \"cache\" -- \"$cur\"))"
+    }
+    { print }
+  ' | finalize "${HERE}"/bat.sh
   info "bat"
 }
 type -P pipx    >/dev/null && { command register-python-argcomplete pipx > "${HERE}"/pipx.sh           ; info "pipx"    ; }
@@ -55,17 +72,17 @@ type -P keyring >/dev/null && {
     warn "keyring"
   fi
 }
-type -P tt      >/dev/null && { command tt completion bash               > "${HERE}"/tt.bash           ; info "tt"      ; }
+type -P tt      >/dev/null && { command tt completion bash | finalize "${HERE}"/tt.bash ; info "tt"      ; }
 
 type -P poetry  >/dev/null && {
-  command poetry completions bash | sed -E 's/_poetry_[a-f0-9]+_complete/_poetry_complete/g' > "${HERE}"/poetry.sh
+  command poetry completions bash | sed -E 's/_poetry_[a-f0-9]+_complete/_poetry_complete/g' | finalize "${HERE}"/poetry.sh
   info "poetry"
 }
 
 type -P code    >/dev/null && {
   {
     curl --max-time 10 -fsSL https://github.com/microsoft/vscode/raw/main/resources/completions/bash/code | \
-         sed 's/@@APPNAME@@/code/g' > "${HERE}/code.sh.tmp" && \
+         sed 's/@@APPNAME@@/code/g' | finalize "${HERE}/code.sh.tmp" && \
     mv "${HERE}/code.sh.tmp" "${HERE}/code.sh" && \
     info "code"
   } || warn "code"
@@ -76,7 +93,7 @@ type -P cht.sh  >/dev/null && {
     command curl --max-time 10 -sf cheat.sh/:list          > "${HERE}/cht.sh/cht.sh.txt.tmp" && \
     mv "${HERE}/cht.sh/cht.sh.txt.tmp" "${HERE}/cht.sh/cht.sh.txt" && \
 
-    command curl --max-time 10 -sf cht.sh/:bash_completion > "${HERE}/cht.sh/cht.sh.org.tmp" && \
+    command curl --max-time 10 -sf cht.sh/:bash_completion | finalize "${HERE}/cht.sh/cht.sh.org.tmp" && \
     mv "${HERE}/cht.sh/cht.sh.org.tmp" "${HERE}/cht.sh/cht.sh.org" && \
 
     info "cht.sh"

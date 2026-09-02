@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 _tt_completion() {
     local IFS=$'\n'
     local response
@@ -26,3 +28,5 @@ _tt_completion_setup() {
 }
 
 _tt_completion_setup;
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

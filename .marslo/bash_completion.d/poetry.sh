@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 _poetry_complete()
 {
     local cur script coms opts com
@@ -218,3 +220,5 @@ _poetry_complete()
 
 complete -o default -F _poetry_complete poetry
 complete -o default -F _poetry_complete /Users/marslo/.marslo/bash_completion.d/poetry
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

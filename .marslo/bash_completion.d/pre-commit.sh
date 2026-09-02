@@ -21,6 +21,9 @@ _pre_commit() {
 
   local subcmds='autoupdate clean gc init-templatedir install install-hooks migrate-config run sample-config try-repo uninstall validate-config validate-manifest help hook-impl'
   local global_opts='-h --help -V --version'
+  # `install -t/--hook-type` accepts these git hook types; `run --hook-stage` accepts the same plus `manual`
+  local hook_types='commit-msg post-checkout post-commit post-merge post-rewrite pre-commit pre-merge-commit pre-push pre-rebase prepare-commit-msg'
+  local hook_stages="${hook_types} manual"
 
   __pc_hook_ids() {
     local cfg
@@ -50,9 +53,20 @@ _pre_commit() {
 
   local cmd="${COMP_WORDS[1]}"
 
+  # value completion for options shared across subcommands
+  case "${prev}" in
+    --color        ) COMPREPLY=( $(compgen -W "auto always never" -- "${cur}") ); return 0 ;;
+    -c|--config    ) COMPREPLY=( $(compgen -f -- "${cur}") )                    ; return 0 ;;
+    -t|--hook-type ) COMPREPLY=( $(compgen -W "${hook_types}" -- "${cur}") )    ; return 0 ;;
+  esac
+
   case "${cmd}" in
     run)
-      local opts="--all-files --files --hook-stage --color --show-diff-on-failure --config --hook-stage --verbose -v -h --help"
+      case "${prev}" in
+        --hook-stage ) COMPREPLY=( $(compgen -W "${hook_stages}" -- "${cur}") ); return 0 ;;
+        --files      ) COMPREPLY=( $(compgen -f -- "${cur}") )                 ; return 0 ;;
+      esac
+      local opts="--all-files --files --hook-stage --color --show-diff-on-failure --config --verbose -v -h --help"
       if [[ "${cur}" != -* ]]; then
         local hooks="$(__pc_hook_ids)"
         if [[ -n "${hooks}" ]]; then
@@ -63,28 +77,60 @@ _pre_commit() {
       COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
       ;;
 
-    autoupdate)
-      COMPREPLY=( $(compgen -W "--bleeding-edge --freeze --repo --from-ref --to-ref -h --help" -- "${cur}") )
-      ;;
-
     install)
-      COMPREPLY=( $(compgen -W "--hook-type --install-hooks --overwrite -f --config -h --help" -- "${cur}") )
+      COMPREPLY=( $(compgen -W "-t --hook-type --install-hooks -f --overwrite -c --config --allow-missing-config --color -h --help" -- "${cur}") )
       ;;
 
     install-hooks)
-      COMPREPLY=( $(compgen -W "--config -h --help" -- "${cur}") )
+      COMPREPLY=( $(compgen -W "-c --config --color -h --help" -- "${cur}") )
+      ;;
+
+    uninstall)
+      COMPREPLY=( $(compgen -W "-t --hook-type -c --config --color -h --help" -- "${cur}") )
+      ;;
+
+    init-templatedir)
+      [[ "${cur}" != -* ]] && { COMPREPLY=( $(compgen -d -- "${cur}") ); return 0; }
+      COMPREPLY=( $(compgen -W "-t --hook-type -c --config --no-allow-missing-config --color -h --help" -- "${cur}") )
+      ;;
+
+    autoupdate)
+      case "${prev}" in
+        --repo | -j | --jobs ) return 0 ;;
+      esac
+      COMPREPLY=( $(compgen -W "--bleeding-edge --freeze --repo -j --jobs -c --config --color -h --help" -- "${cur}") )
+      ;;
+
+    hook-impl)
+      case "${prev}" in
+        --hook-dir ) COMPREPLY=( $(compgen -d -- "${cur}") ); return 0 ;;
+      esac
+      COMPREPLY=( $(compgen -W "--color -c --config --hook-type --hook-dir --skip-on-missing-config -h --help" -- "${cur}") )
       ;;
 
     try-repo)
       if [[ ${COMP_CWORD} -ge 2 && "${cur}" != -* ]]; then
         COMPREPLY=( $(compgen -o plusdirs -f -- "${cur}") )
       else
-        COMPREPLY=( $(compgen -W "--ref --hook --verbose -v -h --help" -- "${cur}") )
+        COMPREPLY=( $(compgen -W "--ref --hook --verbose -v --color -h --help" -- "${cur}") )
       fi
       ;;
 
-    validate-config|validate-manifest|gc|clean|migrate-config|sample-config|uninstall|init-templatedir|help|hook-impl)
-      COMPREPLY=( $(compgen -W "-h --help" -- "${cur}") )
+    migrate-config)
+      COMPREPLY=( $(compgen -W "-c --config --color -h --help" -- "${cur}") )
+      ;;
+
+    validate-config|validate-manifest)
+      [[ "${cur}" != -* ]] && { COMPREPLY=( $(compgen -f -- "${cur}") ); return 0; }
+      COMPREPLY=( $(compgen -W "--color -h --help" -- "${cur}") )
+      ;;
+
+    sample-config|gc|clean)
+      COMPREPLY=( $(compgen -W "--color -h --help" -- "${cur}") )
+      ;;
+
+    help)
+      COMPREPLY=( $(compgen -W "${subcmds}" -- "${cur}") )
       ;;
 
     *)

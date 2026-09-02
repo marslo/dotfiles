@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-08-08 00:30:19
+#   LastChange : 2026-09-02 04:09:05
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -128,30 +128,45 @@ function copy() {                          # smart copy
 function pc() {                            # path copy
   test -x "${COPY}" || { echo -e "$(c Rs)ERROR: '${COPY}' NOT found in PATH. EXIT..$(c)" && return; }
   local mode=''
+  local nofzf=false
+  local file=''
+  local -a args=()
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -p | --path | -d | --dir ) mode='--dir'  ; shift ;;
       -f | --file              ) mode='--file' ; shift ;;
-      *                        ) break                 ;;
+      -n | --name | --no-fzf   ) nofzf=true    ; shift ;;
+      --                       ) shift; args+=( "$@" ); break ;;
+      *                        ) args+=( "$1" ) ; shift ;;
     esac
   done
+  set -- "${args[@]}"
+
+  # -n | --no-fzf: copy the realpath of the given path as-is, no fzf drill-in
+  if ${nofzf}; then
+    [[ 0 -eq $# ]] && { echo -e "$(c Rs)ERROR: '-n' requires a file|dir. EXIT..$(c)" && return; }
+    [[ -e "$1" ]]  || { echo -e "$(c Rs)ERROR: '$1' does NOT exist. EXIT..$(c)" && return; }
+    printf '%s' "$(realpath "$1")" | "${COPY}" &&
+      printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "$1"
+    return
+  fi
 
   eval "$( _load_fd_context "$@" ${mode:+"${mode}"} )"
   eval "$( _load_fzf_context )"
 
   if [[ 0 -eq $# ]]; then
     file=$({ [[ '--dir' = "${mode}" ]] && echo '.'; fd . "${fdopt[@]}"; } | fzf "${fzfopt[@]}") &&
-         realpath "${file}" | "${COPY}" &&
+         printf '%s' "$(realpath "${file}")" | "${COPY}" &&
          printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${file}"
   elif [[ 1 -eq $# ]] && [[ -d "$1" ]]; then
     local -a target=()
     [[ '.' = "${1}" ]] && target=("${1}") || target=('.' "${1}")
     file=$({ [[ '--dir' = "${mode}" ]] && echo "${1}"; fd "${target[@]}" "${fdopt[@]}"; } | fzf "${fzfopt[@]}") &&
-         realpath "${file}" | "${COPY}" &&
+         printf '%s' "$(realpath "${file}")" | "${COPY}" &&
          printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${file}"
   else
-    realpath "${1}" | "${COPY}" &&
+    printf '%s' "$(realpath "${1}")" | "${COPY}" &&
     printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${1}"
   fi
 }
@@ -246,7 +261,7 @@ function cat() {                           # smart cat
 
 function fdInRC() {                        # [f]in[d] [in] [rc] files
   local -A ignoreList=(
-    [rc]='ss/ log*/ backup*/ ansible-completion/ .archive/ locks/ *.png *.pem *.p12 *.pub *.lst *.log *.db'
+    [rc]='ss/ log*/ backup*/ ansible-completion/ .archive/ archive/ locks/ *.png *.pem *.p12 *.pub *.lst *.log *.db'
     [config]='*.bak *.log *backup backup*/ auth.db-* versions.json *.db'
     [extra]='*.pem *.p12 *.png *.jpg *.jpeg *.gif *.svg *.zip *.tar *.gz *.bz2 *.xz *.7z *.rar'
   )
@@ -263,7 +278,7 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
   local -a rcPaths=() cfgRoots=()
   mapfile -d '' -t rcPaths  < <(getValidDirs "${rcRawPaths[@]}")
   mapfile -d '' -t cfgRoots < <(getValidDirs "${cfgNames[@]/#/$HOME/.config/}")
-  local base='.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf|.ctags'
+  local base='.*rc|.*profile|.*ignore|.*gitconfig|.*credentials|.yamllint.yaml|.cifs|.tmux.*conf|.ctags|.gitattributes'
 
   local doExtraIgnore=false
   while [[ $# -gt 0 ]]; do

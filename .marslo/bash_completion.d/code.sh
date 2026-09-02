@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 _code()
 {
   local cur prev words cword split
@@ -58,3 +60,5 @@ _code()
   _filedir
 } &&
 complete -F _code code
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh

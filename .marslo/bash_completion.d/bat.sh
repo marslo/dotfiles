@@ -249,3 +249,5 @@ _bat() {
   # re-add the cache subcommand at the first arg (upstream bat drops it, bat#2085)
   ((cword == 1)) && COMPREPLY+=($(compgen -W "cache" -- "$cur"))
 } && complete -F _bat bat
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
