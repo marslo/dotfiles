@@ -3,7 +3,7 @@
      FileName : init.lua
        Author : marslo
       Created : 2024-01-11 01:33:04
-   LastChange : 2026-04-01 14:51:11
+   LastChange : 2026-09-02 01:18:20
 =============================================================================
 --]]
 
@@ -12,6 +12,19 @@ vim.opt.runtimepath:append("~/.vim/after")
 vim.opt.packpath = vim.opt.runtimepath:get()
 vim.cmd( 'source ~/.vimrc' )
 vim.opt.undodir = vim.fn.expand( '~/.vim/undo' )
+
+-- distro_id() -- read the ID field from /etc/os-release, e.g. "ubuntu" / "debian" / nil
+local function distro_id()
+  local f = io.open('/etc/os-release', 'r')
+  if not f then return nil end
+  local id
+  for line in f:lines() do
+    local v = line:match('^ID=(%S+)')      -- ID= only; skips ID_LIKE= / VERSION_ID=
+    if v then id = v:gsub('"', ''); break end
+  end
+  f:close()
+  return id
+end
 
 -- highlight on yank
 local yank_group = vim.api.nvim_create_augroup('HighlightYank', { clear = true })
@@ -23,15 +36,16 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
--- autoload/groovy_tags.vim
-vim.api.nvim_create_autocmd('FileType', {
-  pattern = { 'groovy', 'Jenkinsfile' },
-  callback = function()
-    if #vim.api.nvim_get_runtime_file('autoload/groovy_tags.vim', false) > 0 then
-      vim.fn['groovy_tags#setup']()
-    end
-  end,
-})
+-- share clipboard with system clipboard -- Ubuntu only (mac uses native pbcopy)
+if distro_id() == 'ubuntu' then
+  vim.opt.clipboard = 'unnamedplus'
+  local osc52 = require('vim.ui.clipboard.osc52')
+  vim.g.clipboard = {
+    name  = 'OSC 52',
+    copy  = { ['+'] = osc52.copy('+'),  ['*'] = osc52.copy('*')  },
+    paste = { ['+'] = osc52.paste('+'), ['*'] = osc52.paste('*') },
+  }
+end
 
 -- devicons
 pcall( require, 'config.devicons' )

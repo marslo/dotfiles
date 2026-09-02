@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2155,SC2154,SC2034,SC1091,SC1090,SC2046
 # =============================================================================
-#   FileName: .imac
-#     Author: marslo.jiao@gmail.com
+#   FileName: .ilinux
+#     Author: marslo
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2020-06-08 18:35:46
+# LastChange: 2026-09-02 01:19:24
 # =============================================================================
 # export SHELLCHECK_OPTS="-e SC2181 -e SC2230 -e SC2086 -e SC2164"
 
@@ -26,5 +26,34 @@ if isLinux; then
     for file in "${GIT_COMPLETION_DIR}"/*git*.[bs]*h; do source "${file}"; done
   fi
 fi
+
+function update-delta() {
+  local repo='dandavison/delta'
+
+  local id
+  id="$(. /etc/os-release 2>/dev/null && echo "$ID")"
+  if [[ "$id" != 'ubuntu' ]]; then
+    echo "update-delta: only for Ubuntu (current: ${id:-unknown})" >&2
+    return 1
+  fi
+
+  local latest cur
+  latest=$(curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" | jq -r '.tag_name')
+  cur=$(delta --version 2>/dev/null | awk '{print $2}')
+
+  if [[ "${cur}" == "${latest}" ]]; then
+    echo "delta ${cur} already latest"; return 0
+  fi
+  echo "delta ${cur:-none} -> ${latest}"
+
+  local url tmp
+  url=$(curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" |
+        jq -r '.assets[] | select(.name|test("^git-delta_.*_amd64\\.deb$")) | .browser_download_url'
+       )
+  tmp=$(mktemp -d)
+  curl -fL --progress-bar -o "${tmp}/d.deb" "${url}"
+  sudo apt install -y "${tmp}/d.deb"
+  rm -rf "${tmp}"
+}
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
