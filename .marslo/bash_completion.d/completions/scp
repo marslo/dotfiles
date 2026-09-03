@@ -1,5 +1,32 @@
 # ssh(1) completion                                        -*- shell-script -*-
 
+# capability gate: this ssh/scp/sftp module needs the bash-completion 2.12+ `_comp_*` api (`_comp_initialize`, `_comp_compgen`, ...). when the running
+# bash-completion is older (e.g. ubuntu apt 2.11) those helpers are absent, so defer to the stock ssh completion (scp/sftp are symlinks to it) and stop here.
+if ! declare -F _comp_initialize &>/dev/null; then
+    if [[ ${OSTYPE-} == darwin* || $(uname 2>/dev/null) == Darwin ]]; then
+        # macos: bash-completion ships via homebrew, not the base system
+        _comp_scp__stock=(
+            "${HOMEBREW_PREFIX:-/opt/homebrew}/share/bash-completion/completions/ssh"
+            "${HOMEBREW_PREFIX:-/opt/homebrew}/etc/bash_completion.d/ssh"
+            /usr/local/share/bash-completion/completions/ssh
+            /usr/local/etc/bash_completion.d/ssh
+        )
+    else
+        # linux / ubuntu / debian: distro package
+        _comp_scp__stock=(
+            /usr/share/bash-completion/completions/ssh
+            /etc/bash_completion.d/ssh
+            /usr/local/share/bash-completion/completions/ssh
+        )
+    fi
+    for _comp_scp__f in "${_comp_scp__stock[@]}"; do
+        # shellcheck disable=SC1090
+        [[ -r ${_comp_scp__f} ]] && source "${_comp_scp__f}" && break
+    done
+    unset -v _comp_scp__stock _comp_scp__f
+    return 0
+fi
+
 _comp_cmd_ssh__compgen_queries()
 {
     local -a queries

@@ -11,7 +11,10 @@
     // "/opt/groovy/latest/*",
     "/opt/homebrew/opt/groovy/libexec/lib/*",
     "/opt/jenkins/latest/WEB-INF/lib/*",
-    "/Users/marslo/.groovy/lib/*"
+    "/Users/marslo/.groovy/lib/*",
+    // linux/ubuntu
+    "/opt/groovy/current/lib/*",
+    "/home/marslo/.groovy/lib/*"
   ],
   "groovy.ls.vmargs": "-XX:+UseStringDeduplication",
   // "off" / "messages" / "verbose"

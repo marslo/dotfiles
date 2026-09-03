@@ -22,6 +22,17 @@ if test 'Darwin' = "$(/usr/bin/uname -s)"; then
   test -r "${HOMEBREW_PREFIX}/share/bash-completion/bash_completion" && source "${HOMEBREW_PREFIX}/share/bash-completion/bash_completion"
 fi
 
+# login shells load /etc/profile.d's system bash-completion (2.11 on ubuntu); ensure a 2.12+ build is active by preferring the locally-built one, else homebrew/system.
+if ! declare -F _comp_initialize &>/dev/null; then
+  for _bc in "${HOME}/.local/opt/bash-completion/share/bash-completion/bash_completion" \
+             "${HOMEBREW_PREFIX:-/opt/homebrew}/share/bash-completion/bash_completion" \
+             /usr/local/share/bash-completion/bash_completion \
+             /usr/share/bash-completion/bash_completion; do
+    test -r "${_bc}" && { source "${_bc}"; break; }
+  done
+  unset -v _bc
+fi
+
 # set -a; source "$HOME/.marslo/.marslorc"; set +a;   # `-a`: mark variables which are modified or created for export
 # set -x; source "$HOME/.marslo/.marslorc"; set +x;   # `-x`: print commands and their arguments as they are executed
 # bash -ixlc : 2>&1 | grep ...                        # debug bash full start process : https://unix.stackexchange.com/a/322468/29178

@@ -4,7 +4,7 @@
 #     FileName : exports
 #       Author : marslo
 #      Created : 2020-08-25 15:26:55
-#   LastChange : 2026-09-02 03:49:43
+#   LastChange : 2026-09-03 00:08:20
 # =============================================================================
 
 # bat
@@ -135,13 +135,15 @@ export JFROG_CLI_HIDE_SURVEY=true
 
 MARSLO_BINS="${iRCHOME}/bin"
 USR_LOCAL='/usr/local'
-GOPATH="${MARSLO_BINS}/go"
+if test -d "${MARSLO_BINS}/go-bin"; then GOPATH="${MARSLO_BINS}/go-bin"; fi
+if test -d "/opt/go/latest";        then GOROOT="/opt/go/latest";        fi
 CARGO_PATH="$HOME/.cargo"                            # brew install cargo
 SDKMAN_DIR="$HOME/.sdkman"
 GROOVY_USER_HOME="$HOME/.groovy"
 test -d "$HOME/.npm"             && NPM_CONFIG_PREFIX="$HOME/.npm"
 test -d "${SDKMAN_DIR:-}"        && export SDKMAN_DIR
 test -d "${CARGO_PATH:-}"        && export CARGO_PATH
+test -d "${GOROOT:-}"            && export GOROOT
 test -d "${GOPATH:-}"            && export GOPATH
 test -d "${GROOVY_USER_HOME:-}"  && export GROOVY_USER_HOME
 # test -d "${NPM_CONFIG_PREFIX}" && export NPM_CONFIG_PREFIX
@@ -163,6 +165,7 @@ test -d "${MARSLO_BINS:-}"       && LOCAL_PATH="${MARSLO_BINS}"
 # check ~/.profile for duplication
 test -d "$HOME/.local/bin"       && [[ ":${PATH}:" != *":$HOME/.local/bin:"*    ]] && LOCAL_PATH+=":$HOME/.local/bin"               # created by `pipx` on 2023-07-12 21:11:00
 test -d "${USR_LOCAL}/bin"       && [[ ":${PATH}:" != *":${USR_LOCAL}/bin:"*    ]] && LOCAL_PATH+=":${USR_LOCAL}/bin"
+test -d "${GOROOT:-}"            && [[ ":${PATH}:" != *":${GOROOT}/bin:"*       ]] && LOCAL_PATH+=":${GOROOT}/bin"
 test -d "${GOPATH:-}"            && [[ ":${PATH}:" != *":${GOPATH}/bin:"*       ]] && LOCAL_PATH+=":${GOPATH}/bin"
 test -d "${CARGO_PATH:-}"        && [[ ":${PATH}:" != *":${CARGO_PATH}/bin:"*   ]] && LOCAL_PATH+=":${CARGO_PATH}/bin"
 test -d "${SNAP_BIN:-}"          && [[ ":${PATH}:" != *":${SNAP_BIN}"*          ]] && LOCAL_PATH+=":${SNAP_BIN}"
@@ -178,6 +181,10 @@ if isLinux; then
   test -d '/opt/nvim/latest'     && {
     NVIM_HOME='/opt/nvim/latest'
     [[ ":${PATH}:" != *":${NVIM_HOME}/bin:"* ]] && LOCAL_PATH+=":${NVIM_HOME}/bin"
+  }
+  test -d '/opt/btop/latest'     && {
+    BTOP_HOME='/opt/btop/latest'
+    [[ ":${PATH}:" != *":${BTOP_HOME}/bin:"* ]] && LOCAL_PATH+=":${BTOP_HOME}/bin"
   }
 fi
 test -d "${NVIM_HOME:-}"         && [[ ":${PATH}:" != *":${NVIM_HOME}/bin:"*    ]] && LOCAL_PATH+=":${NVIM_HOME}/bin"
