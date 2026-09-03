@@ -4,7 +4,7 @@
 #     FileName : exports
 #       Author : marslo
 #      Created : 2020-08-25 15:26:55
-#   LastChange : 2026-09-03 00:08:20
+#   LastChange : 2026-09-03 00:39:34
 # =============================================================================
 
 # bat
@@ -100,6 +100,11 @@ if type -P node >/dev/null 2>&1 && [ "$(node -v | cut -d'.' -f1 | tr -d 'v')" -g
   # export NODE_OPTIONS="--no-webstorage"
   export UNDICI_NO_NATIVE_HINTS=1
 fi
+# for coc-html issue
+if isLinux; then
+  # shellcheck disable=SC2155
+  export NODE_PATH="$(command npm root -g)"
+fi
 
 # https://lists.zx2c4.com/pipermail/password-store/2018-January/003170.html
 # PASSWORD_STORE_CHARACTER_SET='[:alnum:].,!?&*%_~$#^@{}[]()<>|=/\+-'
@@ -114,8 +119,10 @@ export DOCKER_COMPLETION_SHOW_CONTAINER_IDS=true
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 # pip install
 # export PIP_BREAK_SYSTEM_PACKAGES=true
-# pip completion
-export PIP_AUTO_COMPLETE=1
+# pip completion >= 3.14
+if command python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3,14) else 1)'; then
+  export PIP_AUTO_COMPLETE=1
+fi
 
 export LANG=en_US.UTF-8
 export LANGUAGE=$LANG
@@ -201,8 +208,10 @@ if [[ '/opt/nvim/latest' = "${NVIM_HOME}" ]]; then
 fi
 
 # shellcheck disable=SC1091
-# test -d "$HOME/.config/envman"   && ENVMAN_PATH="$HOME/.config/envman"
-# test -s "${ENVMAN_PATH}/load.sh" && source "${ENVMAN_PATH}/load.sh"
+if isOSX; then
+  test -d "$HOME/.config/envman"   && ENVMAN_PATH="$HOME/.config/envman"
+  test -s "${ENVMAN_PATH}/load.sh" && source "${ENVMAN_PATH}/load.sh"
+fi
 
 # for windows and wsl
 if isWSL; then
