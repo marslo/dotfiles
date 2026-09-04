@@ -4,14 +4,15 @@
 #   FileName : imarslo
 #     Author : marslo
 #    Created : 2017-10-30 19:07:45
-# LastChange : 2026-03-20 02:04:52
+# LastChange : 2026-09-03 17:48:39
 # =============================================================================
 
-MY_WORKSPACE="$HOME/iMarslo"
+MY_WORKSPACE="${HOME}/iMarslo"
 
-alias irc="cd $HOME/.marslo"
-alias desk="cd $HOME/Desktop"
-alias cdrs="cd $HOME/Desktop/re/scripts"
+alias .m="cd ${HOME}/.marslo"
+alias .mb="cd ${HOME}/.marslo/bin"
+alias desk="cd ${HOME}/Desktop"
+alias cdrs="cd ${HOME}/Desktop/re/scripts"
 
 alias cfg="cd ~/.config/"
 alias vimd="cd ~/.marslo/vimrc.d"
@@ -45,22 +46,22 @@ fi
 if test -d "${MY_WORKSPACE}/tools"; then
   alias to="cd ${MY_WORKSPACE}/tools"
   alias dl="cd ${MY_WORKSPACE}/tools/download"
-  alias sf="cd ${MY_WORKSPACE}/tools/software"
   alias gi="cd ${MY_WORKSPACE}/tools/git/marslo"
-  alias cddp="cd ${MY_WORKSPACE}/tools/git/sandbox/deprecated"
   alias ib="cd ${MY_WORKSPACE}/tools/git/marslo/ibook/docs"
-  alias mi="cd ${MY_WORKSPACE}/tools/git/marslo/myvim"
   alias dm="cd ${MY_WORKSPACE}/tools/git/marslo/dotfiles"
   alias mt="cd ${MY_WORKSPACE}/tools/git/marslo/mytools"
-  alias mb="cd ${MY_WORKSPACE}/tools/git/marslo/mbook/docs >/dev/null"
+  alias mb="cd ${MY_WORKSPACE}/tools/git/marslo/mbook/docs"
+  # shellcheck disable=SC2015
+  isOSX && alias sf="cd ${MY_WORKSPACE}/tools/apps" || alias sf="cd ${MY_WORKSPACE}/tools/software"
 fi
 
-test -d "$HOME/.local/share/gh/extensions" && alias ghee="cd $HOME/.local/share/gh/extensions" || :
+# shellcheck disable=SC2015
+test -d "${HOME}/.local/share/gh/extensions" && alias ghee="cd ${HOME}/.local/share/gh/extensions" || :
 alias oct="cd \"${HOME}/Library/CloudStorage/OneDrive-SharedLibraries-OneDriveCloudTemp\""
 
 if isWSL; then
-  alias dsk="cd $HOME/userprofile/Desktop"
-  alias up="cd $HOME/userprofile"
+  alias dsk="cd ${HOME}/userprofile/Desktop"
+  alias up="cd ${HOME}/userprofile"
   alias proj="cd ${MY_WORKSPACE}/myprogramfiles"
   alias mw="cd '/home/marslo/userprofile/OneDrive - Domain/iMarslo'"
   alias dos="cd '/home/marslo/userprofile/OneDrive - Domain/iMarslo/job/devops'"
