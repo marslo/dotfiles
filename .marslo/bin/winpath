@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# =============================================================================
+#      FileName : winpath
+#        Author : marslo
+#       Created : 2026-09-03 04:50:22
+#    LastChange : 2026-09-03 17:30:04
+# =============================================================================
+# USAGE
+#   winpath '\\NFS_SERVER\FOLDER\a\b.xlsx'                  # ALWAYS single-quote: the shell eats bare backslashes
+#   winpath -c '\\NFS_SERVER\FOLDER\a\b.xlsx'               # also copy result to clipboard (no trailing newline)
+#   x="$( winpath '\\NFS_SERVER\devops$\x.csv' )"
+
+# associative arrays need bash >= 4; system bash on macOS is 3.2. when run directly under an old bash, re-exec under a newer one (never on source).
+if test "${BASH_SOURCE[0]}" = "${0}" && test "${BASH_VERSINFO[0]}" -lt 4; then
+  for _newbash in /opt/homebrew/bin/bash /usr/local/bin/bash; do
+    test -x "${_newbash}" && exec "${_newbash}" "${0}" "${@}"
+  done
+  echo 'winpath: requires bash >= 4 (associative arrays)' >&2
+  exit 1
+fi
+
+# shellcheck disable=SC2155
+declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
+
+# windows unc prefix -> linux mount root, matched against the raw input.
+declare -A UNC_MAP=(
+  ['\\NFS_SERVER\FOLDER']='/mnt/FOLDER'
+  ['\\NFS_SERVER.domain.com\FOLDER']='/mnt/FOLDER'
+  ['\\NFS_SERVER\devops$']='/data/devops'
+  ['\\nfs/devops$']='/data/devops'
+  ['\\nfs.domain.com\devops$']='/data/devops'
+)
+
+declare -r USAGE="NAME
+  ${ME} — translate a Windows/UNC path to its Linux mount path
+
+USAGE
+  \$ ${ME} <\\windows\path> [OPTIONS]
+
+OPTIONS
+  -c, --copy    also copy the result to the clipboard (pbcopy, no trailing newline)
+  -h, --help    show this help and exit
+
+NOTES
+  • ALWAYS single-quote the path — the shell eats bare backslashes.
+  • general converter: backslashes become '/'. a known UNC prefix (see MAPPINGS) is remapped to its Linux mount; anything else is converted as-is.
+
+MAPPINGS (unc prefix -> linux mount root):"
+
+function usage() {
+  echo -e "${USAGE}"
+  # keys are stored in windows '\' form — printed verbatim, exactly how users type them
+  local unc width=0
+  for unc in "${!UNC_MAP[@]}"; do test "${#unc}" -gt "${width}" && width="${#unc}"; done
+  for unc in "${!UNC_MAP[@]}"; do printf "  %-${width}s -> %s\n" "${unc}" "${UNC_MAP[${unc}]}"; done | sort
+}
+
+function winpath() {
+  local copy=0
+  local raw=''
+  local arg
+  for arg in "${@}"; do
+    case "${arg}" in
+      -h|--help ) usage; return 0                   ;;
+      -c|--copy ) copy=1                            ;;
+      *         ) test -n "${raw}" || raw="${arg}"  ;;
+    esac
+  done
+  # shellcheck disable=SC2028
+  test -n "${raw}" || { echo 'usage: winpath [-c] <\\windows\path>  (single-quote the path)' >&2; return 2; }
+
+  # trim leading/trailing whitespace
+  raw="${raw#"${raw%%[![:space:]]*}"}"
+  raw="${raw%"${raw##*[![:space:]]}"}"
+
+  local filePath="${raw}"
+
+  # remap a known windows unc prefix to its linux mount (match on raw input)
+  local unc
+  for unc in "${!UNC_MAP[@]}"; do
+    case "${filePath}" in
+      "${unc}"\\* | "${unc}" ) filePath="${UNC_MAP[${unc}]}${filePath#"${unc}"}"; break ;;
+    esac
+  done
+
+  # single backslash -> forward slash pass over the whole result: the linux mount part has none, the remaining windows tail (or unmatched path) converts
+  filePath="${filePath//\\//}"
+
+  # copy to clipboard without a trailing newline
+  test 1 -eq "${copy}" && command -v pbcopy >/dev/null && printf '%s' "${filePath}" | pbcopy
+
+  echo "${filePath}"
+}
+
+# run only when executed directly, not when sourced
+if test "${BASH_SOURCE[0]}" = "${0}"; then
+  winpath "${@}"
+fi
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
