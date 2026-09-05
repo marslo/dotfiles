@@ -1,0 +1,298 @@
+#!/usr/bin/env bash
+# =============================================================================
+#      FileName : exhume
+#        Author : marslo
+#       Created : 2026-09-04 17:39:44
+#    LastChange : 2026-09-04 20:20:00
+# =============================================================================
+#
+# exhume.sh — restore repo(s) sealed by entomb.sh.
+#
+# preflight (fail fast, before extracting anything): every archive must be a recognizable .gpg (.tar.zst / .tar.gz inside) and decryptable with a secret key in the keyring.
+# then, per archive: decrypt (verifies signature too) to a temp tarball, refuse if any top-level entry already exists under --target, and only then extract.
+#
+# usage:
+#   exhume.sh --file <archive.gpg>  [--target DIR]
+#   exhume.sh --dir  <dir-of-gpgs>  [--target DIR]
+#
+
+set -euo pipefail
+
+ME="$( basename "${0}" )"
+declare -r ME
+
+declare MODE=''         # file | dir
+declare SRC=''
+declare TARGET='.'
+declare TMP_TAR=''      # in-flight decrypted tarball; cleaned on exit
+declare -a FILES=()     # resolved list of .gpg archives to restore
+declare IMPORT_KEY=0    # --import-key: import a key backup from --dir, then exit
+declare LOGFILE=''      # active log path ('' = disabled)
+declare DO_LOG=1        # --no-log sets 0
+declare DRYRUN=0        # --dryrun sets 1: print commands, mutate nothing
+declare -a ARGV=( "${@}" )  # original args, captured before parsing
+declare -r ESC=$'\033'  # literal escape, for ANSI stripping
+RULE="$( printf '─%.0s' {1..60} )"  # 60x ─ run separator
+declare -r RULE
+
+# cleanup the temp tarball and write the closing log banner on any exit
+trap 'test -n "${TMP_TAR}" && command rm -f "${TMP_TAR}"; logDone' EXIT
+
+function hasCmd() { command -v "${1}" >/dev/null 2>&1; }
+
+# strip ANSI SGR/cursor sequences from stdin
+function stripAnsi() { command sed -E "s/${ESC}\\[[0-9;]*[a-zA-Z]//g"; }
+
+# append one plain (de-colored) line to the log, if logging is on
+function _log() {
+  test -n "${LOGFILE}" || return 0
+  printf '%b\n' "${*}" | stripAnsi >> "${LOGFILE}"
+}
+
+function info() { printf '\033[32m[exhume]\033[0m %b\n' "${*}" >&2; _log "[exhume] ${*}"; }
+function die()  { printf '\033[31m[exhume]\033[0m %b\n' "${*}" >&2; _log "[exhume] ${*}"; exit 1; }
+function say()  { printf '\033[34m==>\033[0m %b\n' "${*}"; _log "==> ${*}"; }
+
+# log file name: <subject>.<yyMMDDHHMMSS>.log  (subject = source basename)
+function logName() {
+  local subj="${1:-exhume}"
+  printf '%s.%s.log' "${subj}" "$( date +%y%m%d%H%M%S )"
+}
+
+# run banner: timestamp + cwd, a separator, then the paste-safe command line
+function logInit() {
+  test -n "${LOGFILE}" || return 0
+  { printf '@ %s   (cwd: %s)\n' "$( date '+%Y-%m-%d %H:%M:%S' )" "${PWD}"
+    printf '%s\n' "${RULE}"
+    printf '$ %s' "${ME}"
+    test "${#ARGV[@]}" -gt 0 && printf ' %q' "${ARGV[@]}"
+    printf '\n'
+  } >> "${LOGFILE}"
+}
+
+# closing banner: separator + end timestamp (fires via EXIT trap on any exit)
+function logDone() {
+  test -n "${LOGFILE}" || return 0
+  { printf '%s\n' "${RULE}"
+    printf '@ %s\n' "$( date '+%Y-%m-%d %H:%M:%S' )"
+  } >> "${LOGFILE}"
+}
+
+function usage() {
+  command cat >&2 <<EOF
+  ${ME} — restore repo(s) sealed by entomb.sh.
+
+SOURCE (choose one):
+  --file <archive.gpg>     a single sealed archive
+  --dir  <dir>             restore every *.gpg in <dir> (non-recursive)
+
+  --target <dir>           where to extract   (default: .)
+
+KEY RESTORE
+  --import-key --dir <dir> import a key backup (*.pub.asc / *.sec.asc / gpg-trust.txt)
+                           from <dir>; if the key already exists, print it and exit
+
+  --no-log                 do not write a run log
+  --dryrun                 list the files and commands that would run; write nothing
+  -h, --help               this help
+EOF
+}
+
+# import a key backup from <dir>; if the key is already present, print and exit
+function importKey() {
+  local dir="${1}" pub trust fpr havePub=0 haveSec=0
+  local -a pubs=() secs=()
+  test -d "${dir}" || die "not a directory: ${dir}"
+
+  shopt -s nullglob
+  pubs=( "${dir}"/*.pub.asc )
+  secs=( "${dir}"/*.sec.asc )
+  shopt -u nullglob
+  test "${#pubs[@]}" -gt 0 || die "no *.pub.asc found in: ${dir}"
+  pub="${pubs[0]}"
+  trust="${dir}/gpg-trust.txt"
+
+  fpr="$( gpg --show-keys --with-colons "${pub}" | command awk -F: '$1=="fpr"{ print $10; exit }' )"
+  test -n "${fpr}" || die "cannot read fingerprint from: ${pub}"
+
+  gpg --list-keys        "${fpr}" >/dev/null 2>&1 && havePub=1
+  gpg --list-secret-keys "${fpr}" >/dev/null 2>&1 && haveSec=1
+
+  # already fully present (secret only required when the backup carries one)
+  if test 1 -eq "${havePub}" && { test "${#secs[@]}" -eq 0 || test 1 -eq "${haveSec}"; }; then
+    info "key already in keyring — nothing to import:"
+    gpg --list-keys "${fpr}" >&2
+    exit 0
+  fi
+
+  if test 1 -eq "${DRYRUN}"; then
+    say "[dry] would import key ${fpr}"
+    test 1 -eq "${havePub}" || printf '    \033[2m$\033[0m gpg --import %s\n' "${pub}"
+    if test "${#secs[@]}" -gt 0; then
+      test 1 -eq "${haveSec}" || printf '    \033[2m$\033[0m gpg --import %s\n' "${secs[0]}"
+    fi
+    test -f "${trust}" && printf '    \033[2m$\033[0m gpg --import-ownertrust %s\n' "${trust}"
+    return 0
+  fi
+
+  info "importing key ${fpr}"
+  test 1 -eq "${havePub}" || gpg --batch --import "${pub}"
+  if test "${#secs[@]}" -gt 0; then
+    test 1 -eq "${haveSec}" || gpg --batch --import "${secs[0]}"
+  else
+    info 'no *.sec.asc — public key only'
+  fi
+  test -f "${trust}" && gpg --import-ownertrust "${trust}"
+  say "Imported key ${fpr}"
+  gpg --list-keys "${fpr}" >&2
+}
+
+# echo the decompress program for a given archive name; die on unknown type
+function decompProg() {
+  local f="${1}"
+  case "${f}" in
+    *.tar.zst|*.tzst ) hasCmd zstd || die "zstd required to decompress: ${f}"; printf '%s' 'zstd -d' ;;
+    *.tar.gz|*.tgz   ) printf '%s' 'gzip -d' ;;
+    *                ) die "unknown archive type (expect .tar.zst / .tar.gz inside): ${f}" ;;
+  esac
+}
+
+# stream NUL-separated *.gpg paths directly under a dir (non-recursive)
+function gpgStream() {
+  local base="${1}"
+  if hasCmd fd; then
+    command fd --max-depth 1 --type f --color never --print0 '\.gpg$' "${base}"
+  else
+    command find "${base}" -maxdepth 1 -type f -name '*.gpg' -print0
+  fi
+}
+
+# fail unless a secret key for at least one recipient is present (cheap, no passphrase: --list-only reports ENC_TO recipients without decrypting).
+# a signed-only archive has no recipients and needs no secret key.
+function ensureDecryptable() {
+  local f="${1}"
+  local -a encTo=()
+  local tag kid
+  while read -r _ tag kid _; do
+    test 'ENC_TO' = "${tag}" && encTo+=( "${kid}" )
+  done < <( gpg --batch --status-fd 1 --list-only --decrypt "${f}" 2>/dev/null )
+  test "${#encTo[@]}" -eq 0 && return 0
+  for kid in "${encTo[@]}"; do
+    test '0000000000000000' = "${kid}" && continue        # hidden recipient
+    gpg --list-secret-keys "${kid}" >/dev/null 2>&1 && return 0
+  done
+  die "no secret key in keyring to decrypt: ${f} (encrypted to ${encTo[*]})"
+}
+
+# decrypt to a temp tarball, refuse on any name clash, then extract into TARGET
+function exhumeOne() {
+  local gpgFile="${1}"
+  local inner prog entry
+  local -a tops=() clashes=()
+  inner="$( basename "${gpgFile%.gpg}" )"   # e.g. myrepo.tar.zst
+  prog="$( decompProg "${inner}" )"
+
+  if test 1 -eq "${DRYRUN}"; then
+    info "would restore ${gpgFile} -> ${TARGET}/"
+    printf "    \033[2m\$\033[0m gpg --decrypt %s | tar --use-compress-program '%s' -xf - -C %s\n" "${gpgFile}" "${prog}" "${TARGET}"
+    return 0
+  fi
+
+  TMP_TAR="$( command mktemp "${TMPDIR:-/tmp}/exhume.XXXXXX" )"
+  gpg --batch --yes --output "${TMP_TAR}" --decrypt "${gpgFile}"
+
+  # distinct top-level entries inside the archive
+  while IFS= read -r entry; do
+    test -n "${entry}" && tops+=( "${entry}" )
+  done < <( tar --use-compress-program "${prog}" -tf "${TMP_TAR}" | command awk -F/ 'NF { print $1 }' | command sort -u )
+  test "${#tops[@]}" -gt 0 || { command rm -f "${TMP_TAR}"; TMP_TAR=''; die "empty archive: ${gpgFile}"; }
+
+  # safety: never overwrite/merge an existing target entry
+  for entry in "${tops[@]}"; do
+    test -e "${TARGET}/${entry}" && clashes+=( "${entry}" )
+  done
+  if test "${#clashes[@]}" -gt 0; then
+    command rm -f "${TMP_TAR}"; TMP_TAR=''
+    die "target already contains: ${clashes[*]} (in ${TARGET}/) — remove it or pick another --target; aborted at ${gpgFile}"
+  fi
+
+  info "restoring ${gpgFile} -> ${TARGET}/ (${tops[*]})"
+  tar --use-compress-program "${prog}" -xf "${TMP_TAR}" -C "${TARGET}"
+  command rm -f "${TMP_TAR}"; TMP_TAR=''
+}
+
+# ---- parse args ----
+while test "${#}" -gt 0; do
+  case "${1}" in
+    --file       ) test -z "${MODE}" || die 'choose only one of --file / --dir'; MODE='file'; SRC="${2}"; shift 2 ;;
+    --dir        ) test -z "${MODE}" || die 'choose only one of --file / --dir'; MODE='dir';  SRC="${2}"; shift 2 ;;
+    --import-key ) IMPORT_KEY=1; shift ;;
+    --target     ) TARGET="${2}"; shift 2 ;;
+    --no-log     ) DO_LOG=0; shift ;;
+    --dryrun|--dry-run ) DRYRUN=1; shift ;;
+    -h|--help    ) usage; exit 0 ;;
+    *            ) die "unknown argument: ${1}" ;;
+  esac
+done
+
+# ---- validate ----
+hasCmd gpg || die 'gpg not found'
+
+# resolve target and open the log (name encodes cwd; the log lives in target)
+if test 1 -eq "${DRYRUN}"; then
+  say '[dry] DRY RUN — listing what would run; nothing is written'
+  TARGET="$( cd "${TARGET}" 2>/dev/null && pwd || printf '%s' "${TARGET}" )"
+else
+  command mkdir -p "${TARGET}"
+  TARGET="$( cd "${TARGET}" && pwd )"
+  # log subject = source basename ('.' resolved to the real dir name)
+  if test -n "${SRC}"; then
+    LOGSUBJ="$( basename "$( cd "${SRC}" 2>/dev/null && pwd || printf '%s' "${SRC}" )" )"
+  else
+    LOGSUBJ='exhume'
+  fi
+  test 1 -eq "${DO_LOG}" && LOGFILE="${TARGET}/$( logName "${LOGSUBJ}" )"
+  logInit
+  test -n "${LOGFILE}" && say "Log: ${LOGFILE}"   # announce upfront, before any work
+fi
+
+# key import is a standalone mode — takes its dir from --dir, then exits
+if test 1 -eq "${IMPORT_KEY}"; then
+  test -n "${SRC}" || die 'import-key needs --dir <dir>'
+  importKey "${SRC}"
+  exit 0
+fi
+
+test -n "${MODE}" || { usage; die 'missing source: --file <archive.gpg> or --dir <dir>'; }
+test -n "${SRC}"  || die 'source path is empty'
+hasCmd tar        || die 'tar not found'
+
+# ---- resolve archive list ----
+case "${MODE}" in
+  file ) test -f "${SRC}" || die "no such file: ${SRC}"
+         FILES=( "$( cd "$( dirname "${SRC}" )" && pwd )/$( basename "${SRC}" )" )
+         ;;
+  dir  ) test -d "${SRC}" || die "not a directory: ${SRC}"
+         while IFS= read -r -d '' f; do
+           FILES+=( "${f}" )
+         done < <( gpgStream "$( cd "${SRC}" && pwd )" )
+         test "${#FILES[@]}" -gt 0 || die "no *.gpg files found in: ${SRC}"
+         ;;
+esac
+
+# ---- preflight: any problem exits before a single archive is extracted ----
+for f in "${FILES[@]}"; do
+  case "${f}" in *.gpg) ;; *) die "not a .gpg file: ${f}" ;; esac
+  decompProg "$( basename "${f%.gpg}" )" >/dev/null     # dies on unknown type
+  ensureDecryptable "${f}"
+done
+
+# ---- restore ----
+for f in "${FILES[@]}"; do exhumeOne "${f}"; done
+if test 1 -eq "${DRYRUN}"; then
+  say "Dry run: would restore ${#FILES[@]} archive(s) into ${TARGET}"
+else
+  say "Restored ${#FILES[@]} archive(s) into ${TARGET}"
+fi
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

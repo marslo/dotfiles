@@ -1,0 +1,450 @@
+#!/usr/bin/env bash
+# =============================================================================
+#      FileName : entomb
+#        Author : marslo
+#       Created : 2026-09-04 17:53:24
+#    LastChange : 2026-09-04 20:28:24
+# =============================================================================
+#
+# entomb.sh — seal git repo(s) for cold archive.
+#
+# for each repo: recursively tar the whole folder (working tree + full .git + submodule .git/modules, self-contained), compress with zstd (fallback gzip),
+# then GPG encrypt (default) or sign, and delete the plain tarball — keeping only the .gpg artifact. restore with exhume.sh.
+#
+# usage:
+#   entomb.sh --folder <repo>            [--out-name N] [--out-dir D] [--sign|--encrypt]
+#   entomb.sh --dir    <parent-of-repos> [--out-dir D] [--sign|--encrypt]
+#
+
+set -euo pipefail
+
+ME="$( basename "${0}" )"
+declare -r ME
+# default gpg key: env ENTOMB_FPR_KEY wins, else the hardcoded fallback
+declare -r KEY_FPR="${ENTOMB_FPR_KEY:-5C8F948E9DB8AE3F30B86683728AC87116357593}"
+
+# runtime config (UPPER_CASE: globals / CLI-parsed)
+declare MODE=''                      # dir | folder
+declare SRC=''
+declare OUT_NAME=''
+declare OUT_DIR='.'
+declare GPG_MODE='encrypt'           # encrypt | sign
+declare EXPORT_FPR=''                # --export-key [FPR]; empty -> KEY_FPR
+declare COMP_PROG=''
+declare COMP_EXT=''
+declare -a ROWS=()                   # one tab-separated 'name\torigBytes\tgpgBytes' per sealed repo
+declare LOGFILE=''                   # active log path ('' = disabled)
+declare DO_LOG=1                     # --no-log sets 0
+declare DRYRUN=0                     # --dryrun sets 1: print commands, mutate nothing
+declare -a ARGV=( "${@}" )           # original args, captured before parsing
+declare -r ESC=$'\033'               # literal escape, for ANSI stripping
+RULE="$( printf '─%.0s' {1..60} )"   # 60x ─ run separator
+declare -r RULE
+
+# closing banner on any exit (once the log is open)
+trap 'logDone' EXIT
+
+function hasCmd() { command -v "${1}" >/dev/null 2>&1; }
+
+# run a command, or (in dryrun) just print it — used for every mutating command
+function run() {
+  if test 1 -eq "${DRYRUN}"; then
+    printf '    \033[2m$\033[0m %s\n' "${*}"
+  else
+    "${@}"
+  fi
+}
+
+# strip ANSI SGR/cursor sequences from stdin
+function stripAnsi() { command sed -E "s/${ESC}\\[[0-9;]*[a-zA-Z]//g"; }
+
+# append one plain (decolored) line to the log, if logging is on
+function _log() {
+  test -n "${LOGFILE}" || return 0
+  printf '%b\n' "${*}" | stripAnsi >> "${LOGFILE}"
+}
+
+function info() { printf '\033[32m[entomb]\033[0m %b\n' "${*}" >&2; _log "[entomb] ${*}"; }
+function warn() { printf '\033[33m[entomb]\033[0m %b\n' "${*}" >&2; _log "[entomb] ${*}"; }
+function die()  { printf '\033[31m[entomb]\033[0m %b\n' "${*}" >&2; _log "[entomb] ${*}"; exit 1; }
+
+# stdout (blue ==>) + plain log line
+function say() { printf '\033[34m==>\033[0m %b\n' "${*}"; _log "==> ${*}"; }
+
+# log file name: <subject>.<yyMMDDHHMMSS>.log  (subject = source basename)
+function logName() {
+  local subj="${1:-log}"
+  printf '%s.%s.log' "${subj}" "$( date +%y%m%d%H%M%S )"
+}
+
+# run banner: timestamp + cwd, a separator, then the paste-safe command line
+function logInit() {
+  test -n "${LOGFILE}" || return 0
+  {
+    printf '@ %s   ( cwd: %s )\n' "$( date '+%Y-%m-%d %H:%M:%S' )" "${PWD}"
+    printf '%s\n' "${RULE}"
+    printf '$ %s' "${ME}"
+    test "${#ARGV[@]}" -gt 0 && printf ' %q' "${ARGV[@]}"
+    printf '\n'
+  } >> "${LOGFILE}"
+}
+
+# closing banner: separator + end timestamp (fires via EXIT trap on any exit)
+function logDone() {
+  test -n "${LOGFILE}" || return 0
+  { printf '%s\n' "${RULE}"; printf '@ %s\n' "$( date '+%Y-%m-%d %H:%M:%S' )"; } >> "${LOGFILE}"
+}
+
+# total bytes of a directory (du -sk is portable on mac/linux; -k = 1024 blocks)
+function dirBytes() {
+  local kb
+  kb="$( command du -sk "${1}" | command awk '{ print $1 }' )"
+  printf '%s' "$(( kb * 1024 ))"
+}
+
+# exact bytes of a file
+function fileBytes() { command wc -c < "${1}" | command awk '{ print $1 }'; }
+
+# archive base name for --folder: --out-name wins; else dash-disambiguates cwd-relative path when the folder is under cwd, otherwise plain basename
+function folderName() {
+  local root="${1}" cwdrel
+  test -n "${OUT_NAME}" && { printf '%s' "${OUT_NAME}"; return; }
+  cwdrel="${root#"${PWD}"/}"
+  if test "${cwdrel}" != "${root}"; then
+    printf '%s' "${cwdrel//\//-}"
+  else
+    printf '%s' "$( basename "${root}" )"
+  fi
+}
+
+# shortest readable path: relative to cwd, else ~/… under HOME, else absolute
+function niceRel() {
+  local abs="${1}" tilde='~'   # literal ~ for display, not a path to expand
+  case "${abs}/" in
+    "${PWD}/"* )  printf '%s' "${abs#"${PWD}"/}" ;;
+    "${HOME}/"* ) printf '%s/%s' "${tilde}" "${abs#"${HOME}"/}" ;;
+    * )           printf '%s' "${abs}" ;;
+  esac
+}
+
+# remote url of a repo (origin first, else first remote, else <no remote>)
+function repoRemote() {
+  local repo="${1}" url first
+  url="$( git -C "${repo}" config --get remote.origin.url 2>/dev/null )"
+  if test -z "${url}"; then
+    first="$( git -C "${repo}" remote 2>/dev/null | command head -1 )"
+    test -n "${first}" && url="$( git -C "${repo}" config --get "remote.${first}.url" 2>/dev/null )"
+  fi
+  printf '%s' "${url:-<no remote>}"
+}
+
+# render ROWS as an aligned, brew-style table (adaptive unit, 2 decimals)
+function renderReport() {
+  test "${#ROWS[@]}" -gt 0 || return 0
+  printf '%s\n' "${ROWS[@]}" | command awk -F'\t' '
+    function h( x,  i, s ) {
+      split( "B KB MB GB TB PB", u, " " )
+      i = 1; s = x
+      while ( s >= 1024 && i < 6 ) { s /= 1024; i++ }
+      return sprintf( "%.2f %s", s, u[i] )
+    }
+    {
+      name[NR] = $1
+      oh[NR]   = h($2)
+      gh[NR]   = h($3)
+      sh[NR]   = h($2 - $3)
+      pct[NR]  = ( $2 > 0 ) ? ( $2 - $3 ) / $2 * 100 : 0
+      if ( length($1)   > wN ) wN = length($1)
+      if ( length(oh[NR]) > wO ) wO = length(oh[NR])
+      if ( length(gh[NR]) > wG ) wG = length(gh[NR])
+      if ( length(sh[NR]) > wS ) wS = length(sh[NR])
+    }
+    END {
+      for ( i = 1; i <= NR; i++ )
+        printf "%-*s  %*s  ->  %*s   (saved %*s, %6.2f%%)\n",
+               wN, name[i], wO, oh[i], wG, gh[i], wS, sh[i], pct[i]
+    }'
+}
+
+# back up the default key (public + secret + its ownertrust) to <OUT_DIR>/<name>/
+# <name> = uid email local-part; <KEYID> = last 16 hex of the fingerprint
+function exportKey() {
+  local fpr="${1:-${KEY_FPR}}"
+  local keyid uid email name dest
+  gpg --list-keys        "${fpr}" >/dev/null 2>&1 || die "public key not in keyring: ${fpr}"
+  gpg --list-secret-keys "${fpr}" >/dev/null 2>&1 || die "secret key not in keyring: ${fpr}"
+
+  # normalize to the full primary fingerprint (accepts keyid/short input too)
+  fpr="$( gpg --list-keys --with-colons "${fpr}" | command awk -F: '$1=="fpr"{ print $10; exit }' )"
+  keyid="${fpr: -16}"
+  uid="$( gpg --list-keys --with-colons "${fpr}" | command awk -F: '$1=="uid"{ print $10; exit }' )"
+  email="$( printf '%s' "${uid}" | command sed -n 's/.*<\(.*\)>.*/\1/p' )"
+  name="${email%@*}"
+  test -n "${name}" || name="${keyid}"
+
+  dest="${OUT_DIR}/${name}"
+  if test 1 -eq "${DRYRUN}"; then
+    say "[dry] would export key ${keyid}  (${uid}) -> ${dest}/"
+    printf '    \033[2m$\033[0m mkdir -p %s\n' "${dest}"
+    printf '    \033[2m$\033[0m gpg --armor --export %s > %s/%s.pub.asc\n' "${fpr}" "${dest}" "${keyid}"
+    printf '    \033[2m$\033[0m gpg --armor --export-secret-keys %s > %s/%s.sec.asc\n' "${fpr}" "${dest}" "${keyid}"
+    printf '    \033[2m$\033[0m gpg --export-ownertrust | grep ^%s: > %s/gpg-trust.txt\n' "${fpr}" "${dest}"
+    return 0
+  fi
+  command mkdir -p "${dest}"
+  info "exporting key ${keyid}  (${uid})"
+  gpg --batch --yes --armor --export "${fpr}" > "${dest}/${keyid}.pub.asc"
+  gpg --armor --export-secret-keys   "${fpr}" > "${dest}/${keyid}.sec.asc"
+  command chmod 600 "${dest}/${keyid}.sec.asc"
+  gpg --export-ownertrust 2>/dev/null | command grep "^${fpr}:" > "${dest}/gpg-trust.txt" || true
+
+  say "Exported key ${keyid} into ${dest}"
+  printf '    %s.pub.asc\n    %s.sec.asc  (chmod 600)\n    gpg-trust.txt\n' "${keyid}" "${keyid}"
+  _log "    ${keyid}.pub.asc"
+  _log "    ${keyid}.sec.asc  (chmod 600)"
+  _log '    gpg-trust.txt'
+}
+
+function usage() {
+  command cat >&2 <<EOF
+NAME
+  ${ME} — seal git repo(s) into GPG-protected cold archives.
+
+SOURCE (choose one)
+  --folder <repo>          a single git repo
+  --dir    <parent>        seal every top-level repo found under <parent>
+  --export-key [FPR]       back up a key -> <out-dir>/<name>/  (default key if no FPR) (<KEYID>.pub.asc, <KEYID>.sec.asc, gpg-trust.txt)
+
+OUTPUT
+  --out-name <name>        archive base name  (default: repo folder name; --folder only)
+  --out-dir  <dir>         destination dir    (default: .)
+
+GPG (default: encrypt)
+  --encrypt [file]         encrypt; with <file> -> gpg-only that file -> <out-dir>/<basename>.gpg
+  --sign    [file]         sign;    with <file> -> gpg-only that file (no repacking; source kept)
+
+  --no-log                 do not write a run log
+  --dryrun                 list the dirs/files and commands that would run; write nothing
+  -h, --help               this help
+EOF
+}
+
+# stream NUL-separated paths of every '.git' directory under a base
+function gitDirStream() {
+  local base="${1}"
+  if hasCmd fd; then
+    command fd --hidden --no-ignore --type d --color never --print0 '^\.git$' "${base}"
+  else
+    command find "${base}" -type d -name .git -print0
+  fi
+}
+
+# print top-level repo roots (dedup nested repos / submodules), one per line
+function findRepoRoots() {
+  local base="${1}"
+  local -a roots=() kept=()
+  local g root k nested
+
+  while IFS= read -r -d '' g; do
+    roots+=( "$( dirname "${g}" )" )
+  done < <( gitDirStream "${base}" )
+  test "${#roots[@]}" -eq 0 && return 0
+
+  # lexical sort places an ancestor before its descendants
+  while IFS= read -r root; do
+    nested=0
+    if test "${#kept[@]}" -gt 0; then
+      for k in "${kept[@]}"; do
+        case "${root}/" in "${k}/"*) nested=1; break ;; esac
+      done
+    fi
+    test "${nested}" -eq 0 && kept+=( "${root}" )
+  done < <( printf '%s\n' "${roots[@]}" | command sort -u )
+
+  test "${#kept[@]}" -gt 0 && printf '%s\n' "${kept[@]}"
+}
+
+# encrypt/sign <src> -> <out>; --compress-algorithm none: tarball is already compressed
+function gpgSeal() {
+  local src="${1}" out="${2}"
+  local -a cmd
+  if test 'encrypt' = "${GPG_MODE}"; then
+    cmd=( gpg --batch --yes --trust-model always --recipient "${KEY_FPR}" --compress-algo none --output "${out}" --encrypt "${src}" )
+  else
+    cmd=( gpg --batch --yes --local-user "${KEY_FPR}" --compress-algo none --output "${out}" --sign "${src}" )
+  fi
+  run "${cmd[@]}"
+}
+
+# tar+compress+gpg one repo; keep only the .gpg
+function entombOne() {
+  local repoRoot="${1}" name="${2}" relpath="${3:-${2}}"
+  local parent dirName tarball gpgOut disp
+  parent="$( dirname "${repoRoot}" )"
+  dirName="$( basename "${repoRoot}" )"
+  tarball="${OUT_DIR}/${name}.${COMP_EXT}"
+  gpgOut="${tarball}.gpg"
+
+  # show '<name> @ <relpath>' only when nested (relpath carries a subdir)
+  disp="\033[0;35m${name}\033[0m"
+  case "${relpath}" in */*) disp="\033[0;35m${name}\033[0m @ \033[0;3;36m${relpath}\033[0m" ;; esac
+  info "sealing ${disp}  \033[0;2;3;37m( $(repoRemote "${repoRoot}") )\033[0m"
+  local -a tarCmd=( tar --use-compress-program "${COMP_PROG}" -cf "${tarball}" -C "${parent}" "${dirName}" )
+  run "${tarCmd[@]}"
+  gpgSeal "${tarball}" "${gpgOut}"
+  run command rm -f "${tarball}"
+  test 1 -eq "${DRYRUN}" && return 0
+  local origBytes gpgBytes
+  origBytes="$( dirBytes "${repoRoot}" )"
+  gpgBytes="$( fileBytes "${gpgOut}" )"
+  ROWS+=( "$( printf '%s\t%s\t%s' "${relpath}" "${origBytes}" "${gpgBytes}" )" )
+}
+
+# gpg-only: encrypt/sign any existing file as-is -> <OUT_DIR>/<basename>.gpg
+# the source is a user-supplied file — keep it (do NOT delete like the repo tarball)
+function sealPath() {
+  local src="${1}" name gpgOut origBytes gpgBytes
+  test -f "${src}" || die "not a file: ${src}"
+  name="$( basename "${src}" )"
+  gpgOut="${OUT_DIR}/${name}.gpg"
+  info "sealing ${name}  ( gpg-only, no repacking )"
+  gpgSeal "${src}" "${gpgOut}"
+  test 1 -eq "${DRYRUN}" && return 0
+  origBytes="$( fileBytes "${src}" )"
+  gpgBytes="$( fileBytes "${gpgOut}" )"
+  ROWS+=( "$( printf '%s\t%s\t%s' "${name}" "${origBytes}" "${gpgBytes}" )" )
+}
+
+# ---- parse args ----
+while test "${#}" -gt 0; do
+  case "${1}" in
+    --dir        ) test -z "${MODE}" || die 'choose only one mode'; MODE='dir';       SRC="${2}"; shift 2 ;;
+    --folder     ) test -z "${MODE}" || die 'choose only one mode'; MODE='folder';    SRC="${2}"; shift 2 ;;
+    --export-key ) test -z "${MODE}" || die 'choose only one mode'; MODE='exportkey'
+                   # optional fingerprint arg: consume next token only if not another flag
+                   if test "${#}" -ge 2 && test '-' != "${2:0:1}"; then
+                     EXPORT_FPR="${2}"; shift 2
+                   else
+                     shift
+                   fi ;;
+    --encrypt    ) GPG_MODE='encrypt'
+                   # optional file arg -> gpg-only that file (mutually exclusive with other modes)
+                   if test "${#}" -ge 2 && test '-' != "${2:0:1}"; then
+                     test -z "${MODE}" || die 'choose only one mode'
+                     test -f "${2}"    || die "not a file: ${2}"
+                     MODE='gpgonly'; SRC="${2}"; shift 2
+                   else
+                     shift
+                   fi ;;
+    --sign       ) GPG_MODE='sign'
+                   if test "${#}" -ge 2 && test '-' != "${2:0:1}"; then
+                     test -z "${MODE}" || die 'choose only one mode'
+                     test -f "${2}"    || die "not a file: ${2}"
+                     MODE='gpgonly'; SRC="${2}"; shift 2
+                   else
+                     shift
+                   fi ;;
+    --out-name   ) OUT_NAME="${2}"; shift 2     ;;
+    --out-dir    ) OUT_DIR="${2}";  shift 2     ;;
+    --no-log     ) DO_LOG=0; shift              ;;
+    --dryrun|--dry-run ) DRYRUN=1; shift        ;;
+    -h|--help    ) usage; exit 0                ;;
+    *            ) die "unknown argument: ${1}" ;;
+  esac
+done
+
+# ---- validate ----
+test -n "${MODE}" || { usage; die 'missing source: --folder <repo>, --dir <parent>, --encrypt/--sign <file> or --export-key'; }
+hasCmd gpg        || die 'gpg not found'
+
+# resolve out-dir and open the log (name encodes cwd; the log lives in out-dir)
+if test 1 -eq "${DRYRUN}"; then
+  say '[dry] DRY RUN — listing what would run; nothing is written'
+  OUT_DIR="$( cd "${OUT_DIR}" 2>/dev/null && pwd || printf '%s' "${OUT_DIR}" )"
+else
+  command mkdir -p "${OUT_DIR}"
+  OUT_DIR="$( cd "${OUT_DIR}" && pwd )"
+  # log subject mirrors the archive name: folder uses the same dash-disambiguation, dir/gpg-only use the source basename, export-key has no source
+  case "${MODE}" in
+    exportkey ) LOGSUBJ='export-key' ;;
+    folder    ) LOGSUBJ="$( folderName "$( cd "${SRC}" 2>/dev/null && pwd || printf '%s' "${SRC}" )" )" ;;
+    *         ) LOGSUBJ="$( basename   "$( cd "${SRC}" 2>/dev/null && pwd || printf '%s' "${SRC}" )" )" ;;
+  esac
+  test 1 -eq "${DO_LOG}" && LOGFILE="${OUT_DIR}/$( logName "${LOGSUBJ}" )"
+  logInit
+  test -n "${LOGFILE}"   && say "Log: \033[0;2;3;37m${LOGFILE}\033[0m"   # announce upfront, before any work
+fi
+
+# key backup is a standalone mode — no repo source / compressor needed
+if test 'exportkey' = "${MODE}"; then
+  exportKey "${EXPORT_FPR}"
+  exit 0
+fi
+
+test -n "${SRC}" || die 'source path is empty'
+
+# gpg key must be usable for the chosen mode (repo-seal and gpg-only both need it)
+if test 'encrypt' = "${GPG_MODE}"; then
+  gpg --list-keys "${KEY_FPR}" >/dev/null 2>&1 || die "public key not in keyring: ${KEY_FPR}"
+else
+  gpg --list-secret-keys "${KEY_FPR}" >/dev/null 2>&1 || die "secret key not in keyring: ${KEY_FPR}"
+fi
+
+# ---- run ----
+COUNT=0
+NOUN='repo'
+if test 'gpgonly' = "${MODE}"; then
+  test -z "${OUT_NAME}" || warn '--out-name ignored in --gpg-only mode (source basename kept)'
+  sealPath "${SRC}"
+  COUNT=1
+  NOUN='archive'
+else
+  test -d "${SRC}" || die "not a directory: ${SRC}"
+  hasCmd tar       || die 'tar not found'
+
+  # pick compressor
+  if hasCmd zstd; then
+    COMP_PROG='zstd -19 -T0'
+    COMP_EXT='tar.zst'
+  else
+    warn 'zstd not found — falling back to gzip'
+    COMP_PROG='gzip -9'
+    COMP_EXT='tar.gz'
+  fi
+
+  case "${MODE}" in
+    folder ) test -d "${SRC}/.git" || test -f "${SRC}/.git" || die "not a git repo (no .git): ${SRC}"
+             ROOT="$( cd "${SRC}" && pwd )"
+             REL="$( niceRel "${ROOT}" )"     # display relpath (cwd-rel, else ~/…, else abs)
+             NAME="$( folderName "${ROOT}" )" # archive name (out-name / cwd-dash / basename)
+             entombOne "${ROOT}" "${NAME}" "${REL}"
+             COUNT=1
+             ;;
+    dir    ) test -z "${OUT_NAME}" || warn '--out-name ignored in --dir mode (path-based name used)'
+             BASE="$( cd "${SRC}" && pwd )"
+             while IFS= read -r repo; do
+               test -n "${repo}" || continue
+               # name = repo path relative to BASE, '/' -> '-' ( disambiguates same basename )
+               rel="${repo#"${BASE}"/}"
+               test "${rel}" != "${repo}" || rel="$( basename "${repo}" )"
+               entombOne "${repo}" "${rel//\//-}" "${rel}"
+               COUNT=$(( COUNT + 1 ))
+             done < <( findRepoRoots "${BASE}" )
+             test "${COUNT}" -gt 0 || die "no git repos found under: ${SRC}"
+             ;;
+  esac
+fi
+
+# ---- brew-style summary (aligned, printed once at the end) ----
+if test 1 -eq "${DRYRUN}"; then
+  say "Dry run: would seal ${COUNT} ${NOUN}(s) into ${OUT_DIR}"
+else
+  say "Sealed ${COUNT} ${NOUN}(s) into ${OUT_DIR}"
+  if test -n "${LOGFILE}"; then
+    renderReport | command tee -a "${LOGFILE}"
+  else
+    renderReport
+  fi
+fi
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

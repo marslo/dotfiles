@@ -1,0 +1,48 @@
+# shellcheck shell=bash
+# =============================================================================
+#      FileName : exhume
+#        Author : marslo
+#       Created : 2026-09-04 19:19:23
+#    LastChange : 2026-09-04 19:30:54
+# =============================================================================
+# bash completion for exhume (restore repo(s) sealed by entomb) autoloaded by bash-completion via the file name; also registers exhume.sh
+
+# dir / *.ext / file completion — use bash-completion's _filedir when present
+function _exhume_filedir() {
+  if declare -F _filedir >/dev/null 2>&1; then
+    _filedir "${@}"
+    return
+  fi
+  if test '-d' = "${1:-}"; then
+    mapfile -t COMPREPLY < <( compgen -d -- "${cur}" )
+  elif test -n "${1:-}"; then
+    mapfile -t COMPREPLY < <( compgen -d -- "${cur}"; compgen -f -X "!*.${1}" -- "${cur}" )
+  else
+    mapfile -t COMPREPLY < <( compgen -f -- "${cur}" )
+  fi
+}
+
+function _exhume() {
+  local cur prev opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  opts='--file --dir --target --import-key --no-log --dryrun -h --help'
+
+  case "${prev}" in
+    --file)
+      _exhume_filedir gpg                          # sealed archives are *.gpg
+      return ;;
+    --dir|--target)
+      _exhume_filedir -d
+      return ;;
+  esac
+
+  if [[ "${cur}" == -* ]]; then
+    mapfile -t COMPREPLY < <( compgen -W "${opts}" -- "${cur}" )
+  else
+    _exhume_filedir -d
+  fi
+}
+
+complete -F _exhume exhume exhume.sh

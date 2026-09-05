@@ -1,0 +1,68 @@
+# shellcheck shell=bash
+# =============================================================================
+#      FileName : entomb
+#        Author : marslo
+#       Created : 2026-09-04 19:19:19
+#    LastChange : 2026-09-04 19:30:42
+# =============================================================================
+# bash completion for entomb (seal git repo(s) into GPG-protected cold archives) autoloaded by bash-completion via the file name; also registers entomb.sh
+
+# dir / file completion — use bash-completion's _filedir when present, else compgen
+function _entomb_filedir() {
+  if declare -F _filedir >/dev/null 2>&1; then
+    _filedir "${@}"
+    return
+  fi
+  if test '-d' = "${1:-}"; then
+    mapfile -t COMPREPLY < <( compgen -d -- "${cur}" )
+  else
+    mapfile -t COMPREPLY < <( compgen -f -- "${cur}" )
+  fi
+}
+
+# primary fingerprints of secret keys in the keyring (for --export-key)
+function _entomb_gpg_fprs() {
+  command -v gpg >/dev/null 2>&1 || return
+  gpg --list-secret-keys --with-colons 2>/dev/null |
+    command awk -F: '$1=="sec"{ want=1 } $1=="fpr" && want { print $10; want=0 }'
+}
+
+function _entomb() {
+  local cur prev opts
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  opts='--folder --dir --export-key --out-name --out-dir --encrypt --sign --no-log --dryrun -h --help'
+
+  case "${prev}" in
+    --folder|--dir|--out-dir)
+      _entomb_filedir -d
+      return ;;
+    --encrypt|--sign)
+      # optional file arg -> gpg-only; still offer flags if the user typed a dash
+      if [[ "${cur}" == -* ]]; then
+        mapfile -t COMPREPLY < <( compgen -W "${opts}" -- "${cur}" )
+      else
+        _entomb_filedir                            # an existing file to gpg-only
+      fi
+      return ;;
+    --out-name)
+      return ;;                                    # freeform, nothing to suggest
+    --export-key)
+      # optional fingerprint arg; still offer flags if the user typed a dash
+      if [[ "${cur}" == -* ]]; then
+        mapfile -t COMPREPLY < <( compgen -W "${opts}" -- "${cur}" )
+      else
+        mapfile -t COMPREPLY < <( compgen -W "$( _entomb_gpg_fprs )" -- "${cur}" )
+      fi
+      return ;;
+  esac
+
+  if [[ "${cur}" == -* ]]; then
+    mapfile -t COMPREPLY < <( compgen -W "${opts}" -- "${cur}" )
+  else
+    _entomb_filedir -d                             # default: a repo / parent dir
+  fi
+}
+
+complete -F _entomb entomb entomb.sh
