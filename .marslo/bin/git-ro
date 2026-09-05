@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+# =============================================================================
+#      FileName : git-ro
+#        Author : marslo
+#       Created : 2026-09-04 21:18:33
+#    LastChange : 2026-09-04 22:10:43
+#   Description : hard-reset to a remote branch, fetch --all --prune, then clean the work tree + submodules.
+#                 target: git ro (sync current @{u}) | git ro <branch> | git ro <remote>/<branch> always resets to remotes/<remote>/<branch>; aborts if that remote is unreachable.
+#                 no arg + no upstream -> error;
+#                 detached -> must pass a branch.
+#                 auto-runs `git lfs pull` (repo + submodules) when the ref uses LFS; --lfs forces it.
+#                 invoked as `git ro [<branch>|<remote>/<branch>] [--lfs]`
+# =============================================================================
+# no `set -e` / `-o pipefail` on purpose: it may source an external helper (ig.sh, only if showGitState isn't already loaded) and must survive one unreachable remote during `fetch --all`.
+
+# colors (real ESC bytes so they render when passed as printf args)
+declare -r esc=$'\033'
+declare -r C_DIM="${esc}[0;37;2;3m"      # '~~> reset to'
+declare -r C_REF="${esc}[0;1;3;34m"      # remotes/<remote>/<branch>
+declare -r C_MUTE="${esc}[37;2;3m"       # (remote) hint
+declare -r C_RST="${esc}[0m"
+declare -r C_SDIM="${esc}[2;3;37m"       # state-skip line
+declare -r C_SREF="${esc}[0;3;34m"
+
+function die()      { printf '%s~~> %s%s\n' "${C_DIM}" "${*}" "${C_RST}" >&2; exit 1; }
+function isRemote() { git remote | command grep -qxF "${1}"; }
+
+# which remote is the current commit associated with (replaces the old reflog+sed; used only to disambiguate when there are multiple remotes and no upstream)
+function reflogRemote() {
+  local c r
+  c="$( git rev-parse HEAD )"
+  r="$( git for-each-ref --contains "${c}" --format='%(refname)' refs/remotes 2>/dev/null | command grep -vE '/HEAD$' | command head -n1 )"
+  r="${r#refs/remotes/}"
+  printf '%s' "${r%%/*}"
+}
+
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo 'fatal: not a git repository' >&2; exit 128; }
+
+# ---- parse args: --lfs flag; remaining tokens form the target ----
+DO_LFS=0
+declare -a rest=()
+for a in "${@}"; do
+  case "${a}" in
+    --lfs     ) DO_LFS=1 ;;
+    -h|--help ) printf 'usage: git ro [<branch>|<remote>/<branch>] [--lfs]\n'; exit 0 ;;
+    *         ) rest+=( "${a}" ) ;;
+  esac
+done
+set -- "${rest[@]}"
+
+# ---- refuse to touch a work tree mid-operation (merge/rebase/cherry-pick/revert/bisect/am) ----
+# prefer an already-loaded showGitState (e.g. exported from the login shell); source ig.sh only if absent
+state='normal'
+if ! command -v showGitState >/dev/null 2>&1; then
+  # shellcheck disable=SC1091
+  test -r "${HOME}/.marslo/bin/ig.sh" && source "${HOME}/.marslo/bin/ig.sh"
+fi
+command -v showGitState >/dev/null 2>&1 && state="$( showGitState )"
+if test 'normal' != "${state}"; then
+  printf '%s~~> current HEAD is in %s%s %sstate. skip ...%s\n' "${C_SDIM}" "${C_SREF}" "${state%% *}" "${C_DIM}" "${C_RST}" >&2
+  exit 1
+fi
+
+# ---- target: no arg -> current branch (sync @{u}); else the given branch ----
+# forms:  git ro | git ro <branch> | git ro <remote>/<branch> always resets to remotes/<remote>/<branch> (the remote-tracking ref)
+if test "${#}" -gt 0; then
+  HADARG=1; branch="${*}"
+else
+  HADARG=0; branch="$( git symbolic-ref --short -q HEAD || true )"
+fi
+
+declare extra=''
+declare remote=''
+
+# detached (no branch, or rob passed literal 'HEAD'): refuse without an explicit branch (state is already known-normal here; plain detached just lacks a branch to sync)
+if test -z "${branch}" || test 'HEAD' = "${branch}"; then
+  die "detached HEAD; specify a branch: git ro <branch>   (e.g. git ro origin/main)"
+fi
+
+# ---- resolve remote + effective branch ----
+if printf '%s' "${branch}" | command grep -q '/' && isRemote "${branch%%/*}"; then
+  remote="${branch%%/*}"; branch="${branch#*/}"          # <remote>/<branch>
+else
+  remote="$( git for-each-ref --format='%(upstream:remotename)' "refs/heads/${branch}" )"
+  if test -z "${remote}"; then
+    # no upstream: bare `git ro` (sync current) is an error; an explicit target falls back
+    test 0 -eq "${HADARG}" && die "no upstream for '${branch}'; set one (git branch -u <remote>/<branch>) or pass a target"
+    # explicit target without upstream: disambiguate by reflog only when >1 remote, else origin
+    if test "$( git remote | command grep -c '' )" -gt 1; then
+      remote="$( reflogRemote )"
+      test -n "${remote}" && extra=" ${C_MUTE}(${remote})${C_RST}"
+    fi
+    test -n "${remote}" || remote='origin'
+  fi
+fi
+
+printf '%s~~> reset to %sremotes/%s/%s%s%s\n' "${C_DIM}" "${C_REF}" "${remote}" "${branch}" "${C_RST}" "${extra}"
+
+# ---- fetch --all (update + prune every remote), tolerating one dead remote; then verify the *target* remote is reachable, else abort (no stale reset) ----
+if test 'meta/config' = "${branch}"; then
+  git fetch "${remote}" --force "refs/meta/config:refs/remotes/${remote}/meta/config" || die "remote '${remote}' unreachable; aborting"
+else
+  git fetch --all --prune --prune-tags --force || true
+  git ls-remote --exit-code "${remote}" >/dev/null 2>&1 || die "remote '${remote}' unreachable; aborting (not resetting to stale remotes/${remote}/${branch})"
+fi
+
+# ---- reset + clean ----
+git reset --hard "remotes/${remote}/${branch}"
+git clean -dffx -e .tags -e .claude -e .cursor -e node_modules -e .target_book
+
+# ---- LFS: auto-pull when the reset ref uses LFS; --lfs forces it ----
+haveLfs=0; git lfs version >/dev/null 2>&1 && haveLfs=1
+doPull=0
+if test 1 -eq "${haveLfs}"; then
+  # forced via --lfs, or the ref actually has LFS-tracked files
+  if test 1 -eq "${DO_LFS}" || test -n "$( git lfs ls-files 2>/dev/null | command head -1 )"; then
+    doPull=1
+  fi
+fi
+if test 1 -eq "${doPull}"; then
+  git lfs pull "${remote}"
+elif test 0 -eq "${haveLfs}" && { test 1 -eq "${DO_LFS}" || git grep -qI 'filter=lfs' HEAD -- '.gitattributes' ':(glob)**/.gitattributes' 2>/dev/null; }; then
+  printf '%s~~> LFS content detected but git-lfs is not installed; files remain pointers%s\n' "${C_DIM}" "${C_RST}" >&2
+fi
+
+# ---- submodules (only if any are declared) ----
+if git --no-pager config --file "$( git rev-parse --show-toplevel )/.gitmodules" --get-regexp url >/dev/null 2>&1; then
+  git submodule foreach --recursive git clean -dffx
+  git submodule foreach --recursive git reset --hard
+  git submodule update -f --init --recursive
+  test 1 -eq "${doPull}" && git submodule foreach --recursive git lfs pull
+fi
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

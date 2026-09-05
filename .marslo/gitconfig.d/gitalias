@@ -2,7 +2,7 @@
 #     FileName : gitalias
 #       Author : marslo
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2026-08-26 13:44:22
+#   LastChange : 2026-09-04 21:32:21
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -362,8 +362,8 @@
   #-----------------------#
   # revision              #
   #-----------------------#
-  # retag       = !bash -c 'source $HOME/.marslo/bin/ig.sh && grt "$*"'
   # {{{
+  # retag       = !bash -c 'source $HOME/.marslo/bin/ig.sh && grt "$*"'
   show-rev        = "!f(){ git rev-list --count $1; }; f"
   rev-number      = "!bash -c 'git rev-list --reverse HEAD | nl | sort -nr | awk \"{ if(\\$1 == "$0") { print \\$2 }}\"'"
   rev-count       = "!f() { \
@@ -512,44 +512,7 @@
 
   ### [r]eset to [o]riginal
   # git submodule foreach --recursive git lfs pull; \
-  ro          = "!f() { \
-                        git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo \"fatal: not a git repository\" >&2; exit 128; }; \
-                        if [ 0 -eq $# ]; then \
-                          branch=$(git rev-parse --abbrev-ref HEAD); \
-                        else \
-                          branch=\"$*\"; \
-                        fi; \
-                        if [ 'HEAD' = \"${branch}\" ]; then \
-                          source $HOME/.marslo/bin/ig.sh; \
-                          state=$(showGitState); \
-                          if [[ \"${state}\" != 'normal' ]]; then \
-                            printf \"\\033[2;3;37m~~> current HEAD is in \\033[0;3;34m%s \\033[0;2;3;37mstate. skip ...\\033[0m\\n\" \"${state%%' '*}\"; \
-                            return 1; \
-                          fi; \
-                          commit=$(git rev-parse HEAD); \
-                          remote=$(rg --color=never -l --no-heading \"${commit}\" .git/logs/refs/remotes/* 2>/dev/null | \
-                                   sed -E \"s:.git/logs/refs/remotes/\\([^/]+\\)/.*:\\\\1:\" | head -n1); \
-                          extra=\"\\033[37;2;3m(${remote})\\033[0m\"; \
-                        else \
-                          remote=$(git for-each-ref --format='%(upstream:remotename)' \"refs/heads/${branch}\"); \
-                          test -z \"${remote}\" && remote='origin'; \
-                          extra=''; \
-                        fi; \
-                        printf \"\\033[0;37;2;3m~~> reset to \\033[0;1;3;34m%s/%s\\033[0m%s\n\" "remotes/${remote}" "${branch}" " ${extra}"; \
-                        if [ 'meta/config' = \"${branch}\" ]; then \
-                          git fetch ${remote} --force refs/meta/config:refs/remotes/${remote}/meta/config; \
-                        else \
-                          git fetch --all --prune --prune-tags --force; \
-                        fi; \
-                        git reset --hard remotes/${remote}/${branch}; \
-                        git clean -dffx -e .tags -e .claude -e .cursor -e node_modules -e .target_book; \
-                        if git --no-pager config --file $(git rev-parse --show-toplevel)/.gitmodules --get-regexp url; then \
-                          git submodule foreach --recursive git clean -dffx; \
-                          git submodule foreach --recursive git reset --hard; \
-                          git submodule update -f --init --recursive; \
-                        fi; \
-                      }; f \
-                "
+  # ro -> external command: ~/.marslo/bin/git-ro  (usage: git ro [branch])
 
   ### [r]eset to [o]riginal and re[b]ase
   rob         = "!f() { \

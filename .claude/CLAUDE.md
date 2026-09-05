@@ -29,7 +29,7 @@ Machine-wide rules for every project (the Claude Code analog of `~/.cursor/rules
 # 1. base-rule (always applied)
 
 1. Before editing any script, read the original file first with the Read tool.
-2. When running in a sandbox environment, prepend `/opt/homebrew/bin` to your PATH: `export PATH="/opt/homebrew/bin:/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"`.
+2. When running in a sandbox environment, prepend `/opt/homebrew/bin` to your PATH: `export PATH="/opt/homebrew/bin:$PATH"`.
 3. Only run `git commit` when I explicitly say "commit"; never push on your own.
 4. After substantive changes, run lint checks on the files you edited.
 5. Reply/Chat language — chat answers only: if I ask in Chinese, reply in Simplified Chinese; otherwise reply in English. (code comments are always English — see § 2.)
@@ -54,6 +54,36 @@ Style for comments in any language (`#`, `//`, `/* */`, `--`, …).
 ```
 
 # 3. Shell/Command
+
+## 3.0. GNU tools on macOS (prefer over BSD)
+
+macOS ships BSD variants of `sed`/`awk`/`date`/`tar`/… whose flags and behavior differ from GNU. On this Mac the GNU versions are installed via Homebrew — **prefer them** so scripts behave the same as on Linux. The `gnubin` dirs are not on the default non-interactive PATH, so invoke by **full path** (or prepend the relevant `gnubin` dir to PATH).
+
+| tool | GNU path (full) | formula |
+|---|---|---|
+| `sed` | `/opt/homebrew/opt/gnu-sed/libexec/gnubin/sed` | gnu-sed |
+| `awk` | `/opt/homebrew/opt/gawk/libexec/gnubin/awk` | gawk |
+| `grep` / `egrep` / `fgrep` | `/opt/homebrew/opt/grep/libexec/gnubin/grep` | grep |
+| `find` / `xargs` / `locate` | `/opt/homebrew/opt/findutils/libexec/gnubin/find` | findutils |
+| `tar` | `/opt/homebrew/opt/gnu-tar/libexec/gnubin/tar` | gnu-tar |
+| `which` | `/opt/homebrew/opt/gnu-which/libexec/gnubin/which` | gnu-which |
+| `indent` | `/opt/homebrew/opt/gnu-indent/libexec/gnubin/indent` | gnu-indent |
+| `getopt` | `/opt/homebrew/opt/gnu-getopt/bin/getopt` | gnu-getopt |
+| `diff` / `cmp` / `diff3` / `sdiff` | `/opt/homebrew/opt/diffutils/bin/diff` | diffutils |
+| `envsubst` / `gettext` / `msg*` | `/opt/homebrew/opt/gettext/bin/envsubst` | gettext |
+| coreutils (`sort`, `date`, `ls`, `cat`, `head`, `tail`, `cut`, `wc`, `cp`, `mv`, `rm`, `stat`, `tr`, `seq`, `split`, `du`, `df`, `tee`, …) | `/opt/homebrew/opt/coreutils/libexec/gnubin/<tool>` | coreutils |
+| inetutils (`ping`, `telnet`, `ftp`, `hostname`, `whois`, …) | `/opt/homebrew/opt/inetutils/libexec/gnubin/<tool>` | inetutils |
+
+> [!NOTE]
+> `/usr/local/bin/awk` is a symlink to `/opt/homebrew/bin/gawk` (GNU Awk) — same binary as the `gawk` gnubin path above; either works.
+
+To use bare names for a whole script, prepend the dirs once at the top:
+
+```bash
+export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:/opt/homebrew/opt/gnu-sed/libexec/gnubin:/opt/homebrew/opt/gawk/libexec/gnubin:/opt/homebrew/opt/grep/libexec/gnubin:/opt/homebrew/opt/findutils/libexec/gnubin:/opt/homebrew/opt/gnu-tar/libexec/gnubin:${PATH}"
+```
+
+Fallback: if a GNU binary isn't present, fall back to the BSD tool but keep flags POSIX-portable.
 
 ## 3.1. prefer modern search tools
 
