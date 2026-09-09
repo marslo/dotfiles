@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-08-14 02:08:45
+"    LastChange : 2026-09-09 01:25:45
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -92,7 +92,8 @@ endif
 if ! IsVscodeOrCursor()
   Plug 'vim-airline/vim-airline'
   Plug 'vim-airline/vim-airline-themes'
-  Plug 'neoclide/coc.nvim', { 'branch': 'release' }
+  " do-hook: drop the literal space from coc file-source pathRe so a 2nd `./` on the same line still triggers path completion
+  Plug 'neoclide/coc.nvim', { 'branch': 'release', 'do': 'perl -i -pe ''s/\\w \.@/\\w.@/g'' build/index.js' }
 endif
 
 if IsNvim() || IsVscodeOrCursor()
@@ -561,11 +562,12 @@ if ! IsVscodeOrCursor()
   let g:coc_default_semantic_highlight_groups = 1
   let g:coc_snippet_next                      = '<c-j>'
   let g:coc_snippet_prev                      = '<c-k>'
+  " coc-html / coc-tsserver requires typescript@6: `cd ~/.config/coc/extensions && npm install typescript@6` or `npm -g install typescript@6`
   let g:coc_global_extensions                 = [
     \   'coc-sh',
     \   'coc-groovy', 'coc-java',
     \   'coc-json', 'coc-yaml', 'coc-toml',
-    \   'coc-css', 'coc-html', 'coc-htmlhint', 'coc-html-css-support',
+    \   'coc-css', 'coc-html', 'coc-tsserver', 'coc-htmlhint', 'coc-html-css-support',
     \   'coc-pyright',
     \   'coc-snippets',
     \   'coc-docker',

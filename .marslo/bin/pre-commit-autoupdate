@@ -3,7 +3,7 @@
 #     FileName : pre-commit-autoupdate
 #       Author : marslo
 #      Created : 2026-05-13 14:15:00
-#   LastChange : 2026-08-19 21:25:40
+#   LastChange : 2026-09-08 21:42:46
 #  Description : `pre-commit autoupdate` — runs real autoupdate → fixes repos that use rolling major-version tags
 #                e.g. crate-ci/typos publishes "v1"
 #=============================================================================
@@ -37,7 +37,7 @@ function findroot() {
 declare CFG_DIR CFG_PATH
 CFG_DIR="$( findroot )" || { echo >&2 "error: ${CFG} not found in ${PWD} or any parent / git root"; exit 1; }
 CFG_PATH="${CFG_DIR}/${CFG}"
-[[ "${CFG_DIR}" != "${PWD}" ]] && echo >&2 -e "\033[0;2;3;37m→ ${CFG_PATH}\033[0m"
+[[ "${CFG_DIR}" != "${PWD}" ]] && echo >&2 -e "\033[0;2;3;37m→ ${CFG_PATH/#${HOME}\//\~/}\033[0m"
 trap 'rm -f "${CFG_PATH}.bak"' EXIT
 
 : "${_REAL_PRECOMMIT:=$(backer)}"

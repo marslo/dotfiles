@@ -4,7 +4,7 @@
 #   FileName: .imac
 #     Author: marslo
 #    Created: 2019-05-20 12:13:15
-# LastChange: 2026-08-19 21:57:11
+# LastChange: 2026-09-09 02:17:35
 #   Comments:
 #             2024-11-04: using `brew --prefix` for $HOMEBEW_PREFIX set as `/opt/homebrew`
 #             2025-12-11: using ${HOMEBREW_OPT}/${HOMEBEW_PREFIX} instead of `brew --prefix xxx` for quick load
@@ -60,28 +60,30 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   # vim-tabnine
   LLVM_HOME="${HOMEBREW_OPT}/llvm"
   TRASH_HOME="${HOMEBREW_OPT}/trash"
+  LIBXML2_HOME="${HOMEBREW_OPT}/libxml2"
+  test -d "${LIBXML2_HOME:-}" && CMAKE_PREFIX_PATH="${LIBXML2_HOME}"
 
   TOOLS_PATH="${TOOLS_PATH:-}"
   # self-compiled vim, using `/opt/homebrew/bin/vim` ( brew install --cask macvim-app ) instead of
-  # test -d '/usr/local/vim'   && TOOLS_PATH+=':/usr/local/vim/bin'
-  test -d "$HOME/.docker"      && TOOLS_PATH+=":$HOME/.docker/bin"
-  # test -d "${NVIM_HOME}"     && TOOLS_PATH+=":${NVIM_HOME}/bin"
-  test -d "${MACVIM_HOME}"     && TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"
-  test -d "${LLVM_HOME}"       && TOOLS_PATH+=":${LLVM_HOME}/bin"
-  test -d "${UTIL_LINUX_HOME}" && TOOLS_PATH+=":${UTIL_LINUX_HOME}/bin"
-  test -d "${TRASH_HOME}"      && TOOLS_PATH+=":${TRASH_HOME}/bin"
+  # test -d '/usr/local/vim'     && TOOLS_PATH+=':/usr/local/vim/bin'
+  test -d "$HOME/.docker"        && TOOLS_PATH+=":$HOME/.docker/bin"
+  # test -d "${NVIM_HOME:-}"     && TOOLS_PATH+=":${NVIM_HOME}/bin"
+  test -d "${MACVIM_HOME:-}"     && TOOLS_PATH+=":${MACVIM_HOME}/Contents/bin"
+  test -d "${LLVM_HOME:-}"       && TOOLS_PATH+=":${LLVM_HOME}/bin"
+  test -d "${UTIL_LINUX_HOME:-}" && TOOLS_PATH+=":${UTIL_LINUX_HOME}/bin"
+  test -d "${TRASH_HOME:-}"      && TOOLS_PATH+=":${TRASH_HOME}/bin"
 
   GNU_PATH="${GNU_PATH:-}"
-  test -d "${GNUBINHOME}" && GNU_PATH+=":${GNUBINHOME}"
-  test -d "${GNUWHICH}"   && GNU_PATH+=":${GNUWHICH}"
-  test -d "${GNUGETOPT}"  && GNU_PATH+=":${GNUGETOPT}"
-  test -d "${GNUGREP}"    && GNU_PATH+=":${GNUGREP}"
-  test -d "${GNUTAR}"     && GNU_PATH+=":${GNUTAR}"
-  test -d "${GNUFIND}"    && GNU_PATH+=":${GNUFIND}"
-  test -d "${GNUINDENT}"  && GNU_PATH+=":${GNUINDENT}"
-  test -d "${GNUSED}"     && GNU_PATH+=":${GNUSED}"
-  test -d "${BINUTILS}"   && GNU_PATH+=":${BINUTILS}/bin"
-  test -d "${GNULIBTOOL}" && GNU_PATH+=":${GNULIBTOOL}"
+  test -d "${GNUBINHOME:-}"      && GNU_PATH+=":${GNUBINHOME}"
+  test -d "${GNUWHICH:-}"        && GNU_PATH+=":${GNUWHICH}"
+  test -d "${GNUGETOPT:-}"       && GNU_PATH+=":${GNUGETOPT}"
+  test -d "${GNUGREP:-}"         && GNU_PATH+=":${GNUGREP}"
+  test -d "${GNUTAR:-}"          && GNU_PATH+=":${GNUTAR}"
+  test -d "${GNUFIND:-}"         && GNU_PATH+=":${GNUFIND}"
+  test -d "${GNUINDENT:-}"       && GNU_PATH+=":${GNUINDENT}"
+  test -d "${GNUSED:-}"          && GNU_PATH+=":${GNUSED}"
+  test -d "${BINUTILS:-}"        && GNU_PATH+=":${BINUTILS}/bin"
+  test -d "${GNULIBTOOL:-}"      && GNU_PATH+=":${GNULIBTOOL}"
 
   # register openjdk
   #   sudo ln -sfn "$(brew --prefix openjdk@21)/libexec/openjdk.jdk" /Library/Java/JavaVirtualMachines/openjdk-21.jdk
@@ -127,51 +129,50 @@ if [[ 'Darwin' = "$(/usr/bin/uname -s)" ]]; then
   PYTHON_CONFIGURE_OPTS="--with-tcltk-includes='-I${TCLTK_HOME}/include' --with-tcltk-libs='-L${TCLTK_HOME}/lib -ltcl8.6 -ltk8.6'"
 
   SCRIPT_BINS="${SCRIPT_BINS:-}"
-  test -d "${PYTHON_HOME}"    && SCRIPT_BINS+=":${PYTHON_HOME}/libexec/bin"
-  test -d "${RUBY_HOME}"      && SCRIPT_BINS+=":${RUBY_HOME}/bin"
-  test -d "${RUBY_GEM_HOME}"  && SCRIPT_BINS+=":${RUBY_GEM_HOME}/bin"
-  test -d "${TCLTK_HOME}"     && SCRIPT_BINS+=":${TCLTK_HOME}/bin"
-  test -d "${PYTHONUSERBASE}" && SCRIPT_BINS+=":${PYTHONUSERBASE}/bin"
-  test -d "${NODE_HOME}"      && SCRIPT_BINS+=":${NODE_HOME}/bin"
-  test -d "${JAVA_HOME}"      && SCRIPT_BINS+=":${JAVA_HOME}/bin"
-  test -d "${GROOVY_HOME}"    && SCRIPT_BINS+=":${GROOVY_HOME}/bin"
-  test -d "${ED_HOME}"        && SCRIPT_BINS+=":${ED_HOME}/libexec/gnubin"
-  test -d "${ED_HOME}"        && SCRIPT_BINS+=":${ED_HOME}/bin"
-  test -d "${RUBYGEM}"        && SCRIPT_BINS+=":${RUBYGEM}"
-  test -d "${GIT_EXTRAS}"     && SCRIPT_BINS+=":${GIT_EXTRAS}/bin"
+  test -d "${PYTHON_HOME:-}"             && SCRIPT_BINS+=":${PYTHON_HOME}/libexec/bin"
+  test -d "${RUBY_HOME:-}"               && SCRIPT_BINS+=":${RUBY_HOME}/bin"
+  test -d "${RUBY_GEM_HOME:-}"           && SCRIPT_BINS+=":${RUBY_GEM_HOME}/bin"
+  test -d "${TCLTK_HOME:-}"              && SCRIPT_BINS+=":${TCLTK_HOME}/bin"
+  test -d "${PYTHONUSERBASE:-}"          && SCRIPT_BINS+=":${PYTHONUSERBASE}/bin"
+  test -d "${NODE_HOME:-}"               && SCRIPT_BINS+=":${NODE_HOME}/bin"
+  test -d "${JAVA_HOME:-}"               && SCRIPT_BINS+=":${JAVA_HOME}/bin"
+  test -d "${GROOVY_HOME:-}"             && SCRIPT_BINS+=":${GROOVY_HOME}/bin"
+  test -d "${ED_HOME:-}"                 && SCRIPT_BINS+=":${ED_HOME}/libexec/gnubin:${ED_HOME}/bin"
+  test -d "${RUBYGEM:-}"                 && SCRIPT_BINS+=":${RUBYGEM}"
+  test -d "${GIT_EXTRAS:-}"              && SCRIPT_BINS+=":${GIT_EXTRAS}/bin"
   # SCRIPT_BINS+=":${PYENV_ROOT}/bin"                             # shell: bash 3.2.57
 
   UTLS_PATH="${UTLS_PATH:-}"
   test -d "${HOMEBREW_OPT}/gettext"      && UTLS_PATH+=":${HOMEBREW_OPT}/gettext/bin"
   test -d "${HOMEBREW_OPT}/file-formula" && UTLS_PATH+=":${HOMEBREW_OPT}/file-formula/bin"
-  test -d "${INFOZIP_HOME}"              && UTLS_PATH+=":${INFOZIP_HOME}/bin"
-  test -d "${INFOUNZIP_HOME}"            && UTLS_PATH+=":${INFOUNZIP_HOME}/bin"
-  test -d "${OPENLDAP_HOME}"             && UTLS_PATH+=":${OPENLDAP_HOME}/bin"
-  test -d "${OPENLDAP_HOME}"             && UTLS_PATH+=":${OPENLDAP_HOME}/sbin"
-  test -d "${CURL_OPENSSL_HOME}"         && UTLS_PATH+=":${CURL_OPENSSL_HOME}/bin"
-  test -d "${EXPAT_HOME}"                && UTLS_PATH+=":${EXPAT_HOME}/bin"
-  test -d "${OPENSSL_HOME}"              && UTLS_PATH+=":${OPENSSL_HOME}/bin"
-  test -d "${LIBICONV_HOME}"             && UTLS_PATH+=":${LIBICONV_HOME}/bin"
-  test -d "${INETUTILS}"                 && UTLS_PATH+=":${INETUTILS}"
+  test -d "${INFOZIP_HOME:-}"            && UTLS_PATH+=":${INFOZIP_HOME}/bin"
+  test -d "${INFOUNZIP_HOME:-}"          && UTLS_PATH+=":${INFOUNZIP_HOME}/bin"
+  test -d "${OPENLDAP_HOME:-}"           && UTLS_PATH+=":${OPENLDAP_HOME}/bin:${OPENLDAP_HOME}/sbin"
+  test -d "${CURL_OPENSSL_HOME:-}"       && UTLS_PATH+=":${CURL_OPENSSL_HOME}/bin"
+  test -d "${EXPAT_HOME:-}"              && UTLS_PATH+=":${EXPAT_HOME}/bin"
+  test -d "${OPENSSL_HOME:-}"            && UTLS_PATH+=":${OPENSSL_HOME}/bin"
+  test -d "${LIBICONV_HOME:-}"           && UTLS_PATH+=":${LIBICONV_HOME}/bin"
+  test -d "${INETUTILS:-}"               && UTLS_PATH+=":${INETUTILS}"
 
   SPECIAL_TOOLS="${SPECIAL_TOOLS:-}"
-  test -d "${ICU4C_711}"     && SPECIAL_TOOLS+=":${ICU4C_711}/bin"
-  test -d "${ICU4C_711}"     && SPECIAL_TOOLS+=":${ICU4C_711}/sbin"
-  test -d "${PARALLEL_HOME}" && SPECIAL_TOOLS+=":${PARALLEL_HOME}/bin"
+  test -d "${ICU4C_711:-}"               && SPECIAL_TOOLS+=":${ICU4C_711}/bin:${ICU4C_711}/sbin"
+  test -d "${PARALLEL_HOME:-}"           && SPECIAL_TOOLS+=":${PARALLEL_HOME}/bin"
 
   TEMP_PATH="${TOOLS_PATH}"
   TEMP_PATH+=":${SCRIPT_BINS}"
   TEMP_PATH+=":${HOMEBREW_BINS}"
   TEMP_PATH+=":${GNU_PATH}"
   TEMP_PATH+=":${UTLS_PATH}"
-  test -d "${SQLITE_HOME}"       && TEMP_PATH+=":${SQLITE_HOME}/bin"
-  test -d "${ITERM2_ADDITIONAL}" && TEMP_PATH+=":${ITERM2_ADDITIONAL}"
+  test -d "${SQLITE_HOME:-}"             && TEMP_PATH+=":${SQLITE_HOME}/bin"
+  test -d "${ITERM2_ADDITIONAL:-}"       && TEMP_PATH+=":${ITERM2_ADDITIONAL}"
 
   PATH="${SPECIAL_TOOLS}:${TEMP_PATH}:$PATH"
 
   # eval "$(/usr/libexec/path_helper)"
   export JAVA_HOME GROOVY_HOME PATH
   export GUILE_TLS_CERTIFICATE_DIRECTORY CLASSPATH RUBY_CONFIGURE_OPTS
+  # for cmake to find libxml2
+  test -n "${CMAKE_PREFIX_PATH:-}"       && export CMAKE_PREFIX_PATH
   # disable for venv
   # export PYTHONPATH PYTHONUSERBASE
 
