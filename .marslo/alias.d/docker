@@ -2,9 +2,9 @@
 # shellcheck disable=SC1072,SC2154
 # =============================================================================
 #   FileName: docker
-#     Author: marslo.jiao@gmail.com
+#     Author: marslo
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2025-08-06 15:03:01
+# LastChange: 2026-09-10 23:15:35
 # =============================================================================
 
 alias d='docker'
@@ -38,14 +38,13 @@ alias dvi='docker volume inspect'
 
 
 # bash completion for docker
-while read -r _i; do
+if type -t __start_docker >/dev/null; then
+  while read -r _i; do complete -F __start_docker "${_i}"; done < <(echo 'd')
+  while read -r _i; do complete -F __start_docker "${_i}"; done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/alias.d/docker")
+elif type -t _docker >/dev/null; then
   # complete -F _complete_alias "${_i}"
-  complete -F _docker "${_i}"
-done < <(echo 'd')
-
-while read -r _i; do
-  # complete -F _complete_alias "${_i}"
-  complete -F _docker "${_i}"
-done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/alias.d/docker")
+  while read -r _i; do complete -F _docker "${_i}"; done < <(echo 'd')
+  while read -r _i; do complete -F _docker "${_i}"; done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/alias.d/docker")
+fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
