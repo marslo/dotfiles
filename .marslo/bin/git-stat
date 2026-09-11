@@ -131,8 +131,7 @@ declare lineChanges=false
 declare commitsCount=false
 declare -a GIT_OPT=()
 declare author="$( git config --get user.name )"
-declare -r USAGE="""
-NAME
+declare -r USAGE="NAME
   $(c Cs)${ME}$(c) - to get git statistic for line-changes and commit count
 
 SYNOPSIS
@@ -168,7 +167,7 @@ TIPS
   \$ brew install gawk && sudo ln -sf /usr/local/bin/gawk /usr/local/bin/awk
   \$ export PATH=\"/usr/local/bin:\$PATH\"
   \`\`\`$(c)
-"""
+"
 
 [[ 0 = "$#" ]] && showHelp
 

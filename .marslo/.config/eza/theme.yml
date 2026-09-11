@@ -179,6 +179,14 @@ filenames:
     icon:
       style:
         foreground: 239
+  "__pycache__":
+    filename:
+      foreground: 239
+      is_italic: true
+    icon:
+      style:
+        foreground: 239
+      glyph: ""
   ".tags":
     icon:
       glyph: "\U000F0DFA"

@@ -19,8 +19,8 @@
 # get width of calendar dynamically via `$(tput cols)`
 declare DATE_COLUMN=38                                   # default is 27 for 80 character line, 34 for 92 character line
 declare TIME_COLUMN=$(( DATE_COLUMN + 24 ))
-declare intranet=$(netstat -nr -f inet | awk '$3 ~ /UGScg|UG/' | awk '$2 ~ /10\.(85|86|87|68|78)\.[0-9]{1,3}\.[0-9]{1,3}/' | wc -l)
-declare temp=$(mktemp -d)
+declare intranet="$(netstat -nr -f inet | awk '$0 ~ /UGScg|UG/ && $2 ~ /^10\.(85|86|87|68|78|110)\.[0-9]{1,3}\.[0-9]{1,3}$/' | wc -l)"
+declare temp="$(mktemp -d)"
 # shellcheck disable=SC2064
 trap "rm -rf '${temp}'" EXIT INT TERM
 declare -a CURL=( curl '-sgk' --fail --silent --max-time 3 )
@@ -38,14 +38,14 @@ function updateMaxLines() {
   fi
 }
 
-# --- ${temp}/now-weather ---
+# ── ${temp}/now-weather ──────────────────────────────────────────────────────
 if ! "${CURL[@]}" wttr.in/sanjose?QmM0 1>"${temp}"/now-weather 2>/dev/null ||
    ! grep -q '°C' "${temp}/now-weather" 2>/dev/null;
 then
   ~/.marslo/bin/iweather > "${temp}"/now-weather
 fi
 
-# --- ${temp}/now-calendar ---
+# ── ${temp}/now-calendar ─────────────────────────────────────────────────────
 # -h needed to turn off formatting: https://askubuntu.com/questions/1013954/bash-substring-stringoffsetlength-error/1013960#1013960
 # -h not supported in Ubuntu 18.04. Use second answer: https://askubuntu.com/a/1028566/307523
 # to fit for both macOS and Linux
@@ -55,7 +55,8 @@ fi
 #                       v                              v                       v
 cal | tr -cd '\11\12\15\40\60-\136\140-\176' | sed 's/[ \t]*$//' | sed '/^[[:space:]]*$/d' > "${temp}"/now-calendar
 
-# --- ${temp}/now-time ---
+# ── ${temp}/now-time ─────────────────────────────────────────────────────────
+# sudo apt install figlet toilet-fonts
 declare -a charCmd=()
 if hash toilet 2>/dev/null; then
   charCmd=( toilet -f future )
@@ -71,7 +72,7 @@ fi
                            || date +"%I:%M %P" > "${temp}"/now-time
 hash lolcat 2>/dev/null && lolcat -f --freq=0.1 --spread=1.5 --truecolor "${temp}"/now-time > "${temp}"/now-time.tmp && mv "${temp}"/now-time.tmp "${temp}"/now-time
 
-#------------------------------ MAX_LINES ------------------------------
+# ──────────────────────────────── MAX_LINES ──────────────────────────────────
 declare MAX_LINES=0
 updateMaxLines "${temp}/now-calendar"
 updateMaxLines "${temp}/now-weather" 1
@@ -80,7 +81,7 @@ printf '\n%.0s' $(seq 1 ${MAX_LINES})
 tput cuu ${MAX_LINES}
 tput sc
 
-#------------------------------ WEATHER ------------------------------
+# ──────────────────────────────── WEATHER  ───────────────────────────────────
 if [[ -f "${temp}/now-weather" ]]; then
   tput rc && tput cud1                            # back to anchor and move down 1 line
   cat "${temp}/now-weather"
@@ -91,7 +92,7 @@ else
 fi
 TIME_COLUMN=$(( DATE_COLUMN + 24 ))
 
-#------------------------------ CALENDAR ------------------------------
+# ──────────────────────────────── CALENDAR ───────────────────────────────────
 tput rc && tput cuf ${DATE_COLUMN}                 # back to anchor and move right ${DATE_COLUMN} column
 
 calLineCnt=1
@@ -119,7 +120,7 @@ while IFS= read -r cal; do
 done < "${temp}"/now-calendar
 printf '\033[00m'
 
-#------------------------------ TIME ------------------------------
+# ────────────────────────────────── TIME ─────────────────────────────────────
 tput rc && tput cud1                              # back to anchor and move down 1 line
 tput cuf ${TIME_COLUMN}                           # move right ${TIME_COLUMN} column
 

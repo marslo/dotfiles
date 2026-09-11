@@ -12,7 +12,7 @@ set -euo pipefail
 # shellcheck disable=SC2155
 declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
 # shellcheck disable=SC2155
-declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
+declare -r HERE="$( cd "$( dirname "${BASH_SOURCE[0]:-$0}" )" && pwd )"
 # @credit: https://github.com/ppo/bash-colors
 # @usage:  or copy & paste the `c()` function from:
 #          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
@@ -46,11 +46,11 @@ fi
 
 declare SUBCOMMAND="$1"; shift;
 case "${SUBCOMMAND}" in
-  ls | --ls | stat | --stat ) COMMAND="${SUBCOMMAND#--}"; SCRIPT_PATH="${HERE}/jira-${COMMAND}"
+  ls | --ls | stat | --stat ) COMMAND="${SUBCOMMAND#--}"; SCRIPT_PATH="${HERE}/${ME}-${COMMAND}"
                               if [[ -f "${SCRIPT_PATH}" ]]; then
                                 exec bash "${SCRIPT_PATH}" "$@"
                               else
-                                die "Subcommand script 'jira-${COMMAND}' not found at ${HERE}"
+                                die "Subcommand script '${ME}-${COMMAND}' not found at ${HERE}"
                               fi ;;
   -h | --help | ''          ) showUsage                                ;;
   -*                        ) die "unknown option '${SUBCOMMAND}'"     ;;

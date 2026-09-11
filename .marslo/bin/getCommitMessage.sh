@@ -4,7 +4,7 @@
 #     FileName : getCommitMessage.sh
 #       Author : marslo
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2026-05-20 22:03:33
+#   LastChange : 2026-05-20 22:23:07
 #   references : https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit?tab=t.0
 #=============================================================================
 
@@ -71,17 +71,31 @@ function runInteractive() {
 # @usage       : _rl_read <varname> <prompt>
 # @description : readline-safe `read -e` that temporarily disables show-mode-in-prompt
 #                so the emacs/vi mode-string won't break multi-line wrapping.
-# @explain     : SOH: `\001` - Start of Heading
-#                STX: `\002` - Start of Text
-#                have `\001` and `\002` surrounding the colorized string to handle multiple lines input
+#                pads the prompt to match the mode-string's visible width.
+# @explain     : SOH(\001)/STX(\002) surrounding non-printing sequences for readline width calculation
 function _rl_read() {
   local __varname="$1"
   local __prompt="$2"
-  local __orig
-  __orig="$(bind -v 2>/dev/null | command grep 'show-mode-in-prompt')"
-  bind 'set show-mode-in-prompt off' 2>/dev/null
+  local __bindv __orig __pad=''
+
+  __bindv="$(bind -v 2>/dev/null)"
+  __orig="$(command grep 'show-mode-in-prompt' <<< "${__bindv}")"
+
+  if [[ "${__orig}" == *' on' ]]; then
+    local __mode __key __raw __visible
+    __mode="$(command grep 'editing-mode' <<< "${__bindv}")"
+    case "${__mode##* }" in
+      vi ) __key='vi-ins-mode-string'  ;;
+      *  ) __key='emacs-mode-string'   ;;
+    esac
+    __raw="$(command grep "${__key}" <<< "${__bindv}" | sed "s/^set ${__key} //")"
+    __visible="$(printf '%b' "${__raw}" | sed $'s/\x01[^\x02]*\x02//g')"
+    printf -v __pad '%*s' "${#__visible}" ''
+    bind 'set show-mode-in-prompt off' 2>/dev/null
+  fi
+
   # shellcheck disable=SC2229
-  read -rep "$(printf "     \001$(c 0Wdi)\002> \001$(c 0Mi)\002%s\001$(c)\002" "${__prompt}")" "${__varname}"
+  read -rep "$(printf "%s\001$(c 0Wdi)\002> \001$(c 0Mi)\002%s\001$(c)\002" "${__pad}" "${__prompt}")" "${__varname}"
   bind "${__orig}" 2>/dev/null
 }
 

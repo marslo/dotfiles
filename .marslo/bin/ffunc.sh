@@ -1505,7 +1505,8 @@ function mkexp() {                         # [m]a[k]e environment variable [e][x
   test -d "${ZLIB_HOME}"            && LDFLAGS+=" -L${ZLIB_HOME}/lib"
   test -d "${LLVM_HOME}"            && LDFLAGS+=" -L${LLVM_HOME}/lib"
   test -d "${LLVM_HOME}"            && LDFLAGS+=" -L${LLVM_HOME}/lib/c++ -Wl,-rpath,${LLVM_HOME}/lib/c++"  # for c++
-  LDFLAGS=$( echo "$LDFLAGS" | tr ' ' '\n' | uniq | sed '/^$/d' | paste -s -d' ' )
+  test -d "${LIBXML2_HOME}"         && LDFLAGS+=" -L${LIBXML2_HOME}/lib"
+  LDFLAGS=$( echo "${LDFLAGS}" | tr ' ' '\n' | uniq | sed '/^$/d' | paste -s -d' ' )
 
   CFLAGS="${CFLAGS:-}"
   CFLAGS+=" -I/usr/local/include"
@@ -1531,7 +1532,8 @@ function mkexp() {                         # [m]a[k]e environment variable [e][x
   test -d "${EXPAT_HOME}"           && CPPFLAGS+=" -I${EXPAT_HOME}/include"
   test -d "${NCURSES_HOME}"         && CPPFLAGS+=" -I${NCURSES_HOME}/include"
   test -d "${ZLIB_HOME}"            && CPPFLAGS+=" -I${ZLIB_HOME}/include"
-  CPPFLAGS=$( echo "$CPPFLAGS" | tr ' ' '\n' | uniq | sed '/^$/d' | paste -s -d' ' )
+  test -d "${LIBXML2_HOME}"         && CPPFLAGS+=" -I${LIBXML2_HOME}/include"
+  CPPFLAGS=$( echo "${CPPFLAGS}" | tr ' ' '\n' | uniq | sed '/^$/d' | paste -s -d' ' )
 
   PKG_CONFIG_PATH=${PKG_CONFIG_PATH:-}
   PKG_CONFIG_PATH+=":${HOMEBREW_PREFIX}/lib/pkgconfig"
@@ -1547,7 +1549,8 @@ function mkexp() {                         # [m]a[k]e environment variable [e][x
   test -d "${EXPAT_HOME}"          && PKG_CONFIG_PATH+=":${EXPAT_HOME}/lib/pkgconfig"
   test -d "${NCURSES_HOME}"        && PKG_CONFIG_PATH+=":${NCURSES_HOME}/lib/pkgconfig"
   test -d "${ZLIB_HOME}"           && PKG_CONFIG_PATH+=":${ZLIB_HOME}/lib/pkgconfig"
-  PKG_CONFIG_PATH=$( echo "$PKG_CONFIG_PATH" | tr ':' '\n' | uniq | sed '/^$/d' | paste -s -d: )
+  test -d "${LIBXML2_HOME}"        && PKG_CONFIG_PATH+=":${LIBXML2_HOME}/lib/pkgconfig"
+  PKG_CONFIG_PATH=$( echo "${PKG_CONFIG_PATH}" | tr ':' '\n' | uniq | sed '/^$/d' | paste -s -d: )
 
   LIBRARY_PATH="${HOMEBREW_PREFIX}/lib"
   test -d "${LIBICONV_HOME}" && LIBRARY_PATH+=":${LIBICONV_HOME}/lib"

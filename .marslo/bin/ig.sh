@@ -300,10 +300,10 @@ function git_rank_calc() {
     NF==1 {user=$0}
     NF==3 && $1!~/-/ {add[user]+=$1; del[user]+=$2}
     END {
-      for (u in add) {
+      for ( u in add ) {
         total = add[u] + del[u]
 
-        if (tolower(u) == tolower(me) || tolower(u) == "marslo") {
+        if ( tolower(u) == tolower(me) || tolower(u) == "marslo" ) {
           display_name = "\x1b[1;36m" u " (ME)\x1b[0m"
         } else {
           display_name = u

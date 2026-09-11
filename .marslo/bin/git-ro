@@ -3,13 +3,14 @@
 #      FileName : git-ro
 #        Author : marslo
 #       Created : 2026-09-04 21:18:33
-#    LastChange : 2026-09-04 22:10:43
+#    LastChange : 2026-09-10 18:29:28
 #   Description : hard-reset to a remote branch, fetch --all --prune, then clean the work tree + submodules.
 #                 target: git ro (sync current @{u}) | git ro <branch> | git ro <remote>/<branch> always resets to remotes/<remote>/<branch>; aborts if that remote is unreachable.
-#                 no arg + no upstream -> error;
-#                 detached -> must pass a branch.
-#                 auto-runs `git lfs pull` (repo + submodules) when the ref uses LFS; --lfs forces it.
-#                 invoked as `git ro [<branch>|<remote>/<branch>] [--lfs]`
+#                         no arg + no upstream -> error;
+#                         detached -> must pass a branch.
+#                         auto-runs `git lfs pull` (repo + submodules) when the ref uses LFS; --lfs forces it.
+#                 prints a pull-style diffstat (changed files + create/delete/rename) between the old HEAD and the reset ref.
+#                 invoked as `git ro [<branch>|<remote>/<branch>] [--lfs] [-f|--force]`
 # =============================================================================
 # no `set -e` / `-o pipefail` on purpose: it may source an external helper (ig.sh, only if showGitState isn't already loaded) and must survive one unreachable remote during `fetch --all`.
 
@@ -37,13 +38,15 @@ function reflogRemote() {
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo 'fatal: not a git repository' >&2; exit 128; }
 
 # ---- parse args: --lfs flag; remaining tokens form the target ----
-DO_LFS=0
+declare DO_LFS=false
+declare FORCE=false
 declare -a rest=()
 for a in "${@}"; do
   case "${a}" in
-    --lfs     ) DO_LFS=1 ;;
-    -h|--help ) printf 'usage: git ro [<branch>|<remote>/<branch>] [--lfs]\n'; exit 0 ;;
-    *         ) rest+=( "${a}" ) ;;
+    --lfs      ) DO_LFS=true ;;
+    -f|--force ) FORCE=true  ;;
+    -h|--help  ) printf 'usage: git ro [<branch>|<remote>/<branch>] [--lfs] [-f|--force]\n'; exit 0 ;;
+    *          ) rest+=( "${a}" ) ;;
   esac
 done
 set -- "${rest[@]}"
@@ -64,9 +67,9 @@ fi
 # ---- target: no arg -> current branch (sync @{u}); else the given branch ----
 # forms:  git ro | git ro <branch> | git ro <remote>/<branch> always resets to remotes/<remote>/<branch> (the remote-tracking ref)
 if test "${#}" -gt 0; then
-  HADARG=1; branch="${*}"
+  HADARG=true; branch="${*}"
 else
-  HADARG=0; branch="$( git symbolic-ref --short -q HEAD || true )"
+  HADARG=false; branch="$( git symbolic-ref --short -q HEAD || true )"
 fi
 
 declare extra=''
@@ -84,7 +87,7 @@ else
   remote="$( git for-each-ref --format='%(upstream:remotename)' "refs/heads/${branch}" )"
   if test -z "${remote}"; then
     # no upstream: bare `git ro` (sync current) is an error; an explicit target falls back
-    test 0 -eq "${HADARG}" && die "no upstream for '${branch}'; set one (git branch -u <remote>/<branch>) or pass a target"
+    test ! "${HADARG}" && die "no upstream for '${branch}'; set one (git branch -u <remote>/<branch>) or pass a target"
     # explicit target without upstream: disambiguate by reflog only when >1 remote, else origin
     if test "$( git remote | command grep -c '' )" -gt 1; then
       remote="$( reflogRemote )"
@@ -105,21 +108,38 @@ else
 fi
 
 # ---- reset + clean ----
-git reset --hard "remotes/${remote}/${branch}"
-git clean -dffx -e .tags -e .claude -e .cursor -e node_modules -e .target_book
+declare -a clean=( git clean -dffx )
+declare -a reset=( git reset --hard "remotes/${remote}/${branch}" )
+declare -a exclude=( .tags .claude .cursor node_modules .target_book )
+if ! "${FORCE}"; then
+  for e in "${exclude[@]}"; do clean+=( -e "$e" ); done
+fi
+
+# capture the pre-reset HEAD so we can show what the sync changed (pull-style diffstat)
+declare oldHead; oldHead="$( git rev-parse HEAD 2>/dev/null || true )"
+
+"${reset[@]}"
+"${clean[@]}"
+
+# ---- show what changed: pull-style diffstat between the previous HEAD and the reset ref ----
+declare newHead; newHead="$( git rev-parse HEAD 2>/dev/null || true )"
+if test -n "${oldHead}" && test "${oldHead}" != "${newHead}"; then
+  git --no-pager diff --stat --summary --no-ext-diff "${oldHead}" "${newHead}"
+else
+  printf '%s~~> already up to date%s\n' "${C_DIM}" "${C_RST}"
+fi
 
 # ---- LFS: auto-pull when the reset ref uses LFS; --lfs forces it ----
-haveLfs=0; git lfs version >/dev/null 2>&1 && haveLfs=1
-doPull=0
-if test 1 -eq "${haveLfs}"; then
-  # forced via --lfs, or the ref actually has LFS-tracked files
-  if test 1 -eq "${DO_LFS}" || test -n "$( git lfs ls-files 2>/dev/null | command head -1 )"; then
-    doPull=1
-  fi
-fi
-if test 1 -eq "${doPull}"; then
+declare haveLfs=false; git lfs version >/dev/null 2>&1 && haveLfs=true
+declare doPull=false
+# forced via --lfs, or the ref actually has LFS-tracked files
+"${haveLfs}" && { if "${DO_LFS}" || test -n "$( git lfs ls-files 2>/dev/null | command head -1 )"; then
+                    doPull=true
+                  fi
+                }
+if "${doPull}"; then
   git lfs pull "${remote}"
-elif test 0 -eq "${haveLfs}" && { test 1 -eq "${DO_LFS}" || git grep -qI 'filter=lfs' HEAD -- '.gitattributes' ':(glob)**/.gitattributes' 2>/dev/null; }; then
+elif ! "${haveLfs}" && { "${DO_LFS}" || git grep -qI 'filter=lfs' HEAD -- '.gitattributes' ':(glob)**/.gitattributes' 2>/dev/null; }; then
   printf '%s~~> LFS content detected but git-lfs is not installed; files remain pointers%s\n' "${C_DIM}" "${C_RST}" >&2
 fi
 

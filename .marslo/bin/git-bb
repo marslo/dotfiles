@@ -3,7 +3,7 @@
 #     FileName : git-bb
 #       Author : marslo
 #      Created : 2023-12-11 21:39:58
-#   LastChange : 2026-05-22 18:13:47
+#   LastChange : 2026-09-10 16:54:38
 #  Description : git branch switcher
 #                 - init : [a83a0ec](https://github.com/marslo/dotfiles/commit/a83a0ec625f154dc096750b777cb39108e50e5f9)
 #                 - `ctrl-/` and `ctrl-o` to modify view and `ctrl-y` copy commit hash
@@ -14,6 +14,9 @@
 set -euo pipefail
 
 # isGHE && main="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)"
+function isGHE() {
+  git remote get-url origin | grep -qE '(git@|https://).+[:/]Owner-[^/]+/'
+}
 
 # shellcheck disable=SC2155,SC2016
 function getBranch() {
@@ -74,10 +77,11 @@ function getBranch() {
                      --style full --no-border --no-input-border \
                      --preview "${gpreviewS}" --preview-label='[ show ]' \
                      --info='inline-right: ' \
-                     --footer='Ctrl-O: view commit / Ctrl-Y: copy hash / Ctrl-K: open jira' \
+                     --footer=$'Ctrl-O: view commit / Ctrl-Y: copy branch\nCtrl-H: copy hash   / Ctrl-K: open jira' \
                      --preview-window=right,60%,nofollow --preview-label-pos='bottom' \
                      --bind "ctrl-o:execute(${gpreview})+change-preview(${gpreviewS})+change-prompt( )" \
-                     --bind 'ctrl-y:execute-silent(git log {1} -1 --pretty=format:"%H" | pbcopy)' \
+                     --bind 'ctrl-h:execute-silent(git log {1} -1 --pretty=format:"%H" | pbcopy)' \
+                     --bind 'ctrl-y:execute-silent(printf "%s" {2} | pbcopy)' \
                      --bind 'ctrl-k:execute-silent(
                                id=$(echo {2} | grep -oE "([a-zA-Z]+-[0-9]+)" | head -n1 | tr "[:lower:]" "[:upper:]")
                                if [[ -n "${id}" ]]; then open "${JIRA_URL:-https://jira.domain.com}/browse/${id}"; fi

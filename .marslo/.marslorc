@@ -4,7 +4,7 @@
 #   FileName : .marslorc
 #     Author : marslo.jiao@gmail.com
 #    Created : 2012
-# LastChange : 2026-04-21 22:36:23
+# LastChange : 2026-05-06 09:54:54
 # =============================================================================
 
 # execute configuration only in the interactive shell
@@ -12,7 +12,7 @@
 
 export iRCHOME="$HOME/.marslo"
 # credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
-test -f "${iRCHOME}/bin/bash-color.sh" && source "${iRCHOME}/bin/bash-color.sh"
+! declare -f c >/dev/null && test -f "${iRCHOME}/bin/bash-colors.sh" && source "${iRCHOME}/bin/bash-colors.sh"
 
 function isWSL()     { uname -r | command grep --color=never -q -i 'microsoft'; }
 function isCygwin()  { test "$(uname -s)" =~ 'CYGWIN_NT';       }
@@ -178,10 +178,11 @@ declare programs=( 'cursor' 'vscode' 'docker_desktop' )
 declare programsRE="^($(IFS='|'; printf '%s' "${programs[*]}"))$"
 if ! [[ -n "${NVIM:-}" || -n "${VIMRUNTIME:-}" || -n "${TMUX:-}" || "${TERM_PROGRAM:-}" =~ ${programsRE} ]]; then
   ! isLinux && test -f "${iRCHOME}"/bin/screenfetch-dev   && bash "${iRCHOME}"/bin/screenfetch-dev
+    isLinux && echo '' || :
   test -f "${iRCHOME}"/bin/now && bash "${iRCHOME}"/bin/now
 fi
 isTmux && test -f "${iRCHOME}/.tmux-session" && source "${iRCHOME}/.tmux-session"
-isOSX  && echo ''
+isOSX  && echo '' || :
 
 # type -P starship >/dev/null 2>&1 && eval "$(starship init bash)"
 
@@ -195,6 +196,7 @@ isOSX  && echo ''
 #               | |             __/ |
 #               |_|            |___/
 # --------------------------------------------------------------/
+# shellcheck disable=SC2015
 test -f "${iRCHOME}"/bin/fzf-git.sh && source "${iRCHOME}"/bin/fzf-git.sh || :
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------

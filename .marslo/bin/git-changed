@@ -24,8 +24,7 @@ declare showTitle=0
 declare -a pathspec=()
 
 # shellcheck disable=SC2125,SC2155
-declare USAGE="""
-NAME
+declare USAGE="NAME
   $(c Ys)git changed$(c) - Show changed files grouped by sections.
 
 USAGE
@@ -52,7 +51,7 @@ EXAMPLES
   $(c 0Ys)\$ git changed$(c) $(c 0Gi)--staged --untracked$(c)
   $(c 0Ys)\$ git changed$(c) $(c 0Gi)--ignored$(c) $(c 0Mi)--$(c) $(c 0Ci)src/ \"*.log\"$(c)
   $(c 0Ys)\$ git changed$(c) $(c 0Gi)--no-title$(c) $(c 0Mi)--$(c) $(c 0Ci)'*.c' '!:test/*'$(c)
-"""
+"
 
 function usage() { echo -e "${USAGE}"; exit 0; }
 function die() {

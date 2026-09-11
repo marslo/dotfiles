@@ -2,7 +2,7 @@
 #     FileName : gitalias
 #       Author : marslo
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2026-09-04 21:32:21
+#   LastChange : 2026-09-10 16:43:58
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -71,20 +71,15 @@
   dl          = log --color --stat --abbrev-commit --date=relative --graph --submodule --format="'%C(6)%h%C(reset) %C(yellow)(%ad)%C(reset) %s %C(blue)<%an>%C(reset)'"
   # usage : git notes --ref=linrev add -m "<message>" <commit>
   revlog      = log --max-count=3 --color --graph --abbrev-commit --date=relative --notes=linrev --pretty=tformat:"'%C(bold red)%h%C(reset) -%C(auto)%d%C(reset) %s %C(green)(%cr)%C(reset) %C(blue)<%an>%C(reset)%n'""'           %C(italic white)%N%C(reset)'"
+  ### [r]ef[l]og
+  rl          = reflog --format="'%C(#678963)%h%C(reset) %C(auto)%d%C(reset) %gd: %C(dim italic)%gs%C(reset)'"
+  refl        = reflog --format="'%C(#678963)%h%C(reset) %C(auto)%d%C(reset) %gd: %C(dim italic)%gs%C(reset)'"
   ### showing all branches and their relationships
   clog        = log --color --graph --all --decorate --simplify-by-decoration --oneline
   tree        = log --color --graph --all --decorate --abbrev-commit --pretty=oneline --format=format:"'%C(bold blue)%h%C(reset) - %C(green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- <%an>%C(reset)%C(auto)%d%C(reset)'"
   ### [r]emote [log]
-  rlog        = "!bash -c 'while read branch; do \n\
-                              git fetch --all --force; \n\
-                              git pl refs/remotes/origin/${branch}; \n\
-                            done < <(git rev-parse --abbrev-ref HEAD); \n\
-                           '"
-  rlogs       = "!bash -c 'while read branch; do \n\
-                              git fetch --all --force; \n\
-                              git pls refs/remotes/origin/${branch}; \n\
-                            done < <(git rev-parse --abbrev-ref HEAD); \n\
-                           '"
+  rlog        = "!bash -c 'while read branch; do git fetch --all --force; git pl refs/remotes/origin/${branch}; done < <(git rev-parse --abbrev-ref HEAD);'"
+  rlogs       = "!bash -c 'while read branch; do git fetch --all --force; git pls refs/remotes/origin/${branch}; done < <(git rev-parse --abbrev-ref HEAD);'"
   who-renamed = "!bash -c \"git log -M --summary | grep -E '^\\s*rename.*{.*=>.*}'\""
   # @deprecated
   pshow       = show -s --pretty='tformat:%C(red)%h%C(reset) %C(green)(%s)%C(reset)'
@@ -230,30 +225,40 @@
   #-----------------------#
   # {{{
   # append (#ID) to the current commit's subject; skip if already present; keep original body
-  pr-stamp    = "!f() { \
-                        id=\"$1\"; \
-                        subj=\"$(git log -1 --format=%s)\"; \
-                        case \"${subj}\" in *\"(#$id)\") return 0 ;; esac; \
-                        body=\"$(git log -1 --format=%b)\"; \
-                        if [ -n \"${body}\" ]; then \
-                          git commit --amend -m \"${subj} (#${id})\" -m \"${body}\"; \
-                        else \
-                          git commit --amend -m \"${subj} (#${id})\"; \
-                        fi; \
-                      }; f \
-                "
+  pr-rebase    = "!f() { \
+                         id=\"$1\"; \
+                         subj=\"$( git log -1 --format=%s )\"; \
+                         case \"${subj}\" in *\"(#${id})\") return 0 ;; esac; \
+                         body=\"$( git log -1 --format=%b )\"; \
+                         if [ -n \"${body}\" ]; then \
+                           git commit --amend -m \"${subj} (#${id})\" -m \"${body}\"; \
+                         else \
+                           git commit --amend -m \"${subj} (#${id})\"; \
+                         fi; \
+                       }; f \
+                 "
 
   # stamp (#ID) onto every commit in base..HEAD and rebase onto base (auto-detect the PR's base branch by default)
-  pr-rebase   = "!f() { \
-                        id=\"$1\"; base=\"$2\"; \
-                        if test -z \"${id}\"; then echo 'usage: git pr-rebase <ID> [base-branch]' >&2; return 1; fi; \
-                        if test -z \"${base}\"; then base=\"$(gh pr view \"${id}\" --json baseRefName -q .baseRefName 2>/dev/null)\"; fi; \
-                        if test -z \"${base}\"; then base=main; fi; \
-                        echo \"rebase PR #$id onto origin/$base\" >&2; \
-                        git fetch origin \"${base}\" && \
-                        git rebase \"origin/${base}\" --exec \"git pr-stamp ${id}\"; \
-                      }; f \
-                "
+  pr-stamp     = "!f() { \
+                         id=\"$1\"; base=\"$2\"; \
+                         test -z \"${id}\"   && { echo 'usage: git pr-stamp <ID> [base-branch]' >&2; return 1; }; \
+                         test -z \"${base}\" && base=\"$( gh pr view \"${id}\" --json baseRefName -q .baseRefName 2>/dev/null )\"; \
+                         test -z \"${base}\" && base=main; \
+                         printf \"\\033[0;1;2;3;37m==> stamp PR \\033[0;1;33m#${id} \\033[0;1;2;3;37monto \\033[0;1;36morigin/${base}\\033[0m\n\" >&2; \
+                         git fetch origin \"${base}\" && git rebase \"origin/${base}\" --exec \"git pr-rebase ${id}\"; \
+                       }; f \
+                 "
+
+  # stamp (#ID) onto every commit in hash1..hash2 inclusive; rewrites that range in place
+  pr-stamp-rev = "!f() { \
+                         test \"$#\" -eq 3 || { echo 'usage: git pr-stamp-rev <ID> <hash-1> <hash-2>' >&2; return 1; }; \
+                         id=\"$1\"; h1=\"$2\"; h2=\"$3\"; \
+                         git merge-base --is-ancestor \"${h1}\" \"${h2}\" || { echo \"error: ${h1} is not an ancestor of ${h2}\" >&2; return 1; }; \
+                         echo \"stamp #${id} onto ${h1}..${h2} (inclusive)\" >&2; \
+                         printf \"\\033[0;1;2;3;37m==> stamp \\033[0;1;33m#${id} \\033[0;1;2;3;37monto \\033[0;1;36m${h1}..${h2} \\033[0;1;2;3;37m(inclusive)\\033[0m\n\" >&2; \
+                         git rebase --onto \"${h1}^\" \"${h1}^\" \"${h2}\" --exec \"git pr-rebase ${id}\"; \
+                       }; f \
+                 "
   # }}}
 
   #-----------------------#
@@ -563,13 +568,13 @@
   diff-branch = log --left-right --graph --cherry-pick --oneline
   diff-sort   = "!f() { git diff --no-ext-diff --no-color --textconv \"$@\" | command grep '^[+-]' | command grep -vE '^(\\+\\+\\+|---)' | sort --key=1.2 | uniq -u -s1; }; f"
   diff-moved  = "!f() { git diff --no-ext-diff --no-color --textconv \"$@\" | command grep '^[+-]' | command grep -vE '^(\\+\\+\\+|---)' | sort --key=1.2 | uniq -d -s1; }; f"
-  # brew install difftastic
+  # [d]i[f]f[t]        -- brew install difftastic
   dft         = -c diff.external=difft diff
-  # $(brew --prefix git)/share/git-core/contrib/diff-highlight/diff-highlight
+  # [d]iff [h]ighlight -- $(brew --prefix git)/share/git-core/contrib/diff-highlight/diff-highlight
   dh          = "!f() { git --no-pager diff --no-ext-diff \"$@\" | diff-highlight | less -RFX; }; f"
-  # brew install git-delta --HEAD
+  # [d]iff [d]elta     -- brew install git-delta --HEAD
   dd          = "!git --no-pager diff --no-ext-diff \"$@\" | delta"
-  # no delta, no difft
+  # [d]iff [p]ure      -- no delta, no difft
   dp          = -c pager.diff=false diff --no-ext-diff
   df          = diff --no-ext-diff
   # }}}

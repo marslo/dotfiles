@@ -4,7 +4,7 @@
 #     FileName : fzf
 #       Author : marslo
 #      Created : 2023-10-06 00:47:47
-#   LastChange : 2026-05-22 20:28:37
+#   LastChange : 2026-09-10 16:55:22
 # =============================================================================
 
 # shellcheck disable=SC2155
@@ -27,7 +27,7 @@ FZF_DEFAULT_OPTS+="--prompt=' ' --info='inline-right: ' "
 FZF_DEFAULT_OPTS+="--ghost='type to search ...' "
 FZF_DEFAULT_OPTS+="--info-command='printf \"\x1b[33;1m%s\x1b[m ~ %s\" \"\$FZF_POS\" \"\$FZF_INFO\"' "
 FZF_DEFAULT_OPTS+="--bind 'ctrl-s:select-all,ctrl-d:deselect-all,ctrl-t:toggle-all' "
-FZF_DEFAULT_OPTS+="--bind 'ctrl-y:execute-silent(/bin/echo -n {+} | ${COPY})' "
+FZF_DEFAULT_OPTS+="--bind 'ctrl-y:execute-silent(printf \"%s\" {+} | ${COPY})' "
 FZF_DEFAULT_OPTS+="--bind 'alt-r:toggle-preview-wrap' "
 FZF_DEFAULT_OPTS+="--color=gutter:0,bg+:-1,query:italic,spinner:#e6db74,prompt:italic:#404945,header:italic:#504945,footer:italic:#504945,ghost:italic:#504945,info:#928374,pointer:#A66584,marker:#d79921,fg:#ebdbb2:dim,fg+:#A7A44E:regular,hl:#845069:italic,hl+:#A66584:bold:italic,scrollbar:#928374"
 
