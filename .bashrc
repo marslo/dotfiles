@@ -5,9 +5,13 @@
 if uname -r | command grep -q -i 'microsoft'; then
   test -f ~/.marslo/.marslorc.wsl && source ~/.marslo/.marslorc.wsl
   test -f ~/.bash_profile         && source ~/.bash_profile
-else
-  test -f /etc/bash_completion    && source /etc/bash_completion
+# linux
+elif ! shopt -oq posix; then
+  test -f /usr/share/bash-completion/bash_completion && source /usr/share/bash-completion/bash_completion
+  test -f /etc/bash_completion && source /etc/bash_completion;
 fi
+# prefer locally-built bash-completion 2.12+ (~/.local/opt); fall back to system 2.11
+test -r "${HOME}/.local/opt/bash-completion/share/bash-completion/bash_completion" && source "${HOME}/.local/opt/bash-completion/share/bash-completion/bash_completion"
 
 # for :terminal in nvim, avoid scp issue from non-mac system
 if test 'Darwin' = "$(/usr/bin/uname)"; then
@@ -52,8 +56,8 @@ function bello() { source ~/.bash_profile; }
 # export FIGNORE="Application Scripts:Applications (Parallels):ScrivWatcher:ScriptingAdditions"
 if test -f ~/.fzf.bash; then source ~/.fzf.bash; fi
 # generated for envman. do not edit.
-if test -s "$HOME/.config/envman/load.sh"; then source "$HOME/.config/envman/load.sh"; fi
+if test -s "${HOME}/.config/envman/load.sh"; then source "${HOME}/.config/envman/load.sh"; fi
 # generated for tt
-if test -f "$HOME/.tt/.ttenv"; then source "$HOME/.tt/.ttenv"; fi
+if test -f "${HOME}/.tt/.ttenv"; then source "${HOME}/.tt/.ttenv"; fi
 
 # vim: tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

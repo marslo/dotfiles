@@ -8,8 +8,8 @@ if test 'Darwin' = "$(/usr/bin/uname -s)"; then
   test -f /usr/local/bin/brew    && HOMEBREW_PREFIX="/usr/local"
 
   # fix issue in vscode / cursor : `Unable to resolve your shell environment: Unexpected exit code from spawned shell (code 9, signal null)`
-  if [[ -n "${VSCODE_RESOLVING_ENVIRONMENT}" ]]; then
-    if [[ -n "${HOMEBREW_PREFIX}" ]]; then
+  if test -n "${VSCODE_RESOLVING_ENVIRONMENT}"; then
+    if test -n "${HOMEBREW_PREFIX}"; then
       export PATH="${HOMEBREW_PREFIX}/bin:${HOMEBREW_PREFIX}/sbin:${PATH}"
       export MANPATH="${HOMEBREW_PREFIX}/share/man:${MANPATH}"
       export INFOPATH="${HOMEBREW_PREFIX}/share/info:${INFOPATH}"
@@ -36,7 +36,7 @@ fi
 # set -a; source "$HOME/.marslo/.marslorc"; set +a;   # `-a`: mark variables which are modified or created for export
 # set -x; source "$HOME/.marslo/.marslorc"; set +x;   # `-x`: print commands and their arguments as they are executed
 # bash -ixlc : 2>&1 | grep ...                        # debug bash full start process : https://unix.stackexchange.com/a/322468/29178
-test -f "$HOME/.marslo/.marslorc" && source "$HOME/.marslo/.marslorc"
+test -f "${HOME}/.marslo/.marslorc" && source "${HOME}/.marslo/.marslorc"
 
 # remove empty line:
 # - sed: `sed '/^$/d'`
@@ -55,10 +55,10 @@ else
        export PATH=$( echo "$PATH" | tr ':' '\n' | awk 'NF' | awk '!x[$0]++' | paste -s -d: )
 fi
 
-test -d "$HOME"/perl5 && eval "$(perl -I"$HOME"/perl5/lib/perl5 -Mlocal::lib="$HOME"/perl5)" || :
-test -f "$HOME"/_extract_func_completion && eval "$(/bin/cat "$HOME/_extract_func_completion")" || :
+test -d "${HOME}"/perl5 && eval "$(perl -I"${HOME}"/perl5/lib/perl5 -Mlocal::lib="${HOME}"/perl5)"  || :
+test -f "${HOME}"/_extract_func_completion && eval "$(/bin/cat "${HOME}/_extract_func_completion")" || :
 # iTerm2 shell integration
-test -e "$HOME"/.iterm2_shell_integration.bash && source "$HOME"/.iterm2_shell_integration.bash || :
+test -e "${HOME}"/.iterm2_shell_integration.bash && source "${HOME}"/.iterm2_shell_integration.bash || :
 
 # -- for git gpg sign and ssh remote login -- #
 # define gpg terminal for interactive passphrase entry
