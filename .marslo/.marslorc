@@ -2,15 +2,15 @@
 # shellcheck source=/dev/null disable=SC2034
 # =============================================================================
 #   FileName : .marslorc
-#     Author : marslo.jiao@gmail.com
+#     Author : marslo
 #    Created : 2012
-# LastChange : 2026-05-06 09:54:54
+# LastChange : 2026-09-10 23:57:02
 # =============================================================================
 
 # execute configuration only in the interactive shell
 [[ "${-}" != *i* ]] && return
 
-export iRCHOME="$HOME/.marslo"
+export iRCHOME="${HOME}/.marslo"
 # credit: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh (v0.3.0)
 ! declare -f c >/dev/null && test -f "${iRCHOME}/bin/bash-colors.sh" && source "${iRCHOME}/bin/bash-colors.sh"
 
@@ -37,7 +37,7 @@ if isOSX; then
   test -f /usr/local/bin/brew    && HOMEBREW_PREFIX="/usr/local"
 fi
 
-# /--------------------------------------------------------------
+# /─────────────────────────────────────────────────────────────────────────────
 #      _       __            _ _     _              _
 #     | |     / _|          | | |   | |            | |
 #   __| | ___| |_ __ _ _   _| | |_  | |_ ___   ___ | |___
@@ -45,7 +45,7 @@ fi
 # | (_| |  __/ || (_| | |_| | | |_  | || (_) | (_) | \__ \
 #  \__,_|\___|_| \__,_|\__,_|_|\__|  \__\___/ \___/|_|___/
 #
-# --------------------------------------------------------------/
+# ─────────────────────────────────────────────────────────────────────────────/
 LS="$(type -P ls)"
 GREP="$(type -P grep)"
 COLUMN="$(type -P column)"
@@ -65,13 +65,13 @@ COPY=''
 isWSL && COPY='/mnt/c/Windows/System32/clip.exe'
 isOSX && COPY="$(type -P pbcopy)"
 
-# /--------------------------------------------------------------
+# /─────────────────────────────────────────────────────────────────────────────
 #  ___  ___  _   _ _ __ ___ ___
 # / __|/ _ \| | | | '__/ __/ _ \
 # \__ \ (_) | |_| | | | (_|  __/
 # |___/\___/ \__,_|_|  \___\___|
 #
-# --------------------------------------------------------------/
+# ─────────────────────────────────────────────────────────────────────────────/
 GROOVY_HOME='/opt/groovy/current'
 FZF_HOME="${iRCHOME}"/utils/fzf
 
@@ -79,23 +79,23 @@ if isOSX; then
   GROOVY_HOME="${HOMEBREW_PREFIX}/opt/groovy"
   FZF_HOME="${HOMEBREW_PREFIX}/opt/fzf"
   test -f "${iRCHOME}"/.imac   && source "${iRCHOME}"/.imac
-elif isLinux; then                                            # for Ubuntu/RHEL/CentOS
+elif isLinux; then                                                                        # for Ubuntu/RHEL/CentOS
   isDebian && export DEBIAN_FRONTEND=noninteractive
   test -f "${iRCHOME}"/.ilinux && source <( /bin/cat "${iRCHOME}"/.ilinux )
 fi
 
-test -f "${iRCHOME}"/.env                  && source "${iRCHOME}"/.env
-test -f "${iRCHOME}"/.token                && source "${iRCHOME}"/.token
-test -f "${iRCHOME}"/.alias                && source "${iRCHOME}"/.alias                # alias
-test -f "${iRCHOME}"/.completion           && source "${iRCHOME}"/.completion           # completion
+test -f "${iRCHOME}"/.env                    && source "${iRCHOME}"/.env
+test -f "${iRCHOME}"/.token                  && source "${iRCHOME}"/.token
+test -f "${iRCHOME}"/.completion             && source "${iRCHOME}"/.completion           # completion
+test -f "${iRCHOME}"/.alias                  && source "${iRCHOME}"/.alias                # alias ( using `_complete_alias` from .completion )
 
-test -f "$HOME"/.cargo/env                 && source "$HOME"/.cargo/env
-test -s "$HOME"/.sdkman/bin/sdkman-init.sh && source "$HOME"/.sdkman/bin/sdkman-init.sh
-test -f "$HOME"/.rbenv/bin/rbenv           && eval "$("$HOME"/.rbenv/bin/rbenv init - bash)"
-test -f "$HOME"/.docker/init-bash.sh       && source "$HOME"/.docker/init-bash.sh       # docker desktop
-type -P pyenv >/dev/null                   && eval "$(pyenv init -)"
+test -f "${HOME}"/.cargo/env                 && source "${HOME}"/.cargo/env
+test -s "${HOME}"/.sdkman/bin/sdkman-init.sh && source "${HOME}"/.sdkman/bin/sdkman-init.sh
+test -f "${HOME}"/.rbenv/bin/rbenv           && eval "$("${HOME}"/.rbenv/bin/rbenv init - bash)"
+test -f "${HOME}"/.docker/init-bash.sh       && source "${HOME}"/.docker/init-bash.sh     # docker desktop
+type -P pyenv >/dev/null                     && eval "$(pyenv init -)"
 
-# /--------------------------------------------------------------
+# /─────────────────────────────────────────────────────────────────────────────
 #                   __ _
 #                  / _(_)
 #   ___ ___  _ __ | |_ _  __ _
@@ -105,8 +105,8 @@ type -P pyenv >/dev/null                   && eval "$(pyenv init -)"
 #                         __/ |
 #                        |___/
 #
-# --------------------------------------------------------------/
-# check via `$ shopt -p`
+# ─────────────────────────────────────────────────────────────────────────────/
+# ── check via `$ shopt -p` ────────────────────────────────────────────────────
 # keeps COLUMNS/LINES in sync without $(tput cols) and $(tput lines)
 shopt -s checkwinsize
 shopt -s cdspell
@@ -115,12 +115,12 @@ shopt -s cmdhist
 shopt -s histappend
 shopt -s globstar
 shopt -s autocd
-# == for scp path completion - ignore case-sensitive and glob pattern ==
-# -- $var == "yes" -> $var == "YES" + $var == "yes" --
+# ── for scp path completion - ignore case-sensitive and glob pattern ──────────
+# -- ${var} == "yes" -> ${var} == "YES" + ${var} == "yes" --
 shopt -s nocasematch
 # -- rm *.txt -> rm *.TXT + *.txt --
 shopt -s nocaseglob
-# == another options ==
+# ── the other options ─────────────────────────────────────────────────────────
 # shopt -s extdebug -- fcf
 # shopt -s nullglob -- completion source
 
@@ -134,7 +134,7 @@ if [[ $- == *i* ]]; then
   test -f ~/.LESS_TERMCAP && source ~/.LESS_TERMCAP
 fi
 
-# /--------------------------------------------------------------
+# /─────────────────────────────────────────────────────────────────────────────
 #  _                                     _
 # | |                                   | |
 # | |_ ___ _ __ _ __ ___ ______ ___ ___ | | ___  _ __
@@ -143,7 +143,7 @@ fi
 #  \__\___|_|  |_| |_| |_|     \___\___/|_|\___/|_|
 #
 #
-# --------------------------------------------------------------/
+# ─────────────────────────────────────────────────────────────────────────────/
 export TERM='xterm-color'
 # screen: /usr/share/terminfo/73/screen.xterm-256color
 # centos/rhel
@@ -153,7 +153,7 @@ test -e /lib/terminfo/x/xterm-256color        && export TERM='xterm-256color'
 # cygwin/osx
 test -e /usr/share/terminfo/78/xterm-256color && export TERM='xterm-256color'
 
-# /--------------------------------------------------------------
+# /─────────────────────────────────────────────────────────────────────────────
 #                   __
 #                  / _|
 #  _ __ ___  _   _| |_ _   _ _ __   ___
@@ -162,7 +162,7 @@ test -e /usr/share/terminfo/78/xterm-256color && export TERM='xterm-256color'
 # |_| |_| |_|\__, |_|  \__,_|_| |_|\___|
 #             __/ |
 #            |___/
-# --------------------------------------------------------------/
+# ─────────────────────────────────────────────────────────────────────────────/
 # rewrite help and history
 test -f "${iRCHOME}/bin/help"    && source "${iRCHOME}/bin/help"
 test -f "${iRCHOME}/bin/history" && source "${iRCHOME}/bin/history"
@@ -186,7 +186,7 @@ isOSX  && echo '' || :
 
 # type -P starship >/dev/null 2>&1 && eval "$(starship init bash)"
 
-# /--------------------------------------------------------------
+# /─────────────────────────────────────────────────────────────────────────────
 #   __      __         _             _
 #  / _|    / _|       | |           (_)
 # | |_ ___| |_   _ __ | |_   _  __ _ _ _ __  ___
@@ -195,8 +195,8 @@ isOSX  && echo '' || :
 # |_| /___|_|   | .__/|_|\__,_|\__, |_|_| |_|___/
 #               | |             __/ |
 #               |_|            |___/
-# --------------------------------------------------------------/
+# ─────────────────────────────────────────────────────────────────────────────/
 # shellcheck disable=SC2015
 test -f "${iRCHOME}"/bin/fzf-git.sh && source "${iRCHOME}"/bin/fzf-git.sh || :
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ --------------------------------------------------------------/,#\ /--------------------------------------------------------------
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:foldmethod=marker:foldmarker=#\ ─────────────────────────────────────────────────────────────────────────────/,#\ /─────────────────────────────────────────────────────────────────────────────:
