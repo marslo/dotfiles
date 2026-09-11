@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-08-14 01:39:20
+"    LastChange : 2026-09-11 00:52:16
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -314,22 +314,6 @@ if has( 'autocmd' )
     autocmd Syntax             c,cpp,xml,html,xhtml            if empty(&buftype) | setlocal foldlevel=0 | endif
   augroup END
 
-  " force set input method
-  " if executable('macime')
-  "   let g:ime_en = 'com.apple.keylayout.US'
-  "   function! s:SwitchToEN() abort
-  "     if trim( system('macime get') ) !=# g:ime_en
-  "       call system( 'macime set ' . g:ime_en . ' &>/dev/null &' )
-  "     endif
-  "   endfunction
-  "   augroup Ime_Switch
-  "     autocmd!
-  "     autocmd WinEnter     * silent! call <SID>SwitchToEN()
-  "     autocmd InsertLeave  * silent! call <SID>SwitchToEN()
-  "     autocmd CmdlineLeave * silent! call <SID>SwitchToEN()
-  "   augroup END
-  " endif
-
   " for &buftype in 'help', 'nofile', 'terminal', 'quickfix/locationlist', 'prompt', ...
   function! s:MinimalUI() abort
     if IsVscodeOrCursor() || empty(&buftype) | return | endif
@@ -339,8 +323,11 @@ if has( 'autocmd' )
 
   augroup LAST_OVERRIDE
     autocmd!
+
+    " priority: open file -> FileType -> modeline -> BufWinEnter ( to avoid BufWinEnter override the modeline settings )
     autocmd FileType                      *              ++nested call s:ApplyFTSettings()
-    autocmd BufWinEnter                   *              call s:ApplyFTSettings()
+    autocmd BufWinEnter                   *              if empty( &filetype ) | call s:ApplyFTSettings() | endif
+
     autocmd FileType,BufEnter,BufWinEnter *              call s:MinimalUI()
     autocmd BufWinEnter                   copilot:///log call timer_start(50, {-> execute('resize -8')})
     autocmd BufEnter                      copilot:///*   setlocal modifiable
