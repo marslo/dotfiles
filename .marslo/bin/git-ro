@@ -3,7 +3,7 @@
 #      FileName : git-ro
 #        Author : marslo
 #       Created : 2026-09-04 21:18:33
-#    LastChange : 2026-09-10 18:29:28
+#    LastChange : 2026-09-10 22:25:39
 #   Description : hard-reset to a remote branch, fetch --all --prune, then clean the work tree + submodules.
 #                 target: git ro (sync current @{u}) | git ro <branch> | git ro <remote>/<branch> always resets to remotes/<remote>/<branch>; aborts if that remote is unreachable.
 #                         no arg + no upstream -> error;
@@ -148,7 +148,7 @@ if git --no-pager config --file "$( git rev-parse --show-toplevel )/.gitmodules"
   git submodule foreach --recursive git clean -dffx
   git submodule foreach --recursive git reset --hard
   git submodule update -f --init --recursive
-  test 1 -eq "${doPull}" && git submodule foreach --recursive git lfs pull
+  "${doPull}" && git submodule foreach --recursive git lfs pull
 fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
