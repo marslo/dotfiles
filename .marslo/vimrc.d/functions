@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-09-09 02:07:39
+"    LastChange : 2026-09-10 18:48:05
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -70,7 +70,7 @@ function! TwiddleCase(str)
 endfunction
 vnoremap ~ y:call setreg('', TwiddleCase(@"), getregtype(''))<CR>gv""Pgv
 
-function! IgnoreSpells()                                            " skip spell check for CamelCase / mixedCase / UPPER_CASE / hex color / url
+function! IgnoreSpells()                                            " skip spell check for CamelCase / mixedCase / UPPER_CASE / hex color / url / [k]ey-hotkey
   syntax      match   CamelCase /\<[A-Z][a-z]\+[A-Z].\{-}\>/ contains=@NoSpell transparent
   syntax      cluster Spell add=CamelCase
   syntax      match   mixedCase /\<[a-z]\+[A-Z].\{-}\>/      contains=@NoSpell transparent
@@ -83,12 +83,13 @@ function! IgnoreSpells()                                            " skip spell
   " url (scheme://non-space)
   syntax      match   UrlNoSpell /\w\+:\/\/[^[:space:]]\+/     contains=@NoSpell transparent
   syntax      cluster Spell add=UrlNoSpell
+  " hotkey hint: word chars glued to a [k]ey-bracket group (e.g. [m]arslo, [a]lia[s], pre[t]ty); ignore the exposed fragment, but NOT a whole-word bracket like [find]
+  " lookbehind/lookahead start the match on the word char (not [) so it won't fight rainbow's [..] region
+  syntax      match   HotkeyAfter  /\%(\[\a\+\]\)\@<=\w\+/     contains=@NoSpell transparent
+  syntax      match   HotkeyBefore /\w\+\%(\[\a\+\]\)\@=/      contains=@NoSpell transparent
+  syntax      cluster Spell add=HotkeyAfter,HotkeyBefore
   " or syntax match   myExNonWords +\<\p*[^A-Za-z \t]\p*\>+  contains=@NoSpell
   " or syntax match   myExCapitalWords +\<\w*[A-Z]\K*\>\|'s+ contains=@NoSpell
-  " syntax    match   Url "\w\+:\/\/[:/?#[\]@!$&'()*+,;=0-9[:lower:][:upper:]_\-.~]\+" contains=@NoSpell containedin=@AllSpell transparent
-  " syntax    cluster Spell add=Url
-  " syntax    match   UrlNoSpell '\w\+:\/\/[^[:space:]]\+'   contains=@NoSpell transparent
-  " syntax    cluster Spell add=UrlNoSpell
 endfunction
 autocmd BufRead,BufNewFile * :call IgnoreSpells()
 autocmd Syntax  * :call IgnoreSpells()
@@ -420,7 +421,7 @@ endfunction
 
 " :TSUpdateGroovy → rebuild + re-sign the local groovy tree-sitter parser
 function! TSUpdateGroovy() abort
-  let l:repo = get(g:, 'groovy_ts_repo', '/opt/groovy/tree-sitter-groovy')
+  let l:repo = get(g:, 'groovy_ts_repo', '/opt/ts/tree-sitter-groovy.git')
   if !isdirectory(l:repo)
     echohl ErrorMsg | echo 'groovy-ts: repo not found: ' . l:repo | echohl NONE
     return
@@ -434,5 +435,23 @@ function! TSUpdateGroovy() abort
   echohl MoreMsg | echo 'groovy-ts: rebuilt + signed (restart nvim for the new parser binary)' | echohl NONE
 endfunction
 command! TSUpdateGroovy call TSUpdateGroovy()
+
+" :TSUpdateGitConfig → rebuild + re-sign the local git_config tree-sitter parser
+" (forked grammar that emits `hotkey` nodes; see after/queries/git_config/highlights.scm)
+function! TSUpdateGitConfig() abort
+  let l:repo = get(g:, 'gitconfig_ts_repo', '/opt/ts/tree-sitter-git-config.git')
+  if !isdirectory(l:repo)
+    echohl ErrorMsg | echo 'gitconfig-ts: repo not found: ' . l:repo | echohl NONE
+    return
+  endif
+  echo 'gitconfig-ts: building (make nvim-install) ...'
+  let l:out = system('make -C ' . shellescape(l:repo) . ' nvim-install 2>&1')
+  if v:shell_error != 0
+    echohl ErrorMsg | echo "gitconfig-ts: build failed\n" . l:out | echohl NONE
+    return
+  endif
+  echohl MoreMsg | echo 'gitconfig-ts: rebuilt + signed (restart nvim for the new parser binary)' | echohl NONE
+endfunction
+command! TSUpdateGitConfig call TSUpdateGitConfig()
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:

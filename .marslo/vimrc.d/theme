@@ -41,8 +41,8 @@ endif
 if 'xterm-256color' ==? $TERM | set t_Co=256            | endif
 if has('termguicolors')       | set termguicolors       | endif
 
+set background=dark
 if has( 'gui_running' ) || 'xterm-256color' ==? $TERM
-  set background=dark
 
   if exists('$SSH_CONNECTION') || exists('$SSH_TTY') || exists('$SSH_CLIENT')
     let g:everforest_background = 'hard'

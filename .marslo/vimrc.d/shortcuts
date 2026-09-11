@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-08-12 17:40:14
+"    LastChange : 2026-09-09 17:01:23
 " =============================================================================
 
 " /**************************************************************
@@ -98,6 +98,10 @@ nmap     <leader>aa          <Plug>(coc-codeaction-selected)
 " try the first [q]uick[f]ix action ── coc-fix-current → :call CocActionAsync('doQuickfix')
 nmap     <leader>qf          <Plug>(coc-fix-current)
 xmap     <silent><leader>qf  :<C-u>call CocActionAsync('codeAction', visualmode(), ['quickfix'])<CR>
+" location list
+nnoremap <silent> <leader>d  :CocDiagnostics<CR>
+" full project interaction list
+nnoremap <silent> <leader>D  :<C-u>CocList diagnostics<CR>
 
 nnoremap <silent>K           :call ShowDocumentation()<CR>
 " [g]oto [d]efinition ── gdoc: javadoc for classpath symbols (groovy/jenkins jars) from the offline index
@@ -155,7 +159,8 @@ nnoremap <leader>cr  0yt=A<C-r>=<C-r>"<CR><Esc>
 " count expr
 nnoremap <leader>*   *<C-O>:%s///gn<CR>
 nnoremap <leader>G   :%s///gn<CR>
-nnoremap <leader>zwl :%s///gn<CR>                                   " count the matches numbers < [w]c -[l] >
+" count the matches numbers < [w]c -[l] >
+nnoremap <leader>zwl :%s///gn<CR>
 
 iabbrev <leader>/*   /*********************************
 iabbrev <leader>*/   *********************************/
@@ -163,7 +168,7 @@ iabbrev <leader>#-   #------------------
 
 " https://vim.fandom.com/wiki/Identify_the_syntax_highlighting_group_used_at_the_cursor
 nnoremap <F10> :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<'
-\ . synIDattr(synID(line("."),col("."),0),"name") . "> lo<"
-\ . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
+               \ . synIDattr(synID(line("."),col("."),0),"name") . "> lo<"
+               \ . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim

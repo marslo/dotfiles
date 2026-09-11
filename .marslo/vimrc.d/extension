@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-09-09 01:25:45
+"    LastChange : 2026-09-10 21:54:18
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -310,6 +310,24 @@ for s:tag in s:html_tags
   call lexima#add_rule({ 'char': '>', 'at': '<' . s:tag . '\%#>', 'leave': 1, 'input_after': '</' . s:tag . '>', 'filetype': ['markdown', 'html', 'groovy', 'Jenkinsfile'] })
   call lexima#add_rule({ 'char': '>', 'at': '<' . s:tag . '\%#\%(\s\|$\|<\)', 'input_after': '</' . s:tag . '>', 'filetype': ['markdown', 'html', 'groovy', 'Jenkinsfile'] })
 endfor
+
+" `"` `'` `` ` `` open-vs-close by line quote-parity — shell/config/no-filetype only, where `"( "$1 )"`-style strings live and lexima wrongly pairs the 2nd quote.
+" treesitter-safe (lexima .syntax = vim synID, empty under TS). other ft (python `"""`, apostrophes) -> lexima.
+let s:quote_parity_ft = { 'sh': 1, 'bash': 1, 'zsh': 1, 'gitconfig': 1, 'conf': 1, 'dosini': 1, '': 1 }
+function! s:PairQuote(q) abort
+  if ! get(s:quote_parity_ft, &filetype, 0)               | return lexima#expand(a:q, 'i') | endif  " other ft -> lexima
+  let l:line  = getline('.')
+  let l:after = l:line[col('.') - 1]                                                                " char after cursor ('' at EOL)
+  if '\' ==# l:line[col('.') - 2]                         | return lexima#expand(a:q, 'i') | endif  " after \ -> lexima (\" \' \`)
+  if a:q ==# l:after                                      | return "\<Right>"              | endif  " skip over close
+  if '' !=# l:after && l:after !~# '[ \t)}\]>"''`,;:!?/]' | return a:q                     | endif  " before content -> single
+  " odd count on the line -> close (single); even -> pair. escaped \<quote> stripped first.
+  let l:n = strlen( substitute( substitute(l:line, '\\.', '', 'g'), '[^' . a:q . ']', '', 'g' ) )
+  return l:n % 2 ? a:q : a:q . a:q . "\<Left>"
+endfunction
+inoremap <silent><expr> " <SID>PairQuote('"')
+inoremap <silent><expr> ' <SID>PairQuote("'")
+inoremap <silent><expr> ` <SID>PairQuote('`')
 
 " vim-airline/vim-airline (skip in VS Code: g:loaded_airline=1 before plug#end above)
 let g:airline_powerline_fonts                      = 1
