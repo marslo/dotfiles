@@ -1,0 +1,49 @@
+%YAML 1.2
+---
+# git merge/rebase conflict blocks. colors come from theme scopes:
+#   ours   -> markup.inserted (green, ~ DiffAdd)
+#   theirs -> markup.changed  (yellow, ~ DiffChange)
+#   base   -> comment (diff3/zdiff3 |||||||  section)
+#   markers-> keyword.control
+# usage: bat -l conflict FILE   (map with --map-syntax if desired)
+name: Merge Conflict
+file_extensions: [conflict]
+scope: source.conflict
+
+contexts:
+  main:
+    - match: '^(<<<<<<<)(.*)$'
+      captures:
+        1: keyword.control.conflict.begin
+        2: entity.name.section.conflict.ours
+      push: ours
+    - match: '.*\n?'
+      scope: text.plain.conflict
+
+  ours:
+    - match: '^(\|{7})(.*)$'
+      captures:
+        1: keyword.control.conflict.base
+        2: entity.name.section.conflict.base
+      set: base
+    - match: '^(=======)\s*$'
+      scope: keyword.control.conflict.separator
+      set: theirs
+    - match: '.*\n?'
+      scope: markup.inserted.diff.conflict.ours
+
+  base:
+    - match: '^(=======)\s*$'
+      scope: keyword.control.conflict.separator
+      set: theirs
+    - match: '.*\n?'
+      scope: comment.block.conflict.base
+
+  theirs:
+    - match: '^(>>>>>>>)(.*)$'
+      captures:
+        1: keyword.control.conflict.end
+        2: entity.name.section.conflict.theirs
+      pop: true
+    - match: '.*\n?'
+      scope: markup.changed.diff.conflict.theirs

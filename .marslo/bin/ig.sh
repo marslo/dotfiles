@@ -4,7 +4,7 @@
 #    FileName : ig.sh
 #      Author : marslo
 #     Created : 2012
-#  LastChange : 2026-04-10 19:55:42
+#  LastChange : 2026-09-14 15:51:38
 #        Desc : for git
 # =============================================================================
 
@@ -320,30 +320,30 @@ function showGitState() {
   local gRoot
   gRoot=$(git rev-parse --git-dir 2>/dev/null) || { echo "not a git repo"; return 1; }
 
-  if [[ -f "${gRoot}/MERGE_HEAD" ]]; then
-    echo "merge"
-  elif [[ -d "${gRoot}/rebase-merge" ]]; then
+  if test -f "${gRoot}/MERGE_HEAD"; then
+    echo 'merge'
+  elif test -d "${gRoot}/rebase-merge"; then
     # interactive rebase
     local step total
     step=$(command cat "${gRoot}/rebase-merge/msgnum" 2>/dev/null)
     total=$(command cat "${gRoot}/rebase-merge/end" 2>/dev/null)
     echo "rebase-i (${step}/${total})"
-  elif [[ -d "${gRoot}/rebase-apply" ]]; then
-    if [[ -f "${gRoot}/rebase-apply/rebasing" ]]; then
-      echo "rebase"
-    elif [[ -f "${gRoot}/rebase-apply/applying" ]]; then
-      echo "am"          # git am (applying patches)
+  elif test -d "${gRoot}/rebase-apply"; then
+    if test -f "${gRoot}/rebase-apply/rebasing"; then
+      echo 'rebase'
+    elif test -f "${gRoot}/rebase-apply/applying"; then
+      echo 'am'          # git am (applying patches)
     else
-      echo "rebase/am"
+      echo 'rebase/am'
     fi
-  elif [[ -f "${gRoot}/CHERRY_PICK_HEAD" ]]; then
-    echo "cherry-pick"
-  elif [[ -f "${gRoot}/REVERT_HEAD" ]]; then
-    echo "revert"
-  elif [[ -f "${gRoot}/BISECT_LOG" ]]; then
-    echo "bisect"
+  elif test -f "${gRoot}/CHERRY_PICK_HEAD"; then
+    echo 'cherry-pick'
+  elif test -f "${gRoot}/REVERT_HEAD"; then
+    echo 'revert'
+  elif test -f "${gRoot}/BISECT_LOG"; then
+    echo 'bisect'
   else
-    echo "normal"
+    echo 'normal'
   fi
 }
 
