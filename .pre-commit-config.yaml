@@ -43,7 +43,7 @@ repos:
         exclude: ^(\.marslo/gitconfig\.d/.*|.*/vimrc.d/shortcuts)$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.6
+    rev: v0.16.7
     hooks:
       - id: ruff
         name: Ruff Linter

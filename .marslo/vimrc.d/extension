@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-09-10 21:54:18
+"    LastChange : 2026-09-14 22:01:08
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -311,7 +311,7 @@ for s:tag in s:html_tags
   call lexima#add_rule({ 'char': '>', 'at': '<' . s:tag . '\%#\%(\s\|$\|<\)', 'input_after': '</' . s:tag . '>', 'filetype': ['markdown', 'html', 'groovy', 'Jenkinsfile'] })
 endfor
 
-" `"` `'` `` ` `` open-vs-close by line quote-parity — shell/config/no-filetype only, where `"( "$1 )"`-style strings live and lexima wrongly pairs the 2nd quote.
+" `"` `'` `` ` `` open-vs-close by line quote-parity, where lexima wrongly pairs the 2nd quote in `"( "$1 )"`-style strings.
 " treesitter-safe (lexima .syntax = vim synID, empty under TS). other ft (python `"""`, apostrophes) -> lexima.
 let s:quote_parity_ft = { 'sh': 1, 'bash': 1, 'zsh': 1, 'gitconfig': 1, 'conf': 1, 'dosini': 1, '': 1 }
 function! s:PairQuote(q) abort
@@ -328,6 +328,28 @@ endfunction
 inoremap <silent><expr> " <SID>PairQuote('"')
 inoremap <silent><expr> ' <SID>PairQuote("'")
 inoremap <silent><expr> ` <SID>PairQuote('`')
+
+" `(` `[` `{` pair only when no unmatched close of the same kind lies ahead. depth-scan the cursor..EOL text: dangling close ahead (( aa) | bb )) -> single, adopt it; else lexima.
+" adjacent close (foo(bar|)) -> nest; matched-ahead close (foo| (x)) -> pair; close left of cursor is ignored.
+function! s:PairBracket(open, close) abort
+  let l:line  = getline('.')
+  if '\' ==# l:line[col('.') - 2] | return lexima#expand(a:open, 'i') | endif  " after \ -> lexima
+  let l:after = strpart(l:line, col('.') - 1)                                  " cursor .. EOL
+  if a:close ==# l:after[0]       | return lexima#expand(a:open, 'i') | endif  " adjacent close -> nest
+  let l:depth = 0
+  for l:ch in split(l:after, '\zs')
+    if a:open ==# l:ch
+      let l:depth += 1
+    elseif a:close ==# l:ch
+      if 0 == l:depth | return a:open | endif                                  " unmatched close ahead -> single
+      let l:depth -= 1
+    endif
+  endfor
+  return lexima#expand(a:open, 'i')
+endfunction
+inoremap <silent><expr> ( <SID>PairBracket('(', ')')
+inoremap <silent><expr> [ <SID>PairBracket('[', ']')
+inoremap <silent><expr> { <SID>PairBracket('{', '}')
 
 " vim-airline/vim-airline (skip in VS Code: g:loaded_airline=1 before plug#end above)
 let g:airline_powerline_fonts                      = 1
