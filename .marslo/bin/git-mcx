@@ -4,7 +4,7 @@
 #     FileName : git-mcx
 #       Author : marslo
 #      Created : 2025-03-21 01:32:35
-#   LastChange : 2026-09-01 20:48:13
+#   LastChange : 2026-09-14 18:04:57
 #        Usage : git-mcx [OPTION]             # call getCommitMessage to set commit message
 #                git-mcx [OPTION] [message]   # using `[message]` as commit message
 #=============================================================================
@@ -163,7 +163,7 @@ function _banner() {
 
 function msgPreview() {
   echo -e "\n$(c Wdi)--------------- git message preview ---------------$(c)"
-  printf  "%s\n" "${1}" | command bat --plain --language COMMIT_EDITMSG --theme gruvbox-dark-marslo
+  printf  "%s\n" "${1}" | command bat --plain --language COMMIT_EDITMSG --theme gruvbox-material-dark
   echo -e "$(c Wdi)---------------------------------------------------$(c)"
   printf  "%s\n" "${1}" | pbcopy && printf "$(c Cdi)%b$(c)\n" "(the commit message has been copied to clipboard)"
 }

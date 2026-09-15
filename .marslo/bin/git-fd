@@ -4,7 +4,7 @@
 #     FileName : git-fd
 #       Author : marslo
 #      Created : 2025-04-10 19:59:15
-#   LastChange : 2026-05-22 13:12:09
+#   LastChange : 2026-09-14 17:53:23
 #=============================================================================
 
 set -euo pipefail
@@ -385,7 +385,7 @@ declare gdetail="bash -c '
     echo -e \"\n\033[1;34m-------- DIFF -------\033[0m\";
     git diff --color=always \"\${rev}^\" \"\${rev}\"; }
 ' | less -R"
-declare gdiffbat="git show {1} --format= --patch 2>/dev/null | bat --plain --theme gruvbox-dark-marslo --language diff --paging=always"
+declare gdiffbat="git show {1} --format= --patch 2>/dev/null | bat --plain --theme gruvbox-material-dark --language diff --paging=always"
 declare -a files=()
 mapfile -d '' files < <(
   fzf --read0 --print0 < <(getOutput) \

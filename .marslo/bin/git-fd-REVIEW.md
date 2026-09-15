@@ -62,7 +62,7 @@
 - `git diff --color=always` 原始 diff
 
 ### gdiffbat（CTRL-/）
-- `git show {1} --format= --patch \| bat --plain --theme gruvbox-dark-marslo --language diff --paging=always`
+- `git show {1} --format= --patch \| bat --plain --theme gruvbox-material-dark --language diff --paging=always`
 
 ### Enter 后处理
 - 仅调用 `showSingleCommit` 显示 log

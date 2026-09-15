@@ -1,9 +1,9 @@
 " =============================================================================
 "      FileName : theme
-"        Author : marslo.jiao@gmail.com
+"        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-03-09 19:44:02
+"    LastChange : 2026-09-14 18:06:32
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -48,6 +48,8 @@ if has( 'gui_running' ) || 'xterm-256color' ==? $TERM
     let g:everforest_background = 'hard'
     colorscheme everforest                                          " sainnhe/everforest
   else
+    let g:gruvbox_material_background = 'hard'
+    let g:gruvbox_material_better_performance = 1
     colorscheme gruvbox-material                                    " sainnhe/gruvbox-material
   endif
 

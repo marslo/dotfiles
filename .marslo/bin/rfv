@@ -156,6 +156,6 @@ rg "${RG_OPTS[@]}" "${RG_EXTRA[@]}" "${TARGET_PATH}" |
     --delimiter : \
     --prompt '➤ ' \
     --header 'CTRL-R ( ripgrep mode ); CTRL-F ( fzf mode )' \
-    --preview 'bat --color=always --theme gruvbox-dark-marslo --style=numbers {1} --highlight-line {2}' \
+    --preview 'bat --color=always --theme gruvbox-material-dark --style=numbers {1} --highlight-line {2}' \
     --preview-window 'up,border-bottom:50%,+{2}+3/3' \
     --bind 'enter:become(nvim {1} +{2})'

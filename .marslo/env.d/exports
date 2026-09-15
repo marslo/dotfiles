@@ -4,13 +4,13 @@
 #     FileName : exports
 #       Author : marslo
 #      Created : 2020-08-25 15:26:55
-#   LastChange : 2026-09-09 02:10:30
+#   LastChange : 2026-09-14 17:53:28
 # =============================================================================
 
 # bat
 export BAT_PAGER="less -RFX"
 # bat cache --build
-export BAT_THEME='gruvbox-dark-marslo'
+export BAT_THEME='gruvbox-material-dark'
 export FD_IGNORE_FILE="${HOME}/.fdignore"
 export EZA_CONFIG_DIR="${HOME}/.marslo/.config/eza"
 # colors

@@ -12,7 +12,7 @@ set -eo pipefail
 shopt -s extglob
 
 CS_CACHE_DIR="${CS_CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/cheat_sheets}"
-script_name="${0##*/}"
+script_name="$( basename "${BASH_SOURCE[0]:-$0}" )"; declare -r script_name
 
 print_help_message_and_exit() {
   echo "Interactive browser for https://cht.sh (https://github.com/chubin/cheat.sh)
@@ -85,12 +85,12 @@ BASH
   read -r -d '' xo <<'EOF'
     item=$(echo "{}" | tr -d "'")
     target="${topic}${item}"
-    [[ "$target" == */* ]] || target="_$target"
-    # echo "Debug: item=[$item] target=[$target]" > /dev/tty
-    if [[ -f "$target" ]]; then
-      bat --color=always --theme='gruvbox-dark-marslo' "$target" | less -R > /dev/tty
+    [[ "${target}" == */* ]] || target="_${target}"
+    # echo "Debug: item=[${item}] target=[${target}]" > /dev/tty
+    if test -f "${target}"; then
+      bat --color=always --theme='gruvbox-material-dark' "${target}" | less -R > /dev/tty
     else
-      printf "\n\e[31mError: File [%s] not found\e[0m\n" "$target" > /dev/tty
+      printf "\n\e[31mError: File [%s] not found\e[0m\n" "${target}" > /dev/tty
       read -p "Press Enter to continue..." > /dev/tty
     fi
 EOF
@@ -98,7 +98,7 @@ EOF
   find "${topic:-./}" -maxdepth 1 -type f -printf "%T@ %f\n" |
     sort -k1 -rg | sed -e 's/^.*[_ ]//' |
     awk '/:list/ {next} !seen[$1]++' - "${cache_file}" |
-    fzf --height 80% --reverse --print-query --prompt "> $topic" \
+    fzf --height 80% --reverse --print-query --prompt "> ${topic}" \
         --preview "${ps}" --preview-window 75% --info right \
         --bind 'ctrl-/:toggle-preview' \
         --bind "ctrl-o:execute($xo)" |
