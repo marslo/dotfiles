@@ -4,7 +4,7 @@
 #     FileName : imarslo.sh
 #       Author : marslo
 #      Created : 2026-03-09 14:28:06
-#   LastChange : 2026-07-14 23:23:12
+#   LastChange : 2026-09-15 21:04:41
 #=============================================================================
 
 function _compgen_nocase() {
@@ -80,7 +80,7 @@ function _rgba2hex_completion() {
 
 _JIRA_STAT_OPTS="-p --project -t --type -c --condition -a --and -o --or -m --max -j --jql -i --index -h --help -v -vv --verbose"
 _JIRA_LS_OPTS="--new --in-progress --todo --open --closed --reporter --assignee -p --project -u --update -r --return -h --help"
-_JIRA_TRANSITION_OPTS="--to -c --add-comment"
+_JIRA_TRANSITION_OPTS="--to -c --add-comment -l --add-label --add-labels --remove-label --remove-labels --list-label --list-labels"
 _JIRA_TRANSITION_TARGETS="in-progress close done"
 _JIRA_STAT_CONDITIONS="AND OR IN"
 
@@ -103,13 +103,15 @@ function _jira_ls_logic() {
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
   case "${prev}" in
-    -p|--project          ) _compgen_nocase "${cur}" "IPBUSW IPBD SPTA"; return 0 ;;
-    -r|--return           ) _compgen_nocase "${cur}" "full short"; return 0 ;;
-    --to                  ) _compgen_nocase "${cur}" "${_JIRA_TRANSITION_TARGETS}"; return 0 ;;
-    -c|--add-comment      ) return 0 ;;
-    --assignee|--reporter ) if [[ "${cur}" != -* ]]; then
-                              _compgen_nocase "${cur}" "'currentUser()' unassigned"; return 0
-                            fi ;;
+    -p|--project                   ) _compgen_nocase "${cur}" "IPBUSW IPBD SPTA"; return 0 ;;
+    -r|--return                    ) _compgen_nocase "${cur}" "full short"; return 0 ;;
+    --to                           ) _compgen_nocase "${cur}" "${_JIRA_TRANSITION_TARGETS}"; return 0 ;;
+    -c|--add-comment               ) return 0 ;;
+    -l|--add-label|--add-labels    ) return 0 ;;
+    --remove-label|--remove-labels ) return 0 ;;
+    --assignee|--reporter          ) if [[ "${cur}" != -* ]]; then
+                                       _compgen_nocase "${cur}" "'currentUser()' unassigned"; return 0
+                                     fi ;;
   esac
 
   if [[ "${cur}" == -* ]]; then

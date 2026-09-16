@@ -4,7 +4,7 @@
 #     FileName : jira-ls
 #       Author : marslo
 #      Created : 2026-01-21 20:57:09
-#   LastChange : 2026-07-14 23:38:02
+#   LastChange : 2026-09-15 21:08:47
 #=============================================================================
 
 set -euo pipefail
@@ -14,12 +14,13 @@ declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /' )"
 # shellcheck disable=SC2155
 declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
-# @usage:  or copy & paste the `c()` function from:
-#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# @usage:  or copy & paste the `c()` function from: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
 declare -r JIRA_URL="${JIRA_URL:-https://jira.domain.com}"
+# per-project epic link field ( customfield id differs per project ); holds the epic's issue key, resolved to the epic name for display
+declare -A EPIC_FIELD=( ['PROJ1']='customfield_10066' )
 declare -A PROJECTS_ID=( ['PROJ1']='23918' ['PROJ2']='23917' ['PROJ3']='18308' ['PROJ4']='15014' )
 declare _PROJECT='PROJ1'
 declare -a PROJECTS=()
@@ -29,6 +30,9 @@ declare ASSIGNEE=''
 declare REPORTER=''
 declare TRANSITION=''
 declare COMMENT=''
+declare LIST_LABELS=false
+declare -a ADD_LABELS=()
+declare -a REMOVE_LABELS=()
 declare -a KEYS=()
 declare -a CURRENT_STATUS=()
 declare -A JQL_MAP=(
@@ -68,9 +72,11 @@ OPTIONS
 
   $(c Y)--to $(c 0Bi)STATUS$(c)                transition the $(c i)selected$(c) issue to $(c 0Bi)STATUS$(c) $(c 0i)( available: $(c 0Ci)'in-progress'$(c 0i), $(c 0Ci)'close'$(c 0i), $(c 0Ci)'done'$(c 0i))$(c)
   $(c Y)-c$(c), $(c Y)--add-comment $(c 0Mi)TEXT$(c)     add a comment $(c 0Mi)TEXT$(c) to the $(c i)selected$(c) issue
+  $(c Y)-l$(c), $(c Y)--add-label $(c 0Mi)LABEL$(c)      add $(c 0Mi)LABEL$(c)(s) to the $(c i)selected$(c) issue $(c 0i)(comma-separated or repeat the flag)$(c)
+  $(c Y)--remove-label $(c 0Mi)LABEL$(c)       remove $(c 0Mi)LABEL$(c)(s) from the $(c i)selected$(c) issue $(c 0i)(comma-separated or repeat the flag)$(c)
+  $(c Y)--list-label$(c)               list the current labels of the $(c i)selected$(c) issue(s)
 
-  $(c G)-r$(c), $(c G)--return $(c 0Mi)TYPE$(c)          specify the return format $(c 0i)(default: $(c 0Mi)full$(c 0i))$(c)
-                             $(c 0Mi)full$(c) for key and summary; $(c 0Mi)short$(c) for key only
+  $(c G)-r$(c), $(c G)--return $(c 0Mi)TYPE$(c)          specify the return format $(c 0i)(default: $(c 0Mi)full$(c 0i))$(c). $(c 0Mi)full$(c) for key and summary; $(c 0Mi)short$(c) for key only
   $(c G)-h$(c), $(c G)--help$(c)                 show this help message and exit
 
 EXAMPLE
@@ -85,23 +91,37 @@ EXAMPLE
 
   $(c Wdi)# list open tickets, then add a comment to the selected one$(c)
   $(c Ys)\$ ${ME} $(c 0Bi)--open $(c 0Yi)--add-comment $(c 0Mi)'working on it now'$(c)
+
+  $(c Wdi)# list open tickets, then add labels to and remove a label from the selected one$(c)
+  $(c Ys)\$ ${ME} $(c 0Bi)--open $(c 0Yi)--add-label $(c 0Mi)'Linux,kernel' $(c 0Yi)--remove-label $(c 0Mi)'wip'$(c)
 "
 
-function passToken() { pass show "${1}" | head -n1; }
+function passToken() { type -P pass >/dev/null || die "JIRA API token not found. Please set the \`JIRA_API_TOKEN\` environment variable"; pass show "${1}" | head -n1; }
 function showUsage() { echo -e "${USAGE}"; exit 0;  }
 function dieWithCode { echo -e "$(c Ri)ERROR$(c 0i): $1 :$(c)"; shift; echo -e "$(c 0Wi)\`\`\`\n$*\n\`\`\`\n$(c 0Wdi)exit ...$(c)"; exit 1; }
 function die()  { echo -e "$(c Ri)ERROR$(c 0i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
 function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
 
+# verify required tools and config exist before doing any work; die listing whatever is missing
+function preflight() {
+  local -a required=( curl jq fzf )
+  local -a missing=()
+  local tool
+  for tool in "${required[@]}"; do
+    command -v "${tool}" >/dev/null 2>&1 || missing+=( "${tool}" )
+  done
+  test 0 -eq "${#missing[@]}" || die "missing required tool(s): $(c 0Mi)$(IFS=', '; echo "${missing[*]}")$(c 0i)"
+  test 'https://jira.domain.com' != "${JIRA_URL}" || die "JIRA_URL is not configured. Please set the \`JIRA_URL\` environment variable first"
+}
+preflight
+
 declare -r JIRA_API_TOKEN="${JIRA_API_TOKEN:-$( passToken "${PASS_JIRA:-marslo/jira}" )}"
-test -n "${JIRA_API_TOKEN:-}" || die "JIRA API token not found. Please set the \`JIRA_API_TOKEN\` environment variable"
+test -n "${JIRA_API_TOKEN:-}" || die "JIRA API token not found. Please set the \`JIRA_API_TOKEN\` environment variable first"
 declare -ar CURL_CMD=( command curl -u "marslo:${JIRA_API_TOKEN}" --silent --compressed )
 
-# GET the available transitions for a given issue key
-#   expand transitions.fields so we can tell whether `resolution` is settable
+# GET the available transitions for an issue key ( expand transitions.fields to reveal whether `resolution` is settable )
 function getTransitions() {
-  "${CURL_CMD[@]}" --get --data-urlencode 'expand=transitions.fields' \
-                   "${JIRA_URL}/rest/api/2/issue/${1}/transitions"
+  "${CURL_CMD[@]}" --get --data-urlencode 'expand=transitions.fields' "${JIRA_URL}/rest/api/2/issue/${1}/transitions"
 }
 
 # transition an issue to a target status via the JIRA API
@@ -122,7 +142,7 @@ function doTransition() {
           jq -r --arg t "${target}" '.transitions[] | select((.to.name | ascii_downcase) == ($t | ascii_downcase)) | .id' |
           head -n1
         )"
-  if [[ -z "${tid}" ]]; then
+  if test -z "${tid}"; then
     tid="$( echo "${transitions}" |
             jq -r --arg t "${target}" '.transitions[] | select((.name | ascii_downcase) == ($t | ascii_downcase)) | .id' |
             head -n1
@@ -130,8 +150,8 @@ function doTransition() {
   fi
   test -n "${tid}" || die "no transition to '${target}' available for ${key}. available: $(c 0Mi)$( echo "${transitions}" | jq -r '[.transitions[].to.name] | join(", ")' )$(c 0i)"
 
-  # build the payload; when this transition exposes a `resolution` field JIRA requires it to be set explicitly, otherwise resolution defaults to 'Open'
-  # try the configured resolution names in order; only names actually offered by the transition are used
+  # build the transition payload
+  # gotcha: a transition exposing a `resolution` field requires it set explicitly ( else jira defaults it to 'Open' ). pick the first configured resolution name the transition actually offers
   payload="$( echo "${transitions}" | jq -c --arg tid "${tid}" --arg resolutions "${resolutions}" '
     ( .transitions[] | select(.id == $tid) ) as $tr
     | ( $resolutions | if . == "" then [] else split(",") end ) as $prefer
@@ -150,7 +170,7 @@ function doTransition() {
            "${JIRA_URL}/rest/api/2/issue/${key}/transitions"
          )"
   # a successful transition returns HTTP 204 with an empty body
-  if [[ -n "${resp}" ]] && echo "${resp}" | jq -e 'has("errorMessages") or has("errors")' >/dev/null 2>&1; then
+  if test -n "${resp}" && echo "${resp}" | jq -e 'has("errorMessages") or has("errors")' >/dev/null 2>&1; then
     dieWithCode 'JIRA transition failed' "$(echo "${resp}" | jq -rc '.errorMessages, .errors')"
   fi
 }
@@ -172,7 +192,72 @@ function addComment() {
   echo "${resp}" | jq -e 'has("id")' >/dev/null 2>&1 || dieWithCode 'JIRA add comment failed' "${resp}"
 }
 
-while [[ $# -gt 0 ]]; do
+# add/remove labels on an issue via an atomic partial update
+#   $1: issue key ; consumes global ADD_LABELS / REMOVE_LABELS
+function updateLabels() {
+  local key="$1" addJson removeJson payload resp
+  # build JSON arrays via --args positional so label values with spaces survive
+  addJson="$( jq -n '$ARGS.positional' --args "${ADD_LABELS[@]}" )"
+  removeJson="$( jq -n '$ARGS.positional' --args "${REMOVE_LABELS[@]}" )"
+  payload="$( jq -n --argjson add "${addJson}" --argjson remove "${removeJson}" '
+    { update: { labels: ( ($add | map({ add: . })) + ($remove | map({ remove: . })) ) } }
+  ' )"
+
+  resp="$( "${CURL_CMD[@]}" \
+           --request PUT \
+           --header 'Content-Type: application/json' \
+           --data "${payload}" \
+           "${JIRA_URL}/rest/api/2/issue/${key}"
+         )"
+  # a successful update returns HTTP 204 with an empty body
+  if test -n "${resp}" && echo "${resp}" | jq -e 'has("errorMessages") or has("errors")' >/dev/null 2>&1; then
+    dieWithCode 'JIRA label update failed' "$(echo "${resp}" | jq -rc '.errorMessages, .errors')"
+  fi
+}
+
+# echo an issue's labels as a comma-separated string ( empty when none )
+#   $1: issue key
+function listLabels() {
+  local key="$1" resp
+  resp="$( "${CURL_CMD[@]}" --get --data-urlencode 'fields=labels' "${JIRA_URL}/rest/api/2/issue/${key}" )"
+  if echo "${resp}" | jq -e 'has("errorMessages")' >/dev/null 2>&1; then
+    dieWithCode 'JIRA API Error' "$(echo "${resp}" | jq -r '.errorMessages[]')"
+  fi
+  echo "${resp}" | jq -r '.fields.labels | join(", ")'
+}
+
+# echo a JSON object mapping every referenced epic key to its epic name ( '{}' when none ). jira exposes the epic link as a key ( see EPIC_FIELD ) but shows the epic name; resolve in two calls
+#   reads globals `json` / `EPIC_FIELDS_JSON` ; discovers the epic-name field, then batch-fetches the epics
+function resolveEpics() {
+  local -a keys=()
+  # each issue's epic link lives in a per-project custom field ( $ef keyed by project )
+  mapfile -t keys < <( echo "${json}" | jq -r --argjson ef "${EPIC_FIELDS_JSON}" '
+    [ .issues[]
+      | ( $ef[.fields.project.key] // "" ) as $f
+      | if $f == "" then empty else ( .fields[$f] // empty ) end
+    ] | unique | .[]
+  ' )
+  test 0 -lt "${#keys[@]}" || { echo '{}'; return 0; }
+
+  # the epic-name field id varies per instance; match by greenhopper schema or display name
+  local nameField
+  nameField="$( "${CURL_CMD[@]}" --get "${JIRA_URL}/rest/api/2/field" |
+                jq -r 'map(select(.schema.custom == "com.pyxis.greenhopper.jira:gh-epic-label" or .name == "Epic Name")) | .[0].id // empty' 2>/dev/null || true )"
+
+  local fields='summary' jql resp
+  test -n "${nameField}" && fields="summary,${nameField}"
+  jql="issuekey in ($(IFS=','; echo "${keys[*]}"))"
+  resp="$( "${CURL_CMD[@]}" --data-urlencode "jql=${jql}" --data-urlencode "fields=${fields}" --get "${JIRA_URL}/rest/api/2/search" )" || resp=''
+
+  # prefer the epic-name field, fall back to summary, then the key itself
+  echo "${resp}" | jq -c --arg f "${nameField}" '
+    ( .issues // [] )
+    | map({ key: .key, value: ( ( if $f != "" then .fields[$f] else null end ) // .fields.summary // .key ) })
+    | from_entries
+  ' 2>/dev/null || echo '{}'
+}
+
+while test $# -gt 0; do
   case "$1" in
     -h | --help             ) showUsage                         ;;
     -r | --return           ) case "${2:-}" in
@@ -188,6 +273,24 @@ while [[ $# -gt 0 ]]; do
                               shift 2                           ;;
     -c | --add-comment      ) test -n "${2:-}" || die "'$1' requires a comment text"
                               COMMENT="$2"; shift 2             ;;
+    -l | --add-label | --add-labels  )
+                              test -n "${2:-}" || die "'$1' requires label(s)"
+                              IFS=',' read -ra _labels <<< "$2"
+                              for _l in "${_labels[@]}"; do
+                                _l="$( echo "${_l}" | trim )"
+                                test -n "${_l}" && ADD_LABELS+=( "${_l}" )
+                              done
+                              shift 2                           ;;
+    --remove-label | --remove-labels )
+                              test -n "${2:-}" || die "'$1' requires label(s)"
+                              IFS=',' read -ra _labels <<< "$2"
+                              for _l in "${_labels[@]}"; do
+                                _l="$( echo "${_l}" | trim )"
+                                test -n "${_l}" && REMOVE_LABELS+=( "${_l}" )
+                              done
+                              shift 2                           ;;
+    --list-labels | --list-label     )
+                              LIST_LABELS=true; shift           ;;
     --assignee | --reporter ) PARAM="${1#--}"; PARAM="${PARAM^^}";
                               if [[ -n "${2:-}" && "$2" != -* ]]; then
                                 printf -v "${PARAM}" "%s" "$2"; shift 2;
@@ -249,6 +352,18 @@ if ! echo "${json}" | jq -e '.issues | length > 0' > /dev/null; then
   exit 0
 fi
 
+# per-project epic link field ( EPIC_FIELD ) as a JSON map for jq lookups
+declare EPIC_FIELDS_JSON='{}'
+EPIC_FIELDS_JSON="$(
+  for pk in "${!EPIC_FIELD[@]}"; do printf '%s\t%s\n' "${pk}" "${EPIC_FIELD[${pk}]}"; done |
+  jq -Rc -n '[ inputs | split("\t") | { (.[0]): (.[1]) } ] | add // {}'
+)"
+
+# resolve epic keys to names once, up front ( jq cannot make HTTP calls at render time )
+declare EPICS_JSON='{}'
+EPICS_JSON="$( resolveEpics )"
+test -n "${EPICS_JSON}" || EPICS_JSON='{}'
+
 declare INAME="Marslo Jiao"
 declare TEMPLATE='"'
 TEMPLATE+='\(.key): \(.fields.summary)'
@@ -261,7 +376,11 @@ TEMPLATE+='else "\\033[1;36m" end)'
 TEMPLATE+='\(.fields.status.name)\\033[0m\n'
 TEMPLATE+='Reporter: \(if (.fields.reporter.displayName // "Unknown") != "'"${INAME}"'" then "\\033[0;3m" + (.fields.reporter.displayName // "Unknown") + "\\033[0m" else "\\033[3;36m" + (.fields.reporter.displayName // "Unknown") + "\\033[0m" end) • '
 TEMPLATE+='Assignee: \(if (.fields.assignee.displayName // "Unassigned") != "'"${INAME}"'" then "\\033[0;3m" + (.fields.assignee.displayName // "Unassigned") + "\\033[0m" else "\\033[3;36m" + (.fields.assignee.displayName // "Unassigned") + "\\033[0m" end)\n'
-TEMPLATE+='Created: \(.fields.created) • Updated: \(.fields.updated)\n\n'
+TEMPLATE+='Created: \(.fields.created) • Updated: \(.fields.updated)\n'
+TEMPLATE+='\(if ((.fields.labels // []) | length) > 0 then "Labels: \\033[1;33m" + ((.fields.labels // []) | join(", ")) + "\\033[0m\n" else "" end)'
+# shellcheck disable=SC2016  # $efields / $epics are jq variables, not shell expansions
+TEMPLATE+='\(( $efields[.fields.project.key] // "" ) as $ef | ( if $ef == "" then "" else (.fields[$ef] // "") end ) as $ek | if $ek != "" then "Epic: \\033[0;3;4;34m" + ($epics[$ek] // $ek) + "\\033[0m\n" else "" end)'
+TEMPLATE+='\n'
 TEMPLATE+='\(.fields.description)'
 TEMPLATE+='"'
 
@@ -281,9 +400,9 @@ declare TRANSFORMER='
 '
 declare jira=''
 jira="$(
-  echo "${json}" | jq ".issues[] | ${TEMPLATE}" |
+  echo "${json}" | jq --argjson epics "${EPICS_JSON}" --argjson efields "${EPIC_FIELDS_JSON}" ".issues[] | ${TEMPLATE}" |
   sed -e 's/"\(.*\)"/\1/' -e 's/\\"/"/g' -e 's/\\t/\t/g' -e 's/\\\\033/\\033/g' |
-  fzf --with-nth=1 --ansi \
+  fzf --multi --with-nth=1 --ansi \
       --delimiter='\t' \
       --preview='printf "%b" {2}' \
       --preview-window='top,70%,border-bottom,wrap' \
@@ -292,33 +411,54 @@ jira="$(
       --bind "ctrl-k:execute-silent(${GET_ID} | pbcopy)" \
       --bind "ctrl-y:execute-silent(${FORMAT_CONTENT} | pbcopy)" \
       --bind "ctrl-o:execute(${GET_ID} | xargs -I {} open ${JIRA_URL}/browse/{})" |
-  cut -f1 |
-  trim
+  cut -f1
 )"
 
-# act on the selected issue when a `--to-*` / `--add-comment` flag is present
-if [[ -n "${TRANSITION:-}" ]] || [[ -n "${COMMENT:-}" ]]; then
-  declare KEY_SELECTED=''
-  KEY_SELECTED="$( echo "${jira%%:*}" | trim )"
-  test -n "${KEY_SELECTED}" || { echo -e "$(c Wdi)>> $(c 0Mi)no issue selected$(c)" >&2; exit 0; }
+# collect every selected issue key (fzf --multi may return multiple lines)
+declare -a KEYS_SELECTED=()
+while IFS= read -r line; do
+  line="$( echo "${line%%:*}" | trim )"
+  test -n "${line}" && KEYS_SELECTED+=( "${line}" )
+done <<< "${jira}"
 
-  if [[ -n "${TRANSITION:-}" ]]; then
-    doTransition "${KEY_SELECTED}" "${TRANSITION}"
-    echo -e "$(c Gi)>> ${JIRA_URL}/browse/${KEY_SELECTED}$(c)$(c i) transitioned to $(c)$(c 0Ci)'${TRANSITION%%,*}'$(c)"
-  fi
+# act on the selected issue(s) when a `--to` / `--add-comment` / `--add-label` / `--remove-label` / `--list-labels` flag is present
+# fzf --multi may select several issues; apply every requested operation to each in turn
+if test -n "${TRANSITION:-}" || test -n "${COMMENT:-}" || test true = "${LIST_LABELS}" ||
+   test 0 -lt "${#ADD_LABELS[@]}" || test 0 -lt "${#REMOVE_LABELS[@]}"; then
 
-  if [[ -n "${COMMENT:-}" ]]; then
-    addComment "${KEY_SELECTED}" "${COMMENT}"
-    echo -e "$(c Gi)>> ${KEY_SELECTED}$(c)$(c i) comment added$(c)"
-  fi
+  test 0 -lt "${#KEYS_SELECTED[@]}" || { echo -e "$(c Wdi)>> $(c 0Mi)no issue selected$(c)" >&2; exit 0; }
+
+  for KEY_SELECTED in "${KEYS_SELECTED[@]}"; do
+    if test true = "${LIST_LABELS}"; then
+      declare curLabels=''
+      curLabels="$( listLabels "${KEY_SELECTED}" )"
+      echo -e "$(c Gi)>> ${KEY_SELECTED}$(c)$(c i) label(s): $(c)$(c 0Ci)${curLabels:-(none)}$(c)"
+    fi
+
+    if test -n "${TRANSITION:-}"; then
+      doTransition "${KEY_SELECTED}" "${TRANSITION}"
+      echo -e "$(c Gi)>> ${JIRA_URL}/browse/${KEY_SELECTED}$(c)$(c i) transitioned to $(c)$(c 0Ci)'${TRANSITION%%,*}'$(c)"
+    fi
+
+    if test -n "${COMMENT:-}"; then
+      addComment "${KEY_SELECTED}" "${COMMENT}"
+      echo -e "$(c Gi)>> ${KEY_SELECTED}$(c)$(c i) comment added$(c)"
+    fi
+
+    if test 0 -lt "${#ADD_LABELS[@]}" || test 0 -lt "${#REMOVE_LABELS[@]}"; then
+      updateLabels "${KEY_SELECTED}"
+      test 0 -lt "${#ADD_LABELS[@]}"    && echo -e "$(c Gi)>> ${KEY_SELECTED}$(c)$(c i) label(s) added: $(c)$(c 0Ci)$(IFS=', '; echo "${ADD_LABELS[*]}")$(c)"
+      test 0 -lt "${#REMOVE_LABELS[@]}" && echo -e "$(c Gi)>> ${KEY_SELECTED}$(c)$(c i) label(s) removed: $(c)$(c 0Ci)$(IFS=', '; echo "${REMOVE_LABELS[*]}")$(c)"
+    fi
+  done
 
   exit 0
 fi
 
-# return
+# return ( one line per selected issue )
 case "${RETURN_TYPE}" in
-  short ) echo "${jira%%:*}" | trim ;;
-  full  ) echo "${jira}" | trim    ;;
+  short ) test 0 -lt "${#KEYS_SELECTED[@]}" && printf '%s\n' "${KEYS_SELECTED[@]}" ;;
+  full  ) echo "${jira}" ;;
   *     ) die "Invalid return type '${RETURN_TYPE}'" ;;
 esac
 
