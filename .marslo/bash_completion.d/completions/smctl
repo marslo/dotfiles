@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # bash completion V2 for smctl                                -*- shell-script -*-
 # generated via : smctl completion bash > ~/.marslo/bash_completion.d/completions/smctl
 
@@ -337,3 +339,4 @@ else
 fi
 
 # ex: ts=4 sw=4 et filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 #compdef pipx
 # Run something, muting output or redirecting it to the debug stream
 # depending on the value of _ARC_DEBUG.
@@ -79,3 +81,5 @@ else
         compdef _python_argcomplete pipx
     fi
 fi
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

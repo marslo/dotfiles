@@ -4,45 +4,50 @@
 #     FileName : update.sh
 #       Author : marslo
 #      Created : 2025-11-14 19:43:32
-#   LastChange : 2026-09-02 04:36:10
+#   LastChange : 2026-09-16 11:00:32
 #=============================================================================
 
 set -euo pipefail
 
 # @credit: https://github.com/ppo/bash-colors
-# @usage:  or copy & paste the `c()` function from:
-#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# @usage:  or copy & paste the `c()` function from: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
 test -f "${HOME}"/.marslo/bin/bash-colors.sh && source "${HOME}"/.marslo/bin/bash-colors.sh || { c() { :; }; }
 
 # shellcheck disable=SC2155
 declare -r HERE="$( cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P )"
-function info() { echo -e "$(c Ms)>> $1 $(c 0Gi)updated !$(c)"; }
-function warn() { echo -e "$(c Ms)>> $1 $(c 0Ri)failed or timed out !$(c)"; }
+function info() { echo -e "$(c Ms)>> ${1} $(c 0Gi)updated !$(c)"; }
+function warn() { echo -e "$(c Ms)>> ${1} $(c 0Ri)failed or timed out !$(c)"; }
 # finalize <file>: read a generated completion on stdin and write it to <file> —
-# tabs expanded to 2 spaces, trailing whitespace stripped, trailing blank lines
-# dropped, a shebang prepended only if missing, and the house vim modeline
-# appended only if missing. idempotent: safe on input that already has either.
+# - tabs expanded to 2 spaces
+# - trailing whitespace stripped
+# - trailing blank lines dropped, a shebang pre-pended only if missing
+# - the house vim modeline appended only if missing.
+# idempotent: safe on input that already has either.
 function finalize() {
   awk '
     function is_shebang(s)  { return s ~ /^#!/ }
-    function is_modeline(s) { return s ~ /^[ \t]*#.*vim:/ }
-    { gsub(/\t/, "  "); sub(/ +$/, "") }                          # tabs -> 2 spaces, strip trailing ws
+    function is_vim(s)      { return s ~ /^[ \t]*#.*[ \t]vim:/ }           # the house vim: modeline
+    function is_modeline(s) { return s ~ /^[ \t]*#.*[ \t](vim?|ex):/ }     # any vi: / vim: / ex: modeline
+    { gsub(/\t/, "  "); sub(/ +$/, "") }                                   # tabs -> 2 spaces, strip trailing ws
     NR == 1 && !is_shebang($0) { print "#!/usr/bin/env bash"; print "" }   # prepend shebang if missing
-    /^$/ { pending++; next }                                      # hold blank lines
-    { for (; pending>0; pending--) print ""; print; last = $0 }   # flush blanks; track last non-blank
+    /^$/ { pending++; next }                                               # hold blank lines
+    { for (; pending>0; pending--) print ""; print; last = $0 }            # flush blanks; track last non-blank
     END {
-      if (!is_modeline(last)) {
+      if (is_vim(last)) { }                                                # already has vim: modeline -> nothing
+      else if (is_modeline(last))                                          # ex: / vi: present -> append vim:, no blank line
+        print "# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:"
+      else {                                                               # no modeline -> blank line + vim:
         print ""
-        print "# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh"
+        print "# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:"
       }
     }
   ' > "${1:?output path required}"
 }
 
-type -P kubectl >/dev/null && { command kubectl completion bash          > "${HERE}"/kubectl.sh        ; info "kubectl" ; }
-type -P npm     >/dev/null && { command npm completion                   > "${HERE}"/npm.sh            ; info "npm"     ; }
-type -P gh      >/dev/null && { command gh completion -s bash            > "${HERE}"/gh.bash.sh        ; info "gh cli"  ; }
+type -P kubectl >/dev/null && { command kubectl completion bash          | finalize "${HERE}"/kubectl.sh        ; info "kubectl" ; }
+type -P npm     >/dev/null && { command npm completion                   | finalize "${HERE}"/npm.sh            ; info "npm"     ; }
+type -P gh      >/dev/null && { command gh completion -s bash            | finalize "${HERE}"/gh.bash.sh        ; info "gh cli"  ; }
 type -P bat     >/dev/null && {
   # re-add the top-level 'cache' subcommand that `bat --completion` drops (bat#2085)
   command bat --completion bash | awk '
@@ -56,16 +61,16 @@ type -P bat     >/dev/null && {
   ' | finalize "${HERE}"/bat.sh
   info "bat"
 }
-type -P pipx    >/dev/null && { command register-python-argcomplete pipx > "${HERE}"/pipx.sh           ; info "pipx"    ; }
-# type -P pip   >/dev/null && { command pip completion --bash            > "${HERE}"/pip.sh            ; info "pip"     ; }
+type -P pipx    >/dev/null && { command register-python-argcomplete pipx | finalize "${HERE}"/pipx.sh           ; info "pipx"    ; }
+# type -P pip   >/dev/null && { command pip completion --bash            > "${HERE}"/pip.sh                     ; info "pip"     ; }
 # shellcheck disable=SC2016
 # type -P pip   >/dev/null && { printf '\n%s\n' '_py_m_pip_completion() { [[ "${COMP_WORDS[1]}" == "-m" && "${COMP_WORDS[2]}" == "pip" ]] || return; if (( COMP_CWORD == 2 )); then COMPREPLY=(pip); return; fi; COMPREPLY=( $( COMP_WORDS="pip ${COMP_WORDS[*]:3}" COMP_CWORD=$(( COMP_CWORD - 2 )) PIP_AUTO_COMPLETE=1 pip 2>/dev/null ) ); }; complete -o default -F _py_m_pip_completion python python3 python3.14' >> "${HERE}/pip.sh"; info "python3 -m pip"; }
-type -P cheat   >/dev/null && { command cheat --completion bash          > "${HERE}"/cheat.sh          ; info "cheat"   ; }
-type -P smctl   >/dev/null && { command smctl completion bash            > "${HERE}"/completions/smctl ; info "smctl"   ; }
+type -P cheat   >/dev/null && { command cheat --completion bash          | finalize "${HERE}"/cheat.sh          ; info "cheat"   ; }
+type -P smctl   >/dev/null && { command smctl completion bash            | finalize "${HERE}"/completions/smctl ; info "smctl"   ; }
 # $ pipx inject keyring shtab
 type -P keyring >/dev/null && {
   if out="$( command keyring --print-completion bash 2>/dev/null )" && [[ -n "${out}" && "${out}" != Install* ]]; then
-    printf '#!/usr/bin/env bash\n\n%s\n' "${out}" > "${HERE}"/keyring.bash ; info "keyring"
+    printf '%s\n' "${out}" | finalize "${HERE}"/keyring.bash ; info "keyring"
   elif [[ -s "${HERE}"/keyring.bash ]]; then
     echo -e "$(c Ms)>> keyring $(c 0Yi)kept existing $(c 0Wdi)(regen needs: pipx inject keyring shtab)$(c)"
   else
@@ -101,6 +106,6 @@ type -P cht.sh  >/dev/null && {
 }
 
 # cleanup
-[[ -n "${HERE}" && -d "${HERE}" ]] && fd -t f -d 2 -u '\.tmp$' "${HERE}" -x rm 2>/dev/null || true
+{ test -n "${HERE}" && test -d "${HERE}"; } && fd -t f -d 2 -u '\.tmp$' "${HERE}" -x rm 2>/dev/null || true
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

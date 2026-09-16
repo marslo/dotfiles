@@ -190,3 +190,5 @@ _shtab_keyring() {
 }
 
 complete -F _shtab_keyring keyring
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

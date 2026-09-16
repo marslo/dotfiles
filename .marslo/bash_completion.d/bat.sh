@@ -250,4 +250,4 @@ _bat() {
   ((cword == 1)) && COMPREPLY+=($(compgen -W "cache" -- "$cur"))
 } && complete -F _bat bat
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # bash completion V2 for cheat                                -*- shell-script -*-
 
 __cheat_debug()
@@ -424,3 +426,4 @@ else
 fi
 
 # ex: ts=4 sw=4 et filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

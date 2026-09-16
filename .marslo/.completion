@@ -81,4 +81,6 @@ fi
 test -r "${HOME}/.local/share/pythia/completion.bash" && source "${HOME}/.local/share/pythia/completion.bash"
 # <<< pythia (ai-pythia) completion <<<
 
+test -f "${BASH_COMPLETION_USER_DIR}"/bash-interp-completion.sh && source "${BASH_COMPLETION_USER_DIR}"/bash-interp-completion.sh
+
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

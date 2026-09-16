@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 ###-begin-npm-completion-###
 #
 # npm command completion script
@@ -67,3 +69,5 @@ elif type compctl &>/dev/null; then
   compctl -K _npm_completion npm
 fi
 ###-end-npm-completion-###
+
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

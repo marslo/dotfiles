@@ -4,7 +4,7 @@
 #     FileName : imarslo.sh
 #       Author : marslo
 #      Created : 2026-03-09 14:28:06
-#   LastChange : 2026-09-15 21:04:41
+#   LastChange : 2026-09-15 23:19:50
 #=============================================================================
 
 function _compgen_nocase() {
@@ -79,7 +79,7 @@ function _rgba2hex_completion() {
 }
 
 _JIRA_STAT_OPTS="-p --project -t --type -c --condition -a --and -o --or -m --max -j --jql -i --index -h --help -v -vv --verbose"
-_JIRA_LS_OPTS="--new --in-progress --todo --open --closed --reporter --assignee -p --project -u --update -r --return -h --help"
+_JIRA_LS_OPTS="--new --in-progress --todo --open --closed --reporter --assignee -p --project -u --update -r --return -j --jira --jira-id -h --help"
 _JIRA_TRANSITION_OPTS="--to -c --add-comment -l --add-label --add-labels --remove-label --remove-labels --list-label --list-labels"
 _JIRA_TRANSITION_TARGETS="in-progress close done"
 _JIRA_STAT_CONDITIONS="AND OR IN"
@@ -109,6 +109,7 @@ function _jira_ls_logic() {
     -c|--add-comment               ) return 0 ;;
     -l|--add-label|--add-labels    ) return 0 ;;
     --remove-label|--remove-labels ) return 0 ;;
+    -j|--jira|--jira-id            ) return 0 ;;
     --assignee|--reporter          ) if [[ "${cur}" != -* ]]; then
                                        _compgen_nocase "${cur}" "'currentUser()' unassigned"; return 0
                                      fi ;;
@@ -151,6 +152,9 @@ function _jira_completions() {
 
 function _jira_stat_completions() { _jira_stat_logic; }
 function _jira_ls_completions()   { _jira_ls_logic; }
+
+# `bash /path/jira-ls …` / `sh …` completion is handled centrally by zz-interp-completion.sh
+# ( sourced last ), which delegates back to _jira_ls_logic / _jira_stat_logic here.
 
 function _gdoc_completion() {
   local cur prev opts reProjects smsProjects
@@ -316,6 +320,7 @@ function _claude_filedir() {
 complete -o default -o bashdefault -F _jira_completions      jira
 complete -o default -o bashdefault -F _jira_stat_completions jira-stat
 complete -o default -o bashdefault -F _jira_ls_completions   jira-ls
+# note: `bash|sh <script>` interpreter completion is registered centrally in zz-interp-completion.sh
 complete -o default -o bashdefault -F _hex2rgba_completion   hex2rgba
 complete -o default -o bashdefault -F _rgba2hex_completion   rgba2hex
 complete -o default -o bashdefault -F _gdoc_completion       gdoc

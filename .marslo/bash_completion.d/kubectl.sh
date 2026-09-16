@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 
 # Copyright 2016 The Kubernetes Authors.
 #
@@ -438,3 +440,4 @@ else
 fi
 
 # ex: ts=4 sw=4 et filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
