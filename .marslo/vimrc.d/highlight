@@ -3,34 +3,43 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-08-14 01:11:51
+"    LastChange : 2026-09-23 22:14:54
 " =============================================================================
 
 " color table
-" #4682b4 - 024 - steelblue
-" #1b9aed - 033
+" #4682B4 - 024 - steelblue
+" #1B9AED - 033
 
 " vim
 highlight! Grey             ctermfg=241    guifg=#616161
 highlight! link Ignore      Grey
 highlight! ExtraWhitespace  ctermfg=245    ctermbg=NONE    guifg=#928374   guibg=NONE
 highlight! SpellBad         term=underline cterm=underline ctermbg=NONE    guibg=NONE  guisp=NONE
-" highlight! PasteHighlight ctermfg=235   ctermbg=175   guifg=#282828 guibg=#d3869b
-highlight! PasteHighlight   ctermfg=67    ctermbg=175   guifg=#282828 guibg=#5f87af
+" highlight! PasteHighlight ctermfg=235    ctermbg=175   guifg=#282828 guibg=#D3869B
+highlight! PasteHighlight   ctermfg=67     ctermbg=175   guifg=#282828 guibg=#5F87AF
 
 " log filetype
-highlight! logLevelInfo ctermfg=175 guifg=#5f87af
+highlight! logLevelInfo ctermfg=175 guifg=#5F87AF
 
 " - vim cursor color depends on terminal color
 " - nvim curcor color depends on `set termguicolors`
-" highlight! Cursor         term=bold      cterm=reverse   ctermfg=255     ctermbg=24  gui=reverse  guifg=white   guibg=steelblue  guisp=steelblue
-highlight! Cursor           term=bold      cterm=NONE      ctermfg=239     ctermbg=24  gui=NONE     guifg=#4e4e4e guibg=steelblue
+" - 80 column limit highlight - :verbose highlight ColorColumn
+" highlight! Cursor         term=bold    cterm=reverse   ctermfg=255     ctermbg=24  gui=reverse  guifg=white   guibg=steelblue  guisp=steelblue
+highlight! Cursor           term=bold    cterm=NONE      ctermfg=239     ctermbg=24  gui=bold     guifg=#4E4E4E guibg=steelblue
 highlight! link TermCursor  Cursor
 highlight! link iCursor     Cursor
-highlight! CursorColumn     ctermbg=236    guibg=#32302f
-highlight! CursorLine       ctermbg=236    guibg=#32302f
-highlight! Folded           cterm=italic   ctermfg=241 ctermbg=236 guifg=#616161 guibg=#32302f
-highlight! SpecialGrey      cterm=italic   ctermfg=241 gui=italic  guifg=#616161
+if get(g:, 'colors_name', '') =~# 'gruvbox'
+  highlight! CursorColumn   ctermbg=236  guibg=#32302F
+  highlight! CursorLine     ctermbg=236  guibg=#32302F
+  highlight! Folded         cterm=italic ctermfg=241  ctermbg=236 gui=italic guifg=#616161 guibg=#2E2D2C
+  highlight! ColorColumn    term=NONE    ctermfg=NONE ctermbg=235 gui=NONE   guifg=NONE    guibg=#2A2A2A
+elseif get(g:, 'colors_name', '') =~# 'everforest'
+  highlight! CursorColumn   ctermbg=237  guibg=#2F393D
+  highlight! CursorLine     ctermbg=237  guibg=#2F393D
+  highlight! Folded         cterm=italic ctermfg=241  ctermbg=237 gui=italic guifg=#616161 guibg=#303A3E
+  highlight! ColorColumn    term=NONE    ctermfg=NONE ctermbg=237 gui=NONE   guifg=NONE    guibg=#353F43
+endif
+highlight! SpecialGrey      cterm=italic ctermfg=241  gui=italic  guifg=#616161
 highlight! link Comment     SpecialGrey
 
 " for coc virtual text
@@ -67,11 +76,11 @@ highlight link SyntasticStyleErrorSign      GruvboxRedSign
 highlight link SyntasticStyleWarningSign    GruvboxPurpleSign
 
 " vim diff
-highlight! DiffAdd     term=bold    cterm=reverse ctermfg=142 ctermbg=235 gui=reverse guifg=#b8bb26 guibg=#282828
-highlight! DiffChange  term=bold    cterm=reverse ctermfg=108 ctermbg=235 gui=reverse guifg=#8ec07c guibg=#282828
-highlight! DiffDelete  term=bold    cterm=reverse ctermfg=167 ctermbg=235 gui=reverse guifg=#fb4934 guibg=#282828
-highlight! DiffText    term=reverse cterm=reverse ctermfg=214 ctermbg=235 gui=reverse guifg=#fabd2f guibg=#282828
-" highlight! DiffText  term=reverse cterm=reverse ctermfg=109 ctermbg=235 gui=reverse guifg=#fabd2f guibg=#458588
+highlight! DiffAdd     term=bold    cterm=reverse ctermfg=142 ctermbg=235 gui=reverse guifg=#B8BB26 guibg=#282828
+highlight! DiffChange  term=bold    cterm=reverse ctermfg=108 ctermbg=235 gui=reverse guifg=#8EC07C guibg=#282828
+highlight! DiffDelete  term=bold    cterm=reverse ctermfg=167 ctermbg=235 gui=reverse guifg=#FB4934 guibg=#282828
+highlight! DiffText    term=reverse cterm=reverse ctermfg=214 ctermbg=235 gui=reverse guifg=#FABD2F guibg=#282828
+" highlight! DiffText  term=reverse cterm=reverse ctermfg=109 ctermbg=235 gui=reverse guifg=#FABD2F guibg=#458588
 
 " APZelos/blamer.nvim
 highlight! Blamer            cterm=italic    ctermfg=241  gui=italic    guifg=#616161
@@ -101,45 +110,45 @@ highlight! link CocGitChangedSign PurpleSign
 highlight clear SignColumn
 
 " sainnhe/gruvbox-material: gruvbox_material.vim
-highlight RedItalic          cterm=italic   ctermfg=167   gui=italic    guifg=#ea6962
-highlight OrangeItalic       cterm=italic   ctermfg=208   gui=italic    guifg=#e78a4e
-highlight OrangeStandard     cterm=NONE     ctermfg=208   gui=NONE      guifg=#e78a4e
-highlight YellowItalic       cterm=italic   ctermfg=214   gui=italic    guifg=#d8a657
-highlight YellowStandard     cterm=NONE     ctermfg=214   gui=NONE      guifg=#d8a657
-highlight GreenItalic        cterm=italic   ctermfg=142   gui=italic    guifg=#a9b665
-highlight AquaItalic         cterm=italic   ctermfg=108   gui=italic    guifg=#89b482
-highlight BlueItalic         cterm=italic   ctermfg=109   gui=italic    guifg=#7daea3
-highlight BlueStandard       cterm=NONE     ctermfg=109   gui=NONE      guifg=#7daea3
-highlight PurpleItalic       cterm=italic   ctermfg=175   gui=italic    guifg=#d3869b
-highlight PurpleStandard     cterm=NONE     ctermfg=175   gui=NONE      guifg=#d3869b
-highlight GreenBold          cterm=bold     ctermfg=142   gui=bold      guifg=#a9b665
+highlight RedItalic          cterm=italic   ctermfg=167   gui=italic    guifg=#EA6962
+highlight OrangeItalic       cterm=italic   ctermfg=208   gui=italic    guifg=#E78A4E
+highlight OrangeStandard     cterm=NONE     ctermfg=208   gui=NONE      guifg=#E78A4E
+highlight YellowItalic       cterm=italic   ctermfg=214   gui=italic    guifg=#D8A657
+highlight YellowStandard     cterm=NONE     ctermfg=214   gui=NONE      guifg=#D8A657
+highlight GreenItalic        cterm=italic   ctermfg=142   gui=italic    guifg=#A9B665
+highlight AquaItalic         cterm=italic   ctermfg=108   gui=italic    guifg=#89B482
+highlight BlueItalic         cterm=italic   ctermfg=109   gui=italic    guifg=#7DAEA3
+highlight BlueStandard       cterm=NONE     ctermfg=109   gui=NONE      guifg=#7DAEA3
+highlight PurpleItalic       cterm=italic   ctermfg=175   gui=italic    guifg=#D3869B
+highlight PurpleStandard     cterm=NONE     ctermfg=175   gui=NONE      guifg=#D3869B
+highlight GreenBold          cterm=bold     ctermfg=142   gui=bold      guifg=#A9B665
 highlight link shFunctionKey GreenItalic
 
 " for groovy
-highlight! groovyType        cterm=NONE     ctermfg=214   gui=NONE      guifg=#d8a657
-highlight! Boolean           cterm=italic   ctermfg=175   gui=italic    guifg=#d3869b
+highlight! groovyType        cterm=NONE     ctermfg=214   gui=NONE      guifg=#D8A657
+highlight! Boolean           cterm=italic   ctermfg=175   gui=italic    guifg=#D3869B
 " https://github.com/sheerun/vim-polyglot/blob/master/syntax/groovy.vim#L159
-highlight! link groovyJDKBuiltin                  PurpleItalic
-highlight! link TSFuncBuiltin                     GreenItalic
-highlight! link groovyKeywords                    PurpleItalic
-highlight! link JenkinsPluginsKeywords            PurpleStandard
-highlight! link groovyDocTags                     YellowItalic
-highlight! link groovyDocParam                    GreenItalic
-highlight! link groovyCustomTypes                 Type
-highlight! link groovyDocComment                  Comment
-highlight! link groovyFieldAnnotation             GreenBold
-highlight! link jenkinsLibraryKeyword             GreenBold
-highlight! link jenkinsfileCoreStepNew            PurpleItalic
-highlight! link groovyCustomKeywords              AquaItalic
-highlight! link groovyLogicalOperator             OrangeStandard
-highlight! link jenkinsLibraryTarget              AquaItalic
+highlight! link groovyJDKBuiltin          PurpleItalic
+highlight! link TSFuncBuiltin             GreenItalic
+highlight! link groovyKeywords            PurpleItalic
+highlight! link JenkinsPluginsKeywords    PurpleStandard
+highlight! link groovyDocTags             YellowItalic
+highlight! link groovyDocParam            GreenItalic
+highlight! link groovyCustomTypes         Type
+highlight! link groovyDocComment          Comment
+highlight! link groovyFieldAnnotation     GreenBold
+highlight! link jenkinsLibraryKeyword     GreenBold
+highlight! link jenkinsfileCoreStepNew    PurpleItalic
+highlight! link groovyCustomKeywords      AquaItalic
+highlight! link groovyLogicalOperator     OrangeStandard
+highlight! link jenkinsLibraryTarget      AquaItalic
 
 if IsNvim()
   " groovy
   highlight! default link @comment.documentation  Comment
 
   " bash
-  highlight BashFunction guifg=#ea6962 gui=italic ctermfg=167 cterm=italic
+  highlight BashFunction guifg=#EA6962 gui=italic ctermfg=167 cterm=italic
   highlight! link @keyword.function.bash    BashFunction
   highlight! link @keyword.bash             BashFunction
   highlight! link @keyword.conditional.bash BashFunction
@@ -169,11 +178,11 @@ augroup MatchUpHighlight
 augroup END
 
 " pum -> popup menu
-highlight CocMenuSel      guibg=#3e4452              " selected raw
-highlight CocPumSearch    guifg=#e5c07b gui=bold     " fuzzy-find matched text
-highlight CocPumMenu      guifg=#5c6370              " menu (filename)
-highlight CocPumShortcut  guifg=#4b5263              " right-side [GT]
-highlight PmenuThumb      guibg=#5c6370              " scroll bar
+highlight CocMenuSel      guibg=#3E4452              " selected raw
+highlight CocPumSearch    guifg=#E5C07B gui=bold     " fuzzy-find matched text
+highlight CocPumMenu      guifg=#5C6370              " menu (filename)
+highlight CocPumShortcut  guifg=#4B5263              " right-side [GT]
+highlight PmenuThumb      guibg=#5C6370              " scroll bar
 highlight PmenuSbar       guibg=NONE                 " scroll bar background
 
 " ctrl+] to jump to the definition of markdownLineStart (colorscheme lacks it)
@@ -183,4 +192,4 @@ augroup JavaMarkdownDoc
 augroup END
 silent! highlight default link markdownLineStart markdownH1
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:

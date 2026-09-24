@@ -104,4 +104,4 @@ let g:NERDTreePatternMatchHighlightColor['.*\.bak$']      = '293739'       " #29
 let g:NERDTreePatternMatchHighlightColor['.*vimrc.*']     = '808000'       " #808000
 let g:NERDTreePatternMatchHighlightColor['.*extension.*'] = 'd63384'       " #d63384
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:

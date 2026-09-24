@@ -106,4 +106,4 @@ function! CursorShapeInDiffMode()
 endfunction
 autocmd! BufRead,BufEnter,BufNewFile * :call CursorShapeInDiffMode()
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:

@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-09-02 04:09:05
+#   LastChange : 2026-09-23 18:54:35
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -131,6 +131,7 @@ function pc() {                            # path copy
   local nofzf=false
   local file=''
   local -a args=()
+  function _trimhome() { local _path="${1:-}"; _path="$(realpath "${_path}")"; printf '%s' "${_path/#$HOME\//\~\/}"; }
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -147,8 +148,7 @@ function pc() {                            # path copy
   if ${nofzf}; then
     [[ 0 -eq $# ]] && { echo -e "$(c Rs)ERROR: '-n' requires a file|dir. EXIT..$(c)" && return; }
     [[ -e "$1" ]]  || { echo -e "$(c Rs)ERROR: '$1' does NOT exist. EXIT..$(c)" && return; }
-    printf '%s' "$(realpath "$1")" | "${COPY}" &&
-      printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "$1"
+    printf '%s' "$(_trimhome "$1")" | "${COPY}" && printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "$1"
     return
   fi
 
@@ -157,17 +157,16 @@ function pc() {                            # path copy
 
   if [[ 0 -eq $# ]]; then
     file=$({ [[ '--dir' = "${mode}" ]] && echo '.'; fd . "${fdopt[@]}"; } | fzf "${fzfopt[@]}") &&
-         printf '%s' "$(realpath "${file}")" | "${COPY}" &&
+         printf '%s' "$(_trimhome "${file}")" | "${COPY}" &&
          printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${file}"
   elif [[ 1 -eq $# ]] && [[ -d "$1" ]]; then
     local -a target=()
     [[ '.' = "${1}" ]] && target=("${1}") || target=('.' "${1}")
     file=$({ [[ '--dir' = "${mode}" ]] && echo "${1}"; fd "${target[@]}" "${fdopt[@]}"; } | fzf "${fzfopt[@]}") &&
-         printf '%s' "$(realpath "${file}")" | "${COPY}" &&
+         printf '%s' "$(_trimhome "${file}")" | "${COPY}" &&
          printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${file}"
   else
-    printf '%s' "$(realpath "${1}")" | "${COPY}" &&
-    printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${1}"
+    printf '%s' "$(_trimhome "${1}")" | "${COPY}" && printf "$(c Wd)>> path of$(c) $(c Gis)%s$(c) $(c Wdi)has been copied ..$(c)" "${1}"
   fi
 }
 
@@ -272,7 +271,22 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
   }
 
   # for rc folders
-  local -a rcRawPaths=( "${HOME}"/.marslo "${HOME}"/.idlerc "${HOME}"/.ssh "${HOME}"/.jfrog "${HOME}"/.pip "${HOME}"/.config/nvim "${HOME}"/.cht.sh "${HOME}"/.git-templates "${HOME}"/.config/bat/syntaxes "${HOME}"/.ctags.d "${HOME}"/.hammerspoon "${HOME}"/.cursor/rules "${HOME}"/.claude/rules )
+  local -a rcRawPaths=(
+    "${HOME}"/.marslo
+    "${HOME}"/.idlerc
+    "${HOME}"/.ssh
+    "${HOME}"/.jfrog
+    "${HOME}"/.pip
+    "${HOME}"/.config/nvim
+    "${HOME}"/.cht.sh
+    "${HOME}"/.git-templates
+    "${HOME}"/.config/bat/syntaxes
+    "${HOME}"/.config/bat/themes
+    "${HOME}"/.ctags.d
+    "${HOME}"/.hammerspoon
+    "${HOME}"/.cursor/rules
+    "${HOME}"/.claude/rules
+  )
   # ~/.config
   local -a cfgNames=( cheat github-copilot htop yamllint pip ncdu bat gh btop ruff )
   local -a rcPaths=() cfgRoots=()
@@ -1060,14 +1074,14 @@ function processMount() {
     fi
   fi
 
-  [[ -d "${path}" ]] || mkdir -p "${path}"
+  test -d "${path}" || mkdir -p "${path}"
   if isOSX; then
     mount -t smbfs -o -d=755,-f=755 "${mpoint}" "${path}"
   elif isWSL || isLinux; then
-    [[ ! -f '/usr/sbin/mount.cifs' ]] && echo -e "$(c Bi)>> install cifs-utils first :$(c) $(c Gi)sudo apt install cifs-utils$(c) $(c Bi)...$(c)" && return
-    [[ ! -f "$HOME/.cifs"          ]] && echo -e "$(c Bi)>> setup \`~/.cifs\` first ...$(c)" && return
+    test -f '/usr/sbin/mount.cifs' || { echo -e "$(c Bi)>> install cifs-utils first :$(c) $(c Gi)sudo apt install cifs-utils$(c) $(c Bi)...$(c)" && return; }
+    test -f "$HOME/.cifs"          || { echo -e "$(c Bi)>> setup \`~/.cifs\` first ...$(c)" && return; }
     local _output=$( sudo mount -t cifs "${mpoint}" "${path}" -o credentials=$HOME/.cifs -vvv 2>&1 )
-    [[ 'true' = "${verbose}" ]] && echo -e "$(c Wdi)>> [DEBUG] : ${_output} ..$(c)"
+    test 'true' = "${verbose}" && echo -e "$(c Wdi)>> [DEBUG] : ${_output} ..$(c)"
   fi
 
   if [[ '1' = "$(checkMountPoint "${mpoint}")" ]] && [[ 'false' != "${verbose}" ]]; then
@@ -1511,7 +1525,7 @@ function mkexp() {                         # [m]a[k]e environment variable [e][x
   CFLAGS="${CFLAGS:-}"
   CFLAGS+=" -I/usr/local/include"
   test -d "${TCLTK_HOME}" && CFLAGS+=" -I${TCLTK_HOME}/include"
-  CFLAGS=$( echo "$CFLAGS" | tr ' ' '\n' | uniq | sed '/^$/d' | paste -s -d' ' )
+  CFLAGS=$( echo "${CFLAGS}" | tr ' ' '\n' | uniq | sed '/^$/d' | paste -s -d' ' )
 
   CPPFLAGS="${CPPFLAGS:-}"
   test -d "${HOMEBREW_PREFIX}"      && CPPFLAGS+=" -I${HOMEBREW_PREFIX}/include"
@@ -1554,10 +1568,10 @@ function mkexp() {                         # [m]a[k]e environment variable [e][x
 
   LIBRARY_PATH="${HOMEBREW_PREFIX}/lib"
   test -d "${LIBICONV_HOME}" && LIBRARY_PATH+=":${LIBICONV_HOME}/lib"
-  LIBRARY_PATH=$( echo "$LIBRARY_PATH" | tr ':' '\n' | uniq | sed '/^$/d' | paste -s -d: )
+  LIBRARY_PATH=$( echo "${LIBRARY_PATH}" | tr ':' '\n' | uniq | sed '/^$/d' | paste -s -d: )
 
   LD_LIBRARY_PATH=/usr/local/lib
-  LD_LIBRARY_PATH=$( echo "$LD_LIBRARY_PATH" | tr ':' '\n' | uniq | sed '/^$/d' | paste -s -d: )
+  LD_LIBRARY_PATH=$( echo "${LD_LIBRARY_PATH}" | tr ':' '\n' | uniq | sed '/^$/d' | paste -s -d: )
 
   while read -r _env; do
     export "${_env?}"
@@ -1904,11 +1918,11 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
   declare -a tags=()
   local nodes=''
   local cmd=''
-  local removal='false'
-  local dangling='true'
-  local verbose='false'
-  local dryrun='false'
-  local dind='false'
+  local removal=false
+  local dangling=true
+  local verbose=false
+  local dryrun=false
+  local dind=false
 
   # shellcheck disable=SC2155
   local usage="$(c Cs)ddi$(c) - $(c Csi)d$(c)elete $(c Csi)d$(c)ocker $(c Csi)i$(c)mage: remove docker images in remote server
@@ -1938,12 +1952,12 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
   while test -n "$1"; do
     case "$1" in
       -t | --tags    ) tags+=("$2")                         ;  shift 2  ;;
-      -r | --removal ) removal='true'                       ;  shift    ;;
-      -v | --verbose ) verbose='true'                       ;  shift    ;;
-      -d | --dind    ) dind='true'                          ;  shift    ;;
-      --dangling     ) dangling='true'                      ;  shift    ;;
-      --no-dangling  ) dangling='false'                     ;  shift    ;;
-      --dryrun       ) dryrun='true'                        ;  shift    ;;
+      -r | --removal ) removal=true                         ;  shift    ;;
+      -v | --verbose ) verbose=true                         ;  shift    ;;
+      -d | --dind    ) dind=true                            ;  shift    ;;
+      --dangling     ) dangling=true                        ;  shift    ;;
+      --no-dangling  ) dangling=false                       ;  shift    ;;
+      --dryrun       ) dryrun=true                          ;  shift    ;;
       -h | --help    ) echo -e "${usage}"                   ;  return   ;;
       *              ) echo "Invalid option $1. try -h" >&2 ;  return 1 ;;
     esac
@@ -1954,33 +1968,33 @@ function ddi() {                          # [d]elete [d]ocker [i]mages
   for val in "${tags[@]}"; do grepOpt+="-e '${val//./\\.}' "; done
   format="\\\"{{.Tag}}\\\\t{{.ID}}\\\""
   cmd+="docker images --format \"${format}\" | command grep ${grepOpt}"
-  if [[ 'true' = "${removal}" ]]; then
+  if "${removal}"; then
     cmd+=" | awk '{print \\\$NF}' | uniq | xargs -r docker rmi -f"
-    [[ 'true' = "${dangling}" ]] && cmd+=" ; docker images -f dangling=true -q | uniq | xargs -r docker rmi -f"
+    "${dangling}" && cmd+=" ; docker images -f dangling=true -q | uniq | xargs -r docker rmi -f"
   fi
   # reset cmd if dryrun is true
-  if [[ 'true' = "${dryrun}" ]]; then
+  if "${dryrun}"; then
     format="\\\"{{.Repository}}\\\\\\t{{.Tag}}\\\\\\t{{.ID}}\\\""
     cmd="docker images --format \"${format}\" | awk -v VAR=\\\"$(joinBy '|' "${tags[@]}")\\\" '\\\$2 ~ VAR'"
-    [[ 'true' = "${dangling}" ]] && cmd+="; docker images -f dangling=true --format \"${format}\""
+    "${dangling}" && cmd+="; docker images -f dangling=true --format \"${format}\""
   fi
 
-  [[ 'true' = "${dind}" ]] && k8sOpt='-l devops.domain/docker.builder=true' || k8sOpt=''
+  "${dind}" && k8sOpt='-l devops.domain/docker.builder=true' || k8sOpt=''
   # shellcheck disable=SC2086
   nodes=$( kubecolor --kubeconfig ~/.kube/config get nodes ${k8sOpt} -o json |
               jq -r '.items[] | select(.spec.taints|not) | select(.status.conditions[].reason=="KubeletReady" and .status.conditions[].status=="True") | .metadata.name' |
               fzf --prompt "hostname >"
          )
-  if [[ -n ${nodes} ]]; then
+  if test -n ${nodes}; then
     trap exit SIGINT SIGTERM; while read -r _node; do
       echo -e "$(c Wd)>>$(c) $(c Ys)${_node}$(c) $(c Wd)<<$(c)"
       sshCmd="ssh devops@${_node} \"${cmd}\""
-      if [[ 'true' = "${verbose}"  ]]; then
+      if "${verbose}"; then
         echo -ne "$(c Wdi)>> [DEBUG]:$(c) $(c Wi)"
         echo -n "${sshCmd}"
         echo -e "$(c)"
       fi
-      [[ 'true' != "${removal}" ]] && sshCmd+=""" | awk '{ printf \"\033[36;3m%s\033[0m\t\033[32m%s\033[0m\t\033[35;3m%s\033[0m\n\", \$1, \$2, \$3 }' | column -t"""
+      "${removal}" || sshCmd+=""" | awk '{ printf \"\033[36;3m%s\033[0m\t\033[32m%s\033[0m\t\033[35;3m%s\033[0m\n\", \$1, \$2, \$3 }' | column -t"""
       eval "${sshCmd}"
     done <<< "${nodes}"
   fi

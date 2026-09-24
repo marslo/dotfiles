@@ -179,6 +179,7 @@ if has( 'autocmd' )
     autocmd BufWritePre  *.sh                 call SafeRetab()
     " automatic redraw for shellcheck
     autocmd BufWritePost *.sh                 if has('syntax') && exists('g:loaded_shellcheck') | silent! redraw! | endif
+    autocmd Syntax       sh                   if empty(&buftype) | setlocal foldlevel=0 | endif
     " jump between functions in shell script
     autocmd FileType sh                       nnoremap <buffer> ]] /^\s*\(function\s\+\)\=\w\+\s*()\s*{<CR>:nohlsearch<CR>
     autocmd FileType sh                       nnoremap <buffer> [[ ?^\s*\(function\s\+\)\=\w\+\s*()\s*{<CR>:nohlsearch<CR>

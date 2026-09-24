@@ -41,4 +41,4 @@ command! -nargs=0 -range FormatJSON execute <line1> . ',' . <line2> . '!jq -M ' 
 command! -nargs=0 Hitest            echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
 command! -nargs=0 FixSyntax         syntax sync fromstart
 
-" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim
+" vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:

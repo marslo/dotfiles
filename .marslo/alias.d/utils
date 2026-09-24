@@ -143,7 +143,7 @@ alias openPorts='sudo lsof -i | grep LISTEN'        # openPorts:    All listenin
 alias allowedports='sudo /sbin/iptables -L -n'
 
 alias scp='scp -O -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
-alias gerrit='ssh -p 29418 vgitcentral.marvell.com gerrit'
+alias gerrit='ssh -p 29418 gerrit.domain.com gerrit'
 alias sshrsa="ssh -i ${MY_WORKSPACE}/tools/remoteaccess/rsa/marslo@devops/marslo@devops"
 alias sshpw='ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no'
 alias myaws='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.marslo/Marslo/Tools/Softwares/sshkey/marslo-aws.pem ec2-user@ec2-54-193-78-97.us-west-1.compute.amazonaws.com'

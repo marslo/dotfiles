@@ -4,15 +4,14 @@
 #     FileName : rrun
 #       Author : marslo
 #      Created : 2025-04-09 16:43:02
-#   LastChange : 2026-08-10 18:45:06
+#   LastChange : 2026-09-23 19:02:33
 #  Description : [r]emote [run]
 #=============================================================================
 
 set -euo pipefail
 declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
-# @usage:  or copy & paste the `c()` function from:
-#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# @usage:  or copy & paste the `c()` function from: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 
@@ -78,8 +77,8 @@ function sq()  { local s="$1"; printf "'%s'" "${s//\'/\'\"\'\"\'}"; }
 # terminal width: COLUMNS -> stty size (via /dev/tty) -> tput -> 80
 function termCols() {
   local cols="${COLUMNS:-}"
-  [[ -z "${cols}" ]] && cols="$( { stty size </dev/tty | awk '{print $2}'; } 2>/dev/null )"
-  [[ -z "${cols}" ]] && cols="$( tput cols 2>/dev/null || true )"
+  test -z "${cols}" && cols="$( { stty size </dev/tty | awk '{print $2}'; } 2>/dev/null )"
+  test -z "${cols}" && cols="$( tput cols 2>/dev/null || true )"
   printf '%s' "${cols:-80}"
 }
 
@@ -137,21 +136,21 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ -z "${USER}" && -z "${SSH_CONFIG}" ]] && die "SSH username ( $(c Mi)'--user'$(c) ) is mandatory"
+[[ -z "${USER}"  && -z "${SSH_CONFIG}" ]] && die "SSH username ( $(c Mi)'--user'$(c) ) is mandatory"
 [[ -z "${HOSTS}" && -z "${SSH_CONFIG}" ]] && die "provide a list of hosts ( $(c Mi)\`--host\`$(c) ) or SSH config file ( $(c Mi)\`--config\`$(c) )";
-[[ -z "${FILE}" && -z "${CMD}"        ]] && die "provide a shell script file ( $(c Mi)\`--file\`$(c) ) or command ( $(c Mi)\`--cmd\`$(c) )to run";
+[[ -z "${FILE}"  && -z "${CMD}"        ]] && die "provide a shell script file ( $(c Mi)\`--file\`$(c) ) or command ( $(c Mi)\`--cmd\`$(c) )to run";
 
-[[ -n "${FILE}" && ! -f "${FILE}"     ]] && die "$(c Mi)'--file'$(c) is not exist";
+[[ -n "${FILE}"  && ! -f "${FILE}"     ]] && die "$(c Mi)'--file'$(c) is not exist";
 [[ -n "${SSH_CONFIG}" && ! -f "${SSH_CONFIG}" ]] && die "the SSH config file: $(c Ci)'${SSH_CONFIG}'$(c) is not exist";
 
-declare -a DOMAINS=( 'marvell[.]com' 'cavium[.]com' 'wdc[.]com' )
+declare -a DOMAINS=( 'domain[.]com' 'sample[.]com' 'sandbox[.]com' )
 printf -v TRIM_DOMAINS "%s|" "${DOMAINS[@]}"
 TRIM_DOMAINS="${TRIM_DOMAINS%|}"
 TRIM_REGEX="[.](${TRIM_DOMAINS})$"
 
 # user@ip.address
 # shellcheck disable=SC2016
-[[ -z "${HOSTS}" ]] && HOSTS=$(awk -v trim_regex="${TRIM_REGEX}" \
+test -z "${HOSTS}" && HOSTS=$(awk -v trim_regex="${TRIM_REGEX}" \
   '
     function trimDomain(s) { if (trim_regex != "") sub(trim_regex, "", s); return s }
     function isIPV4(s) { return (s ~ /^(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1?[0-9]?[0-9])){3}$/) }
@@ -188,8 +187,7 @@ TRIM_REGEX="[.](${TRIM_DOMAINS})$"
     END { emit() }
   ' "${SSH_CONFIG}" |
   awk -F':' '
-    # drop the non-padded twin when a zero-padded alias exists (name1 vs name01 -> keep name01),
-    # then emit the version-sort key columns: prefix \t is_zero \t zero-padded-number \t original-line
+    # drop the non-padded twin when a zero-padded alias exists (name1 vs name01 -> keep name01), then emit the version-sort key columns: prefix \t is_zero \t zero-padded-number \t original-line
     function normKey(s,   out, i, c, run, n) {
       out = ""; run = ""; n = length(s)
       for ( i = 1; i <= n; i++ ) {
@@ -287,7 +285,7 @@ function remoteRun() {
 }
 
 trap exit SIGINT SIGTERM; while IFS= read -r -d ',' line; do
-  [[ -z "${line}" ]] && continue
+  test -z "${line}" && continue
   declare name=''
   if [[ "${line}" == *@* ]]; then
     IFS='@' read -r name HOST <<< "${line}"
@@ -301,7 +299,7 @@ trap exit SIGINT SIGTERM; while IFS= read -r -d ',' line; do
 
   # using sub-shell is due to setup `set -e` behavior
   # shellcheck disable=SC2205
-  if [[ -n "${FILE}" ]]; then
+  if test -n "${FILE}"; then
     ( remoteRun '<'   "${FILE}" ) || { "${quiet}" || printf >&2 "$(c Rdi)WARN$(c 0Wdi): %s@%s exit with non-zero$(c)\n" "${ACCOUNT}" "${HOST}"; }
   else
     ( remoteRun '<<<' "${CMD}"  ) || { "${quiet}" || printf >&2 "$(c Rdi)WARN$(c 0Wdi): %s@%s exit with non-zero$(c)\n" "${ACCOUNT}" "${HOST}"; }
