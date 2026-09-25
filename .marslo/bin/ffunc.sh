@@ -133,7 +133,7 @@ function pc() {                            # path copy
   local -a args=()
   function _trimhome() { local _path="${1:-}"; _path="$(realpath "${_path}")"; printf '%s' "${_path/#$HOME\//\~\/}"; }
 
-  while [[ $# -gt 0 ]]; do
+  while test $# -gt 0; do
     case "$1" in
       -p | --path | -d | --dir ) mode='--dir'  ; shift ;;
       -f | --file              ) mode='--file' ; shift ;;

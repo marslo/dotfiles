@@ -7,8 +7,8 @@ file_extensions:
 scope: text.git.commit.conventional
 contexts:
   main:
-    # conventional commits: first line (header)
-    - match: '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\(([^()]+)\))?(!)?(:)(.*)$'
+    # conventional commits: first line (header) - allows `docs(foo,bar())` format
+    - match: '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\(((?:[^()]|\([^()]*\))+)\))?(!)?(:)(.*)$'
       captures:
         1: keyword.control         # submit type
         2: entity.name.type        # scope

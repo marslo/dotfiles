@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-09-10 18:48:05
+"    LastChange : 2026-09-24 17:50:16
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -330,7 +330,7 @@ nnoremap <silent> <Leader>cy :call CopyLintMessage()<CR>
 
 " :Iname [-p] : echo current file path, and copy to clipboard if `-p` is provided
 function! s:Iname(args) abort
-  let l:path = expand('%:p')
+  let l:path = expand('%:p:~')
   if a:args =~# '\v-?p'
     call system('pbcopy', l:path)
     echo l:path . '  [copied]'

@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo
 #     Created : 2012
-#  LastChange : 2026-08-26 18:12:26
+#  LastChange : 2026-09-23 22:26:26
 #  Description : ifunctions
 # =============================================================================
 
@@ -31,6 +31,8 @@ function pipurl()  { pip list --format=freeze | cut -d= -f1 | xargs -n1 pip show
 function getsum    { awk '{ sum += $1 } END { print sum }' "$1"; }
 ## how many days since now https://tecadmin.net/calculate-difference-between-two-dates-in-bash/
 function hmdays()  { usage="SYNOPSIS:\t\$ hmdays YYYY-MM-DD"; [[ 1 -ne $# ]] && echo -e "${usage}" || echo $(( ( $(date -d "$1" +%s) - $(date +%s))/(3600*24))) days; }
+# usage: command cat file.json | fixjson | jq -r .
+function fixjson() { perl -0777 -pe 's/,(\s*[}\]])/$1/g' "$@"; }
 # https://serverfault.com/a/906310/129815
 function ssl_expiry() { echo | openssl s_client -connect "${1}":443 2> /dev/null | openssl x509 -noout -enddate; }
 # convert2av "input.move" "audio.m4a" "output.mp4"
