@@ -42,4 +42,4 @@ alias bi='brew info'
 # alias cleands="command fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --exclude 'OneDrive*' --glob '*\.DS_*' $HOME -x rm -rf"
 # alias cleanlg="command fd --type f --hidden --follow --unrestricted --color=never --exclude .Trash --exclude 'OneDrive*' --glob '*\logback.log' $HOME -x rm -rf"
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

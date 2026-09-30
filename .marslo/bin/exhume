@@ -3,7 +3,7 @@
 #      FileName : exhume
 #        Author : marslo
 #       Created : 2026-09-04 17:39:44
-#    LastChange : 2026-09-04 20:20:00
+#    LastChange : 2026-09-11 13:20:23
 # =============================================================================
 #
 # exhume.sh — restore repo(s) sealed by entomb.sh.
@@ -226,11 +226,11 @@ while test "${#}" -gt 0; do
   case "${1}" in
     --file       ) test -z "${MODE}" || die 'choose only one of --file / --dir'; MODE='file'; SRC="${2}"; shift 2 ;;
     --dir        ) test -z "${MODE}" || die 'choose only one of --file / --dir'; MODE='dir';  SRC="${2}"; shift 2 ;;
-    --import-key ) IMPORT_KEY=1; shift ;;
-    --target     ) TARGET="${2}"; shift 2 ;;
-    --no-log     ) DO_LOG=0; shift ;;
-    --dryrun|--dry-run ) DRYRUN=1; shift ;;
-    -h|--help    ) usage; exit 0 ;;
+    --import-key ) IMPORT_KEY=1; shift          ;;
+    --target     ) TARGET="${2}"; shift 2       ;;
+    --no-log     ) DO_LOG=0; shift              ;;
+    --dryrun     ) DRYRUN=1; shift              ;;
+    -h|--help    ) usage; exit 0                ;;
     *            ) die "unknown argument: ${1}" ;;
   esac
 done

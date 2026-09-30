@@ -4,7 +4,7 @@
 #   FileName: utils
 #     Author: marslo
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2026-09-04 18:31:50
+# LastChange: 2026-09-23 22:24:27
 # =============================================================================
 
 if [[ 'Darwin' = $(uname --operating-system) ]]; then
@@ -154,7 +154,7 @@ alias sudorsync="rsync -avzrlpgoDP -e 'ssh -o StrictHostKeyChecking=no -o UserKn
 alias imbusy='command cat /dev/urandom | /usr/bin/hexdump -C | command grep --color=always "ca fe"'
 alias weekno='date +"%V"'
 alias daysleft='echo "There are $(($(date +%j -d"Dec 31, $(date +%Y)")-$(date +%j))) left in year $(date +%Y)."'
-alias weather='curl wttr.in/sanjose?mMFn'
+alias weather='curl wttr.in/San_Jose,CA?mMFn'
 
 test -x "$HOME/.npm/bin/tldr"      && alias ntldr='$HOME/.npm/bin/tldr -t ocean'
 # ~/.marslo/bin/batchip
@@ -168,4 +168,4 @@ type -P sslocal >/dev/null         && alias startsslocal="sudo sslocal -c ~/mywo
 type -P npm-groovy-lint >/dev/null && alias npm-groovy-lint="$(type -P npm-groovy-lint) --failon warning --noserver"
 type -P difft >/dev/null           && alias difft='difft --override="*.csv:LaTeX"'
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

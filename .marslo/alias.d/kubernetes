@@ -77,4 +77,4 @@ complete -o nosort -o bashdefault -o default -F _complete_alias $(alias | sed -r
 #   complete -o default -F __start_kubectl "${_i}"
 # done < <(alias | sed -rn 's/^alias ([^=]+)=.+kubec.+$/\1/p')
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

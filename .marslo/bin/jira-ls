@@ -11,14 +11,12 @@ set -euo pipefail
 
 # shellcheck disable=SC2155
 declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" | sed 's/-/ /' )"
-# shellcheck disable=SC2155
-declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
-# @usage:  or copy & paste the `c()` function from: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
-# shellcheck disable=SC2015
-test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
+# shellcheck disable=SC2015,SC2059
+c() { [ $# == 0 ] && printf "\033[0m" || printf "$1" | sed 's/\(.\)/\1;/g;s/\([SDIUFNHT]\)/2\1/g;s/\([KRGYBMCW]\)/3\1/g;s/\([krgybmcw]\)/4\1/g;y/SDIUFNHTsdiufnhtKRGYBMCWkrgybmcw/12345789123457890123456701234567/;s/^\(.*\);$/\\033[\1m/g'; }
 
 declare -r JIRA_URL="${JIRA_URL:-https://jira.domain.com}"
+declare -r JIRA_USER="${JIRA_USER:-marslo}"
 # per-project epic link field ( customfield id differs per project ); holds the epic's issue key, resolved to the epic name for display
 declare -A EPIC_FIELD=( ['PROJ1']='customfield_10066' )
 declare -A PROJECTS_ID=( ['PROJ1']='23918' ['PROJ2']='23917' ['PROJ3']='18308' ['PROJ4']='15014' )
@@ -33,6 +31,7 @@ declare COMMENT=''
 declare LIST_LABELS=false
 declare -a ADD_LABELS=()
 declare -a REMOVE_LABELS=()
+declare -a JIRA_KEYS=()
 declare -a KEYS=()
 declare -a CURRENT_STATUS=()
 declare -A JQL_MAP=(
@@ -52,12 +51,13 @@ declare -A TRANSITION_MAP=(
 
 # shellcheck disable=SC2155
 declare -r USAGE="NAME
-  $(c Ys)${ME}$(c) - List JIRA issues assigned to the current user.
+  $(c Ys)${ME}$(c) - List and manage JIRA issues — pick with $(c i)fzf$(c) or pass $(c 0Mi)JIRA-ID$(c)(s), then transition, comment, or manage labels.
 
 SYNOPSIS
-  $(c Ys)\$ ${ME} $(c 0G)[OPTIONS]$(c)
+  $(c Ys)\$ ${ME} $(c 0G)[OPTIONS] $(c 0Cs)[JIRA-ID...]$(c)
 
 OPTIONS
+  $(c G)-j$(c), $(c G)--jira $(c 0Mi)JIRA-ID$(c)         act on the given issue(s) directly, skipping the $(c i)fzf$(c) picker $(c 0i)(comma-separated or repeat the flag; bare $(c 0Mi)JIRA-ID$(c 0i) args work too)$(c)
   $(c G)-p$(c), $(c G)--project $(c 0Mi)PROJECT_KEY$(c)  specify the JIRA project key $(c 0i)(default: $(c 0Mi)'${_PROJECT}'$(c 0i))$(c)
   $(c G)--assignee$(c) $(c 0Mi)USER_ID$(c)         filter issues assigned to the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
   $(c G)--reporter$(c) $(c 0Mi)USER_ID$(c)         filter issues reported by the specified user $(c 0i)(no value means $(c 0Mi)currentUser()$(c 0i))$(c)
@@ -80,8 +80,8 @@ OPTIONS
   $(c G)-h$(c), $(c G)--help$(c)                 show this help message and exit
 
 EXAMPLE
-  $(c Wdi)# list 2 weeks in-progress jira ticket in project 'PROJID' and 'NEWID' for \`currentUser()\`$(c)
-  $(c Ys)\$ ${ME} $(c 0Gi)--project $(c 0Mi)PROJID $(c 0Gi)--project $(c 0Mi)NEWID $(c 0Bi)--in-progress $(c 0Gi)--assignee -u $(c 0Mi)'-2w'$(c)
+  $(c Wdi)# list 2 weeks in-progress jira ticket in project 'PROJECT_KEY' and 'NEWID' for \`currentUser()\`$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--project $(c 0Mi)PROJECT_KEY $(c 0Gi)--project $(c 0Mi)NEWID $(c 0Bi)--in-progress $(c 0Gi)--assignee -u $(c 0Mi)'-2w'$(c)
 
   $(c Wdi)# list closed and todo tickets in default project for user 'alice' after '2026-03-01 14:30'$(c)
   $(c Ys)\$ ${ME} $(c 0Bi)--todo --closed $(c 0Gi)--assignee $(c 0Mi)alice $(c 0Gi)--update $(c 0Mi)'2026-03-01 14:30'$(c)
@@ -94,6 +94,9 @@ EXAMPLE
 
   $(c Wdi)# list open tickets, then add labels to and remove a label from the selected one$(c)
   $(c Ys)\$ ${ME} $(c 0Bi)--open $(c 0Yi)--add-label $(c 0Mi)'Linux,kernel' $(c 0Yi)--remove-label $(c 0Mi)'wip'$(c)
+  $(c Wdi)# act on specific JIRA ID(s) directly, skipping fzf ( bare ids, comma-separated, or --jira )$(c)
+  $(c Ys)\$ ${ME} $(c 0Mu)PROJ-123$(c),$(c 0Mu)PROJ-456$(c 0Yi) --to $(c 0Ci)done$(c)
+  $(c Ys)\$ ${ME} $(c 0Gi)--jira $(c 0Mu)PROJ-123$(c 0Gi) --jira $(c 0Mu)PROJ-456$(c 0Yi) --add-label $(c 0Mi)'wip'$(c)
 "
 
 function passToken() { type -P pass >/dev/null || die "JIRA API token not found. Please set the \`JIRA_API_TOKEN\` environment variable"; pass show "${1}" | head -n1; }
@@ -102,9 +105,11 @@ function dieWithCode { echo -e "$(c Ri)ERROR$(c 0i): $1 :$(c)"; shift; echo -e "
 function die()  { echo -e "$(c Ri)ERROR$(c 0i): $*.$(c) $(c Wdi)exit ...$(c)" >&2; exit 1; }
 function trim() { IFS='' read -r str; echo "${str}" | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//'; }
 
-# verify required tools and config exist before doing any work; die listing whatever is missing
+# verify required tools and config exist before doing any work; die listing whatever is missing.
 function preflight() {
-  local -a required=( curl jq fzf )
+  local -a required=( curl jq )
+  # fzf is only needed for the interactive picker, so skip it in direct-id mode ( JIRA_KEYS non-empty )
+  test 0 -eq "${#JIRA_KEYS[@]}" && required+=( fzf )
   local -a missing=()
   local tool
   for tool in "${required[@]}"; do
@@ -112,12 +117,9 @@ function preflight() {
   done
   test 0 -eq "${#missing[@]}" || die "missing required tool(s): $(c 0Mi)$(IFS=', '; echo "${missing[*]}")$(c 0i)"
   test 'https://jira.domain.com' != "${JIRA_URL}" || die "JIRA_URL is not configured. Please set the \`JIRA_URL\` environment variable first"
+  local osUser; osUser="$( id -un )"
+  test 'marslo' = "${osUser}" || test 'marslo' != "${JIRA_USER}" || die "JIRA_USER is not configured for user $(c 0Mi)'${osUser}'$(c 0i). Please set the \`JIRA_USER\` environment variable first"
 }
-preflight
-
-declare -r JIRA_API_TOKEN="${JIRA_API_TOKEN:-$( passToken "${PASS_JIRA:-marslo/jira}" )}"
-test -n "${JIRA_API_TOKEN:-}" || die "JIRA API token not found. Please set the \`JIRA_API_TOKEN\` environment variable first"
-declare -ar CURL_CMD=( command curl -u "marslo:${JIRA_API_TOKEN}" --silent --compressed )
 
 # GET the available transitions for an issue key ( expand transitions.fields to reveal whether `resolution` is settable )
 function getTransitions() {
@@ -242,7 +244,8 @@ function resolveEpics() {
   # the epic-name field id varies per instance; match by greenhopper schema or display name
   local nameField
   nameField="$( "${CURL_CMD[@]}" --get "${JIRA_URL}/rest/api/2/field" |
-                jq -r 'map(select(.schema.custom == "com.pyxis.greenhopper.jira:gh-epic-label" or .name == "Epic Name")) | .[0].id // empty' 2>/dev/null || true )"
+                jq -r 'map(select(.schema.custom == "com.pyxis.greenhopper.jira:gh-epic-label" or .name == "Epic Name")) | .[0].id // empty' 2>/dev/null || true
+            )"
 
   local fields='summary' jql resp
   test -n "${nameField}" && fields="summary,${nameField}"
@@ -255,6 +258,30 @@ function resolveEpics() {
     | map({ key: .key, value: ( ( if $f != "" then .fields[$f] else null end ) // .fields.summary // .key ) })
     | from_entries
   ' 2>/dev/null || echo '{}'
+}
+# validate comma-separated JIRA ids and append them ( uppercased ) to JIRA_KEYS; die on any malformed token
+#   $1: comma-separated ids ; $2: source label for the error message
+function collectKeys() {
+  local raw="$1" src="$2" k
+  local -a parts=()
+  IFS=',' read -ra parts <<< "${raw}"
+  for k in "${parts[@]}"; do
+    k="$( echo "${k}" | trim )"; k="${k^^}"
+    test -n "${k}" || continue
+    [[ "${k}" =~ ^[A-Z]+-[0-9]+$ ]] || die "${src} expects a JIRA id like $(c 0Mi)'IPBUSW-123'$(c 0i), got $(c 0Mi)'${k}'$(c 0i)"
+    JIRA_KEYS+=( "${k}" )
+  done
+}
+
+# echo 'ID: Summary' for the given issue keys via a single summary-only search ( for --full in direct-id mode )
+#   $@: issue keys
+function printFull() {
+  local resp
+  resp="$( "${CURL_CMD[@]}" --data-urlencode "jql=issuekey in ($(IFS=', '; echo "$*"))" --data-urlencode 'fields=summary' --get "${JIRA_URL}/rest/api/2/search" )"
+  if echo "${resp}" | jq -e 'has("errorMessages")' >/dev/null 2>&1; then
+    die "JIRA API Error: $(echo "${resp}" | jq -r '.errorMessages[]')"
+  fi
+  echo "${resp}" | jq -r '.issues[] | "\(.key): \(.fields.summary)"'
 }
 
 while test $# -gt 0; do
@@ -289,8 +316,10 @@ while test $# -gt 0; do
                                 test -n "${_l}" && REMOVE_LABELS+=( "${_l}" )
                               done
                               shift 2                           ;;
-    --list-labels | --list-label     )
+    --list-label | --list-labels     )
                               LIST_LABELS=true; shift           ;;
+    -j | --jira | --jira-id ) test -n "${2:-}" || die "'$1' requires a JIRA id (e.g. PROJ-123)"
+                              collectKeys "$2" "$1"; shift 2    ;;
     --assignee | --reporter ) PARAM="${1#--}"; PARAM="${PARAM^^}";
                               if [[ -n "${2:-}" && "$2" != -* ]]; then
                                 printf -v "${PARAM}" "%s" "$2"; shift 2;
@@ -303,9 +332,15 @@ while test $# -gt 0; do
                               else
                                 die "Unknown option '$1'"
                               fi                                ;;
-    *                       ) die "Unknown argument '$1'"       ;;
+    *                       ) collectKeys "$1" "argument"; shift ;;
   esac
 done
+# run now that JIRA_KEYS is known, so fzf is only required in interactive mode; validates JIRA_USER before it is used
+preflight
+# fetch the token after preflight so a wrong/unset JIRA_USER is caught before the pass path / auth use it
+declare -r JIRA_API_TOKEN="${JIRA_API_TOKEN:-$( passToken "${PASS_JIRA:-${JIRA_USER}/jira}" )}"
+test -n "${JIRA_API_TOKEN:-}" || die "JIRA API token not found. Please set the \`JIRA_API_TOKEN\` environment variable first"
+declare -ar CURL_CMD=( command curl -u "${JIRA_USER}:${JIRA_API_TOKEN}" --silent --compressed )
 
 { test -z "${ASSIGNEE:-}" && test -z "${REPORTER:-}"; } && ASSIGNEE='currentUser()'
 test 0 -eq "${#KEYS[@]}"  && KEYS=( 'open' )
@@ -340,6 +375,11 @@ query+="${REPORTER:+ AND reporter=${REPORTER}}"
 # shellcheck disable=SC2016
 query+="${UPDATE_LIMIT:+ AND updated >= '${UPDATE_LIMIT}'}"
 
+declare jira=''
+# direct-id mode ( --jira / positional ): use the given keys as the selection; skip the interactive listing entirely
+test 0 -lt "${#JIRA_KEYS[@]}" && jira="$( printf '%s\n' "${JIRA_KEYS[@]}" )"
+# interactive listing ( search + render + fzf ) runs only when no explicit id was given
+if test -z "${jira}"; then
 declare json=''
 json="$( "${CURL_CMD[@]}" --data-urlencode "jql=${query}" --get "${JIRA_URL}/rest/api/2/search" )"
 
@@ -398,7 +438,6 @@ declare TRANSFORMER='
     echo "change-preview-window:${default_preview}"
   fi
 '
-declare jira=''
 jira="$(
   echo "${json}" | jq --argjson epics "${EPICS_JSON}" --argjson efields "${EPIC_FIELDS_JSON}" ".issues[] | ${TEMPLATE}" |
   sed -e 's/"\(.*\)"/\1/' -e 's/\\"/"/g' -e 's/\\t/\t/g' -e 's/\\\\033/\\033/g' |
@@ -413,6 +452,7 @@ jira="$(
       --bind "ctrl-o:execute(${GET_ID} | xargs -I {} open ${JIRA_URL}/browse/{})" |
   cut -f1
 )"
+fi
 
 # collect every selected issue key (fzf --multi may return multiple lines)
 declare -a KEYS_SELECTED=()
@@ -432,7 +472,8 @@ if test -n "${TRANSITION:-}" || test -n "${COMMENT:-}" || test true = "${LIST_LA
     if test true = "${LIST_LABELS}"; then
       declare curLabels=''
       curLabels="$( listLabels "${KEY_SELECTED}" )"
-      echo -e "$(c Gi)>> ${KEY_SELECTED}$(c)$(c i) label(s): $(c)$(c 0Ci)${curLabels:-(none)}$(c)"
+      test -n "${curLabels}" && curLabels="$(c 0Ci)${curLabels}$(c)" || curLabels="$(c 0Wdi)(none)$(c)"
+      echo -e "$(c Gi)>> ${KEY_SELECTED}$(c)$(c i) label(s): $(c)${curLabels}"
     fi
 
     if test -n "${TRANSITION:-}"; then
@@ -458,7 +499,12 @@ fi
 # return ( one line per selected issue )
 case "${RETURN_TYPE}" in
   short ) test 0 -lt "${#KEYS_SELECTED[@]}" && printf '%s\n' "${KEYS_SELECTED[@]}" ;;
-  full  ) echo "${jira}" ;;
+  # interactive `jira` already carries 'ID: Summary'; direct-id `jira` is bare keys, so fetch summaries
+  full  ) if test 0 -lt "${#JIRA_KEYS[@]}"; then
+            test 0 -lt "${#KEYS_SELECTED[@]}" && printFull "${KEYS_SELECTED[@]}"
+          else
+            echo "${jira}"
+          fi ;;
   *     ) die "Invalid return type '${RETURN_TYPE}'" ;;
 esac
 

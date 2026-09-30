@@ -33,13 +33,13 @@ command! GetPlug :call GetPlug()
 
 " * and # for search
 function! VSetSearch()
-  " backup register `s` to temp
-  let temp = @s
+  let l:cursor = getpos('.')       " save cursor position
+  let l:temp = @s                  " backup register `s` to temp
   " gv: virtual mode selection; "s: register name is `s`; y: yank;
   normal! gv"sy
   let @/ = '\V' . substitute( escape(@s, '\/|'), '\n', '\\n', 'g' )
-  " restore register `s` from temp
-  let @s = temp
+  let @s = l:temp                  " restore register `s` from temp
+  call setpos('.', l:cursor)       " recover cursor position
 endfunction
 xnoremap * :<C-u>call VSetSearch()<CR>/<C-R>=@/<CR><CR>:normal! N<CR>
 xnoremap # :<C-u>call VSetSearch()<CR>?<C-R>=@/<CR><CR>:normal! n<CR>

@@ -102,6 +102,8 @@ xmap     <silent><leader>qf  :<C-u>call CocActionAsync('codeAction', visualmode(
 nnoremap <silent> <leader>d  :CocDiagnostics<CR>
 " full project interaction list
 nnoremap <silent> <leader>D  :<C-u>CocList diagnostics<CR>
+" toggle inlay hints
+nnoremap <silent><leader>ih  <Cmd>CocCommand document.toggleInlayHint<CR>
 
 nnoremap <silent>K           :call ShowDocumentation()<CR>
 " [g]oto [d]efinition ── gdoc: javadoc for classpath symbols (groovy/jenkins jars) from the offline index

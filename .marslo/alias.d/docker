@@ -36,15 +36,14 @@ alias dip="docker inspect --format '{{ .NetworkSettings.IPAddress }}'"
 # alias dv='docker volume'
 alias dvi='docker volume inspect'
 
-
-# bash completion for docker
-if type -t __start_docker >/dev/null; then
-  while read -r _i; do complete -F __start_docker "${_i}"; done < <(echo 'd')
-  while read -r _i; do complete -F __start_docker "${_i}"; done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/alias.d/docker")
-elif type -t _docker >/dev/null; then
+# bash completion for docker:
+# • _docker : allows alias to complete docker alias
+# • __start_docker: not allowed to complete docker alias. using _complete_alias instead of
+if type -t _docker >/dev/null; then
   # complete -F _complete_alias "${_i}"
-  while read -r _i; do complete -F _docker "${_i}"; done < <(echo 'd')
-  while read -r _i; do complete -F _docker "${_i}"; done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/alias.d/docker")
+  while read -r _i; do complete -F _docker "${_i}";         done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/alias.d/docker")
+elif type -t _complete_alias >/dev/null; then
+  while read -r _i; do complete -F _complete_alias "${_i}"; done < <(sed '/^alias /!d;s/^alias //;s/=.*$//' "${iRCHOME}/alias.d/docker")
 fi
 
-# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh
+# vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

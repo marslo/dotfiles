@@ -39,7 +39,7 @@ function updateMaxLines() {
 }
 
 # ── ${temp}/now-weather ──────────────────────────────────────────────────────
-if ! "${CURL[@]}" wttr.in/sanjose?QmM0 1>"${temp}"/now-weather 2>/dev/null ||
+if ! "${CURL[@]}" wttr.in/San_Jose,CA?QmM0 1>"${temp}"/now-weather 2>/dev/null ||
    ! grep -q '°C' "${temp}/now-weather" 2>/dev/null;
 then
   ~/.marslo/bin/iweather > "${temp}"/now-weather

@@ -12,8 +12,7 @@ shopt -s extglob
 declare -r ME="$( basename "${BASH_SOURCE[0]:-$0}" )"
 declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
-# @usage:  or copy & paste the `c()` function from:
-#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# @usage:  or copy & paste the `c()` function from: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 # shellcheck disable=SC2015
 test -f "${HERE}/bash-colors.sh" && source "${HERE}/bash-colors.sh" || { c() { :; }; }
 # shellcheck disable=SC2015
@@ -97,8 +96,7 @@ OPTIONS
 
 NOTICE
   $(c Wdi)# $(c 0Ci)iweather.icon$(c 0Wdi) is $(c 0Rs)mandatory$(c 0Wdi), save into same directory with current script$(c)
-  $(c Gi)\$ curl -fsSL -o ${HERE}/iweather.icon \\
-    https://github.com/marslo/dotfiles/raw/main/.marslo/bin/iweather.icon$(c)
+  $(c Gi)\$ curl -fsSL -o ${HERE}/iweather.icon https://github.com/marslo/dotfiles/raw/main/.marslo/bin/iweather.icon$(c)
 
 ENVIRONMENT VARIABLES
   • $(c 0M)OWM_API_TOKEN$(c)   API token for OpenWeatherMap API $(c 0Ri)(mandatory)$(c)

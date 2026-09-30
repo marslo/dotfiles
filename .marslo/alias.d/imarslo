@@ -4,17 +4,18 @@
 #   FileName : imarslo
 #     Author : marslo
 #    Created : 2017-10-30 19:07:45
-# LastChange : 2026-09-08 17:52:17
+# LastChange : 2026-09-16 10:46:58
 # =============================================================================
 
 MY_WORKSPACE="${HOME}/iMarslo"
 
 alias .m="cd ${HOME}/.marslo"
 alias .mb="cd ${HOME}/.marslo/bin"
+alias .conf="cd ~/.config/"
+alias cfg="cd ~/.config/"
 alias desk="cd ${HOME}/Desktop"
 alias cdrs="cd ${HOME}/Desktop/re/scripts"
 
-alias cfg="cd ~/.config/"
 alias vimd="cd ~/.marslo/vimrc.d"
 
 alias mw="cd ${MY_WORKSPACE}"

@@ -34,13 +34,13 @@ declare -r USAGE="NAME
   ${ME} - build an offline javadoc index from *-sources.jar on the groovy classpath
 
 OPTIONS
-  --build [DIR ...]     (re)build the index from the given roots
-  --clean               wipe the cache
-  -h, --help            show this help
+  --build [DIR ...]            (re)build the index from the given roots
+  --clean                      wipe the cache
+  -h, --help                   show this help
 
-USAGE
-  ${ME} --build [DIR ...]   (re)build the index from the given roots
-  ${ME} --clean             wipe the cache
+EXAMPLES
+  ${ME} --build [DIR ...]   \033[0;2;3;37m# (re)build the index from the given roots\033[0m
+  ${ME} --clean             \033[0;2;3;37m# wipe the cache\033[0m
 "
 
 # default roots holding *-sources.jar / *-javadoc.jar
@@ -60,7 +60,7 @@ function jarsOf() {
 }
 
 # aligned summary row: >> <label> : <value> -> <target>  ($HOME shown as ~)
-function row() { printf '>> %-7s : %-24s -> %s\n' "${1}" "${2}" "${3/#${HOME}/\~}"; }
+function row() { printf '>> %-7s : %-24s -> %s\n' "${1}" "${2}" "${3/#${HOME}\//\~/}"; }
 
 function gdocBuild() {
   local -a roots
@@ -102,18 +102,18 @@ function gdocClean() {
   if test -d "${GDOC_HOME}"; then
     local sz; sz="$( command du -sh "${GDOC_HOME}" 2>/dev/null | command cut -f1 )"
     command rm -rf "${GDOC_HOME}"
-    printf '>> removed %s (%s)\n' "${GDOC_HOME/#${HOME}/\~}" "${sz:-?}"
+    printf '>> removed %s (%s)\n' "${GDOC_HOME/#${HOME}\//\~/}" "${sz:-?}"
   else
-    printf '>> nothing to clean (%s absent)\n' "${GDOC_HOME/#${HOME}/\~}"
+    printf '>> nothing to clean (%s absent)\n' "${GDOC_HOME/#${HOME}\//\~/}"
   fi
 }
 
 case "${1:-}" in
-  --build     ) shift; gdocBuild "${@}"     ;;
-  --clean     ) shift; gdocClean; exit 0    ;;
-  -h | --help ) echo "${USAGE}" >&2; exit 0 ;;
-  ''          ) echo "${USAGE}" >&2; exit 1 ;;
-  *           ) echo "ERROR: unknown option '${1}'" >&2; echo "${USAGE}" >&2; exit 1 ;;
+  --build     ) shift; gdocBuild "${@}"        ;;
+  --clean     ) shift; gdocClean; exit 0       ;;
+  -h | --help ) echo -e "${USAGE}" >&2; exit 0 ;;
+  ''          ) echo -e "${USAGE}" >&2; exit 1 ;;
+  *           ) echo "ERROR: unknown option '${1}'" >&2; echo -e "${USAGE}" >&2; exit 1 ;;
 esac
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:

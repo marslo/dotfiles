@@ -3,7 +3,7 @@
 #      FileName : entomb
 #        Author : marslo
 #       Created : 2026-09-04 17:53:24
-#    LastChange : 2026-09-04 20:28:24
+#    LastChange : 2026-09-11 13:20:02
 # =============================================================================
 #
 # entomb.sh — seal git repo(s) for cold archive.
@@ -318,8 +318,8 @@ function sealPath() {
 # ---- parse args ----
 while test "${#}" -gt 0; do
   case "${1}" in
-    --dir        ) test -z "${MODE}" || die 'choose only one mode'; MODE='dir';       SRC="${2}"; shift 2 ;;
-    --folder     ) test -z "${MODE}" || die 'choose only one mode'; MODE='folder';    SRC="${2}"; shift 2 ;;
+    --dir        ) test -z "${MODE}" || die 'choose only one mode'; MODE='dir';    SRC="${2}"; shift 2 ;;
+    --folder     ) test -z "${MODE}" || die 'choose only one mode'; MODE='folder'; SRC="${2}"; shift 2 ;;
     --export-key ) test -z "${MODE}" || die 'choose only one mode'; MODE='exportkey'
                    # optional fingerprint arg: consume next token only if not another flag
                    if test "${#}" -ge 2 && test '-' != "${2:0:1}"; then
@@ -347,7 +347,7 @@ while test "${#}" -gt 0; do
     --out-name   ) OUT_NAME="${2}"; shift 2     ;;
     --out-dir    ) OUT_DIR="${2}";  shift 2     ;;
     --no-log     ) DO_LOG=0; shift              ;;
-    --dryrun|--dry-run ) DRYRUN=1; shift        ;;
+    --dryrun     ) DRYRUN=1; shift              ;;
     -h|--help    ) usage; exit 0                ;;
     *            ) die "unknown argument: ${1}" ;;
   esac

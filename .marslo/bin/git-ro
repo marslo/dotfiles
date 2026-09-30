@@ -125,8 +125,8 @@ declare oldHead; oldHead="$( git rev-parse HEAD 2>/dev/null || true )"
 declare newHead; newHead="$( git rev-parse HEAD 2>/dev/null || true )"
 if test -n "${oldHead}" && test "${oldHead}" != "${newHead}"; then
   git --no-pager diff --stat --summary --no-ext-diff "${oldHead}" "${newHead}"
-else
-  printf '%s~~> already up to date%s\n' "${C_DIM}" "${C_RST}"
+# else
+#   printf '%s~~> already up to date%s\n' "${C_DIM}" "${C_RST}"
 fi
 
 # ---- LFS: auto-pull when the reset ref uses LFS; --lfs forces it ----

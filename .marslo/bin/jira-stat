@@ -116,15 +116,15 @@ while [[ $# -gt 0 ]]; do
 done
 
 condition=$(tr '[:lower:]' '[:upper:]' <<< "${condition}")
-[[ -n "${project}"   ]] && clauses+=( "project = $(jqlQuote "${project}")" )
-[[ -n "${issueType}" ]] && clauses+=( "issuetype = $(jqlQuote "${issueType}")" )
+test -n "${project}"   && clauses+=( "project = $(jqlQuote "${project}")" )
+test -n "${issueType}" && clauses+=( "issuetype = $(jqlQuote "${issueType}")" )
 if [[ -z "${jql}" && ${#clauses[@]} -eq 0 ]]; then
   echo 'No filters specified, exit.' >&2
   exit 1
 fi
 
 declare extrajql="$(joinBy " ${condition} " "${clauses[@]}")"
-if [[ -z "${jql}" ]]; then
+if test -z "${jql}"; then
   jql="${extrajql} ORDER BY updated DESC"
 else
   jql="${extrajql} ${condition} ${jql}"
@@ -135,14 +135,14 @@ declare -a JQ=( jq -r "${JQ_PROG}" )
 output=$( "${CURL[@]}" | "${JQ[@]}" )
 
 function display() {
-  local out=""
-  local arg=""
+  local out=''
+  local arg=''
   while [[ "${#}" -gt 0 ]]; do
     arg="${1}"; shift
     case "${arg}" in
-      -u | --user ) [[ "${#}" -gt 0 ]] && shift;
+      -u | --user ) test "${#}" -gt 0 && shift;
                     out+="${arg} \"marslo:\$(pass show ${PASS_PATH} | head -n1)\" "; continue ;;
-      -u* ) out+="-u\"marslo:\$(pass show ${PASS_PATH} | head -n1)\" "; continue ;;
+      -u*         ) out+="-u\"marslo:\$(pass show ${PASS_PATH} | head -n1)\" "; continue ;;
     esac
 
     arg="${arg//\\u001f/•}"
@@ -175,10 +175,10 @@ function display() {
   echo -e "$(c 0Wi)  # condition    : $(c 0Wdi)${condition}$(c)"
   echo -e "$(c 0Wi)  # show index   : $(c 0Wdi)${SHOW_INDEX}$(c)"
   echo -e "$(c 0Wi)  # jql query    : $(c 0Wdi)${jql}$(c)"
-  [[ -n "${extrajql}"   ]] && echo -e "$(c 0Wi)  # extra jql    : $(c 0Wdi)${extrajql}$(c)"
+  test -n "${extrajql}"   && echo -e "$(c 0Wi)  # extra jql    : $(c 0Wdi)${extrajql}$(c)"
   echo -e "$(c 0Wi)  # curl command : $(c 0Wdi)\$ $(display "${CURL[@]}") | $(display "${JQ[@]}")$(c)"
-  [[ "${VERBOSE}" -ge 2 ]] && echo -e "$(c 0Wi)  # jq command   : $(c 0Wdi)$(display "${JQ[@]}")$(c)"
-  [[ "${VERBOSE}" -ge 2 ]] && echo -e "$(c 0Wi)  # raw output   : $(c 0Wdi)${output//$'\x1f'/•}$(c)"
+  test "${VERBOSE}" -ge 2 && echo -e "$(c 0Wi)  # jq command   : $(c 0Wdi)$(display "${JQ[@]}")$(c)"
+  test "${VERBOSE}" -ge 2 && echo -e "$(c 0Wi)  # raw output   : $(c 0Wdi)${output//$'\x1f'/•}$(c)"
   echo ''
 }
 
