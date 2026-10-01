@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-09-23 18:54:35
+#   LastChange : 2026-09-30 23:44:18
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1055,38 +1055,43 @@ function processMount() {
   local host="${1}"
   local path="${2}"
   local verbose="${3}"
-  [[ 'Darwin' = "$(uname)" ]] && prefix='/tmp' || prefix='/mnt'
-  # shellcheck disable=SC2001
-  local path="${prefix}/$( sed 's/\$//' <<< "${path/\/}")"
 
-  if df -h | grep -q "${host}${path}" >/dev/null; then
-    local _path="$( df -h | command grep --color=never "${host}${path}" | awk '{print $NF}' )"
-    [[ ! 'false' != "${verbose}" ]] || echo -e "$(c Wdi)~~>$(c) $(c Mi)${host}${path}$(c) $(c Wdi)has been mounted to$(c) $(c Mi)${_path}$(c) $(c Wdi)already ...$(c)"; return
+  local _pw; _pw="$( pass show marslo 2>/dev/null | tail -1 )"
+  mpoint="${host}${path}"
+
+  local _mpoint
+  if isOSX; then _mpoint="//marslo:${_pw}@${host}${path}";
+  elif isWSL || isLinux; then _mpoint="//${host}${path}"; fi
+
+  local prefix
+  test "${path}" = '*isoc*' && prefix='/data' || prefix='/mnt'
+  path="${prefix}/${path//[\/$]/}"                 # "${prefix}/$( sed 's/\$//' <<< "${path/\/}")"
+
+  if df -h | grep -q "${host}" >/dev/null; then
+    local _path="$( df -h | command grep --color=never "${host}" | awk '{print $NF}' )"
+    echo -e "$(c Wdi)~~>$(c) $(c Mi)${host}${path}$(c) $(c Wdi)has been mounted to$(c) $(c Mi)${_path}$(c) $(c Wdi)already ...$(c)"; return
   fi
 
-  isWSL || isLinux && mpoint="//${host}${path}"
-  isOSX && mpoint="//marslo@${host}:${path}"
-  if [[ 'false' != "${verbose}" ]]; then
-    if [[ -z "${mpoint}" ]]; then
-      echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint:-mount point}$(c) $(c Wdi)cannot be empty. exit ...$(c)" && return
-    else
-      echo -e "$(c Wdi)~~> try mounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)to$(c) $(c Mi)${path}$(c) $(c Wdi)...$(c)"
-    fi
+  if test 'false' = "${verbose}"; then
+    # shellcheck disable=SC2015
+    test -z "${mpoint}" \
+      && { echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint:-mount point}$(c) $(c Wdi)cannot be empty. exit ...$(c)" && return; } \
+      || { echo -e "$(c Wdi)~~> try mounting$(c) $(c Mi)//${mpoint}$(c) $(c Wdi)to$(c) $(c Mi)${path}$(c) $(c Wdi)...$(c)"; }
   fi
 
   test -d "${path}" || mkdir -p "${path}"
   if isOSX; then
-    mount -t smbfs -o -d=755,-f=755 "${mpoint}" "${path}"
+    mount -t smbfs -o -d=755,-f=755 "${_mpoint}" "${path}"
   elif isWSL || isLinux; then
     test -f '/usr/sbin/mount.cifs' || { echo -e "$(c Bi)>> install cifs-utils first :$(c) $(c Gi)sudo apt install cifs-utils$(c) $(c Bi)...$(c)" && return; }
     test -f "$HOME/.cifs"          || { echo -e "$(c Bi)>> setup \`~/.cifs\` first ...$(c)" && return; }
-    local _output=$( sudo mount -t cifs "${mpoint}" "${path}" -o credentials=$HOME/.cifs -vvv 2>&1 )
+    local _output=$( sudo mount -t cifs "${_mpoint}" "${path}" -o credentials="${HOME}/.cifs" -vvv 2>&1 )
     test 'true' = "${verbose}" && echo -e "$(c Wdi)>> [DEBUG] : ${_output} ..$(c)"
   fi
 
-  if [[ '1' = "$(checkMountPoint "${mpoint}")" ]] && [[ 'false' != "${verbose}" ]]; then
-    echo -e "$(c Wdi)~~>$(c) $(c Mi)${mpoint}$(c) $(c Wdi)->$(c) $(c Mi)${path}$(c) $(c Wdi)has been mounted successfully ...$(c)"
-    cd "${path}" || return
+  if test '1' = "$(checkMountPoint "${mpoint}")"; then
+     test 'false' = "${verbose}" || echo -e "$(c Wdi)~~>$(c) $(c Mi)//${mpoint}$(c) $(c Wdi)->$(c) $(c Mi)${path}$(c) $(c Wdi)has been mounted successfully ...$(c)"
+     cd "${path}" || return
   fi
 }
 
@@ -1117,7 +1122,7 @@ function fmount() {                        # fmount - [mount] with [f]zf
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --auto       ) fzfopt+=( --reverse --bind start:+accept ) ; shift   ;;
-      --debug      ) verbose=true                               ; shift   ;;
+      -v | --debug ) verbose=true                               ; shift   ;;
       --silent     ) verbose=false                              ; shift   ;;
       -q | --query ) fzfopt+=( --query "$2"  )                  ; shift 2 ;;
       *            ) echo -e "$(c Rs)ERROR$(c): Invalid option '$1' ..." >&2 ; return 1 ;;
@@ -1149,37 +1154,55 @@ function fmount() {                        # fmount - [mount] with [f]zf
 # shellcheck disable=SC2155
 function fumount() {                       # fumount - [umount] with [f]zf
   local mpoint=''
+  local mpoints=''
   local force=false
 
-  while [[ $# -gt 0 ]]; do
+  while test $# -gt 0; do
     case "$1" in
       -f ) force=true ; shift ;;
        * ) break              ;;
     esac
   done
 
-  force="$( [[ 'Darwin' = "$(uname)" ]] && [[ "${force}" ]] && force=true )"
+  function dpath() {
+    rpath="${1:?path is required}"
+    local prefix='/System/Volumes/Data'
+    printf '%s\n' "${rpath#"${prefix}"}"
+  }
 
-  mpoint=$( mount | sed -rn 's://[^\ ]+\son\s([^\ ]+).*:\1:p' | fzf --prompt='󰉖 ' )
-  [[ -z "${mpoint}" ]] && echo -e "$(c Wdi)~~> no mount point in current environment ...$(c)" && return
+  # force for macOS only
+  test 'Darwin' = "$(uname)" && "${force}" && force=true
+
+  mpoints="$( mount | sed -rn 's://[^\ ]+\son\s([^\ ]+).*:\1:p' | wc -l )"
+  test 0 -eq "${mpoints}" && { echo -e "$(c Wdi)~~> no mount point in current environment ...$(c)" && return; }
+
+  mpoint=$(
+    mount |
+    sed -rn 's://[^\ ]+\son\s([^\ ]+).*:\1:p' |
+    # col1=display, col2=real
+    while read -r real; do printf '%s\t%s\n' "$(dpath "${real}")" "${real}"; done |
+    fzf --prompt='󰉖 ' -m --delimiter='\t' --with-nth=1 |
+    cut -f2
+  )
+  test -z "${mpoint}" && { echo -e "$(c Wdi)~~> no mount point is selected to be umount ...$(c)" && return; }
 
   while read -r _mpoint; do
-    if [[ '0' = "$(checkMountPoint "${_mpoint}")" ]]; then
-      echo -e "$(c Wdi)~~>$(c) $([[ 'force' = "${force}" ]] && \
-      echo "$(c Yi)${force}$(c) ")$(c Wdi)umounting$(c) $(c Mi)${mpoint}$(c) $(c Wdi)...$(c)"
-      if [[ 'force' = "${force}" ]]; then
+    if test '0' = "$(checkMountPoint "${_mpoint}")"; then
+      echo -e "$(c Wdi)~~>$(c) $( "${force}" && printf "$(c Yi)%s$(c) " "force")$(c Wdi)umounting$(c) $(c Mi)$(dpath "${mpoint}")$(c) $(c Wdi)...$(c)"
+      if "${force}"; then
+        test "${PWD}" = "$(dpath "${_mpoint}")" && cd "${HOME}" || true
         diskutil unmountDisk force "${_mpoint}"
       else
-        sudo umount "${_mpoint}"
+        umount "${_mpoint}"
       fi
-      [[ '0' = "$(checkMountPoint "${_mpoint}")" ]] &&
-        echo -e "$(c Wdi)~~>$(c) $(c Yi)${_mpoint}$(c) $(c Wdi)umount failed ...$(c)" ||
-        echo -e "$(c Wdi)~~>$(c) $(c Gi)${_mpoint}$(c) $(c Wdi)umount successfully ...$(c)"
+      test '0' = "$(checkMountPoint "${_mpoint}")" \
+        && echo -e "$(c Wdi)~~>$(c) $(c Yi)$(dpath "${_mpoint}")$(c) $(c Wdi)umount failed ...$(c)" \
+        || echo -e "$(c Wdi)~~>$(c) $(c Gi)$(dpath "${_mpoint}")$(c) $(c Wdi)umount successfully ...$(c)"
     else
-      echo -e "$(c Wdi)~~>$(c) $(c Mi)${_mpoint}$(c) $(c Wdi)is not exit. exit ...$(c)"
+      echo -e "$(c Wdi)~~>$(c) $(c Mi)$(dpath "${_mpoint}")$(c) $(c Wdi)is not exit. exit ...$(c)"
       return
     fi
-  done < <( echo "${mpoint}" | fmt -1 )
+  done < <( printf '%s\n' "${mpoint}" )
 }
 
 # inMounted    : check if the mount point is mounted by IP or Path in the array of mounted points

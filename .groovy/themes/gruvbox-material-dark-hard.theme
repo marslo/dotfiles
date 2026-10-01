@@ -1,0 +1,29 @@
+# Groovy Console — gruvbox material dark hard
+#
+# palette: sainnhe/gruvbox-material (background=hard, dark, foreground=material)
+# value syntax: [#RRGGBB] [on #RRGGBB] [, bold] [, italic] [, underline]
+
+# --- area backgrounds
+input.background  = #1D2021
+output.background = #282828
+
+# --- output window styles
+regular    = #D4BE98
+prompt     = #A9B665
+command    = #7DAEA3
+stacktrace = #EA6962
+hyperlink  = #7DAEA3, underline
+output     = #D4BE98
+result     = #D4BE98 on #3C3836
+
+# --- input window syntax highlighting
+default        = #D4BE98
+comment        = #928374, italic
+quotes         = #A9B665
+single_quotes  = #A9B665
+slashy_quotes  = #E78A4E
+digit          = #D3869B
+annotation     = #D8A657
+operation      = #E78A4E
+ident          = #D4BE98
+reserved_word  = #EA6962, bold

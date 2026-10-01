@@ -137,3 +137,52 @@ else:
 with open('foo.txt', 'w') as f:         # ✅ context manager
     f.write('hello!')
 ```
+
+## 10. Linter / type-checker suppression comments
+
+Match the suppression comment to the tool that **emitted** the diagnostic — the
+tool name is in the editor hint's trailing tag (`… (Pyright)`, `… (Ruff)`).
+Another tool's comment is silently ignored: `# pylint: disable=…` does nothing
+unless pylint is actually run.
+
+| emitted by | suppress with | example |
+|---|---|---|
+| Ruff | `# noqa: <code>` | `except Exception:  # noqa: BLE001` |
+| Pyright — one line | `# pyright: ignore[<rule>]` | `x = f()  # pyright: ignore[reportOptionalMemberAccess]` |
+| Pyright — whole file | `# pyright: <rule>=false` (near top) | `# pyright: reportGeneralTypeIssues=false` |
+| pylint | `# pylint: disable=<msg>` | `# pylint: disable=broad-exception-caught` |
+| mypy | `# type: ignore[<code>]` | `x = f()  # type: ignore[arg-type]` |
+
+- keep a short reason after the code: `# noqa: BLE001 - metadata is best-effort`.
+- cross-tool equivalents: pylint `broad-exception-caught` ≈ ruff `BLE001`.
+
+### Pyright "X is not accessed"
+
+The grayed **"X is not accessed"** hint (severity `Hint` / the `Unnecessary`
+tag — coc-pyright lists it as `[H]`) is **not** a rule-gated diagnostic:
+`# pyright: ignore[...]`, file-level `# pyright: <rule>=false`, and even the
+leading-underscore convention do **not** silence it (it fires on `_args`, `_n`,
+unused params, decorator-registered callbacks, …). Clear it by making the symbol
+genuinely **referenced**:
+
+```python
+# function only registered via a decorator side effect (e.g. dash @callback):
+def register():
+    @callback(...)
+    def _cb(a, b): ...
+    return _cb                       # ✅ returned → reads as accessed
+
+# params dash/framework passes positionally but the body ignores:
+def cb(sel, stream, _n):
+    _ = _n                           # ✅ `_` is pyright's discard, never flagged
+    ...
+
+def __getattr__(self, name):
+    def _stub(*args, **kwargs):
+        _ = args, kwargs             # ✅ discard to satisfy "not accessed"
+        return None
+    return _stub
+```
+
+Editor-side alternative: filter `Hint`-severity diagnostics (coc.nvim /
+Pylance) — a personal setting, not a repo change.

@@ -10,3 +10,5 @@ __pycache__
 tags
 logback.log
 .watchman*
+
+**/.claude/settings.local.json

@@ -187,6 +187,69 @@ filenames:
       style:
         foreground: 239
       glyph: ""
+  ".DS_Store":
+    filename:
+      foreground: 239
+      is_italic: true
+    icon:
+      style:
+        foreground: 239
+  ".Xauthority-c":
+    filename:
+      foreground: 239
+      is_italic: true
+    icon:
+      style:
+        foreground: 239
+  ".Xauthority-l":
+    filename:
+      foreground: 239
+      is_italic: true
+    icon:
+      style:
+        foreground: 239
+  ".Xauthority":
+    filename:
+      foreground: 239
+      is_italic: true
+    icon:
+      style:
+        foreground: 239
+  ".fseventsd":
+    filename:
+      foreground: 239
+      is_italic: true
+    icon:
+      style:
+        foreground: 239
+  ".Spotlight-V100":
+    filename:
+      foreground: 239
+      is_italic: true
+    icon:
+      style:
+        foreground: 239
+  ".DocumentRevisions-V100":
+    filename:
+      foreground: 239
+      is_italic: true
+    icon:
+      style:
+        foreground: 239
+  ".TemporaryItems":
+    filename:
+      foreground: 239
+      is_italic: true
+    icon:
+      style:
+        foreground: 239
+  ".PreviousSystemInformation":
+    filename:
+      foreground: 239
+      is_italic: true
+    icon:
+      style:
+        foreground: 239
   ".tags":
     icon:
       glyph: "\U000F0DFA"

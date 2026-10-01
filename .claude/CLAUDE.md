@@ -34,6 +34,9 @@ Machine-wide rules for every project (the Claude Code analog of `~/.cursor/rules
 4. After substantive changes, run lint checks on the files you edited.
 5. Reply/Chat language — chat answers only: if I ask in Chinese, reply in Simplified Chinese; otherwise reply in English. (code comments are always English — see § 2.)
 6. Any `pip`/`pipx` install/uninstall action — `python3 -m pip install/uninstall`, `python -m pip install/uninstall`, bare `pip install/uninstall`, or `pipx install/uninstall` — MUST ask for confirmation first, regardless of the current permission mode.
+   - **Exception — `jira-sticker` skill** ( two pre-authorized installs; no second rule-6 confirmation ):
+     1. its declared requirements ( `requirements.txt` ) INTO an isolated venv — the skill's own `.venv`, or a persistent cache venv ( `${XDG_CACHE_HOME:-~/.cache}/jira-sticker/.venv` ) when the skill dir is not writable, **never** system or `--user` site-packages. The skill asks **once** via its Step 0.5 prompt, then creates the venv ( system `python -m venv` ) and installs into it. Do **not** dead-end to a manual install for this one.
+     2. the venv-creation tool when stdlib `venv` is unavailable — `python -m pip install --user virtualenv` or `pipx install virtualenv` ( the **only** permitted `--user` install; it adds just the venv tool, never the skill's own deps ). The skill **surfaces** this command for the user to run themselves, then continues on re-run — it never silently `--user`-installs. This exemption is local to this machine; the skill's own Step 0.5 prompt is self-contained and does not rely on it.
 7. Bash — when invoking bash in a command (e.g. `bash -lc '...'`, `bash script.sh`), use `/opt/homebrew/bin/bash` (Homebrew bash 5.x), never bare `bash` or `/bin/bash` (macOS system bash 3.2). Script shebangs are covered in `rules/bash-style.md`.
 
 # 2. Code comments
