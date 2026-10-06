@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-09-30 23:44:18
+#   LastChange : 2026-10-06 11:12:31
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -277,6 +277,7 @@ function fdInRC() {                        # [f]in[d] [in] [rc] files
     "${HOME}"/.ssh
     "${HOME}"/.jfrog
     "${HOME}"/.pip
+    "${HOME}"/.groovy/themes
     "${HOME}"/.config/nvim
     "${HOME}"/.cht.sh
     "${HOME}"/.git-templates
@@ -1034,23 +1035,44 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
 # |_| /__|_|         |_|_|_\___/\_,_|_||_\__|
 #
 # **************************************************************/
-# checkMountPoint : check if the mount point is mounted
+# checkMountPoint : check if the local mount point is mounted
 # @author         : marslo
 # @source         : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
-# @usage          : checkMountPoint </path/to/mountpoint>
+# @usage          : checkMountPoint </mnt/mountpoint>
 # @return         : 0 - mounted, 1 - not mounted
 function checkMountPoint() { mount | grep -qE "//[^\ ]+\son\s${1}.+"; echo $?; }
 
-# processMount : process mount in WSL ( mount -t cifs ) or OSX ( mount -t smbfs )
+# key = opaque alias ( any unique token ); value = '<prefix>|<host>:/<export>'
+declare -gA MOUNT_POINT=( [1]='/mnt|1.2.3.4:/path/to/devops'
+                          [2]='/data|hostname:/path/to/target$'
+                        )
+
+# mountPrefix <key> : echo local prefix ( before '|' ) · mountSpec <key> : echo host:/export ( after '|' )
+function mountPrefix() { local v="${MOUNT_POINT[${1:-__none__}]}"; printf '%s' "${v%%|*}"; }
+function mountSpec()   { local v="${MOUNT_POINT[${1:-__none__}]}"; printf '%s' "${v#*|}";  }
+
+# aliasOfShare <share> : echo the MOUNT_POINT key whose export share name == $1
+#                        ( e.g. pbu_sdk_stor → 1 ); return 1 when none matches
+function aliasOfShare() {
+  local want="${1}" a spec sh
+  for a in "${!MOUNT_POINT[@]}"; do
+    spec="$( mountSpec "${a}" )"                  # /mnt|host:/pbu_sdk_stor → host:/pbu_sdk_stor
+    sh="${spec#*:}"; sh="${sh//[\/$]/}"           # host:/pbu_sdk_stor → pbu_sdk_stor
+    test "${want}" = "${sh}" && { printf '%s' "${a}"; return 0; }
+  done
+  return 1
+}
+
+# doMount      : process mount in WSL ( mount -t cifs ) or OSX ( mount -t smbfs )
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @references  :
 #   - [mount_cifs](https://askubuntu.com/a/1411378/92979)
 #   - [mount_cifs with credentials](https://serverfault.com/a/367942/129815)
 #   - [mount.smbfs](https://apple.stackexchange.com/a/699/254265)
-# @usage       : processMount <host> <path> [verbose (true|false)]
+# @usage       : doMount <host> <path> [verbose (true|false)]
 # shellcheck disable=SC2155
-function processMount() {
+function doMount() {
   local mpoint
   local host="${1}"
   local path="${2}"
@@ -1063,9 +1085,10 @@ function processMount() {
   if isOSX; then _mpoint="//marslo:${_pw}@${host}${path}";
   elif isWSL || isLinux; then _mpoint="//${host}${path}"; fi
 
-  local prefix
-  test "${path}" = '*isoc*' && prefix='/data' || prefix='/mnt'
-  path="${prefix}/${path//[\/$]/}"                 # "${prefix}/$( sed 's/\$//' <<< "${path/\/}")"
+  local share="${path//[\/$]/}"                    # /isoc_platform_devops$ → isoc_platform_devops
+  local _key; _key="$( aliasOfShare "${share}" )"  # reverse map: real share → alias key
+  local prefix; prefix="$( mountPrefix "${_key}" )"; prefix="${prefix:-/mnt}"
+  path="${prefix}/${share}"
 
   if df -h | grep -q "${host}" >/dev/null; then
     local _path="$( df -h | command grep --color=never "${host}" | awk '{print $NF}' )"
@@ -1103,7 +1126,7 @@ function getMounted() {
   # or via:
   #   mount -t nfs,cifs,smbfs | awk '{print $1}' | sed -rn 's:^//([^@/]*@)?([^/]+).*:\2:p' | paste -sd '|'
   while read -r _ip _path; do
-    _out["$_ip"]="$_path"
+    _out["${_ip}"]="${_path}"
   done < <(mount -t nfs,cifs,smbfs | awk '{print $1}' | sed -rn 's:^//([^@/]*@)?([^/]+)/([^\$%]*)(%24)?/?$:\2 \3:p')
 }
 
@@ -1112,7 +1135,9 @@ function getMounted() {
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 # @usage       : fmount [--auto] [--debug] [--silent]
 function fmount() {                        # fmount - [mount] with [f]zf
-  local -a points=( "1.2.3.4:/path" "hostname:/path/to/target" )
+  local -a points=()
+  local _k
+  for _k in "${!MOUNT_POINT[@]}"; do points+=( "$( mountSpec "${_k}" )" ); done
   local host
   local path
   local mpoint
@@ -1144,7 +1169,7 @@ function fmount() {                        # fmount - [mount] with [f]zf
   fi
 
   while read -r host path; do
-    processMount "${host}" "${path}" "${verbose}"
+    doMount "${host}" "${path}" "${verbose}"
   done< <( printf "%s\n" "${mpoint}" | sed -rn 's!^([^:]+):(.+)$!\1 \2!p' )
 }
 
@@ -1215,9 +1240,9 @@ function inMounted() {
   getMounted mounted
 
   # check key
-  [[ -n "${mounted[$query]+_}" ]] && return 0
+  test -n "${mounted[$query]+_}" && return 0
   # check value
-  for val in "${mounted[@]}"; do [[ "$val" == "$query" ]] && return 0; done
+  for val in "${mounted[@]}"; do test "${val}" = "${query}" && return 0; done
   return 1
 }
 
@@ -1296,28 +1321,47 @@ function goto() {
   test -d "${repo}" && { cd "${repo}" || return; }
 }
 
-# cdm          : [cd] to selected [m]ount path
+# gogo         : go to selected mount path
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
-function cdm() {                           # another `cd`
+function gogo() {                          # another `goto`
+  local -a rels=$( printf "%s\n" 'devops/work' 'devops/work/path' 'platform/releases' 'platform/releases/path' | fzf --prompt '➤ ' )
+
+  local rel share key prefix menu=''
+  for rel in "${rels[@]}"; do
+    share="${rel%%/*}"
+    key="$( aliasOfShare "${share}" )"
+    prefix="$( mountPrefix "${key}" )"; prefix="${prefix:-/mnt}"
+    menu+="${prefix}/${rel}"$'\n'
+  done
+
   local path=''
-  path=$( printf "%s\n" \
-                 'pbu_sdk_stor/Work/SDK_Unified/Release_Team_Internal/Upload/SDK12' \
-                 'pbu_sdk_stor/Work/SDK_Unified/SDK12' \
-                 'isoc_platform_devops/releases/SDK-12.release' \
-                 'isoc_platform_devops/releases/asim/asim-SDK12.24.08' \
-                 'pbu_sdk_stor/Work/SDK_Unified/SDK12/SDK12.24.08-sandbox' \
-                 'isoc_platform_devops/releases/SDK-12.release/2024-08-19/SDK12.24.08' \
-                 'isoc_platform_devops/releases/SDK-12.release/2024-08-27/SDK12.24.08' |
-          fzf --prompt '➤ '
-        )
+  path=$( printf '%s' "${menu}" | fzf --prompt '➤ ' )
+  test -n "${path}" || return
 
-  local name=''
-  name="$(sed -rn 's:^([^/]+).*:\1:p' <<< "${path}")"
-  inMounted "${name}" || fmount --auto --silent -q "${name}"
+  # selected line is already the full local path → it IS the destination
+  local dest="${path}"
+  # share = 2nd path segment ( /mnt/pbu_sdk_stor/... → pbu_sdk_stor )
+  local rest="${path#/}"; rest="${rest#*/}"; share="${rest%%/*}"
+  key="$( aliasOfShare "${share}" )"
+  test -n "${key}" || { echo -e "$(c Ri)ERROR:$(c) unknown share $(c Yi)${share}$(c) ..." >&2; return 1; }
+  local spec; spec="$( mountSpec "${key}" )"
 
-  [[ -n "${path}" ]] && cd "/tmp/${path}" || \
-    echo -e "$(c Wdi)~~>$(c) $(c Mi)${name}$(c) is not mounted ...$(c)"
+  # mount on demand via doMount directly ( no fzf round-trip ), then poll the real target dir until it settles ( smb mount lands asynchronously )
+  if test ! -d "${dest}"; then
+    doMount "${spec%%:*}" "${spec#*:}" false
+    local i=0
+    while test ! -d "${dest}" && test "${i}" -lt 20; do
+      sleep 0.5
+      i=$(( i + 1 ))
+    done
+  fi
+
+  test -d "${dest}" || {
+    echo -e "$(c Ri)ERROR:$(c) $(c Yi)${dest}$(c) $(c Ri)is not reachable. exit ...$(c)" >&2
+    return 1
+  }
+  cd "${dest}" || return
 }
 
 # shellcheck disable=SC2034,SC2316
@@ -1694,7 +1738,7 @@ function kns() {                           # [k]ubectl [n]ame[s]pace
   resources=$*
   namespace=$(command kubectl config view --minify -o jsonpath='{..namespace}')
   context=$(command kubectl config current-context | sed 's/-context$//')
-  newns=$(echo 'sms-fw-devops-ci sfw-vega sfw-alpine sfw-stellaris sfw-ste sfw-titania sfw-lynx sfw-lion sfw-nevox storage-ff sms-fw' |
+  newns=$(echo 'namespace_1 namespace_2 namespace_3 namespace_4' |
                 fmt -1 |
                 rg --color=always --colors match:fg:142 --passthru "^${namespace}$" |
                 fzf -1 -0 \
