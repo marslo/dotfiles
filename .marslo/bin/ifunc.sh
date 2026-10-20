@@ -4,7 +4,7 @@
 #    FileName : ifunc.sh
 #      Author : marslo
 #     Created : 2012
-#  LastChange : 2026-09-23 22:26:26
+#  LastChange : 2026-10-20 01:14:02
 #  Description : ifunctions
 # =============================================================================
 
@@ -403,8 +403,10 @@ function ms() {
 
 # [f]unction [c]ome [f]rom
 function fcf() {
-  test 1 -ne $# && { echo 'ERROR : provide a function name' >&2; return 1; }
-  shopt -s extdebug; declare -F "$1"; shopt -u extdebug
+  test 1 -ne ${#} && { echo 'ERROR : provide a function name' >&2; return 1; }
+  local name line file
+  read -r name line file < <( shopt -s extdebug; declare -F "${1}" ) || return 1
+  echo "${name} ${line} ${file/#${HOME}\//\~/}"
 }
 
 # /**************************************************************

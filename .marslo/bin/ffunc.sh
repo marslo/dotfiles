@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-10-20 01:14:15
+#   LastChange : 2026-10-20 01:23:20
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -1352,7 +1352,17 @@ function goto() {
 # @author      : marslo
 # @source      : https://github.com/marslo/dotfiles/blob/main/.marslo/bin/ffunc.sh
 function gogo() {                          # another `goto`
-  local -a rels=$( printf "%s\n" 'devops/work' 'devops/work/path' 'platform/releases' 'platform/releases/path' | fzf --prompt '➤ ' )
+  # last month as `yy.MM`, anchored on day 01; GNU `date -d`, fallback to BSD `date -v`
+  local lastMonth
+  lastMonth="$( command date -d "$(command date +%Y-%m-01) -1 month" +%y.%m 2>/dev/null || command date -v1d -v-1m +%y.%m )"
+
+  # relative share paths; local prefix ( /mnt | /data ) is prepended per share from the MOUNT_POINT prefix field, so the menu shows full paths DRY
+  local -a rels=( 'devops/work'
+                  'devops/work/path'
+                  "devops/work/path/${lastMonth}"
+                  'platform/releases'
+                  'platform/releases/path'
+                )
 
   local rel share key prefix menu=''
   for rel in "${rels[@]}"; do
@@ -1363,7 +1373,7 @@ function gogo() {                          # another `goto`
   done
 
   local path=''
-  path=$( printf '%s' "${menu}" | fzf --prompt '➤ ' )
+  path=$( printf '%s' "${menu}" | LC_ALL=C command sort -u | fzf --no-multi --scheme=path --tac --height 30% --min-height 5 )
   test -n "${path}" || return
 
   # selected line is already the full local path → it IS the destination
