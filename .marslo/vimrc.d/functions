@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-09-24 17:50:16
+"    LastChange : 2026-10-12 13:02:02
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -453,5 +453,16 @@ function! TSUpdateGitConfig() abort
   echohl MoreMsg | echo 'gitconfig-ts: rebuilt + signed (restart nvim for the new parser binary)' | echohl NONE
 endfunction
 command! TSUpdateGitConfig call TSUpdateGitConfig()
+
+" re-apply coc.nvim pathRe patch ( space in char-class ) when build/index.js was overwritten by `:PlugUpdate` or `:CocUpdate`
+function! s:PlugCocRePatch() abort
+  let l:f = expand('~/.vim/plugged/coc.nvim/build/index.js')
+  if !filereadable(l:f) | return | endif
+  call system(['grep', '-qF', '\w .@', l:f])
+  if 0 == v:shell_error
+    call system(['perl', '-i', '-pe', 's/\\w \.@/\\w.@/g', l:f])
+  endif
+endfunction
+command! PlugCocRePatch call s:PatchCocPathRe()
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:

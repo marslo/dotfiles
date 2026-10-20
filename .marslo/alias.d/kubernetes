@@ -2,17 +2,19 @@
 # shellcheck disable=SC2139,SC2046,SC2142
 # =============================================================================
 #   FileName: kubernetes
-#     Author: marslo.jiao@gmail.com
+#     Author: marslo
 #    Created: 2017-10-30 19:07:45
-# LastChange: 2025-07-02 22:11:35
+# LastChange: 2026-10-19 17:17:18
 # =============================================================================
 
-function kubecolor() {
-  command kubecolor "$@" 2> >(grep -vE '.*metrics\.k8s\.io/v1beta1.*unable to handle the request' >&2)
-}
+K8S_NOISE_RE='metrics\.k8s\.io/v1beta1.*unable to handle the request|unable to handle the request.*metrics\.k8s\.io/v1beta1'
 
 function kubectl() {
-  command kubectl "$@" 2> >(grep -vE '^E0317.*metrics\.k8s\.io/v1beta1.*unable to handle the request"$' >&2)
+  command kubectl "${@}" 2> >( command grep -vE "${K8S_NOISE_RE}" >&2 )
+}
+
+function kubecolor() {
+  command kubecolor "${@}" 2> >( command grep -vE "${K8S_NOISE_RE}" >&2 )
 }
 
 alias kubectl='kubecolor'

@@ -4,7 +4,7 @@
 #     FileName : jira-ls
 #       Author : marslo
 #      Created : 2026-01-21 20:57:09
-#   LastChange : 2026-09-15 21:08:47
+#   LastChange : 2026-09-15 22:41:46
 #=============================================================================
 
 set -euo pipefail
@@ -38,7 +38,7 @@ declare -A JQL_MAP=(
   ['new']='status in (New, Open)'
   ['in-progress']='status in (Active, "In Progress", "In Review")'
   ['todo']='status in ("To Do")'
-  ['open']='status in (Open, New, Active, "To Do", "In Progress", "In Review")'
+  ['open']='status in (Open, New, Active, "To Do", Build, "In Progress", "In Review")'
   ['closed']='status = Closed OR resolution in (Done, Fixed)'
 )
 # map `--to` target aliases to a comma-separated spec: 'STATUS[,RESOLUTION...]'
@@ -94,6 +94,7 @@ EXAMPLE
 
   $(c Wdi)# list open tickets, then add labels to and remove a label from the selected one$(c)
   $(c Ys)\$ ${ME} $(c 0Bi)--open $(c 0Yi)--add-label $(c 0Mi)'Linux,kernel' $(c 0Yi)--remove-label $(c 0Mi)'wip'$(c)
+
   $(c Wdi)# act on specific JIRA ID(s) directly, skipping fzf ( bare ids, comma-separated, or --jira )$(c)
   $(c Ys)\$ ${ME} $(c 0Mu)PROJ-123$(c),$(c 0Mu)PROJ-456$(c 0Yi) --to $(c 0Ci)done$(c)
   $(c Ys)\$ ${ME} $(c 0Gi)--jira $(c 0Mu)PROJ-123$(c 0Gi) --jira $(c 0Mu)PROJ-456$(c 0Yi) --add-label $(c 0Mi)'wip'$(c)
@@ -259,6 +260,7 @@ function resolveEpics() {
     | from_entries
   ' 2>/dev/null || echo '{}'
 }
+
 # validate comma-separated JIRA ids and append them ( uppercased ) to JIRA_KEYS; die on any malformed token
 #   $1: comma-separated ids ; $2: source label for the error message
 function collectKeys() {
@@ -335,8 +337,10 @@ while test $# -gt 0; do
     *                       ) collectKeys "$1" "argument"; shift ;;
   esac
 done
+
 # run now that JIRA_KEYS is known, so fzf is only required in interactive mode; validates JIRA_USER before it is used
 preflight
+
 # fetch the token after preflight so a wrong/unset JIRA_USER is caught before the pass path / auth use it
 declare -r JIRA_API_TOKEN="${JIRA_API_TOKEN:-$( passToken "${PASS_JIRA:-${JIRA_USER}/jira}" )}"
 test -n "${JIRA_API_TOKEN:-}" || die "JIRA API token not found. Please set the \`JIRA_API_TOKEN\` environment variable first"
@@ -378,6 +382,7 @@ query+="${UPDATE_LIMIT:+ AND updated >= '${UPDATE_LIMIT}'}"
 declare jira=''
 # direct-id mode ( --jira / positional ): use the given keys as the selection; skip the interactive listing entirely
 test 0 -lt "${#JIRA_KEYS[@]}" && jira="$( printf '%s\n' "${JIRA_KEYS[@]}" )"
+
 # interactive listing ( search + render + fzf ) runs only when no explicit id was given
 if test -z "${jira}"; then
 declare json=''

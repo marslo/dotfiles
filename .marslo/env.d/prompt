@@ -164,7 +164,7 @@ function __venv_info() {
   local venv=''
   [[ $# -eq 1 ]] && format="$1"
   [[ -n "${VIRTUAL_ENV:-}" ]] && venv="${VIRTUAL_ENV##*/}"
-  if [[ -n "${venv}" ]]; then
+  if test -n "${venv}"; then
     # shellcheck disable=SC2059
     printf -- "${format}" "${venv}"
   fi

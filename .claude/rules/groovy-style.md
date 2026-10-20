@@ -285,3 +285,23 @@ Prefer the Groovy shorthand:
 | null safe | `a?.b` | `( a == null ) ? a : a.b` |
 | implicit return | `return i > 1` | `if ( i > 1 ) { return true } else { return false }` |
 | groovy truth | `if ( name ) { .. }` | `if ( name != null && name.length > 0 ) { .. }` |
+
+## 15. Type check — prefer `in` over `instanceof`
+
+Use `obj in Type` for type checks, not `obj instanceof Type`. CodeNarc's `Instanceof`
+rule (active in `recommended-jenkinsfile`) flags every `instanceof`; `in` avoids the
+warning and reads cleaner.
+
+`a in B` evaluates `B.isCase(a)`; for a Class that is `Class.isInstance(a)` — identical
+to `a instanceof Class`, including `null in Type` → `false`. So the swap is behavior-preserving.
+
+```groovy
+if ( ! (cfg in Map) ) return         // ✅ no Instanceof warning
+if ( value in String ) { .. }        // ✅
+if ( e in FlowInterruptedException ) // ✅
+
+if ( ! (cfg instanceof Map) ) return // ❌ triggers CodeNarc Instanceof
+```
+
+> Negation keeps the outermost-bracket spacing: `! (cfg in Map)` — space-padded outer
+> `( )`, `!` outside.

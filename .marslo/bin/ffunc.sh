@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-10-06 11:12:31
+#   LastChange : 2026-10-16 11:50:06
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -131,7 +131,13 @@ function pc() {                            # path copy
   local nofzf=false
   local file=''
   local -a args=()
-  function _trimhome() { local _path="${1:-}"; _path="$(realpath "${_path}")"; printf '%s' "${_path/#$HOME\//\~\/}"; }
+  function _trimhome() {
+    local _path="${1:-}";
+    _path="$(realpath "${_path}")";
+    _path="${_path/#$HOME\//\~\/}";
+    _path="${_path/\/System\/Volumes\/Data\//\/}";
+    printf '%s' "${_path/#$HOME\//\~\/}";
+  }
 
   while test $# -gt 0; do
     case "$1" in
@@ -2113,9 +2119,9 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
   "
 
   function activeVenv() {
-    [[ -n "$1" ]] &&
+    test -n "$1" &&
       source "$HOME/.venv/$1/bin/activate" &&
-      echo -e "$(c Wd)>>$(c) $(c Wdi)venv$(c) $(c Gis)$1$(c) $(c Wdi)has been activated ..$(c)"
+      echo -e "$(c Wd)>> $(c 0Wdi)venv $(c 0Gis)$1 $(c 0Wdi)has been activated ..$(c)"
   }
 
   function deleteVenv() {
@@ -2123,30 +2129,31 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
     printf "$(c Wi)Do you want to delete venv$(c) $(c Ms)%s$(c) $(c Wi)( Y/N ) ?$(c) " "$1"
     read -r answer
     if [[ "${answer}" != "${answer#[Yy]}" ]]; then
-      [[ -n "${VIRTUAL_ENV}" ]] && [[ "$1" = "${VIRTUAL_ENV##*/}" ]] &&
+      test -n "${VIRTUAL_ENV}" && test "$1" = "${VIRTUAL_ENV##*/}" &&
       deactivate &&
-      echo -e "$(c Wd)>>$(c) $(c Wdi)venv$(c) $(c Mis)$1$(c) $(c Wdi)has been deactivated ..$(c)"
+      echo -e "$(c Wd)>> $(c 0Ys)[NOTE] $(c 0Wdi)venv $(c 0Mis)$1 $(c 0Wdi)has been deactivated ..$(c)"
       command rm -rf "$HOME/.venv/$1" &&
-      echo -e "$(c Wd)>>$(c) $(c Wdi)venv$(c) $(c Mis)$1$(c) $(c Wdi)has been deleted ..$(c)"
+      echo -e "$(c Wd)>> $(c 0Wdi)venv $(c 0Mis)~/.venv/$1 $(c 0Wdi)has been deleted ..$(c)"
     fi
   }
 
   function createVenv() {
-    if [[ $# -eq 2 ]] && "$2"; then
+    if test $# -eq 2 && "$2"; then
       _newvenv=${1:-"${PWD##*/}"}
     else
       _newvenv="$1"
     fi
 
     if command ls --color=never "$HOME/.venv" | grep -qE "^${_newvenv}$"; then
-      echo -e "$(c Ys)WARNING:$(c) $(c Gis)${_newvenv}$(c) $(c Wdi)already exists. activating ..$(c)"
+      echo -e "$(c Wd)>> $(c Ys)[NOTE] $(c 0Gis)${_newvenv} $(c 0Wdi)already exists. activating ..$(c)"
     else
-      python3 -m venv ~/.venv/${_newvenv}
-      echo -e "$(c Wd)>>$(c) $(c Gis)${_newvenv}$(c) $(c Wdi)has been created. activating ..$(c)"
+      echo -e "$(c Wd)>> $(c 0Wdi)creating $(c 0Gis)~/.venv/${_newvenv}$(c) ..$(c)"
+      command python3 -m venv ~/.venv/${_newvenv}
+      echo -e "$(c Wd)>> $(c 0Gis)${_newvenv} $(c 0Wdi)has been created ..$(c)"
     fi
   }
 
-  while [[ $# -gt 0 ]]; do
+  while test $# -gt 0; do
     case "$1" in
       --auto        ) _auto=true; _venv="${PWD##*/}"; shift   ;;
       -d | --delete ) _del=true; shift                        ;;
@@ -2165,18 +2172,18 @@ function avenv() {                         # [a]ctivate [venv] - activate/create
     if [[ -n "${_venv}" ]]; then
       for _var in ${_venv}; do deleteVenv "${_var}"; done
     fi
-  elif [[ -n "${_venv:-}" ]]; then
+  elif test -n "${_venv:-}"; then
     createVenv "${_venv}" "${_auto}"
     activeVenv "${_venv}"
-    echo -e "$(c Wd)>>$(c) $(c Wid)upgrade$(c) $(c Cis)pip$(c) $(c Wdi)if necessary ..$(c)"
+    echo -e "$(c Wd)>> $(c 0Wid)upgrade $(c 0Cis)pip $(c 0Wdi)if necessary ..$(c)"
     python3 -m pip install --upgrade --no-user pip
-    echo -e "$(c Wd)>>$(c) $(c Wid)install pip package$(c) $(c Cis)pynvim$(c) $(c Wdi)for nvim ..$(c)"
+    echo -e "$(c Wd)>> $(c 0Wid)install pip package $(c 0Cis)pynvim $(c 0Wdi)for nvim ..$(c)"
     python3 -m pip install --upgrade --no-user pynvim
-    echo -e "$(c Wd)>>$(c) $(c Wid)install pip package$(c) $(c Cis)pylint$(c) $(c Wdi) ..$(c)"
+    echo -e "$(c Wd)>> $(c 0Wid)install pip package $(c 0Cis)pylint $(c 0Wdi) ..$(c)"
     python3 -m pip install --upgrade --no-user pylint
-    if [[ -f ./requirements.txt ]]; then
-      echo -e "$(c Wd)>>$(c) $(c Wid)install$(c) $(c Cis)./requirements.txt$(c) $(c Wdi)automatically ..$(c)"
-      python3 -m pip install -r ./requirements.txt
+    if test -f ./requirements.txt; then
+      echo -e "$(c Wd)>> $(c 0Wid)install $(c 0Cis)./requirements.txt $(c 0Wdi)automatically ..$(c)"
+      command python3 -m pip install -r ./requirements.txt
     fi
   else
     _venv=$(command ls --color=never "${HOME}/.venv" | fzf --no-border --no-input-border --layout=reverse)

@@ -33,11 +33,14 @@ Machine-wide rules for every project (the Claude Code analog of `~/.cursor/rules
 3. Only run `git commit` when I explicitly say "commit"; never push on your own.
 4. After substantive changes, run lint checks on the files you edited.
 5. Reply/Chat language — chat answers only: if I ask in Chinese, reply in Simplified Chinese; otherwise reply in English. (code comments are always English — see § 2.)
-6. Any `pip`/`pipx` install/uninstall action — `python3 -m pip install/uninstall`, `python -m pip install/uninstall`, bare `pip install/uninstall`, or `pipx install/uninstall` — MUST ask for confirmation first, regardless of the current permission mode.
-   - **Exception — `jira-sticker` skill** ( two pre-authorized installs; no second rule-6 confirmation ):
-     1. its declared requirements ( `requirements.txt` ) INTO an isolated venv — the skill's own `.venv`, or a persistent cache venv ( `${XDG_CACHE_HOME:-~/.cache}/jira-sticker/.venv` ) when the skill dir is not writable, **never** system or `--user` site-packages. The skill asks **once** via its Step 0.5 prompt, then creates the venv ( system `python -m venv` ) and installs into it. Do **not** dead-end to a manual install for this one.
-     2. the venv-creation tool when stdlib `venv` is unavailable — `python -m pip install --user virtualenv` or `pipx install virtualenv` ( the **only** permitted `--user` install; it adds just the venv tool, never the skill's own deps ). The skill **surfaces** this command for the user to run themselves, then continues on re-run — it never silently `--user`-installs. This exemption is local to this machine; the skill's own Step 0.5 prompt is self-contained and does not rely on it.
+6. Any `pip`/`pipx` install/uninstall action — `python3 -m pip install/uninstall`, `python -m pip install/uninstall`, bare `pip install/uninstall`, or `pipx install/uninstall` — is **allowed after the user approves**; it is not blanket-forbidden.
+   - ask via `AskUserQuestion` (regardless of the current permission mode), showing the exact command and target ( venv / `--user` / system ), with options like `Install` / `Exit` ( cancel ).
+   - `Install` → run the command as shown; `Exit` → stop the install and continue without it ( or report what is blocked ).
+   - approval is per-command; do not reuse it for a different package or action.
 7. Bash — when invoking bash in a command (e.g. `bash -lc '...'`, `bash script.sh`), use `/opt/homebrew/bin/bash` (Homebrew bash 5.x), never bare `bash` or `/bin/bash` (macOS system bash 3.2). Script shebangs are covered in `rules/bash-style.md`.
+8. Mounted disks — read-only by default: every mounted volume ( e.g. `/mnt/pbu_sdk_stor`, `/data/isoc_platform_devops`, any other mount point ) may only be **read** ( `ls`, `cat`, `rg`, `fd`, `stat`, … ).
+   - no create / modify / delete / move / rename / chmod / chown / write-redirect on a mounted path, unless I explicitly ask for it in that request.
+   - an explicit request covers only the named path and action; it does not extend to other mounts or later requests.
 
 # 2. Code comments
 
@@ -124,6 +127,16 @@ My git is configured with an external/pager diff tool (e.g. difftastic / delta v
 - `git log -p` → `git --no-pager log -p --no-ext-diff -1 --no-color`
 
 Add `--no-color` as well when the result will be parsed further.
+
+## 3.4. Git grep / `--name-only` — bypass the pager too
+
+Same principle as §3.3, for commands that emit **bare filenames**. On a TTY they run through `[pager] grep` / `[pager] diff` (delta); delta parses them as grep output and rewrites the **first `-` in a path into `:`** (it reads `-` as grep's context-line separator), so `release-scripts/...` prints as `release:scripts/...`. Bypass the pager whenever the output is a filename list or gets parsed:
+
+- `git grep ...`             → `git --no-pager grep ...`
+- `git diff --name-only ...` → `git --no-pager diff --name-only ...`
+- list conflict files        → `git --no-pager ls-files -u | cut -f2 | sort -u`
+
+one-time global opt-out for grep: `git config --global pager.grep false`.
 
 @rules/bash-style.md
 @rules/python-style.md
