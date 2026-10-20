@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-10-16 11:50:06
+#   LastChange : 2026-10-20 01:14:15
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -81,6 +81,23 @@ function _load_fd_context() {
 
   isWSL || fdopt+=( --exec-batch ls -td1 )
   typeset -p fdopt
+}
+
+# usage: ... | _tildePath | fzf "${fzfopt[@]}" "${tildeopt[@]}"
+# prepend the `~/` form of each path as a display column: "<~/path>\t<full path>"
+function _tildePath() {
+  awk -v home="${HOME}/" '{ d = $0; if ( 1 == index(d, home) ) d = "~/" substr(d, length(home) + 1); print d "\t" $0 }'
+}
+
+# usage: eval "$( _load_tilde_context )"
+#        ... | _tildePath | fzf "${fzfopt[@]}" "${tildeopt[@]}"
+# fzf options for `_tildePath` input: show column 1 ( `~/` ), use column 2 ( full path ) for preview / ctrl-o / output
+function _load_tilde_context() {
+  local -a tildeopt=( --delimiter '\t' --with-nth 1 --accept-nth 2
+                      --preview "${HOME}/.marslo/bin/fzf-preview.sh {2}"
+                      --bind 'ctrl-o:execute(bat {2} > /dev/tty)'
+                    )
+  typeset -p tildeopt
 }
 
 # /**************************************************************
@@ -389,13 +406,15 @@ function runrc() {                         # runrc - source/[run] [rc] files
   done
 
   eval "$( _load_fzf_context )"
+  eval "$( _load_tilde_context )"
 
   mapfile -t files < <(
     fdInRC -x |
     sed -rn 's/^[^|]* \| (.+)$/\1/p' |
-    fzf "${options[@]}" "${fzfopt[@]}" \
+    _tildePath |
+    fzf "${options[@]}" "${fzfopt[@]}" "${tildeopt[@]}" \
         --preview-window 'right,55%,nowrap,rounded,+15' \
-        --bind "ctrl-y:execute-silent(printf '%s' {+} | ${COPY})" \
+        --bind "ctrl-y:execute-silent(printf '%s' {+1} | ${COPY})" \
         --header 'Press CTRL-Y to copy name into clipboard'
   )
 
@@ -473,7 +492,7 @@ function imgview() {                       # [view] [im]a[g]e via [imgcat](https
            --keep-right \
            --layout=default \
            --preview "${HOME}/.marslo/bin/fzf-preview.sh {}" \
-           --bind "ctrl-y:execute-silent(printf '%s' {+} | pbcopy)+abort" \
+           --bind "ctrl-y:execute-silent(printf '%s' {+} | sed 's#^${HOME}/#~/#' | pbcopy)+abort" \
            --bind 'ctrl-\:change-preview-window(right:80%:nowrap|up:80%:nowrap)' \
            --header 'Press CTRL-Y to copy name into clipboard' \
            --preview-window 'up:80%:nowrap' \
@@ -769,13 +788,15 @@ function vimrc() {                         # vimrc - fzf list all rc files in da
   done
 
   eval "$( _load_fzf_context )"
+  eval "$( _load_tilde_context )"
 
   "${orgv}" || command -v nvim >/dev/null && VIM="$(type -P nvim)"
   fdInRC -x | sed -rn 's/^[^|]* \| (.+)$/\1/p' \
-            | fzf "${foption[@]}" "${fzfopt[@]}" \
-                  --bind="enter:become(${VIM} {+})" \
+            | _tildePath \
+            | fzf "${foption[@]}" "${fzfopt[@]}" "${tildeopt[@]}" \
+                  --bind="enter:become(${VIM} {+2})" \
                   --preview-window 'right,55%,nowrap,rounded,+15' \
-                  --bind "ctrl-y:execute-silent(printf '%s' {+} | ${COPY})" \
+                  --bind "ctrl-y:execute-silent(printf '%s' {+1} | ${COPY})" \
                   --header 'Press CTRL-Y to copy name into clipboard'
 }
 
@@ -1314,7 +1335,7 @@ function goto() {
         --preview-window=right,65%,nofollow --preview-label-pos='bottom' \
         --footer=$'Ctrl-O: view commit / Ctrl-\: change preview\nAlt-u: open github  / Ctrl-Y: copy path' \
         --bind "ctrl-o:execute(bash -c \"${gpreview}\")+change-preview(${gpreviewS})+change-prompt(repo> )" \
-        --bind "ctrl-y:execute-silent(printf \"%s\" {2} | eval ${CLIPBOARD})" \
+        --bind "ctrl-y:execute-silent(printf \"%s\" {2} | sed 's#^${HOME}/#~/#' | eval ${CLIPBOARD})" \
         --bind 'ctrl-]:change-preview-window:up,60%|hidden|right,55%' \
         --bind "alt-u:execute-silent(bash -c \"\${openWebUrl}\" _ {2})" \
         --bind "ctrl-\:transform:[[ \$FZF_PREVIEW_LABEL == *log* ]] \
