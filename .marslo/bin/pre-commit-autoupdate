@@ -3,235 +3,175 @@
 #     FileName : pre-commit-autoupdate
 #       Author : marslo
 #      Created : 2026-05-13 14:15:00
-#   LastChange : 2026-10-19 22:45:19
+#   LastChange : 2026-10-19 23:09:42
 #  Description : `precommit autoupdate` — runs real autoupdate → fixes repos that use rolling major-version tags
-#                outside a git repo: upgrades every .pre-commit-config.yaml of every git repo found under cwd
 #                e.g. crate-ci/typos publishes "v1"
+#                inside a git repo  : upgrades the nearest .pre-commit-config.yaml ( cwd → repo root )
+#                outside a git repo : upgrades every .pre-commit-config.yaml of every git repo under cwd
+#                hook repos rewritten to github ssh ( :22 ) are pinned back to https via GIT_CONFIG_* env, scoped to pre-commit only
 #=============================================================================
 
 set -euo pipefail
+(( BASH_VERSINFO[0] * 100 + BASH_VERSINFO[1] >= 404 )) || { echo >&2 'error: bash >= 4.4 required'; exit 1; }
 
 # shellcheck disable=SC2155
-declare -r HERE="$( cd "$( dirname "${BASH_SOURCE[0]:-$0}" )" && pwd )"
-
-function backer() {
-  local _path
-  _path=$(echo "${PATH}" | awk -v RS=: -v ORS=: -v skip="${HERE}" '$1 != skip' | sed 's/:$//')
-  PATH="${_path}" command -v pre-commit || { echo >&2 "error: pre-commit not found in PATH"; return 1; }
-}
-
-readonly CFG='.pre-commit-config.yaml'
-readonly ROLLING_REPOS=( 'crate-ci/typos' )
+declare -r HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+declare -r CFG='.pre-commit-config.yaml'
+declare -ra ROLLING_REPOS=( 'crate-ci/typos' )
 # dirs bypassed in multi-repo mode ( gitignore-style globs, relative to the search root )
-readonly BYPASS_DIRS=( '**/archive/**' '**/backup/**' '**/backups/**' )
+declare -ra BYPASS_DIRS=( '**/archive/**' '**/backup/**' '**/backups/**' )
+declare -r C_DIM='0;2;3;37' C_HEAD='0;1;36' C_SUB='0;1;34' C_ERR='0;1;31'
 
-# locate the config dir (walk up from cwd, else git repo root) so autoupdate runs from any subdir
-function findroot() {
-  local d="${PWD}"
-  while [[ "${d}" != '/' ]]; do
-    test -f "${d}/${CFG}" && { printf '%s' "${d}"; return 0; }
-    d="$( dirname "${d}" )"
-  done
-  local root; root="$( git rev-parse --show-toplevel 2>/dev/null )" || true
-  [[ -n "${root}" && -f "${root}/${CFG}" ]] && { printf '%s' "${root}"; return 0; }
-  return 1
-}
-
-declare LATEST_TAG=''
-declare LATEST_CACHE=$'\n'
+declare -A LATEST=()
 declare -a CLEANUP=()
-declare -a REPOS=()
-declare RESTORE_SSH='false'
 
-# git transport switch via marslo's aliases: `git https-status` / `git https-set` / `git https-unset`
-function hasHttpsAliases() {
-  local a
-  for a in https-status https-set https-unset; do
-    git config --get "alias.${a}" >/dev/null || return 1
-  done
+# print a colored line: say <ansi-code> <message...>
+function say() { local c="${1}"; shift; printf '\033[%sm%s\033[0m\n' "${c}" "${*}"; }
+
+# resolve the real pre-commit, skipping this wrapper's dir in PATH
+function realPrecommit() {
+  local path=":${PATH}:"
+  path="${path//":${HERE}:"/:}"; path="${path#:}"
+  PATH="${path%:}" command -v pre-commit
 }
 
-# https enabled → no-op; ssh enabled → switch to https and mark RESTORE_SSH for restore on exit
-function useHttps() {
-  hasHttpsAliases || return 0
-  git https-status >/dev/null 2>&1 && return 0
-  echo >&2 -e '\033[0;2;3;37m→ git transport: ssh → https ( temporary, restored on exit )\033[0m'
-  RESTORE_SSH='true'
-  if ! git https-set >&2 || ! git https-status >/dev/null 2>&1; then
-    echo >&2 'warning: failed to switch git transport to https, continuing with ssh'
-  fi
+# pick the search tool: rg → fd → find
+function pickTool() {
+  local t
+  for t in rg fd; do command -v "${t}" >/dev/null && { echo "${t}"; return; }; done
+  echo 'find'
 }
 
-# remove sed backups and restore the ssh git transport if it was switched
-function cleanup() {
-  test 0 -eq "${#CLEANUP[@]}" || rm -f "${CLEANUP[@]}"
-  if test 'true' = "${RESTORE_SSH}"; then
-    RESTORE_SSH='false'
-    echo >&2 -e '\033[0;2;3;37m→ git transport: https → ssh ( restored )\033[0m'
-    git https-unset >&2 || echo >&2 'error: failed to restore ssh, run "git https-unset" manually'
-  fi
+# print NUL-separated GIT_CONFIG_* env that pins the config's https hook repos back to https when git would rewrite them to ssh on github.com ( `git ls-remote --get-url` → host alias → `ssh -G` hostname )
+# a per-repo self-mapping `url.<repo>.insteadOf = <repo>` outranks any shorter `https://github.com/…` rewrite ( longest match wins )
+function pinHttps() {
+  local cfg="${1}" url
+  local -i n="${GIT_CONFIG_COUNT:-0}"
+  local -a env=()
+  while read -r url; do
+    [[ "$( git ls-remote --get-url "${url}" )" =~ ^(ssh://)?[^@/]+@([^:/]+)[:/] ]] || continue
+    test 'github.com' = "$( ssh -G "${BASH_REMATCH[2]}" 2>/dev/null | sed -n 's/^hostname //p' )" || continue
+    env+=( "GIT_CONFIG_KEY_${n}=url.${url}.insteadOf" "GIT_CONFIG_VALUE_${n}=${url}" )
+    n+=1
+  done < <( sed -nE "s/^[[:space:]-]*repo:[[:space:]]*[\"']?(https:\/\/[^\"'[:space:]#]+).*/\1/p" "${cfg}" | sort -u )
+  (( ${#env[@]} )) && printf '%s\0' "GIT_CONFIG_COUNT=${n}" "${env[@]}"
+  return 0
 }
 
-trap cleanup EXIT
-trap 'echo >&2 -e "\n\033[0;1;31minterrupted, aborting\033[0m"; exit 130' INT TERM
-
-# fetch the latest release tag of a GitHub repo into LATEST_TAG; cached per run as "<repo>\t<tag>" lines
-function fetchLatest() {
-  local repo="${1}" hit
-  hit="${LATEST_CACHE#*$'\n'"${repo}"$'\t'}"
-  if test "${LATEST_CACHE}" != "${hit}"; then
-    LATEST_TAG="${hit%%$'\n'*}"
-    return 0
-  fi
-  LATEST_TAG="$( curl -fsSL ${GITHUB_TOKEN:+-H "Authorization: token ${GITHUB_TOKEN}"} "https://api.github.com/repos/${repo}/releases/latest" | jq -r '.tag_name // empty' )" || true
-  LATEST_CACHE+="${repo}"$'\t'"${LATEST_TAG}"$'\n'
+# fetch the latest release tag of a GitHub repo into LATEST[repo] ( once per run )
+function latestTag() {
+  local repo="${1}"
+  test -v "LATEST[${repo}]" && return 0
+  LATEST[${repo}]="$( curl -fsSL ${GITHUB_TOKEN:+-H "Authorization: token ${GITHUB_TOKEN}"} "https://api.github.com/repos/${repo}/releases/latest" | jq -r '.tag_name // empty' )" || true
 }
 
-# run autoupdate on the given config, then pin rolling major-version tags to the latest release
+# autoupdate one config, then pin rolling major-version tags to the latest release ( skipped with --freeze )
 function upgradeConfig() {
-  local cfgPath="${1}"; shift
-  local repo latest escaped current
-  "${_REAL_PRECOMMIT}" autoupdate --config "${cfgPath}" ${@+"${@}"} || return 1
+  local cfg="${1}"; shift
+  local repo pattern current latest
+  local -a pin
+  mapfile -d '' -t pin < <( pinHttps "${cfg}" )
+  command env "${pin[@]}" "${PRECOMMIT}" autoupdate --config "${cfg}" "${@}" || return 1
+  [[ " ${*} " == *' --freeze '* ]] && return 0
 
   for repo in "${ROLLING_REPOS[@]}"; do
-    command grep -q "${repo}" "${cfgPath}" || continue
+    command grep -qF "${repo}" "${cfg}" || continue
+    latestTag "${repo}"
+    latest="${LATEST[${repo}]}"
+    test -n "${latest}" || { echo >&2 "warning: could not fetch latest release for ${repo}, skipping"; continue; }
 
-    fetchLatest "${repo}"
-    latest="${LATEST_TAG}"
-    test -z "${latest}" && { echo >&2 "warning: could not fetch latest release for ${repo}, skipping"; continue; }
+    pattern="${repo//\//\\/}"
+    current="$( sed -n "/${pattern}/{n;s/.*rev:[[:space:]]*//p;q;}" "${cfg}" )"
+    test "${latest}" = "${current}" && continue
 
-    escaped="${repo//\//\\/}"
-    current="$( sed -n "/${escaped}/{n;s/.*rev:[[:space:]]*//p;}" "${cfgPath}" | head -1 )"
-
-    if test "${latest}" != "${current}"; then
-      CLEANUP+=( "${cfgPath}.bak" )
-      sed -i.bak "/${escaped}/{n;s/rev:.*/rev: ${latest}/;}" "${cfgPath}" || return 1
-      rm -f "${cfgPath}.bak"
-      printf "\033[0;2;3;37m[https://github.com/%s]\033[0m \033[0;1;36mfixed rev\033[0m: \033[0;1;3;34m%s\033[0m -> \033[0;1;3;35m%s\033[0m\n" "${repo}" "${current}" "${latest}"
-    fi
+    CLEANUP+=( "${cfg}.bak" )
+    sed -i.bak "/${pattern}/{n;s/rev:.*/rev: ${latest}/;}" "${cfg}" && rm -f "${cfg}.bak" || return 1
+    printf "\033[${C_DIM}m[https://github.com/%s]\033[0m \033[0;1;36mfixed rev\033[0m: \033[0;1;3;34m%s\033[0m -> \033[0;1;3;35m%s\033[0m\n" "${repo}" "${current}" "${latest}"
   done
 }
 
-# cwd inside a git repo: upgrade the nearest config ( walk up from cwd, else repo root )
-function singleMode() {
-  local cfgDir cfgPath
-  cfgDir="$( findroot )" || { echo >&2 "error: ${CFG} not found in ${PWD} or any parent / git root"; exit 1; }
-  cfgPath="${cfgDir}/${CFG}"
-  test "${cfgDir}" != "${PWD}" && echo >&2 -e "\033[0;2;3;37m→ ${cfgPath/#${HOME}\//\~/}\033[0m"
-  upgradeConfig "${cfgPath}" ${@+"${@}"}
-}
-
-# print the available search tool: rg → fd → find
-function searchTool() {
-  if command -v rg >/dev/null; then
-    echo 'rg'
-  elif command -v fd >/dev/null; then
-    echo 'fd'
-  else
-    echo 'find'
-  fi
-}
-
-# fill BYPASS_ARGS with the exclude options of the given search tool ( rg | fd | find ) for BYPASS_DIRS
-# e.g. '**/archive/**' → rg: -g '!**/archive/**' -g '!**/archive' | fd: --exclude ... | find: -path '*/archive' -prune -o
-declare -a BYPASS_ARGS=()
-function buildBypass() {
-  local tool="${1}" glob dirGlob
-  BYPASS_ARGS=()
-  for glob in ${BYPASS_DIRS[@]+"${BYPASS_DIRS[@]}"}; do
-    dirGlob="${glob%/\*\*}"
-    case "${tool}" in
-      rg   ) BYPASS_ARGS+=( -g "!${glob}" -g "!${dirGlob}" ) ;;
-      fd   ) BYPASS_ARGS+=( --exclude "${glob}" --exclude "${dirGlob}" ) ;;
-      find ) BYPASS_ARGS+=( -path "${dirGlob//\*\*/*}" -prune -o ) ;;
+# list NUL-separated paths ( relative to <dir> ) of <kind>: repos ( .git ) | configs; BYPASS_DIRS skipped
+function search() {
+  local dir="${1}" kind="${2}" glob prune
+  local -a cmd excl=()
+  for glob in "${BYPASS_DIRS[@]}"; do
+    prune="${glob%/\*\*}"
+    case "${TOOL}" in
+      rg   ) excl+=( -g "!${glob}" -g "!${prune}" ) ;;
+      fd   ) excl+=( --exclude "${glob}" --exclude "${prune}" ) ;;
+      find ) excl+=( -path "${prune//\*\*/*}" -prune -o ) ;;
     esac
   done
-}
-
-# collect git repo roots under the given dir into REPOS, skipping BYPASS_DIRS
-function findRepos() {
-  local dir="${1}" tool p
-  local -a cmd=()
-  tool="$( searchTool )"
-  buildBypass "${tool}"
-  case "${tool}" in
-    rg   ) cmd=( command rg --files --hidden --no-ignore --null --color=never -g '**/.git/HEAD' ${BYPASS_ARGS[@]+"${BYPASS_ARGS[@]}"} . ) ;;
-    fd   ) cmd=( command fd --hidden --no-ignore --type d --print0 --color=never ${BYPASS_ARGS[@]+"${BYPASS_ARGS[@]}"} '^\.git$' . ) ;;
-    find ) cmd=( command find . ${BYPASS_ARGS[@]+"${BYPASS_ARGS[@]}"} -type d -name .git -prune -print0 ) ;;
+  case "${TOOL}:${kind}" in
+    rg:repos     ) cmd=( rg --files --null --hidden --no-ignore -g '**/.git/HEAD' "${excl[@]}" ) ;;
+    rg:configs   ) cmd=( rg --files --null --hidden -g "${CFG}" -g '!.git' "${excl[@]}" ) ;;
+    fd:repos     ) cmd=( fd --print0 --hidden --no-ignore --type d "${excl[@]}" '^\.git$' ) ;;
+    fd:configs   ) cmd=( fd --print0 --hidden --type f --exclude .git "${excl[@]}" --glob "${CFG}" ) ;;
+    find:repos   ) cmd=( find . "${excl[@]}" -type d -name .git -prune -print0 ) ;;
+    find:configs ) cmd=( find . -name .git -prune -o "${excl[@]}" -type f -name "${CFG}" -print0 ) ;;
   esac
-  while IFS= read -r -d '' p; do
-    p="${p#./}"; p="${p%/HEAD}"; p="${p%/}"
-    REPOS+=( "${dir}/${p%/.git}" )
-  done < <( cd "${dir}" && "${cmd[@]}" | command sort -z )
+  ( cd "${dir}" && command "${cmd[@]}" ) | command sort -z
 }
 
-# print configs ( NUL-separated, absolute ) under the given repo, excluding .git, gitignored paths and BYPASS_DIRS
-function listConfigs() {
-  local repo="${1}" tool p
-  local -a cmd=()
-  tool="$( searchTool )"
-  buildBypass "${tool}"
-  case "${tool}" in
-    rg   ) cmd=( command rg --files --hidden --null --color=never -g "${CFG}" -g '!.git' ${BYPASS_ARGS[@]+"${BYPASS_ARGS[@]}"} . ) ;;
-    fd   ) cmd=( command fd --hidden --type f --print0 --color=never --exclude .git ${BYPASS_ARGS[@]+"${BYPASS_ARGS[@]}"} --glob "${CFG}" . ) ;;
-    find ) cmd=( command find . -name .git -prune -o ${BYPASS_ARGS[@]+"${BYPASS_ARGS[@]}"} -type f -name "${CFG}" -print0 ) ;;
-  esac
-  while IFS= read -r -d '' p; do
-    printf '%s\0' "${repo}/${p#./}"
-  done < <( cd "${repo}" && "${cmd[@]}" )
+# inside a git repo: upgrade the nearest config from cwd up to the repo root
+function singleMode() {
+  local top dir here
+  top="$( git rev-parse --show-toplevel )"
+  here="$( pwd -P )"
+  dir="${here}"
+  until test -f "${dir}/${CFG}"; do
+    test "${top}" != "${dir}" && test -n "${dir}" || { echo >&2 "error: ${CFG} not found from ${PWD} up to ${top}"; return 1; }
+    dir="${dir%/*}"
+  done
+  test "${here}" = "${dir}" || say "${C_DIM}" "→ ${dir/#"${HOME}"/\~}/${CFG}" >&2
+  upgradeConfig "${dir}/${CFG}" "${@}"
 }
 
-# cwd outside any git repo: upgrade every config of every git repo found under cwd
+# outside any git repo: upgrade every config of every git repo under cwd ( a config belongs to its nearest repo )
 function multiMode() {
-  local start="${PWD}" repo top cfg owner
-  local -i ok=0 fail=0 skip=0
-  local -a configs=() failed=()
+  local start="${PWD}" repo top cfg
+  local -i ok=0 skip=0 n
+  local -a repos configs failed=()
 
-  findRepos "${start}"
-  test 0 -ne "${#REPOS[@]}" || { echo >&2 "error: ${start} is not in a git repo, and no git repo found under it"; return 1; }
-  echo -e "\033[0;2;3;37mfound ${#REPOS[@]} git repo(s) under ${start/#${HOME}/\~}\033[0m"
+  mapfile -d '' -t repos < <( search "${start}" repos )
+  repos=( "${repos[@]#./}" ); repos=( "${repos[@]%/}" ); repos=( "${repos[@]%/HEAD}" ); repos=( "${repos[@]%/.git}" )
+  repos=( "${repos[@]/#/${start}/}" )
+  (( ${#repos[@]} )) || { echo >&2 "error: ${start} is not in a git repo, and no git repo found under it"; return 1; }
+  say "${C_DIM}" "found ${#repos[@]} git repo(s) under ${start/#"${HOME}"/\~}"
 
-  for repo in "${REPOS[@]}"; do
-    echo -e "\n\033[0;1;36m==> repo: ${repo/#${start}\//}\033[0m"
-    top="$( git -C "${repo}" rev-parse --show-toplevel 2>/dev/null )" || { echo >&2 'warning: not a valid work tree, skipping'; skip+=1; continue; }
+  for repo in "${repos[@]}"; do
+    echo; say "${C_HEAD}" "==> repo: ${repo#"${start}"/}"
+    top="$( git -C "${repo}" rev-parse --show-toplevel 2>/dev/null )" || { say "${C_DIM}" '    not a valid work tree, skipping'; skip+=1; continue; }
 
-    # keep only configs owned by this repo ( not by a nested repo )
-    configs=()
-    while IFS= read -r -d '' cfg; do
-      owner="$( git -C "$( dirname "${cfg}" )" rev-parse --show-toplevel 2>/dev/null )" || continue
-      test "${top}" = "${owner}" && configs+=( "${cfg}" )
-    done < <( listConfigs "${repo}" | command sort -z )
-
-    if test 0 -eq "${#configs[@]}"; then
-      echo -e "\033[0;2;3;37m    no ${CFG} found, skipping\033[0m"
-      skip+=1
-      continue
-    fi
-
+    mapfile -d '' -t configs < <( search "${repo}" configs )
+    configs=( "${configs[@]#./}" ); configs=( "${configs[@]/#/${repo}/}" )
+    n=0
     for cfg in "${configs[@]}"; do
-      echo -e "\033[0;1;34m--> config: ${cfg/#${start}\//}\033[0m"
-      cd "${repo}" || { fail+=1; failed+=( "${cfg}" ); continue; }
-      if upgradeConfig "${cfg}" ${@+"${@}"}; then
-        ok+=1
-      else
-        echo >&2 -e "\033[0;1;31m    failed: ${cfg/#${start}\//}\033[0m"
-        fail+=1
-        failed+=( "${cfg}" )
-      fi
+      test "${top}" = "$( git -C "${cfg%/*}" rev-parse --show-toplevel 2>/dev/null )" || continue
+      n+=1
+      say "${C_SUB}" "--> config: ${cfg#"${start}"/}"
+      cd "${repo}"
+      if upgradeConfig "${cfg}" "${@}"; then ok+=1; else say "${C_ERR}" "    failed: ${cfg#"${start}"/}" >&2; failed+=( "${cfg}" ); fi
     done
+    (( n )) || { say "${C_DIM}" "    no ${CFG} found, skipping"; skip+=1; }
   done
 
-  echo -e "\n\033[0;1;36m==> summary:\033[0m \033[0;1;32m${ok} succeeded\033[0m, \033[0;1;31m${fail} failed\033[0m, ${skip} repo(s) skipped"
-  for cfg in ${failed[@]+"${failed[@]}"}; do echo -e "\033[0;31m    ✗ ${cfg/#${HOME}/\~}\033[0m"; done
-  test 0 -eq "${fail}"
+  printf "\n\033[${C_HEAD}m==> summary:\033[0m \033[0;1;32m%d succeeded\033[0m, \033[${C_ERR}m%d failed\033[0m, %d repo(s) skipped\n" "${ok}" "${#failed[@]}" "${skip}"
+  (( ${#failed[@]} )) && printf '\033[0;31m    ✗ %s\033[0m\n' "${failed[@]/#"${HOME}"/\~}"
+  (( ! ${#failed[@]} ))
 }
 
-: "${_REAL_PRECOMMIT:=$(backer)}"
-useHttps
-if git rev-parse --show-toplevel >/dev/null 2>&1; then
-  singleMode ${@+"${@}"}
+PRECOMMIT="${_REAL_PRECOMMIT:-$( realPrecommit )}" || { echo >&2 'error: pre-commit not found in PATH'; exit 1; }
+# shellcheck disable=SC2155
+declare -r PRECOMMIT TOOL="$( pickTool )"
+
+trap '(( ${#CLEANUP[@]} )) && rm -f "${CLEANUP[@]}"' EXIT
+trap 'echo >&2; say "${C_ERR}" "interrupted, aborting" >&2; exit 130' INT TERM
+
+if git rev-parse --show-toplevel &>/dev/null; then
+  singleMode "${@}"
 else
-  multiMode ${@+"${@}"}
+  multiMode "${@}"
 fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
