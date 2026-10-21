@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-09-11 00:52:16
+"    LastChange : 2026-10-21 12:31:12
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -93,9 +93,16 @@ let s:ft_settings = {
       \ 'copilot-chat': { 'modifiable': v:true },
       \ }
 
+" check whether the buffer-local option was last set by modeline
+function! s:SetByModeline( opt ) abort
+  return execute( 'verbose setlocal ' . a:opt . '?' ) =~# 'Last set from modeline'
+endfunction
+
 function! s:ApplyFTSettings() abort
   if has_key( s:ft_settings, &filetype )
     for [opt, val] in items( s:ft_settings[&filetype] )
+      " skip options set by modeline
+      if s:SetByModeline( opt ) | continue | endif
       let current_val = eval( '&l:' . opt )
       if type( val ) == v:t_bool
         execute 'setlocal' ( val ? '' : 'no' ) . opt
@@ -107,6 +114,7 @@ function! s:ApplyFTSettings() abort
     endfor
   endif
   if &buftype ==# '' && &l:foldmethod ==# 'manual'
+        \ && ! s:SetByModeline( 'foldmethod' )
         \ && ( !has_key(s:ft_settings, &filetype) || !has_key(s:ft_settings[&filetype], 'foldmethod') )
     setlocal foldmethod=indent
   endif
@@ -326,6 +334,7 @@ if has( 'autocmd' )
     autocmd!
 
     " priority: open file -> FileType -> modeline -> BufWinEnter ( to avoid BufWinEnter override the modeline settings )
+    " `filetype=` in modeline re-fires FileType; ApplyFTSettings skips options last set from modeline
     autocmd FileType                      *              ++nested call s:ApplyFTSettings()
     autocmd BufWinEnter                   *              if empty( &filetype ) | call s:ApplyFTSettings() | endif
 
