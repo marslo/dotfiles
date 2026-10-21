@@ -24,6 +24,8 @@ check-file = true
 unicode=true
 locale = "en"
 extend-ignore-re = [
+  # skip git SHA in changelog commit links, e.g. [3ba4ebe](https://.../commit/3ba4ebedc06...)
+  '\[[0-9a-f]{7,40}\]\(https?://[^)]*/commit/[0-9a-f]{7,40}\)',
   "(?m)^\\s*(?:bind|alias|snip).*$",
   # [c]ommit, d[i]ff, ...
   "\\w*\\[\\w\\]\\w*",
@@ -45,19 +47,20 @@ extend-ignore-re = [
   '\(\?=\\s\*'
 ]
 
+# case-insensitive
 [default.extend-words]
 # <typo> = "<correction>"
 caf = 'caf'
 sav = 'sav'
-Wew = 'Wew'
-STARTIN = 'STARTIN'
+wew = 'wew'
+startin = 'startin'
 siduction = 'siduction'
 iz = 'iz'
 windo = 'windo'
 ue = 'ue'
-Mis = 'Mis'
-Ot = 'Ot'
+mis = 'mis'
+ot = 'ot'
 ba = 'ba'
-UMARK = 'UMARK'
-BRE = 'BRE'
+umark = 'umark'
+bre = 'bre'
 fpr = 'fpr'

@@ -4,7 +4,7 @@
 #     FileName : semantic-release
 #       Author : marslo
 #      Created : 2025-06-17 23:02:43
-#   LastChange : 2026-08-25 20:56:50
+#   LastChange : 2026-10-20 16:54:45
 #=============================================================================
 
 set -euo pipefail
@@ -119,7 +119,7 @@ if ! compgen -G ".releaserc*" > /dev/null && ! compgen -G "release.config.*" > /
   [[ "${cmd[*]}" != *'--extends'* ]] && die "no rc found in: ${_root:+${_root}, }${DEFAULT_RCS[*]}"
 fi
 
-"${debug}"  && cmd+=( --debug )
+"${debug}"  && cmd+=( --debug   )
 "${dryrun}" && cmd+=( --dry-run )
 
 "${debug}" && {
@@ -134,7 +134,7 @@ export GH_TOKEN="${TOKEN}"
 export GITHUB_USER="${ACCOUNT}"
 
 if "${cmd[@]}"; then
-  git pull --rebase
+  "${dryrun}" || git pull --rebase
 else
   echo -e '\n'; die "semantic-release failed"
 fi

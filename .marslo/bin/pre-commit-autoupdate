@@ -19,7 +19,7 @@ declare -r HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 declare -r CFG='.pre-commit-config.yaml'
 declare -ra ROLLING_REPOS=( 'crate-ci/typos' )
 # dirs bypassed in multi-repo mode ( gitignore-style globs, relative to the search root )
-declare -ra BYPASS_DIRS=( '**/archive/**' '**/backup/**' '**/backups/**' )
+declare -ra BYPASS_DIRS=( '**/archive/**' '**/backup/**' '**/backups/**' '**/sandbox/**' )
 declare -r C_DIM='0;2;3;37' C_HEAD='0;1;36' C_SUB='0;1;34' C_ERR='0;1;31'
 
 declare -A LATEST=()

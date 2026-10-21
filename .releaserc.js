@@ -22,6 +22,19 @@ const TYPE_TO_SECTION = Object.fromEntries(SECTIONS.map(s => [s.type, s.section]
 const SECTION_ORDER   = SECTIONS.map(s => s.section);
 const isSignoff       = (line) => /^\s*Signed-off-by:/i.test(line);
 const stripSignoff    = (text) => (text || '').split('\n').filter(l => !isSignoff(l)).join('\n').trim();
+// `BREAKING CHANGE:` / `BREAKING-CHANGE:` footer; already rendered from `notes` under "### ⚠ BREAKING CHANGES"
+const isNoteStart     = (line) => /^\s*BREAKING[ -]CHANGES?:/.test(line);
+// git trailer line, e.g. "Closes #12", "Refs: …", "Co-authored-by: …"
+const isTrailer       = (line) => /^\s*[\w-]+(?::\s|\s#)/.test(line);
+// drop each note block (keyword line + continuation lines, up to a blank line or the next trailer)
+const stripNotes      = (lines) => {
+  let inNote = false;
+  return lines.filter(l => {
+    if (isNoteStart(l)) { inNote = true; return false; }
+    if (inNote && (l.trim() === '' || isTrailer(l))) { inNote = false; }
+    return !inNote;
+  });
+};
 
 // ── Handlebars templates (writer-8 compatible; vendored from the conventional-commits preset so they work regardless of the installed preset major) ──
 const mainTemplate = `{{> header}}
@@ -132,12 +145,15 @@ module.exports = {
             c.scopeFmt = c.scope.split(',').map(s => '**' + s.trim() + '**').join(', ');
           }
 
-          // the parser may split trailing body lines into `footer` (e.g. a bullet containing an issue-like "#N"); fold body + footer back together and drop Signed-off-by
-          const detail = [c.body, c.footer]
-            .filter(Boolean)
-            .join('\n')
-            .split('\n')
-            .filter(l => !isSignoff(l));
+          // the parser may split trailing body lines into `footer` (e.g. a bullet containing an issue-like "#N"); fold body + footer back together, drop Signed-off-by and BREAKING CHANGE notes (rendered from `notes`), collapse repeated blank lines and trim trailing ones
+          const detail = stripNotes(
+            [c.body, c.footer]
+              .filter(Boolean)
+              .join('\n')
+              .split('\n')
+              .filter(l => !isSignoff(l))
+          ).filter((l, i, a) => !(l.trim() === '' && i > 0 && a[i - 1].trim() === ''));
+          while (detail.length && detail[detail.length - 1].trim() === '') { detail.pop(); }
           if (detail.some(l => l.trim() !== '')) {
             // bullet body (`- ...`) -> 2-space sub-list right under the subject; free-form body (no bullets) -> blank line + 4-space verbatim block
             const hasBullets = detail.some(l => /^\s*-\s+\S/.test(l));
