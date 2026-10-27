@@ -3,7 +3,7 @@
 #     FileName : pre-commit-autoupdate
 #       Author : marslo
 #      Created : 2026-05-13 14:15:00
-#   LastChange : 2026-10-26 17:40:29
+#   LastChange : 2026-10-26 17:46:59
 #  Description : `precommit autoupdate` — runs real autoupdate → fixes repos that use rolling major-version tags
 #                e.g. crate-ci/typos publishes "v1"
 #                inside a git repo  : upgrades the nearest .pre-commit-config.yaml ( cwd → repo root )
@@ -14,6 +14,7 @@
 #                exact-pinned additional_dependencies ( npm `pkg@x.y.z`, pip `pkg==x.y.z` ) are upgraded ( `--no-deps` to skip ):
 #                  - the hook's main package ( named in the repo, e.g. stylelint in pre-commit-stylelint ) aligns to the rev, incl. prerelease, if that version exists
 #                  - any other package is bumped to its latest stable release ( newest incl. prerelease with --pre )
+#                --node <x.y.z|system> : set `default_language_version.node` ( version checked on nodejs.org/dist ); configs without it are skipped
 #=============================================================================
 
 set -euo pipefail
@@ -29,6 +30,7 @@ declare -r C_DIM='0;2;3;37' C_HEAD='0;1;36' C_SUB='0;1;34' C_ERR='0;1;31'
 
 declare -r NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmjs.org}"
 declare -r PYPI_URL="${PYPI_URL:-https://pypi.org/pypi}"
+declare -r NODE_MIRROR="${NODE_MIRROR:-https://nodejs.org/dist}"
 # tag/version suffixes treated as prerelease
 declare -r PRERELEASE_RE='[0-9]+\.[0-9]+.*([-.+]?(alpha|beta|rc|next|canary|dev|pre|preview)|[0-9](a|b|rc)[0-9])'
 
@@ -221,7 +223,29 @@ function upgradeConfig() {
     pinRolling "${cfg}" || return 1
   fi
   test 'true' = "${BUMP_DEPS}" && { bumpDeps "${cfg}" || return 1; }
+  test -n "${NODE_VERSION}" && { setNode "${cfg}" || return 1; }
   return 0
+}
+
+# true if <version> is `system` or published on NODE_MIRROR: nodeExists <x.y.z|system>
+function nodeExists() {
+  test 'system' = "${1}" || curl -fsIL -o /dev/null "${NODE_MIRROR}/v${1}/"
+}
+
+# set `default_language_version.node` to NODE_VERSION; skip configs without that key
+function setNode() {
+  local cfg="${1}" line cur
+  read -r line cur < <( awk '
+    /^default_language_version:/ { dlv = 1; next }
+    dlv && /^[^[:space:]#]/       { dlv = 0 }
+    dlv && /^[[:space:]]+node:/   { v = $0; sub( /^[^:]*:[[:space:]]*/, "", v ); sub( /[[:space:]]*#.*$/, "", v ); print NR, v; exit }
+  ' "${cfg}" ) || true
+  test -n "${line:-}" || return 0
+  cur="${cur//[\"\']/}"
+  test "${NODE_VERSION}" = "${cur}" && return 0
+  CLEANUP+=( "${cfg}.bak" )
+  sed -i.bak "${line}s/$( sedEscape "${cur}" )/$( sedEscape "${NODE_VERSION}" )/" "${cfg}" && rm -f "${cfg}.bak" || return 1
+  printf "\033[${C_DIM}m[default_language_version]\033[0m \033[0;1;36mset node\033[0m: \033[0;1;3;34m%s\033[0m -> \033[0;1;3;35m%s\033[0m\n" "${cur}" "${NODE_VERSION}"
 }
 
 # pin rolling major-version tags ( ROLLING_REPOS ) to the latest release
@@ -323,17 +347,23 @@ trap '(( ${#CLEANUP[@]} )) && rm -f "${CLEANUP[@]}"' EXIT
 trap 'echo >&2; say "${C_ERR}" "interrupted, aborting" >&2; exit 130' INT TERM
 
 # strip wrapper-only flags; everything else is passed through to `pre-commit autoupdate`
-declare BUMP_DEPS='true' CHANNEL='stable'
+declare BUMP_DEPS='true' CHANNEL='stable' NODE_VERSION=''
 declare -a ARGS=()
-for arg in "${@}"; do
-  case "${arg}" in
+while (( ${#} )); do
+  case "${1}" in
     --no-deps ) BUMP_DEPS='false' ;;
     --stable  ) CHANNEL='stable' ;;
     --pre     ) CHANNEL='pre' ;;
-    *         ) ARGS+=( "${arg}" ) ;;
+    --node    ) test -n "${2:-}" || { echo >&2 'error: --node requires a version, e.g. --node 26.12.1'; exit 1; }
+                NODE_VERSION="${2}"; shift ;;
+    --node=*  ) NODE_VERSION="${1#--node=}" ;;
+    *         ) ARGS+=( "${1}" ) ;;
   esac
+  shift
 done
-declare -r BUMP_DEPS CHANNEL
+NODE_VERSION="${NODE_VERSION#v}"
+declare -r BUMP_DEPS CHANNEL NODE_VERSION
+test -z "${NODE_VERSION}" || nodeExists "${NODE_VERSION}" || { echo >&2 "error: node ${NODE_VERSION} not found on ${NODE_MIRROR}"; exit 1; }
 
 if git rev-parse --show-toplevel &>/dev/null; then
   singleMode "${ARGS[@]}"
