@@ -4,7 +4,7 @@
 #     FileName : pre-commit.sh
 #       Author : marslo
 #      Created : 2025-11-07 11:40:52
-#   LastChange : 2026-05-13 14:45:06
+#   LastChange : 2026-10-26 17:46:10
 #=============================================================================
 
 # ~/.local/share/bash-completion/completions/pre-commit or ~/.bash_completion.d/pre-commit
@@ -98,7 +98,8 @@ _pre_commit() {
       case "${prev}" in
         --repo | -j | --jobs ) return 0 ;;
       esac
-      COMPREPLY=( $(compgen -W "--bleeding-edge --freeze --repo -j --jobs -c --config --color -h --help" -- "${cur}") )
+      # --stable / --pre / --no-deps / --node: wrapper-only flags of ~/.marslo/bin/pre-commit-autoupdate
+      COMPREPLY=( $(compgen -W "--bleeding-edge --freeze --repo -j --jobs -c --config --color -h --help --stable --pre --no-deps" -- "${cur}") )
       ;;
 
     hook-impl)

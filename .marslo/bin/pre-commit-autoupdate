@@ -3,12 +3,17 @@
 #     FileName : pre-commit-autoupdate
 #       Author : marslo
 #      Created : 2026-05-13 14:15:00
-#   LastChange : 2026-10-19 23:09:42
+#   LastChange : 2026-10-26 17:40:29
 #  Description : `precommit autoupdate` — runs real autoupdate → fixes repos that use rolling major-version tags
 #                e.g. crate-ci/typos publishes "v1"
 #                inside a git repo  : upgrades the nearest .pre-commit-config.yaml ( cwd → repo root )
 #                outside a git repo : upgrades every .pre-commit-config.yaml of every git repo under cwd
 #                hook repos rewritten to github ssh ( :22 ) are pinned back to https via GIT_CONFIG_* env, scoped to pre-commit only
+#                --stable ( default ) : every prerelease rev ( e.g. v18.0.0-next.0 ) is pinned to the latest stable tag, prerelease deps to the latest stable release
+#                --pre                : keep prerelease revs, and bump other packages to their newest release incl. prerelease ( alpha / beta / rc / next / nightly / … )
+#                exact-pinned additional_dependencies ( npm `pkg@x.y.z`, pip `pkg==x.y.z` ) are upgraded ( `--no-deps` to skip ):
+#                  - the hook's main package ( named in the repo, e.g. stylelint in pre-commit-stylelint ) aligns to the rev, incl. prerelease, if that version exists
+#                  - any other package is bumped to its latest stable release ( newest incl. prerelease with --pre )
 #=============================================================================
 
 set -euo pipefail
@@ -22,8 +27,37 @@ declare -ra ROLLING_REPOS=( 'crate-ci/typos' )
 declare -ra BYPASS_DIRS=( '**/archive/**' '**/backup/**' '**/backups/**' '**/sandbox/**' )
 declare -r C_DIM='0;2;3;37' C_HEAD='0;1;36' C_SUB='0;1;34' C_ERR='0;1;31'
 
-declare -A LATEST=()
+declare -r NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmjs.org}"
+declare -r PYPI_URL="${PYPI_URL:-https://pypi.org/pypi}"
+# tag/version suffixes treated as prerelease
+declare -r PRERELEASE_RE='[0-9]+\.[0-9]+.*([-.+]?(alpha|beta|rc|next|canary|dev|pre|preview)|[0-9](a|b|rc)[0-9])'
+
+declare -A LATEST=() LATEST_DEP=() DEP_EXISTS=()
 declare -a CLEANUP=()
+
+# print "<line>\t<rev|dep>\t<repo>\t<value>" for every rev and additional_dependencies item ( block or flow list ); a frozen rev reports its `# frozen: <tag>`
+read -r -d '' REVS_DEPS_AWK <<'EOF' || true
+function strip( s ) { sub( /[[:space:]]+#.*$/, "", s ); gsub( /^[[:space:]"']+|[[:space:]"',]+$/, "", s ); return s }
+/^[[:space:]]*-?[[:space:]]*repo:/ { v = $0; sub( /^[^:]*repo:/, "", v ); repo = strip( v ); deps = 0; next }
+/^[[:space:]]*rev:/ {
+  v = $0; sub( /^[^:]*rev:/, "", v ); deps = 0
+  if ( v ~ /#[[:space:]]*frozen:/ ) { sub( /.*#[[:space:]]*frozen:[[:space:]]*/, "", v ); sub( /[[:space:]].*/, "", v ) } else v = strip( v )
+  print NR "\trev\t" repo "\t" v
+  next
+}
+/^[[:space:]]*additional_dependencies:/ {
+  v = $0; sub( /^[^:]*additional_dependencies:/, "", v ); deps = 1
+  if ( v ~ /\[/ ) {
+    deps = 0; gsub( /[][]/, "", v ); n = split( v, items, "," )
+    for ( i = 1; i <= n; i++ ) if ( strip( items[i] ) != "" ) print NR "\tdep\t" repo "\t" strip( items[i] )
+  }
+  next
+}
+deps && /^[[:space:]]*(#.*)?$/ { next }
+deps && /^[[:space:]]*-[[:space:]]+["']?[^:#"']+["']?[[:space:]]*(#.*)?$/ { v = $0; sub( /^[[:space:]]*-/, "", v ); print NR "\tdep\t" repo "\t" strip( v ); next }
+{ deps = 0 }
+EOF
+declare -r REVS_DEPS_AWK
 
 # print a colored line: say <ansi-code> <message...>
 function say() { local c="${1}"; shift; printf '\033[%sm%s\033[0m\n' "${c}" "${*}"; }
@@ -65,15 +99,135 @@ function latestTag() {
   LATEST[${repo}]="$( curl -fsSL ${GITHUB_TOKEN:+-H "Authorization: token ${GITHUB_TOKEN}"} "https://api.github.com/repos/${repo}/releases/latest" | jq -r '.tag_name // empty' )" || true
 }
 
-# autoupdate one config, then pin rolling major-version tags to the latest release ( skipped with --freeze )
+# print the highest of the stdin versions; a prerelease sorts before its release ( `-` / a / b / rc / dev → `~` for sort -V )
+function newest() {
+  awk '{ k = $0; sub( /-/, "~", k ); if ( match( k, /[0-9]\.?(a|b|rc|dev|pre)([0-9]|$)/ ) ) { p = substr( k, RSTART + 1 ); sub( /^\./, "", p ); k = substr( k, 1, RSTART ) "~" p } print k "\t" $0 }' \
+    | sort -t$'\t' -k1,1V | tail -1 | cut -f2
+}
+
+# fetch the newest version of a package into LATEST_DEP[<eco>:<pkg>] ( once per run ); stable only unless --pre: latestDep <npm|pip> <pkg>
+function latestDep() {
+  local eco="${1}" pkg="${2}"
+  test -v "LATEST_DEP[${eco}:${pkg}]" && return 0
+  case "${eco}" in
+    npm ) LATEST_DEP[${eco}:${pkg}]="$( curl -fsSL "${NPM_REGISTRY}/-/package/${pkg//\//%2F}/dist-tags" | jq -r '.[]' | sort -u )" || true ;;
+    pip ) LATEST_DEP[${eco}:${pkg}]="$( curl -fsSL "${PYPI_URL}/${pkg}/json" | jq -r '.releases | to_entries[] | select( .value | length > 0 ) | .key' )" || true ;;
+  esac
+  test 'pre' = "${CHANNEL}" || LATEST_DEP[${eco}:${pkg}]="$( command grep -vE "${PRERELEASE_RE}" <<< "${LATEST_DEP[${eco}:${pkg}]}" || true )"
+  LATEST_DEP[${eco}:${pkg}]="$( command grep -E '^[0-9]' <<< "${LATEST_DEP[${eco}:${pkg}]}" | newest || true )"
+  return 0
+}
+
+# true if <b> is a strictly newer version than <a>: isNewer <a> <b>
+function isNewer() {
+  test "${1}" != "${2}" && test "${2}" = "$( printf '%s\n' "${1}" "${2}" | newest )"
+}
+
+# escape a literal string for a sed BRE pattern / replacement
+function sedEscape() { printf '%s' "${1}" | sed 's/[][\.*^$/&]/\\&/g'; }
+
+# print "<repo>\t<rev>" of every hook repo in <cfg>
+function revsOf() { awk "${REVS_DEPS_AWK}" "${1}" | awk -F'\t' '"rev" == $2 { print $3 "\t" $4 }'; }
+
+# pin every prerelease rev to the latest stable tag of its repo ( may move back a major, e.g. v18.0.0-next.0 → v17.16.0 ): fixPrerelease <cfg> <pin-env...>
+function fixPrerelease() {
+  local cfg="${1}"; shift
+  local line kind repo rev stable
+  local -a sedArgs=()
+  while IFS=$'\t' read -r line kind repo rev; do
+    test 'rev' = "${kind}" && [[ "${repo}" =~ ^https:// ]] && [[ "${rev}" =~ ${PRERELEASE_RE} ]] || continue
+    stable="$( command env "${@}" git ls-remote --tags --refs "${repo}" 2>/dev/null \
+                 | sed -n 's|.*refs/tags/||p' | command grep -E '^v?[0-9]+(\.[0-9]+)*$' | sort -V | tail -1 )" || true
+    test -n "${stable}" || { echo >&2 "warning: no stable tag found for ${repo}, keeping ${rev}"; continue; }
+    sedArgs+=( -e "${line}s/$( sedEscape "${rev}" )/$( sedEscape "${stable}" )/" )
+    printf "\033[${C_DIM}m[%s]\033[0m \033[0;1;36mpinned stable rev\033[0m: \033[0;1;3;34m%s\033[0m -> \033[0;1;3;35m%s\033[0m\n" "${repo}" "${rev}" "${stable}"
+  done < <( awk "${REVS_DEPS_AWK}" "${cfg}" )
+  (( ${#sedArgs[@]} )) || return 0
+  CLEANUP+=( "${cfg}.bak" )
+  sed -i.bak "${sedArgs[@]}" "${cfg}" && rm -f "${cfg}.bak"
+}
+
+# true if <pkg>@<ver> is published on the registry ( once per run ): depExists <npm|pip> <pkg> <ver>
+function depExists() {
+  local eco="${1}" pkg="${2}" ver="${3}" url
+  if ! test -v "DEP_EXISTS[${eco}:${pkg}@${ver}]"; then
+    case "${eco}" in
+      npm ) url="${NPM_REGISTRY}/${pkg//\//%2F}/${ver}" ;;
+      pip ) url="${PYPI_URL}/${pkg}/${ver}/json" ;;
+    esac
+    DEP_EXISTS[${eco}:${pkg}@${ver}]="$( curl -fsL -o /dev/null "${url}" && echo 'true' || echo 'false' )"
+  fi
+  test 'true' = "${DEP_EXISTS[${eco}:${pkg}@${ver}]}"
+}
+
+# true if <pkg> is the hook repo's main package, i.e. a `-`-separated word of the repo name ( pre-commit-stylelint → stylelint, mirrors-mypy → mypy ): isMainPkg <repo> <pkg>
+function isMainPkg() {
+  local slug="${1%/}" name="${2##*/}"
+  slug="${slug##*/}"; slug="${slug%.git}"; slug="${slug//[_.]/-}"; name="${name//[_.]/-}"
+  [[ "-${slug,,}-" == *"-${name,,}-"* ]]
+}
+
+# upgrade exact-pinned additional_dependencies ( npm `pkg@ver`, pip `pkg[extra]==ver` ): the main package aligns to the rev, others bump to the latest stable
+function bumpDeps() {
+  local cfg="${1}"
+  local line kind repo dep eco pkg cur target action
+  local -A revOf=()
+  local -a sedArgs=()
+  while IFS=$'\t' read -r repo dep; do revOf[${repo}]="${dep}"; done < <( revsOf "${cfg}" )
+
+  while IFS=$'\t' read -r line kind repo dep; do
+    test 'dep' = "${kind}" || continue
+    if [[ "${dep}" =~ ^(@?[^@[:space:]]+)@([0-9][^@[:space:]]*)$ ]]; then
+      eco='npm'; pkg="${BASH_REMATCH[1]}"; cur="${BASH_REMATCH[2]}"
+    elif [[ "${dep}" =~ ^([A-Za-z0-9._-]+)(\[[^]]*\])?==([0-9][^,;[:space:]]*)$ ]]; then
+      eco='pip'; pkg="${BASH_REMATCH[1]}"; cur="${BASH_REMATCH[3]}"
+    else
+      continue
+    fi
+
+    if isMainPkg "${repo}" "${pkg}" && [[ "${revOf[${repo}]:-}" =~ ^v?([0-9][^[:space:]]*)$ ]]; then
+      target="${BASH_REMATCH[1]}"; action='aligned'
+      test "${cur}" = "${target}" && continue
+      depExists "${eco}" "${pkg}" "${target}" || { echo >&2 "warning: ${pkg} ${target} ( rev ${revOf[${repo}]} ) not found on ${eco}, keeping ${cur}"; continue; }
+    else
+      latestDep "${eco}" "${pkg}"
+      target="${LATEST_DEP[${eco}:${pkg}]}"; action='bumped'
+      test -n "${target}" || { echo >&2 "warning: could not fetch latest ${eco} release for ${pkg}, skipping"; continue; }
+      # --stable moves a prerelease pin to the latest stable even if older; otherwise only upgrade
+      if test 'stable' = "${CHANNEL}" && [[ "${cur}" =~ ${PRERELEASE_RE} ]]; then
+        test "${cur}" = "${target}" && continue
+        action='pinned stable'
+      else
+        isNewer "${cur}" "${target}" || continue
+      fi
+    fi
+
+    sedArgs+=( -e "${line}s/$( sedEscape "${dep}" )/$( sedEscape "${dep/%"${cur}"/${target}}" )/" )
+    printf "\033[${C_DIM}m[%s]\033[0m \033[0;1;36m%s %s dep\033[0m %s: \033[0;1;3;34m%s\033[0m -> \033[0;1;3;35m%s\033[0m\n" "${repo}" "${action}" "${eco}" "${pkg}" "${cur}" "${target}"
+  done < <( awk "${REVS_DEPS_AWK}" "${cfg}" )
+  (( ${#sedArgs[@]} )) || return 0
+  CLEANUP+=( "${cfg}.bak" )
+  sed -i.bak "${sedArgs[@]}" "${cfg}" && rm -f "${cfg}.bak"
+}
+
+# autoupdate one config, pin prerelease / rolling major-version tags ( skipped with --freeze ), then upgrade additional_dependencies against the final revs
 function upgradeConfig() {
   local cfg="${1}"; shift
-  local repo pattern current latest
   local -a pin
   mapfile -d '' -t pin < <( pinHttps "${cfg}" )
   command env "${pin[@]}" "${PRECOMMIT}" autoupdate --config "${cfg}" "${@}" || return 1
-  [[ " ${*} " == *' --freeze '* ]] && return 0
+  if [[ " ${*} " != *' --freeze '* ]]; then
+    test 'stable' = "${CHANNEL}" && { fixPrerelease "${cfg}" "${pin[@]}" || return 1; }
+    pinRolling "${cfg}" || return 1
+  fi
+  test 'true' = "${BUMP_DEPS}" && { bumpDeps "${cfg}" || return 1; }
+  return 0
+}
 
+# pin rolling major-version tags ( ROLLING_REPOS ) to the latest release
+function pinRolling() {
+  local cfg="${1}"
+  local repo pattern current latest
   for repo in "${ROLLING_REPOS[@]}"; do
     command grep -qF "${repo}" "${cfg}" || continue
     latestTag "${repo}"
@@ -168,10 +322,23 @@ declare -r PRECOMMIT TOOL="$( pickTool )"
 trap '(( ${#CLEANUP[@]} )) && rm -f "${CLEANUP[@]}"' EXIT
 trap 'echo >&2; say "${C_ERR}" "interrupted, aborting" >&2; exit 130' INT TERM
 
+# strip wrapper-only flags; everything else is passed through to `pre-commit autoupdate`
+declare BUMP_DEPS='true' CHANNEL='stable'
+declare -a ARGS=()
+for arg in "${@}"; do
+  case "${arg}" in
+    --no-deps ) BUMP_DEPS='false' ;;
+    --stable  ) CHANNEL='stable' ;;
+    --pre     ) CHANNEL='pre' ;;
+    *         ) ARGS+=( "${arg}" ) ;;
+  esac
+done
+declare -r BUMP_DEPS CHANNEL
+
 if git rev-parse --show-toplevel &>/dev/null; then
-  singleMode "${@}"
+  singleMode "${ARGS[@]}"
 else
-  multiMode "${@}"
+  multiMode "${ARGS[@]}"
 fi
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
