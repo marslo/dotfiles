@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2207
 #=============================================================================
-#     FileName : imarslo.sh
+#     FileName : imarslo.bash
 #       Author : marslo
 #      Created : 2026-03-09 14:28:06
-#   LastChange : 2026-09-15 23:19:50
+#   LastChange : 2026-10-26 18:43:07
 #=============================================================================
 
 function _compgen_nocase() {

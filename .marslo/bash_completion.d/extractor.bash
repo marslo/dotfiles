@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
+# =============================================================================
+#      FileName : extractor.bash
+#        Author : marslo
+#       Created : 2026-03-06 00:12:34
+#    LastChange : 2026-10-26 18:45:54
+# =============================================================================
 
-_extractor_completion() {
+function _extractor_completion() {
   local cur file
 
   COMPREPLY=()

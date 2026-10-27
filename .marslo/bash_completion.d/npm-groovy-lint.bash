@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #=============================================================================
-#     FileName : npm-groovy-lint.sh
-#       Author : marslo.jiao@gmail.com
+#     FileName : npm-groovy-lint.bash
+#       Author : marslo
 #      Created : 2025-02-10 14:20:12
-#   LastChange : 2025-02-10 14:20:12
+#   LastChange : 2026-10-26 18:42:54
 #=============================================================================
 
 _npm-groovy-lint() {

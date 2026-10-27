@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2207
 #=============================================================================
-#     FileName : commitlint.sh
-#       Author : marslo.jiao@gmail.com
+#     FileName : commitlint.bash
+#       Author : marslo
 #      Created : 2025-04-24 23:56:54
-#   LastChange : 2025-04-25 00:27:06
+#   LastChange : 2026-10-26 18:43:30
 #=============================================================================
 
 _commitlint_completions() {

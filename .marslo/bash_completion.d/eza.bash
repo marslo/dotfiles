@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2207
 #=============================================================================
-#     FileName : eza.sh
+#     FileName : eza.bash
 #       Author : marslo
 #      Created : 2026-05-12 17:28:00
-#   LastChange : 2026-05-12 17:30:13
+#   LastChange : 2026-10-26 18:43:20
 #  Description : bash completion for eza v0.23.4
 #                https://github.com/eza-community/eza
 #=============================================================================

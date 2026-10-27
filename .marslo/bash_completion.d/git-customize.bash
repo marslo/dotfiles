@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2207
 #=============================================================================
-#     FileName : git-customize.sh
+#     FileName : git-customize.bash
 #       Author : marslo
 #      Created : 2025-12-11 21:28:56
-#   LastChange : 2026-09-01 21:11:25
+#   LastChange : 2026-10-26 18:43:09
 #=============================================================================
 
 function _git_ca()     { _git_mcx;      }

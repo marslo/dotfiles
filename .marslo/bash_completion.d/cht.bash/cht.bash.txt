@@ -313,7 +313,7 @@ az
 az-account
 az-acr
 az-advisor
-az-aks
+az-ask
 az-apim
 az-appconfig
 az-bicep
@@ -1312,7 +1312,7 @@ ebook-convert
 ebuild
 echo
 eclean
-ect
+etc
 ed
 edgepaint
 edit
@@ -2848,7 +2848,7 @@ linode-cli-account
 linode-cli-domains
 linode-cli-events
 linode-cli-linodes
-linode-cli-lke
+linode-cli-like
 linode-cli-nodebalancers
 linode-cli-object-storage
 linode-cli-tickets
@@ -3132,7 +3132,7 @@ mk
 mkcert
 mkdir
 mkdocs
-mke2fs
+make2fs
 mkfifo
 mkfile
 mkfs
@@ -3204,10 +3204,10 @@ more
 moreutils
 moro
 mosh
-mosquitto
-mosquitto_passwd
-mosquitto_pub
-mosquitto_sub
+mosquito
+mosquito_passwd
+mosquito_pub
+mosquito_sub
 most
 mount
 mount.cifs
@@ -3345,7 +3345,7 @@ nim/hello
 nim/rosetta/
 nimble
 ninja
-nitch
+niche
 nitrogen
 nix
 nix-build
@@ -13446,7 +13446,7 @@ sdk
 sdkmanager
 searchsploit
 secd
-secon
+second
 secret-tool
 secrethub
 secretsdump.py
@@ -13528,7 +13528,7 @@ shntool-split
 shopt
 short
 shortcuts
-shotcut
+shortcut
 show-markdown
 showfigfonts
 showkey
@@ -14419,7 +14419,7 @@ wps
 wpscan
 wrangler
 write
-wrk
+work
 wsl
 wsl-open
 wtf
@@ -14639,7 +14639,7 @@ zipinfo
 zipnote
 zipsplit
 zless
-zlib-flate
+zlib-flat
 zm
 zmore
 zmv

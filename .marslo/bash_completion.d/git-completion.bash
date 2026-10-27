@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2207
 #=============================================================================
-#     FileName : git-completion.sh
+#     FileName : git-completion.bash
 #       Author : marslo
 #      Created : 2025-12-11 21:28:56
-#   LastChange : 2026-09-03 16:48:55
+#   LastChange : 2026-10-26 18:43:11
 #=============================================================================
 
 # unified session-level cache for all git subcommand completions: cmd -> opts string

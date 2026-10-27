@@ -10,11 +10,11 @@ extend-exclude = [
   "**/*.color",
   "**/.signingmanager/**",
   "**/*.current",
-  "cht.sh.txt",
+  "cht.bash.txt",
   # from pre-commit hook
   "**/vimrc.d/snips/**",
   "**/vimrc.d/shortcuts",
-  "**/.gpg/**"
+  "**/.gpg/**",
 ]
 
 [default]

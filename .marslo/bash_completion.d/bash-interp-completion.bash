@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2207
 #=============================================================================
-#     FileName : bash-interp-completion.sh
+#     FileName : bash-interp-completion.bash
 #       Author : marslo
 #      Created : 2026-09-15 23:40:00
-#   LastChange : 2026-09-15 23:37:30
+#   LastChange : 2026-10-26 18:43:44
 #=============================================================================
 #
 # unified `bash <script> …` / `sh <script> …` completion dispatcher.

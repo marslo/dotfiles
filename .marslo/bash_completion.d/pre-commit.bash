@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2034,SC2155,SC2207
 #=============================================================================
-#     FileName : pre-commit.sh
+#     FileName : pre-commit.bash
 #       Author : marslo
 #      Created : 2025-11-07 11:40:52
-#   LastChange : 2026-10-26 17:46:59
+#   LastChange : 2026-10-26 18:42:44
 #=============================================================================
 
 # ~/.local/share/bash-completion/completions/pre-commit or ~/.bash_completion.d/pre-commit

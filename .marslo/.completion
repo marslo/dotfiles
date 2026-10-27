@@ -4,7 +4,7 @@
 #     FileName : .completion
 #       Author : marslo
 #      Created : 2025-11-14 20:34:08
-#   LastChange : 2026-09-01 23:34:55
+#   LastChange : 2026-10-26 18:40:26
 #=============================================================================
 
 # /--------------------------------------------------------------
@@ -24,33 +24,33 @@ declare ANSIBLE_COMPLETION_PATH="${BASH_COMPLETION_USER_DIR}/ansible-completion"
 # declare NPM_COMPLETION="$HOME/.npm/lib/node_modules/npm-completion"             # for npm-completion https://github.com/Jephuff/npm-bash-completion
 
 test -f "${RT_COMPLETION}"                                     && source "${RT_COMPLETION}"
-test -f "${BASH_COMPLETION_USER_DIR}"/imarslo.sh               && source "${BASH_COMPLETION_USER_DIR}"/imarslo.sh
-test -f "${BASH_COMPLETION_USER_DIR}"/cht.sh/cht.sh            && source "${BASH_COMPLETION_USER_DIR}"/cht.sh/cht.sh
+test -f "${BASH_COMPLETION_USER_DIR}"/imarslo.bash             && source "${BASH_COMPLETION_USER_DIR}"/imarslo.bash
+test -f "${BASH_COMPLETION_USER_DIR}"/cht.bash/cht.bash        && source "${BASH_COMPLETION_USER_DIR}"/cht.bash/cht.bash
 test -f "${BASH_COMPLETION_USER_DIR}"/complete_alias           && source "${BASH_COMPLETION_USER_DIR}"/complete_alias
-test -f "${BASH_COMPLETION_USER_DIR}"/npm-groovy-lint.sh       && source "${BASH_COMPLETION_USER_DIR}"/npm-groovy-lint.sh
+test -f "${BASH_COMPLETION_USER_DIR}"/npm-groovy-lint.bash     && source "${BASH_COMPLETION_USER_DIR}"/npm-groovy-lint.bash
 # for git alias completion - should load after source git-completion.sh ( after .imac/.ilinux )
-test -f "${BASH_COMPLETION_USER_DIR}"/git-customize.sh         && source "${BASH_COMPLETION_USER_DIR}"/git-customize.sh
-test -f "${BASH_COMPLETION_USER_DIR}"/git-completion.sh        && source "${BASH_COMPLETION_USER_DIR}"/git-completion.sh
+test -f "${BASH_COMPLETION_USER_DIR}"/git-customize.bash       && source "${BASH_COMPLETION_USER_DIR}"/git-customize.bash
+test -f "${BASH_COMPLETION_USER_DIR}"/git-completion.bash      && source "${BASH_COMPLETION_USER_DIR}"/git-completion.bash
 test -f "${BASH_COMPLETION_USER_DIR}"/typos-msg.bash           && source "${BASH_COMPLETION_USER_DIR}"/typos-msg.bash
 
-type -P commitlint >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/commitlint.sh
-type -P pre-commit >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/pre-commit.sh
-type -P kubectl    >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/kubectl.sh
-type -P npm        >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/npm.sh
-type -P gh         >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/gh.bash.sh
-type -P bat        >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/bat.sh
-type -P pipx       >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/pipx.sh
+type -P commitlint >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/commitlint.bash
+type -P pre-commit >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/pre-commit.bash
+type -P kubectl    >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/kubectl.bash
+type -P npm        >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/npm.bash
+type -P gh         >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/gh.bash
+type -P bat        >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/bat.bash
+type -P pipx       >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/pipx.bash
 type -P pip        >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/pip.bash
 type -P python     >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/python.bash
-type -P poetry     >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/poetry.sh
-type -P code       >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/code.sh
-type -P fossa      >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/fossa.sh
-type -P typos      >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/typos.sh
-type -P scc        >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/scc.sh
-type -P extractor  >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/extractor.sh
-type -P mas        >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/mas.sh
+type -P poetry     >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/poetry.bash
+type -P code       >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/code.bash
+type -P fossa      >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/fossa.bash
+type -P typos      >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/typos.bash
+type -P scc        >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/scc.bash
+type -P extractor  >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/extractor.bash
+type -P mas        >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/mas.bash
 type -P tmux       >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/tmux
-type -P eza        >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/eza.sh
+type -P eza        >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/eza.bash
 complete -o bashdefault -o filenames -F _eza la
 type -P ls-stgs.sh >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/ls-stgs.bash
 type -P keyring    >/dev/null                      && source "${BASH_COMPLETION_USER_DIR}"/keyring.bash
