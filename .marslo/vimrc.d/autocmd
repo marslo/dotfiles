@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-10-21 12:31:12
+"    LastChange : 2026-10-26 19:08:00
 " =============================================================================
 
 " vint: -ProhibitAutocmdWithNoGroup
@@ -154,6 +154,8 @@ if has( 'autocmd' )
     autocmd BufRead,BufNewFile .*ignore            set filetype=ignore
     " .mdc: Cursor rule file (YAML frontmatter + markdown body)
     autocmd BufRead,BufNewFile *.mdc               set filetype=markdown
+    " .txt under bash_completion.d: plain text ( vim-polyglot's `*/bash[_-]completion.d/*` rule sets every file there to sh )
+    autocmd BufRead,BufNewFile */bash_completion.d/*.txt,*/bash_completion.d/**/*.txt set filetype=text
     " ALE vscodejson is LSP, so it keeping show publishDiagnostics when insert; and g:ale_open_list=1 will non-stop execute lopen/lclose
     autocmd FileType           json,jsonc,markdown
             \  let g:indentLine_setConceal   = 0

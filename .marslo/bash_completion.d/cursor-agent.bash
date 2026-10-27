@@ -181,7 +181,7 @@ function _cursor_agent() {
   esac
 }
 
-complete -o bashdefault -o default -F _cursor_agent cursor-agent
-complete -o bashdefault -o default -F _cursor_agent agent
+complete -F _cursor_agent cursor-agent
+complete -F _cursor_agent agent
 
 # vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=sh:
