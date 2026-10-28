@@ -661,7 +661,7 @@ export NODE_PATH="/opt/homebrew/lib/node_modules"   # = `npm root -g`; so coc-ht
 # lexima behavior reference
 
 > Cursor is shown as `│`. Rules come from the lexima config in [`.marslo/vimrc.d/extension`](https://github.com/marslo/dotfiles/blob/main/.marslo/vimrc.d/extension#L245-L311).
-> "Allowed position" = space / end of line / `) ] } >` / `" ' ` `` ` `` / `/` / `, ; : ! ?`.
+> "Allowed position" = space / end of line / `) ] } >` / `" ' ` `` ` `` ( closing quote only for `( [ { <` ) / `/` / `, ; : ! ?`.
 
 ## 1. Basic pairing — cursor is followed by an "allowed position"
 
@@ -684,6 +684,8 @@ export NODE_PATH="/opt/homebrew/lib/node_modules"   # = `npm root -g`; so coc-ht
 | `│foo`  | `(`   | `(│foo`  | followed by a letter → only the opening char is inserted, no closing |
 | `│foo`  | `"`   | `"│foo`  | same as above                                                        |
 | `│.bar` | `{`   | `{│.bar` | followed by `.` → suppressed                                         |
+| `│'a'`  | `[`   | `[│'a'`  | `( [ { <` followed by an opening quote `"` `'` `` ` `` → suppressed  |
+| `"│"`   | `<`   | `"<│>"`  | followed by a closing quote → paired                                 |
 
 ## 3. Apostrophe in contractions/words — `'` right after a word
 

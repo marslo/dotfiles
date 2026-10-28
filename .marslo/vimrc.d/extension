@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-09-14 22:01:08
+"    LastChange : 2026-10-27 22:31:22
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -245,15 +245,19 @@ let g:indentLine_bufNameExclude       = ['_.*', 'NERD_tree.*']
 
 " cohama/lexima.vim
 let g:lexima_enable_basic_rules = 1
-" suppress auto-pair before word content or `.`; still pair before whitespace, closing bracket/quote, punctuation `,;:!?`, path `/`, or EOL (priority 1)
+" quotes suppress auto-pair before word content or `.`; still pair before whitespace, closing bracket/quote, punctuation `,;:!?`, path `/`, or EOL (priority 1)
 let s:suppress_regex = '\%#\%(\\["''`]\)\@![^ \t)}\]>"''`,;:!?/]'
-for s:char in ['"', "'", '`', '<']
+for s:char in ['"', "'", '`']
   call lexima#add_rule({ 'char': s:char, 'at': s:suppress_regex, 'priority': 1 })
 endfor
-" brackets suppress before word content or `.`; still pair before whitespace, quote, path `/`, closing bracket, punctuation `,;:!?`, or EOL
+" brackets suppress before word content or `.`; still pair before whitespace, quote, path `/`, closing bracket, punctuation `,;:!?`, or EOL (priority 1)
+" brackets also suppress before an opening quote `"` `'` `` ` `` (even count of that quote before cursor): `<│"` -> single, `"│"` -> pair
 let s:bracket_suppress = '\%#[^ \t)}\]>"''`,;:!?/]'
-for s:char in ['(', '[', '{']
+for s:char in ['(', '[', '{', '<']
   call lexima#add_rule({ 'char': s:char, 'at': s:bracket_suppress, 'priority': 1 })
+  for s:q in ['"', "'", '`']
+    call lexima#add_rule({ 'char': s:char, 'at': '^\%([^' . s:q . ']*' . s:q . '[^' . s:q . ']*' . s:q . '\)*[^' . s:q . ']*\%#' . s:q, 'priority': 1 })
+  endfor
 endfor
 " suppress auto-pair for quotes when odd number on line (priority 1)
 for s:char in ['"', "'", '`']

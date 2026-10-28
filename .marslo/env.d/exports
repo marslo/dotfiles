@@ -101,7 +101,7 @@ if type -P node >/dev/null 2>&1 && [ "$(node -v | cut -d'.' -f1 | tr -d 'v')" -g
   export UNDICI_NO_NATIVE_HINTS=1
 fi
 # for coc-html issue
-if isLinux; then
+if isLinux && type -P node >/dev/null 2>&1 && type -P npm >/dev/null 2>&1; then
   # shellcheck disable=SC2155
   export NODE_PATH="$(command npm root -g)"
 fi
