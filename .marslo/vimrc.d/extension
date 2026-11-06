@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.2
-"    LastChange : 2026-10-27 22:31:22
+"    LastChange : 2026-11-05 18:45:38
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -297,6 +297,11 @@ call lexima#add_rule({ 'char': '\', 'at': '\%#\\`',  'leave': 1, 'priority': 3 }
 function! s:EscapedQuoteBS() abort
   let l = getline('.')
   let c = col('.') - 1
+  " python empty prefixed string `f'|'` / `rb"|"` -> delete prefix and both quotes
+  if 'python' ==# &filetype && l[c-1] =~# '[''"]' && l[c-1] ==# l[c]
+    let pre = matchstr(strpart(l, 0, c - 1), '\%(^\|\W\)\zs' . s:py_str_prefix . '$')
+    if '' !=# pre | return "\<Del>" . repeat("\<BS>", strlen(pre) + 1) | endif
+  endif
   if c >= 2
     let after = c + 2 <= len(l) ? l[c : c+1] : ''
     for q in ['"', "'", '`']
@@ -313,6 +318,11 @@ let s:html_tags = ['div', 'font', 'span', 'code', 'pre', 'table', 'tbody', 'thre
 for s:tag in s:html_tags
   call lexima#add_rule({ 'char': '>', 'at': '<' . s:tag . '\%#>', 'leave': 1, 'input_after': '</' . s:tag . '>', 'filetype': ['markdown', 'html', 'groovy', 'Jenkinsfile'] })
   call lexima#add_rule({ 'char': '>', 'at': '<' . s:tag . '\%#\%(\s\|$\|<\)', 'input_after': '</' . s:tag . '>', 'filetype': ['markdown', 'html', 'groovy', 'Jenkinsfile'] })
+endfor
+" python prefixed string: `f'` -> `f'|'`, `rb"` -> `rb"|"`; prefix f / r / b / rf / fr / rb / br (any case); only when the prefix starts a word, the same quote has even count before it, and cursor is before whitespace / closer / `,:` / EOL (priority 2 beats suppress and lexima's apostrophe-after-word rule)
+let s:py_str_prefix = '\%([rR][bBfF]\|[bBfF][rR]\|[rRbBfF]\)'
+for s:q in ['"', "'"]
+  call lexima#add_rule({ 'char': s:q, 'input_after': s:q, 'at': '^\%([^' . s:q . ']*' . s:q . '[^' . s:q . ']*' . s:q . '\)*[^' . s:q . ']*\<' . s:py_str_prefix . '\%#\%([ \t)}\],:]\|$\)', 'filetype': 'python', 'priority': 2 })
 endfor
 
 " `"` `'` `` ` `` open-vs-close by line quote-parity, where lexima wrongly pairs the 2nd quote in `"( "$1 )"`-style strings.

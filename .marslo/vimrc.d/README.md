@@ -86,6 +86,7 @@ vimrc.d/
   - [6. After the escape char `\`](#6-after-the-escape-char-%5C)
   - [7. Triple quotes (markdown / docstring)](#7-triple-quotes-markdown--docstring)
   - [8. Backspace deletes the whole pair](#8-backspace-deletes-the-whole-pair)
+  - [9. Python prefixed strings (`ft=python` only)](#9-python-prefixed-strings-ftpython-only)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -660,7 +661,7 @@ export NODE_PATH="/opt/homebrew/lib/node_modules"   # = `npm root -g`; so coc-ht
 
 # lexima behavior reference
 
-> Cursor is shown as `│`. Rules come from the lexima config in [`.marslo/vimrc.d/extension`](https://github.com/marslo/dotfiles/blob/main/.marslo/vimrc.d/extension#L245-L311).
+> Cursor is shown as `│`. Rules come from the lexima config in [`.marslo/vimrc.d/extension`](https://github.com/marslo/dotfiles/blob/main/.marslo/vimrc.d/extension#L246-L326).
 > "Allowed position" = space / end of line / `) ] } >` / `" ' ` `` ` `` ( closing quote only for `( [ { <` ) / `/` / `, ; : ! ?`.
 
 ## 1. Basic pairing — cursor is followed by an "allowed position"
@@ -733,8 +734,26 @@ export NODE_PATH="/opt/homebrew/lib/node_modules"   # = `npm root -g`; so coc-ht
 | `(│)`  | `<BS>` | `│`   | delete the opening char → closing char is removed too |
 | `"│"`  | `<BS>` | `│`   | same as above                                         |
 
+## 9. Python prefixed strings (`ft=python` only)
+
+Prefix: `f` `r` `b` `rf` `fr` `rb` `br`, any case. Pairs only when the prefix starts a word, the same quote has an even count before it, and the cursor is followed by whitespace / `) ] }` / `, :` / end of line.
+
+| BEFORE      | INPUT  | AFTER        | NOTE                                              |
+| ----------- | ------ | ------------ | ------------------------------------------------- |
+| `x = f│`    | `'`    | `x = f'│'`   | f-string → paired                                 |
+| `x = f│`    | `"`    | `x = f"│"`   | same as above                                     |
+| `x = rb│`   | `'`    | `x = rb'│'`  | two-char prefix → paired                          |
+| `x = Rf│`   | `"`    | `x = Rf"│"`  | any case                                          |
+| `x = rr│`   | `'`    | `x = rr'│`   | invalid prefix → not paired                       |
+| `if│`       | `'`    | `if'│`       | prefix must start the word → not paired           |
+| `'a f│`     | `'`    | `'a f'│`     | odd count before → closing quote, not paired      |
+| `x = f'│'`  | `<BS>` | `x = │`      | empty prefixed string → prefix + both quotes gone |
+| `x = rb"│"` | `<BS>` | `x = │`      | same as above                                     |
+| `x = f'a│'` | `<BS>` | `x = f'│'`   | non-empty → normal backspace                      |
+
 ---
 
 > [!NOTE]
 > Groups 1, 2, 3, 6, 8 are actual results measured with `feedkeys` in headless nvim;
-> groups 4 (leave), 5 (`<<`), 7 (triple) are from lexima's standard behavior + screenshot confirmation.
+> groups 4 (leave), 5 (`<<`), 7 (triple) are from lexima's standard behavior + screenshot confirmation;
+> group 9 is measured by per-key typing in vim under tmux.
