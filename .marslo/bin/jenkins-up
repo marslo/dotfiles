@@ -4,16 +4,13 @@
 #      FileName : jenkins-up
 #        Author : marslo
 #       Created : 2026-08-13 18:49:06
-#    LastChange : 2026-08-13 21:32:39
+#    LastChange : 2026-11-05 18:29:35
 # =============================================================================
 
 set -euo pipefail
 
-# shellcheck disable=SC2155
-# declare -r HERE="$( dirname "${BASH_SOURCE[0]:-$0}" )"
 # @credit: https://github.com/ppo/bash-colors
-# @usage:  or copy & paste the `c()` function from:
-#          https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
+# @usage:  or copy & paste the `c()` function from: https://github.com/ppo/bash-colors/blob/master/bash-colors.sh#L3
 source "${HOME}/.marslo/bin/bash-colors.sh" 2>/dev/null || { c() { :; }; }
 
 declare KUBECONFIG="${HOME}/iMarslo/job/devops/env/linux/dc5-ssdfw8/.kube/config"
@@ -25,6 +22,7 @@ declare -a KUBECOLOR=( env KUBECOLOR_FORCE_COLORS=true kubecolor --kubeconfig="$
 declare -r JENKINS_URL='https://updates.jenkins.io'
 declare -r LTS_URL="${JENKINS_URL}/stable/latestCore.txt"
 declare -r WEEKLY_URL="${JENKINS_URL}/current/latestCore.txt"
+declare -r HUB_URL='https://hub.docker.com/v2/repositories'
 
 declare JDK=''
 declare FORCE_LTS=false
@@ -70,13 +68,11 @@ function pickDeploy() {
   awk '{print $1}'
 }
 
-# echo "name image" for the fzf-chosen container of a deployment;
-# always lists every container, preview shows that container's current image
+# echo "name image" of the fzf-chosen container of a deployment ( lists every container, preview shows its current image )
 function pickContainer() {
   local deploy="${1:?deployment required}"
 
-  "${KUBECTL[@]}" get deployment "${deploy}" \
-      -o jsonpath='{range .spec.template.spec.containers[*]}{.name}{"\t"}{.image}{"\n"}{end}' |
+  "${KUBECTL[@]}" get deployment "${deploy}" -o jsonpath='{range .spec.template.spec.containers[*]}{.name}{"\t"}{.image}{"\n"}{end}' |
   fzf --no-sort --no-multi \
       --reverse \
       --height=20% --min-height 3+ \
@@ -89,7 +85,7 @@ function pickContainer() {
   awk '{print $1, $2}'
 }
 
-# echo the upgraded image string for the given current image preserves registry prefix, the -lts marker, and any -jdkNN suffix
+# echo the upgraded image for the given current image; keeps the registry prefix, the -lts marker and any -jdkNN suffix
 function computeImage() {
   local curImage="${1:?current image required}"
   local repo="${curImage%:*}"
@@ -112,7 +108,7 @@ function computeImage() {
   "${FORCE_LTS}" && isLts=1
   test -n "${JDK}" && jdk="${JDK}"
 
-  # channel decided by the original -lts marker
+  # channel by the -lts marker
   test -n "${isLts}" && url="${LTS_URL}" || url="${WEEKLY_URL}"
 
   newcore="$( curl -sL --max-time 15 "${url}" )"
@@ -126,7 +122,32 @@ function computeImage() {
   echo "${repo}:${newcore}${newsuffix}"
 }
 
-# wait until the rollout completes, polled via plain GET; this cluster's watch is broken (bookmark expired), so `rollout status` hangs
+# echo the docker hub repo ( namespace/name ) of an image repo, e.g. <registry>/<remote>/jenkins/jenkins -> jenkins/jenkins
+function hubRepo() {
+  local repo="${1:?image repo required}"
+  local name="${repo##*/}"
+  local rest="${repo%/*}"
+  test "${rest}" = "${repo}" && echo "library/${name}" || echo "${rest##*/}/${name}"
+}
+
+# echo the HTTP code of a tag on docker hub: 200 exists, 404 not found, others ( e.g. 000 ) unknown
+function hubTagCode() {
+  local hub="${1:?hub repo required}"
+  local tag="${2:?tag required}"
+  curl -sL -o /dev/null -w '%{http_code}' --max-time 15 "${HUB_URL}/${hub}/tags/${tag}" || true
+}
+
+# echo the space-separated -jdkNN variants of a tag prefix on docker hub, e.g. 2.580.2-lts -> 2.580.2-lts-jdk21 2.580.2-lts-jdk25
+function jdkVariants() {
+  local hub="${1:?hub repo required}"
+  local prefix="${2:?tag prefix required}"
+  command -v jq >/dev/null 2>&1 || return 0
+  curl -sL --max-time 15 "${HUB_URL}/${hub}/tags?page_size=100&name=${prefix}" |
+  command jq -r --arg p "^${prefix//./\\.}-jdk[0-9]+$" '.results[]?.name | select( test($p) )' 2>/dev/null |
+  sort -V | paste -sd ' ' - || true
+}
+
+# wait until the rollout completes via polled GET ( `rollout status` hangs: this cluster's watch is broken, bookmark expired )
 function waitRollout() {
   local deploy="${1:?deployment required}"
   local gen observed desired replicas updated avail
@@ -164,7 +185,7 @@ while test ${#} -gt 0; do
   esac
 done
 
-# normalize --jdk to jdkNN (accepts jdk17 or 17)
+# normalize --jdk to jdkNN ( accepts jdk17 or 17 )
 if test -n "${JDK}"; then
   declare _n="${JDK//[!0-9]/}"
   test -n "${_n}" || { die 'ERROR' "invalid --jdk value: $(c 0Cs)${JDK}$(c)"; exit 1; }
@@ -174,13 +195,13 @@ fi
 declare deploy; deploy="$( pickDeploy )" || deploy=''
 test -n "${deploy}" || { alert 'SKIP' 'no deployment selected !'; exit 1; }
 
-# --history: just show rollout history for the picked deployment, then stop
+# --history: show rollout history of the picked deployment, then exit
 "${HISTORY}" && {
   "${KUBECOLOR[@]}" rollout history deployment "${deploy}"
   exit 0
 }
 
-# chosen container: name + current image (fzf-list every container)
+# chosen container: name + current image
 declare picked
 picked="$( pickContainer "${deploy}" )" || picked=''
 test -n "${picked}" || { alert 'SKIP' 'no container selected !'; exit 1; }
@@ -188,7 +209,7 @@ test -n "${picked}" || { alert 'SKIP' 'no container selected !'; exit 1; }
 declare container curImage
 read -r container curImage <<< "${picked}"
 
-# upgrade logic is jenkins-specific; refuse a non-jenkins container image
+# refuse a non-jenkins container image
 case "${curImage}" in
   *jenkins* ) ;;
   *         ) alert 'ERROR' "container $(c 0Ms)${container}$(c 0i) is not a jenkins image: $(c 0Ys)${curImage}$(c)"; exit 1;;
@@ -210,11 +231,27 @@ if test "${curImage}" = "${newImage}"; then
   alert 'FORCE' "$(c 0Cs)${deploy}$(c) already on latest ($(c 0Ys)${newTag}$(c)), rollout restart"
 fi
 
+# new image: verify the tag exists on docker hub ( upstream of the artifactory mirror ) before touching the deployment
+if ! "${restart}"; then
+  declare hub code variants
+  hub="$( hubRepo "${newImage%:*}" )"
+  code="$( hubTagCode "${hub}" "${newTag}" )"
+  case "${code}" in
+    200 ) info 'VERIFIED' "${hub}:${newTag}" ;;
+    404 ) die 'NOT FOUND' "$(c 0Ys)${hub}:${newTag}$(c 0i) does not exist on docker hub$(c)"
+          variants="$( jdkVariants "${hub}" "${newTag%-jdk*}" )"
+          test -n "${variants}" && die 'AVAILABLE' "$(c 0Gi)${variants}$(c 0i) ( re-run with $(c 0G)--jdk$(c 0i) $(c 0Mi)NN$(c 0i) )$(c)"
+          exit 1
+          ;;
+    *   ) alert 'WARN' "cannot verify $(c 0Ys)${hub}:${newTag}$(c 0i) on docker hub ( HTTP ${code:-none} ), continue anyway$(c)" ;;
+  esac
+fi
+
 prompt="$( printf "$(c 0Wdi)>> $(c 0Wi)%-10s $(c 0Wdi): $(c 0C)[y/N]$(c) " 'proceed?' )"
 read -rp "${prompt}" ans
 [[ "${ans}" =~ ^([yY][eE][sS]|[yY])$ ]] || { alert 'SKIP' 'aborted.'; exit 0; }
 
-# 1. same version -> restart to force a fresh rollout; otherwise upgrade the image
+# 1. same version -> rollout restart; otherwise set the new image
 declare cause
 if "${restart}"; then
   "${KUBECTL[@]}" rollout restart deployment "${deploy}"
@@ -224,10 +261,10 @@ else
   cause="[$(date +'%F %T')] upgrade jenkins to ${newTag}"
 fi
 
-# 2. record change-cause (captured into the new revision during rollout)
+# 2. record change-cause ( captured into the new revision )
 "${KUBECTL[@]}" annotate deployment "${deploy}" "kubernetes.io/change-cause=${cause}" --overwrite
 
-# 3. wait for rollout (polled GET, not the hanging watch), then show history
+# 3. wait for rollout, then show history
 waitRollout "${deploy}"
 "${KUBECOLOR[@]}" rollout history deployment "${deploy}"
 
