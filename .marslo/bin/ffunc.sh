@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-10-20 01:23:20
+#   LastChange : 2026-11-05 18:26:51
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -118,7 +118,7 @@ function _load_tilde_context() {
 #   - otherwise copy the content of parameter `$1` via `pbcopy` or `clip.exe`
 # shellcheck disable=SC2317
 function copy() {                          # smart copy
-  [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uanme -s)$(c)$(c Rs). EXIT..$(c)" && return;
+  [[ -z "${COPY}" ]] && echo -e "$(c Rs)ERROR: 'copy' function NOT support :$(c) $(c Ri)$(uname -s)$(c)$(c Rs). EXIT..$(c)" && return;
 
   eval "$( _load_fd_context "$@" )"
   eval "$( _load_fzf_context     )"
@@ -1309,11 +1309,15 @@ function goto() {
     fi
   '
 
-  # requires setup environment variable `GHE_LAB_OWNER` to filter repos by owner
+  # filter repos by owner via `GHE_GOTO_OWNER`; fallback to `GHE_LAB_OWNER`; multiple owners separated by `|`, `,` or space, e.g. `GHE_GOTO_OWNER='OWNER_1|OWNER_2'`
+  local owner="${GHE_GOTO_OWNER:-${GHE_LAB_OWNER:-OWNER}}"
+  local -a owners=()
+  read -ra owners <<< "${owner//[|,]/ }"
+
   local list=''
   list=$(
     fd --color=never --hidden --no-ignore --type f --exclude '*sandbox*' --exclude '*archive*' --exclude '*poc*' --full-path '\.git/config$' "${path}" \
-       --exec-batch rg --color=never -l -e "${GHE_LAB_OWNER:-OWNER}" -e 'marslo_' 2>/dev/null |
+       --exec-batch rg --color=never --fixed-strings -l "${owners[@]/#/--regexp=}" --regexp='marslo_' 2>/dev/null |
     xargs -r ls -t |
     sed 's|/\.git/config$||' |
     awk -F/ '{printf "%s\t%s\n", $NF, $0}'
