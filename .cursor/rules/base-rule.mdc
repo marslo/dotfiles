@@ -8,29 +8,38 @@ alwaysApply: true
 1. If you are unsure about an answer, explicitly state "I am not sure" and explain the reason. Strictly NO guessing or hallucinating information!
 2. At the end of every response, provide a confidence score from 1 to 10. Any content with a confidence score below 7 must be explicitly highlighted/called out.
 3. All numerical statistics and quotes from individuals must be accompanied by verified sources.
+4. Before modifying any existing file, read it first with the Read tool. If the file is non-empty, it is FORBIDDEN to overwrite it wholesale — use StrReplace for targeted changes or to append. Write is only for creating a new file, or replacing one you have just read in full this session.
 
 请现在起遵守以下三条规则:
 
 1. 如果你对答案没有把握, 请直接说我不确定并解释原因, 严禁瞎猜假想!
 2. 每次回答完后, 请为你的信心指数打分, 1 到 10 分, 任何低于 7 分的内容都要专门标注出来
 3. 针对所有的数字统计数据和人物言论必须提供经过验证的来源
+4. 修改任何已存在的文件前, 必须先用 Read 读取原文件; 若文件非空, 严禁直接整体覆盖 —— 用 StrReplace 做局部修改或追加, 不得用 Write 覆盖 (Write 仅用于新建文件, 或覆盖你本次会话已完整读过的文件)
 
 **CRITICAL RULE**:
 
 - If not explicitly asked to commit, !!NEVER!! run git commit for any message. Provide the message if necessary, but unless explicitly instructed, you must absolutely not run git commit!
 - 如果没有明确的让你提交, !!切勿!! git commit 任何 message. 如果有必要提供就行, 除非我显式的让你提交, 否则一律不得 git commit!
 
-# Base Rules
+# 1. base-rule (always applied)
 
 1. Before editing any script, read the original file first with the Read tool.
-2. When running in a sandbox environment, prepend `/opt/homebrew/bin` to your PATH: `export PATH="/opt/homebrew/bin:/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"`.
+2. When running in a sandbox environment, prepend `/opt/homebrew/bin` to your PATH: `export PATH="/opt/homebrew/bin:$PATH"`.
 3. Only run `git commit` when I explicitly say "commit"; never push on your own.
 4. After substantive changes, run lint checks on the files you edited.
-5. Reply/Chat language
-  1. chat answers only: if I ask in Chinese, reply in Simplified Chinese; otherwise reply in English. (code comments are always English — see § 2.)
-  2. agent replies: always in English, regardless of the conversation language.
+5. Reply/Chat language — chat answers only: if I ask in Chinese, reply in Simplified Chinese; otherwise reply in English. (code comments are always English — see § 2.)
+6. Any `pip`/`pipx` install/uninstall action — `python3 -m pip install/uninstall`, `python -m pip install/uninstall`, bare `pip install/uninstall`, or `pipx install/uninstall` — is **allowed after the user approves**; it is not blanket-forbidden.
+   - ask via `AskQuestion` (regardless of the current mode), showing the exact command and target ( venv / `--user` / system ), with options like `Install` / `Exit` ( cancel ).
+   - `Install` → run the command as shown; `Exit` → stop the install and continue without it ( or report what is blocked ).
+   - approval is per-command; do not reuse it for a different package or action.
+7. Bash — when invoking bash in a command (e.g. `bash -lc '...'`, `bash script.sh`), use `/opt/homebrew/bin/bash` (Homebrew bash 5.x), never bare `bash` or `/bin/bash` (macOS system bash 3.2). Script shebangs are covered in `bash-style.mdc`.
+8. Mounted disks — read-only by default: every mounted volume ( e.g. `/mnt/pbu_sdk_stor`, `/data/isoc_platform_devops`, any other mount point ) may only be **read** ( `ls`, `cat`, `rg`, `fd`, `stat`, … ).
+   - no create / modify / delete / move / rename / chmod / chown / write-redirect on a mounted path, unless I explicitly ask for it in that request.
+   - an explicit request covers only the named path and action; it does not extend to other mounts or later requests.
+9. Node — the default `node` is Homebrew's: `/opt/homebrew/bin/node` ( same binary as `/opt/homebrew/opt/node/bin/node` ). Invoke node / `npm` / `npx` by that full path or with `/opt/homebrew/bin` first in `PATH`; never report a node version from another install ( nvm, volta, pre-commit `node_env-*`, … ) as the system node.
 
-# Code comments
+# 2. Code comments
 
 Style for comments in any language (`#`, `//`, `/* */`, `--`, …).
 
@@ -47,19 +56,9 @@ Style for comments in any language (`#`, `//`, `/* */`, `--`, …).
 # we do this because otherwise the log loses the PR link          # ❌ explains why
 ```
 
-# Shell: prefer modern search tools
+# 3. Shell/Command
 
-When running shell commands, prefer the faster modern replacements:
-
-- `find` → use `command fd`
-- `grep` → use `command rg` (ripgrep)
-
-Both are color-aliased, so ALWAYS invoke them with the `command` prefix (i.e. `command fd` / `command rg`) to bypass the alias and get clean, parseable output.
-
-Fallback: if the modern tool isn't installed (`command -v fd` / `command -v rg` fails), fall back to the default `find` / `grep`. Prefer a guarded one-liner,
-e.g. `command -v fd >/dev/null && command fd PATTERN || command find . -name PATTERN` and `command -v rg >/dev/null && command rg PATTERN || command grep -rn PATTERN`.
-
-# Shell: GNU tools on macOS (prefer over BSD)
+## 3.0. GNU tools on macOS (prefer over BSD)
 
 macOS ships BSD variants of `sed`/`awk`/`date`/`tar`/… whose flags and behavior differ from GNU. On this Mac the GNU versions are installed via Homebrew — **prefer them** so scripts behave the same as on Linux. The `gnubin` dirs are not on the default non-interactive PATH, so invoke by **full path** (or prepend the relevant `gnubin` dir to PATH).
 
@@ -89,7 +88,19 @@ export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:/opt/homebrew/opt/gnu-se
 
 Fallback: if a GNU binary isn't present, fall back to the BSD tool but keep flags POSIX-portable.
 
-# Shell: bypass color-injecting aliases
+## 3.1. prefer modern search tools
+
+When running shell commands, prefer the faster modern replacements:
+
+- `find` → use `command fd`
+- `grep` → use `command rg` (ripgrep)
+
+Both are color-aliased, so ALWAYS invoke them with the `command` prefix (i.e. `command fd` / `command rg`) to bypass the alias and get clean, parseable output.
+
+Fallback: if the modern tool isn't installed (`command -v fd` / `command -v rg` fails), fall back to the default `find` / `grep`. Prefer a guarded one-liner,
+e.g. `command -v fd >/dev/null && command fd PATTERN || command find . -name PATTERN` and `command -v rg >/dev/null && command rg PATTERN || command grep -rn PATTERN`.
+
+## 3.2. bypass color-injecting aliases
 
 When running Linux commands via Shell, any command I (marslo) have aliased that injects ANSI color or changes behavior MUST be invoked with the `command` prefix (the raw binary) to get clean, parseable output.
 Rule of thumb: if a command's output will be parsed again (pipes, command substitution, downstream grep/awk/sed), use `command` to bypass the alias. Purely human-facing interactive output may keep the colored alias.
@@ -104,12 +115,31 @@ Known aliases to bypass:
 - `eza` family (`la` / `els` / `etree`, `--icons` forces color) → when parsing use `command ls`
 - `ip` (`ip -c`) → use `command ip`
 
-# Git: always bypass the external diff tool
+## 3.3. Git - always bypass the external diff tool
 
 My git is configured with an external/pager diff tool (e.g. difftastic / delta via `diff.external` or `[pager] diff`). Any command that emits a diff MUST be run with `--no-pager` and `--no-ext-diff` so the output is a clean, parseable unified diff:
 
-- `git diff` → `git --no-pager diff --no-ext-diff --no-color`
+- `git diff` → `git --no-pager diff --no-ext-diff`
 - `git show` → `git --no-pager show --no-ext-diff --no-color`
 - `git log -p` → `git --no-pager log -p --no-ext-diff -1 --no-color`
 
-And `--no-color` is nice to have when the result will be parsed further.
+Add `--no-color` as well when the result will be parsed further.
+
+## 3.4. Git grep / `--name-only` — bypass the pager too
+
+Same principle as §3.3, for commands that emit **bare filenames**. On a TTY they run through `[pager] grep` / `[pager] diff` (delta); delta parses them as grep output and rewrites the **first `-` in a path into `:`** (it reads `-` as grep's context-line separator), so `release-scripts/...` prints as `release:scripts/...`. Bypass the pager whenever the output is a filename list or gets parsed:
+
+- `git grep ...`             → `git --no-pager grep ...`
+- `git diff --name-only ...` → `git --no-pager diff --name-only ...`
+- list conflict files        → `git --no-pager ls-files -u | cut -f2 | sort -u`
+
+one-time global opt-out for grep: `git config --global pager.grep false`.
+
+## 3.5. Git remote URL — read the raw value, not the `insteadOf`-rewritten one
+
+My git rewrites remote URLs via `url.<base>.insteadOf` into SSH host aliases ( e.g. `git@github.com:Marvell-Lab/…` → `git@ghe-marslo.com:Marvell-Lab/…` ); those aliases are **not** real hosts — all resolve to `github.com` ( see memory `git-ssh-host-aliases` ). To get the real host / `owner/repo` ( for `gh`, the GitHub API, curl ), read the stored URL from config:
+
+- `git config --get-regexp '^remote\..*\.url$'` → all remotes, raw stored URL ( before `insteadOf` )
+- `git config --get remote.origin.url`         → one remote, raw
+
+`git remote get-url` / `git remote -v` / `git ls-remote --get-url` return the **rewritten** ( alias ) URL — never pass that host to `gh --hostname` or HTTPS.

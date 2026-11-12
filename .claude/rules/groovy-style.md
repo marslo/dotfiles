@@ -305,3 +305,37 @@ if ( ! (cfg instanceof Map) ) return // ❌ triggers CodeNarc Instanceof
 
 > Negation keeps the outermost-bracket spacing: `! (cfg in Map)` — space-padded outer
 > `( )`, `!` outside.
+
+## 16. Closure returning a list / map literal — `{[ … ]}`
+
+When the whole closure body is one `[ … ]` literal ( `collectEntries`, `collect`, `collectMany`, … ), glue `{` to `[` and `]` to `}`; the `[ ]` keeps its single inner space.
+
+```groovy
+map.collectEntries {[ (it.key) : it.value ]}          // ✅
+list.collectMany {[ "-o ${it}" ]}                     // ✅
+list.collect {[ name: it.name, size: it.size() ]}     // ✅
+
+map.collectEntries { [ (it.key) : it.value ] }        // ❌ braces spaced off the literal
+map.collectEntries {[(it.key) : it.value]}            // ❌ no inner space in [ ]
+```
+
+> [!NOTE]
+> Only for a single-literal body; a closure with statements before the literal keeps the normal `{ … }` layout.
+
+## 17. No spread operator — use `collect` / `collectMany`
+
+Never use the spread operator `x*.foo()` / `x*.prop`; write an explicit `collect { … }`. To flatten, use `collectMany { … }`, not `collect { … }.flatten()` ( CodeNarc `UseCollectMany` ).
+
+```groovy
+list.collect { it.subpath }                           // ✅
+list.collect { it.get(key) }                          // ✅
+list.collectMany { it.keySet() }                      // ✅ flatten via collectMany
+
+list*.subpath                                         // ❌ spread property
+list*.get(key)                                        // ❌ spread method call
+list*.keySet().flatten()                              // ❌ spread + flatten
+list.collect { it.keySet() }.flatten()                // ❌ triggers CodeNarc UseCollectMany
+```
+
+> [!NOTE]
+> Ignore the CodeNarc `UnnecessaryCollectCall` info that suggests rewriting `collect` as a spread expression.

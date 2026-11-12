@@ -42,23 +42,31 @@ module docstring, and a trailing vim modeline):
 ## 2. Indentation & line length
 
 - **One tab = 4 spaces**, `expandtab` (never hard tabs) — `E101/W191`.
-- Max line length 79 (`E501`).
+- No line-length limit — ignore `E501`; keep one idea per line, wrap only when a single line can't be clear.
 
 ## 3. Bracket spacing (marslo convention — overrides PEP8)
 
-Pad the **inner** side of the **outermost** bracket pair (`()` / `[]`) with one
-space on each side. A single bracket is padded too; nested inner pairs stay tight.
+Pad by **nesting depth**: count `()` / `[]` pairs from the outermost ( depth 1 ) inward — **odd** depth ( 1, 3, 5 … ) → one space on each inner side; **even** depth ( 2, 4 … ) → tight.
+Same alternating style as the Groovy rule.
+
+- counted: call / def / grouping / tuple `()`, list literal / comprehension `[]`
+- not counted, always tight: subscripts `x[0]` / `d['k']`, dict / set literals `{}`
+- depth restarts at 1 for each statement
 
 ```python
-( xxx )                     # ✅ single bracket → padded
-( xxx(yyy) )                # ✅ nested → outer padded, inner tight
-spam( ham[1], {eggs: 2} )   # ✅ outermost () padded, inner []/{} tight
-def munge( sep: str = None ): ...   # ✅ padded; keyword-arg = keeps no space
+( xxx )                                             # ✅ depth 1 → padded
+( foo(yy) )                                         # ✅ depth 1 padded, depth 2 tight
+( foo(bar( xx )) )                                  # ✅ depth 1 padded, 2 tight, 3 padded
+os.path.dirname( os.path.abspath(__file__) )        # ✅ 1 padded, 2 tight
+[ column_id(i) for i in range(len( months )) ]      # ✅ 1 [] padded, 2 tight, 3 padded
+spam( ham[1], {eggs: 2} )                           # ✅ subscript / dict tight, not counted
+def munge( sep: str = None ): ...                   # ✅ padded; keyword-arg = keeps no space
 income = ( gross_wages
-           + taxable_interest       # ✅ break before binary operators
+           + taxable_interest                       # ✅ break before binary operators
            - ira_deduction )
-spam (1)                    # ❌ no space before the bracket (E211)
-( xxx( yyy ) )              # ❌ inner pair must stay tight
+spam (1)                                            # ❌ no space before the bracket (E211)
+( xxx( yyy ) )                                      # ❌ depth 2 must be tight
+( foo(bar(xx)) )                                    # ❌ depth 3 must be padded
 ```
 
 > ⚠ This intentionally contradicts pycodestyle `E201/E202`. If the `pycodestyle`

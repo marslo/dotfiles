@@ -41,6 +41,7 @@ Machine-wide rules for every project (the Claude Code analog of `~/.cursor/rules
 8. Mounted disks — read-only by default: every mounted volume ( e.g. `/mnt/pbu_sdk_stor`, `/data/isoc_platform_devops`, any other mount point ) may only be **read** ( `ls`, `cat`, `rg`, `fd`, `stat`, … ).
    - no create / modify / delete / move / rename / chmod / chown / write-redirect on a mounted path, unless I explicitly ask for it in that request.
    - an explicit request covers only the named path and action; it does not extend to other mounts or later requests.
+9. Node — the default `node` is Homebrew's: `/opt/homebrew/bin/node` ( same binary as `/opt/homebrew/opt/node/bin/node` ). Invoke node / `npm` / `npx` by that full path or with `/opt/homebrew/bin` first in `PATH`; never report a node version from another install ( nvm, volta, pre-commit `node_env-*`, … ) as the system node.
 
 # 2. Code comments
 
@@ -137,6 +138,15 @@ Same principle as §3.3, for commands that emit **bare filenames**. On a TTY the
 - list conflict files        → `git --no-pager ls-files -u | cut -f2 | sort -u`
 
 one-time global opt-out for grep: `git config --global pager.grep false`.
+
+## 3.5. Git remote URL — read the raw value, not the `insteadOf`-rewritten one
+
+My git rewrites remote URLs via `url.<base>.insteadOf` into SSH host aliases ( e.g. `git@github.com:Marvell-Lab/…` → `git@ghe-marslo.com:Marvell-Lab/…` ); those aliases are **not** real hosts — all resolve to `github.com` ( see memory `git-ssh-host-aliases` ). To get the real host / `owner/repo` ( for `gh`, the GitHub API, curl ), read the stored URL from config:
+
+- `git config --get-regexp '^remote\..*\.url$'` → all remotes, raw stored URL ( before `insteadOf` )
+- `git config --get remote.origin.url`         → one remote, raw
+
+`git remote get-url` / `git remote -v` / `git ls-remote --get-url` return the **rewritten** ( alias ) URL — never pass that host to `gh --hostname` or HTTPS.
 
 @rules/bash-style.md
 @rules/python-style.md
