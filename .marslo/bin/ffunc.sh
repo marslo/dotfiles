@@ -4,7 +4,7 @@
 #     FileName : ffunc.sh
 #       Author : marslo
 #      Created : 2023-12-28 12:23:43
-#   LastChange : 2026-11-05 18:26:51
+#   LastChange : 2026-11-12 00:06:23
 #  Description : [f]zf [func]tion
 #=============================================================================
 
@@ -536,30 +536,45 @@ function b() {                             # chrome [b]ookmarks browser with jq
 # @description :
 #   - --eval : eval db.collection.<COMMAND>
 #   - --json : print json format
-# @usage       : $ fmsh [ --eval <COMMAND> ] [ --json ]
+#   - -h, --help : show help message
+# @usage       : $ fmsh [ --eval <COMMAND> ] [ --json ] [ -h | --help ]
 # shellcheck disable=SC2155
 function fmsh() {                          # connect [m]ongodb with mongo[sh] with [f]zf
   local -a command=()
   local -a evalCmd=()
   local jsonPrint=false
-  declare -A credentials=(
-                           ['username@database']='path/to/credential'
-                         )
-
-  local db=$( printf "%s\n" "${!credentials[@]}" | fzf )
-  local username="${db%%@*}"
-  local database="${db##*@}"
-  local passPath="${credentials[$db]}"
+  local USAGE='USAGE'
+  USAGE+="\n  $(c Cs)\$ fmsh $(c 0G)[options]$(c)"
+  USAGE+="\n\nOPTIONS"
+  USAGE+="\n  $(c G)--eval$(c) $(c 0Mi)<COMMAND>$(c)   run <COMMAND> against the selected database"
+  USAGE+="\n  $(c G)--json$(c)             print the result as json"
+  USAGE+="\n  $(c G)-h$(c), $(c G)--help$(c)         show this help message"
+  USAGE+="\n\nEXAMPLES"
+  USAGE+="\n  $(c Y)\$ fmsh$(c)                                  $(c 0Wdi)# pick a user@database via fzf and open mongosh$(c)"
+  USAGE+="\n  $(c Y)\$ fmsh $(c 0Gi)--eval $(c 0Mi)'db.sheets.find()'$(c)        $(c 0Wdi)# run a command and exit$(c)"
+  USAGE+="\n  $(c Y)\$ fmsh $(c 0Gi)--json --eval $(c 0Mi)'db.sheets.find()'$(c) $(c 0Wdi)# print as json$(c)"
+  declare -A targets=(
+                       ['username@database']='mongodb://192.168.0.1:27010|path/to/credential'
+                       ['username@database']='mongodb://192.168.0.2:27011|path/to/credential'
+                     )
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --eval ) evalCmd=( "$2" ) ; shift 2 ;;
-      --json ) jsonPrint=true   ; shift   ;;
-           * ) break                      ;;
+      -h | --help ) echo -e "${USAGE}" ; return   ;;
+           --eval ) evalCmd=( "$2" )   ; shift 2  ;;
+           --json ) jsonPrint=true     ; shift    ;;
+                * ) break                         ;;
     esac
   done
 
-  command=( mongosh 'mongodb://mongodb.domain.com:27017' )
+  local db=$( printf "%s\n" "${!targets[@]}" | fzf )
+  [[ -n "${db}" ]] || return 1                        # fzf cancelled
+  local username="${db%%@*}"
+  local database="${db##*@}"
+  local url passPath
+  IFS='|' read -r url passPath <<< "${targets[$db]}"
+
+  command=( mongosh "${url}" )
   command+=( --username "${username}" --password "$(pass show ${passPath} | head -n1)" )
   command+=( --authenticationDatabase "${database}" )
   if [[ -n "${#evalCmd[@]}" ]]; then
@@ -974,12 +989,12 @@ function knrun() {                        # [k]ubernetes [n]odes [run]
 
   # shellcheck disable=SC2086
   if "${hhost}" && "${reproject}"; then
-    nodes=$( echo re-{01..26} jenkins | fmt -1 | fzf --prompt "hostname >" )
+    nodes=$( echo server-{01..26} jenkins | fmt -1 | fzf --prompt "hostname >" )
   elif "${phost}"; then
     nodes=$( echo sj4dl360n4u20 | fmt -1 | fzf --prompt "hostname >" )
   else
     if "${reproject}"; then
-      kconfig="${HOME}/.kube.re/config"
+      kconfig="${HOME}/.config/.kube/config"
       selector+=('node-role.kubernetes.io/worker=worker')
     else
       "${dind}"  && selector+=('devops.domain/docker.builder=true')
