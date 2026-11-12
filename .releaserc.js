@@ -128,8 +128,11 @@ module.exports = {
           const c = { ...commit };
 
           // type -> section label (drives the "### <section>" grouping)
+          // commits without a conventional `type:` prefix (e.g. "Initial commit") would render ungrouped under the previous section; file them under "Others" with the chore commits
           if (TYPE_TO_SECTION[c.type]) {
             c.type = TYPE_TO_SECTION[c.type];
+          } else if (!c.type) {
+            c.type = TYPE_TO_SECTION.chore;
           }
 
           // preset's default transform (overridden here) normally sets shortHash; restore it so the commit link text isn't empty ("[](…/commit/<hash>)")
