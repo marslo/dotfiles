@@ -2,7 +2,7 @@
 #     FileName : gitalias
 #       Author : marslo
 #      Created : 2020-09-15 06:31:53
-#   LastChange : 2026-10-19 22:03:35
+#   LastChange : 2026-11-09 18:47:36
 #      History : 2024-07-25 22:56:57 - using printf instead of echo/echo -e
 #                2025-05-22          - using git-del script instead of alias
 #                2025-06-10          - using git-mw script instead of alias
@@ -126,7 +126,6 @@
   # commit && push        #
   #-----------------------#
   # {{{
-  l-tag       = -c tag.gpgsign=false tag
   ci          = commit -s -m
   ### [c]ommit --[a]llow [e]mepty
   cae         = commit --allow-empty --signoff -am
@@ -240,8 +239,24 @@
 
   # stamp (#ID) onto every commit in base..HEAD and rebase onto base (auto-detect the PR's base branch by default)
   pr-stamp     = "!f() { \
+                         usage() { \
+                           printf '%s\\n' \
+                             'NAME' \
+                             '  pr-stamp • rebase onto origin/<base-branch> and stamp \" (#<ID>)\" onto each commit subject' \
+                             '' \
+                             'USAGE' \
+                             '  git pr-stamp <ID> [base-branch]' \
+                             '' \
+                             'OPTIONS' \
+                             '  <ID>            the PR number, e.g. 169500' \
+                             '  [base-branch]   the branch to rebase onto; default: the base branch of PR <ID> via `gh pr view`, falls back to `main`' \
+                             '' \
+                             'EXAMPLES' \
+                             '  git pr-stamp 169500           # rebase onto origin/<PR base branch>' \
+                             '  git pr-stamp 169500 stable    # rebase onto origin/stable'; \
+                         }; \
                          id=\"$1\"; base=\"$2\"; \
-                         test -z \"${id}\"   && { echo 'usage: git pr-stamp <ID> [base-branch]' >&2; return 1; }; \
+                         test -z \"${id}\"   && { usage >&2; return 1; }; \
                          test -z \"${base}\" && base=\"$( gh pr view \"${id}\" --json baseRefName -q .baseRefName 2>/dev/null )\"; \
                          test -z \"${base}\" && base=main; \
                          printf \"\\033[0;1;2;3;37m==> stamp PR \\033[0;1;33m#${id} \\033[0;1;2;3;37monto \\033[0;1;36morigin/${base}\\033[0m\n\" >&2; \
@@ -249,14 +264,33 @@
                        }; f \
                  "
 
-  # stamp (#ID) onto every commit in hash1..hash2 inclusive; rewrites that range in place
+  # stamp (#ID) onto every commit from <newer> back to <older> inclusive, e.g. `git pr-stamp-rev 123 HEAD HEAD^`; <newer> must be the tip of the current branch; rewrites that range in place and keeps the branch checked out
   pr-stamp-rev = "!f() { \
-                         test \"$#\" -eq 3 || { echo 'usage: git pr-stamp-rev <ID> <hash-1> <hash-2>' >&2; return 1; }; \
-                         id=\"$1\"; h1=\"$2\"; h2=\"$3\"; \
-                         git merge-base --is-ancestor \"${h1}\" \"${h2}\" || { echo \"error: ${h1} is not an ancestor of ${h2}\" >&2; return 1; }; \
-                         echo \"stamp #${id} onto ${h1}..${h2} (inclusive)\" >&2; \
-                         printf \"\\033[0;1;2;3;37m==> stamp \\033[0;1;33m#${id} \\033[0;1;2;3;37monto \\033[0;1;36m${h1}..${h2} \\033[0;1;2;3;37m(inclusive)\\033[0m\n\" >&2; \
-                         git rebase --onto \"${h1}^\" \"${h1}^\" \"${h2}\" --exec \"git pr-rebase ${id}\"; \
+                         usage() { \
+                           printf '%s\\n' \
+                             'NAME' \
+                             '  pr-stamp-rev • stamp \" (#<ID>)\" onto each commit subject from <newer> back to <older> ( inclusive )' \
+                             '' \
+                             'USAGE' \
+                             '  git pr-stamp-rev <ID> <newer> <older>' \
+                             '' \
+                             'OPTIONS' \
+                             '  <ID>      the PR number, e.g. 169500' \
+                             '  <newer>   the newer ( latest ) commit; must be the tip of the current branch, e.g. HEAD' \
+                             '  <older>   the older ( parent ) commit; must be an ancestor of <newer>, e.g. HEAD^' \
+                             '' \
+                             'EXAMPLES' \
+                             '  git pr-stamp-rev 169500 HEAD HEAD       # the latest commit only' \
+                             '  git pr-stamp-rev 169500 HEAD HEAD^      # the latest 2 commits' \
+                             '  git pr-stamp-rev 169500 HEAD HEAD~3     # the latest 4 commits'; \
+                         }; \
+                         test \"$#\" -eq 3 || { usage >&2; return 1; }; \
+                         id=\"$1\"; newer=\"$2\"; older=\"$3\"; \
+                         br=\"$( git symbolic-ref --quiet --short HEAD )\" || { echo 'error: detached HEAD, checkout a branch first' >&2; return 1; }; \
+                         test \"$( git rev-parse \"${newer}\" )\" = \"$( git rev-parse HEAD )\" || { echo \"error: <newer> ${newer} is not the tip of ${br} ( did you swap <newer> and <older>? )\" >&2; return 1; }; \
+                         git merge-base --is-ancestor \"${older}\" \"${newer}\" || { echo \"error: <older> ${older} is not an ancestor of <newer> ${newer}\" >&2; return 1; }; \
+                         printf \"\\033[0;1;2;3;37m==> stamp \\033[0;1;33m#${id} \\033[0;1;2;3;37monto \\033[0;1;36m${newer}..${older} \\033[0;1;2;3;37m(inclusive) on ${br}\\033[0m\n\" >&2; \
+                         git rebase --onto \"${older}^\" \"${older}^\" \"${br}\" --exec \"git pr-rebase ${id}\"; \
                        }; f \
                  "
   # }}}
@@ -425,6 +459,7 @@
   # info      = !bash -c '. ~/.marslo/.marslorc && gitinfo'
   ls-effort   = !git log --pretty=format: --name-only | sort | uniq -c | sort -rg
   tagcommit   = rev-list -1
+  light-tag   = -c tag.gpgsign=false tag
 
   init-repo   = "!f() { \
                         declare help=\"\"\"\
