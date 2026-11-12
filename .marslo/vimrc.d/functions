@@ -3,7 +3,7 @@
 "        Author : marslo
 "       Created : 2010-10
 "       Version : 2.0.1
-"    LastChange : 2026-10-12 13:02:02
+"    LastChange : 2026-10-19 17:27:59
 " =============================================================================
 " vint: -ProhibitAutocmdWithNoGroup
 
@@ -454,15 +454,48 @@ function! TSUpdateGitConfig() abort
 endfunction
 command! TSUpdateGitConfig call TSUpdateGitConfig()
 
-" re-apply coc.nvim pathRe patch ( space in char-class ) when build/index.js was overwritten by `:PlugUpdate` or `:CocUpdate`
-function! s:PlugCocRePatch() abort
-  let l:f = expand('~/.vim/plugged/coc.nvim/build/index.js')
-  if !filereadable(l:f) | return | endif
-  call system(['grep', '-qF', '\w .@', l:f])
-  if 0 == v:shell_error
-    call system(['perl', '-i', '-pe', 's/\\w \.@/\\w.@/g', l:f])
-  endif
+" run an argv list via system(); vim's system() takes a string only
+function! s:SystemList( argv ) abort
+  return system(join(map(copy(a:argv), 'shellescape(v:val)')))
 endfunction
-command! PlugCocRePatch call s:PatchCocPathRe()
+
+" coc.nvim pathRe patch ( `\w .@` -> `\w.@` in build/index.js ) as a git clean/smudge filter: worktree stays patched, git sees it clean, so `:PlugUpdate` fast-forwards without a manual reset
+" self-removes once upstream HEAD no longer contains `\w .@`
+function! s:PlugCocRePatch() abort
+  let l:dir = expand('~/.vim/plugged/coc.nvim')
+  let l:f   = l:dir . '/build/index.js'
+  if !filereadable(l:f) | return | endif
+  let l:git   = ['git', '-C', l:dir]
+  let l:attr  = l:dir . '/.git/info/attributes'
+  let l:rule  = 'build/index.js filter=cocpatch'
+
+  " upstream fixed ( `git grep` exit 1 = not found in HEAD ): drop the filter + attribute, restore the upstream file
+  call s:SystemList(l:git + ['grep', '-qF', '\w .@', 'HEAD', '--', 'build/index.js'])
+  if 1 == v:shell_error
+    call s:SystemList(l:git + ['config', '--remove-section', 'filter.cocpatch'])
+    if filereadable(l:attr) | call writefile(filter(readfile(l:attr), 'v:val !=# l:rule'), l:attr) | endif
+    call s:SystemList(l:git + ['checkout', 'HEAD', '--', 'build/index.js'])
+    echohl WarningMsg | echo 'coc.nvim: upstream pathRe fixed, cocpatch filter removed ( drop the PlugCocRePatch do-hook )' | echohl NONE
+    return
+  endif
+
+  " clean: patched -> upstream; smudge: upstream -> patched
+  call s:SystemList(l:git + ['config', 'filter.cocpatch.clean',  'perl -pe ''s/\\w\.@/\\w .@/g'''])
+  call s:SystemList(l:git + ['config', 'filter.cocpatch.smudge', 'perl -pe ''s/\\w \.@/\\w.@/g'''])
+
+  let l:lines = filereadable(l:attr) ? readfile(l:attr) : []
+  if index(l:lines, l:rule) < 0
+    call mkdir(fnamemodify(l:attr, ':h'), 'p')
+    call writefile(l:lines + [l:rule], l:attr)
+  endif
+
+  call s:SystemList(['grep', '-qF', '\w .@', l:f])
+  if 0 == v:shell_error
+    call s:SystemList(['perl', '-i', '-pe', 's/\\w \.@/\\w.@/g', l:f])
+  endif
+  " refresh the index stat ( patched file differs in size ); blob is unchanged via the clean filter
+  call s:SystemList(l:git + ['add', 'build/index.js'])
+endfunction
+command! PlugCocRePatch call s:PlugCocRePatch()
 
 " vim:tabstop=2:softtabstop=2:shiftwidth=2:expandtab:filetype=vim:

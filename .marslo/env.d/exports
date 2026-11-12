@@ -261,6 +261,11 @@ test -d '/opt/android' && {
   export ANDROID_NDK_HOME="${ANDROID_HOME}/android-ndk"
 }
 
+# nvim setup NVIM_NOTTYFAST for 12.3+
+# if command -v nvim >/dev/null 2>&1; then
+#   command nvim --version 2>/dev/null | command awk -F'[v.]' 'NR==1 { exit !($2 > 0 || ($2 == 0 && ($3 > 12 || ($3 == 12 && $4 >= 3)))) }' && export NVIM_NOTTYFAST=1
+# fi
+
 # kubecolor
 # export KUBECOLOR_THEME_TABLE_COLUMNS="cyan/yellow/magenta/gray/yellow/cyan/yellow"
 export KUBECOLOR_THEME_TABLE_HEADER="fg=magenta:bold:underline"

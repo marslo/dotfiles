@@ -92,8 +92,8 @@ endif
 if ! IsVscodeOrCursor()
   Plug 'vim-airline/vim-airline'
   Plug 'vim-airline/vim-airline-themes'
-  " do-hook: drop the literal space from coc file-source pathRe so a 2nd `./` on the same line still triggers path completion
-  Plug 'neoclide/coc.nvim', { 'branch': 'release', 'do': 'perl -i -pe ''s/\\w \.@/\\w.@/g'' build/index.js' }
+  " do-hook: drop the literal space from coc file-source pathRe so a 2nd `./` on the same line still triggers path completion ( see `PlugCocRePatch` in functions )
+  Plug 'neoclide/coc.nvim', { 'branch': 'release', 'do': ':PlugCocRePatch' }
 endif
 
 if IsNvim() || IsVscodeOrCursor()
