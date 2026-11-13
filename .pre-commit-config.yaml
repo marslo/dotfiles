@@ -6,7 +6,7 @@ ci:
 default_install_hook_types: [pre-commit, commit-msg]
 default_stages: [pre-commit]
 
-exclude: '^(.*/screenfetch-dev|.*/gitalias|.*/pip.conf|.*/\.vault/.*|\.signingmanager/.*|.*\.current|.*colors?|.*/set-git-user.sh|.*/renew.sh|.*/copilot.pem|\.pypirc|\.netrc)$'
+exclude: '^(.*/screenfetch-dev|.*/gitalias|.*/pip.conf|.*/\.vault/.*|\.signingmanager/.*|.*\.current|.*colors?|.*/set-git-user.sh|.*/renew.sh|.*/copilot.pem|\.pypirc|\.netrc|.*/tracker.env)$'
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -43,7 +43,7 @@ repos:
         exclude: ^(\.marslo/gitconfig\.d/.*|.*/vimrc.d/shortcuts)$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.4
+    rev: v0.17.5
     hooks:
       - id: ruff
         name: Ruff Linter

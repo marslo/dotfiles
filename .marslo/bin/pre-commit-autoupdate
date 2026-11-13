@@ -3,9 +3,9 @@
 #     FileName : pre-commit-autoupdate
 #       Author : marslo
 #      Created : 2026-05-13 14:15:00
-#   LastChange : 2026-10-26 17:46:59
-#  Description : `precommit autoupdate` — runs real autoupdate → fixes repos that use rolling major-version tags
-#                e.g. crate-ci/typos publishes "v1"
+#   LastChange : 2026-11-12 23:09:27
+#  Description : `precommit autoupdate` — runs real autoupdate → pins ROLLING_REPOS to their latest GitHub release
+#                e.g. crate-ci/typos publishes a rolling "v1" tag; gitleaks/gitleaks tags releases off its default branch ( autoupdate's `git describe` picks an older tag )
 #                inside a git repo  : upgrades the nearest .pre-commit-config.yaml ( cwd → repo root )
 #                outside a git repo : upgrades every .pre-commit-config.yaml of every git repo under cwd
 #                hook repos rewritten to github ssh ( :22 ) are pinned back to https via GIT_CONFIG_* env, scoped to pre-commit only
@@ -23,7 +23,8 @@ set -euo pipefail
 # shellcheck disable=SC2155
 declare -r HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 declare -r CFG='.pre-commit-config.yaml'
-declare -ra ROLLING_REPOS=( 'crate-ci/typos' )
+# repos pinned to `releases/latest` after autoupdate ( rolling major tags, or release tags off the default branch )
+declare -ra ROLLING_REPOS=( 'crate-ci/typos' 'gitleaks/gitleaks' )
 # dirs bypassed in multi-repo mode ( gitignore-style globs, relative to the search root )
 declare -ra BYPASS_DIRS=( '**/archive/**' '**/backup/**' '**/backups/**' '**/sandbox/**' )
 declare -r C_DIM='0;2;3;37' C_HEAD='0;1;36' C_SUB='0;1;34' C_ERR='0;1;31'
@@ -212,7 +213,7 @@ function bumpDeps() {
   sed -i.bak "${sedArgs[@]}" "${cfg}" && rm -f "${cfg}.bak"
 }
 
-# autoupdate one config, pin prerelease / rolling major-version tags ( skipped with --freeze ), then upgrade additional_dependencies against the final revs
+# autoupdate one config, pin prerelease revs and ROLLING_REPOS ( skipped with --freeze ), then upgrade additional_dependencies against the final revs
 function upgradeConfig() {
   local cfg="${1}"; shift
   local -a pin
@@ -248,7 +249,7 @@ function setNode() {
   printf "\033[${C_DIM}m[default_language_version]\033[0m \033[0;1;36mset node\033[0m: \033[0;1;3;34m%s\033[0m -> \033[0;1;3;35m%s\033[0m\n" "${cur}" "${NODE_VERSION}"
 }
 
-# pin rolling major-version tags ( ROLLING_REPOS ) to the latest release
+# pin ROLLING_REPOS revs to the latest GitHub release
 function pinRolling() {
   local cfg="${1}"
   local repo pattern current latest
